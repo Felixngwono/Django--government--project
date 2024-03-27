@@ -1,0 +1,37 @@
+{% extends "header.html" %}
+{% block content %}
+{% load static %}
+    {% load widget_tweaks %}
+    {% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+<div class=" sm:ml-64">
+    <div class="p-2 border-2">
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div>
+       
+    <section class="bg-white dark:bg-gray-900">
+        <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
+            <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Update profile</h2>
+            <form action="#">
+                <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                    <div class="sm:col-span-2">
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="user_avatar">Upload file</label>
+                        {%render_field form.profile  class="block  text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="user_avatar_help" id="user_avatar" type="file" %}
+                         </div>
+                   
+                </div>
+                <br><br>
+    <button type="submit" class="w-50 text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Submit Project</button>
+</div>
+      </form>
+        </div>
+      </section>
+    </div>
+</form>
+<script src="{% static 'js/projectform.js' %}"></script>
+</div>
+</div>
+{% comment %} {% include "footer.html" %} {% endcomment %}
+{% endblock content %}

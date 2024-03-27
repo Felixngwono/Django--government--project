@@ -1,0 +1,10 @@
+<h1>Generate and Download PDF</h1>
+<h2>Add a New Book</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Add project</button>
+</form>
+<p><a href="{% url 'generate_pdf' %}" download>Download project(PDF)</a></p>
+<br>
+<p><a href="{% url 'generate_pdf' %}" download>Download project  (CSV)</a></p>

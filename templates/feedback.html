@@ -1,0 +1,47 @@
+{% extends "header.html" %}
+{% block content %}
+{% load static %}
+{% load widget_tweaks %}
+
+    <script src="https://cdn.tailwindcss.com"></script>
+<link href="{% static 'css/feedback.css' %}">
+   {% include "sidebar.html" %}
+   <div class=" sm:ml-64">
+    <div class="p-2 border-2">
+
+      <div class="flex">
+        <div class="w-1/2 h-screen  bg-cover  flex justify-center items-center bg-no-repeat" style="background-image: url({% static 'images/feedbaack.jpeg' %});"></div>
+        <div class="w-1/2 px-8 py-10 "  style="background-color:lightgreen;">
+        
+<form method="POST" action="">
+    {% csrf_token %}
+    <section class="bg-gray dark:bg-gray-900  w-full">
+        <div class="py-12 px-6 mx-auto max-w-2xl lg:py-20">
+            <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Feedback Form</h2>
+           
+    <div class="mb-5">
+      <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Full Name</label>
+       {%render_field form.Full_name  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Enter FullName" required="" %}
+    </div>
+    <div class="mb-5">
+      <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
+      {%render_field form.email  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Enter Email" required="" %}
+   </div>
+    <div class="mb-5">
+      <label  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone Number</label>
+      {%render_field form.phone_number  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Enter PhoneNumber" required="" %}
+    </div>
+    <div class="mb-5">
+        <label  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Feedback</label>
+        {%render_field form.feedback  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Enter feedback" required="" %}
+   </div>
+    <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit Feedback</button>
+  </form>
+  
+
+</div>
+</section>
+</div>
+</div>
+{% include "footer.html" %}
+{% endblock content %}

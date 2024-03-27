@@ -1,0 +1,52 @@
+{% comment %} 
+
+{% for x in projects %}
+
+{{ x.project_status }}
+
+
+{{ x.total }}
+{% endfor%} {% endcomment %}
+
+
+<div>
+    <canvas id="myChart"></canvas>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script>
+    const ctx = document.getElementById('myChart');
+  
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+       
+        labels: [  {% for x in projects %}  "{{ x.project_status }}" {% if not forloop.last %}, {% endif %}     {% endfor %} ],
+      
+        datasets: [{
+          label: 'Project',
+        
+          data: [ {% for x in projects %}  {{ x.total }} {% if not forloop.last %}, {% endif %} {% endfor %} ],
+          backgroundColor: [ 
+          'rgba(255, 99, 132, 0.6)', // Red
+          'rgba(54, 162, 235, 0.6)', // Blue
+          'rgba(255, 206, 86, 0.6)', // Yellow
+          'rgba(75, 192, 192, 0.6)', // Green
+          'rgba(153, 102, 255, 0.6)', // Purple
+          'rgba(255, 159, 64, 0.6)', // Orange
+          // Add more colors as needed
+      ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+   

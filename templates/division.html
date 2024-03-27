@@ -1,0 +1,40 @@
+{% extends "header.html" %}
+ {% block content %}
+  {% include "sidebar.html" %} 
+  {%load widget_tweaks %}
+ {% load static %}
+ <div class="sm:ml-60 w-auto">
+  <div class="p-2 border-2">
+    <div class="slider-item" style="background-color:lightgrey ; background-repeat: no-repeat; background-size:cover;">
+
+<form action="" method="POST" class="max-w-sm mx-auto">
+  {% csrf_token %}
+  <p>Project Division List</p>
+  <hr/>
+  <br/>
+ 
+  <div class="mb-5">
+    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+    {%render_field form.name  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Type project name" required="" %}
+  </div>
+  <div class="mb-5">
+    <label
+      for="password"
+      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >Project Type</label
+    >
+    {%render_field form.project_type class="bg-gray-50 border border-gray-text-gray-900 text-sm rounded-lg focus:ring-primary-focus:border-primary-600 block w-full p-2.5 dark:bg-gray-dark:border-gray-600 dark:placeholder-gray-400 dark:text-whdark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Tproject name" required="" %}
+  </div>
+
+  <div class="mb-5">
+    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Lists</label>
+    {%render_field form.Project_list class="bg-gray-50 border border-gray-300text-gray-900 text-sm rounded-lg focus:ring-primary-600focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700dark:border-gray-600 dark:placeholder-gray-400 dark:text-whitedark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Typeproject name" required="" %}
+  </div>
+
+  <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit
+  </button>
+</form>
+</div>
+</div>
+{% include "footer.html" %} 
+{% endblock content %}

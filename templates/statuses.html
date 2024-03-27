@@ -1,0 +1,194 @@
+{% extends "header.html" %}
+{% load static %}
+{% block content %}
+<style>
+/* Keyframes for the zoom animation */
+@keyframes zoom {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2); /* Zoom in */
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Apply the zoom animation to the image */
+.zoom-effect {
+    animation: zoom 5s infinite alternate; /* Zoom in and out every 5 seconds */
+}
+</style>
+{% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+<div class=" sm:ml-64">
+  <div class=" bg-gray-50 p-2 border-2">
+<p type="text" class="bg-gray-50 p-10 border border-gray-300 text-gray-900 text-center rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-30 pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><b>Project Status</b></p>
+<hr>
+
+
+    <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
+      <div class="slider-item" style="background-color: lightblue; background-repeat: no-repeat;background-size: cover">
+<section class="  <u>-70 dark:bg-gray-900 p-3 sm:p-5">
+    <div class=" mx-auto max-w-screen-xl px-4 lg:px-12">
+        <!-- Start coding here -->
+        <div class="bg-gray-80 dark:bg-gray-800 relative   overflow-hidden">
+            <div class="flex flex-col md:flex-row  justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+                <div class="w-full md:w-1/2">
+                  
+                </div>
+                <br>
+               
+                <div>
+
+                    <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"><a href="{% url 'project' %}">Collapse</a></button>
+                    
+                </div>
+            </div>
+            
+            <section class="bg-gray dark:bg-gray-900">
+                <div class="gap-10 items-center py-8 px-6 mx-auto max-w-screen-xl  md:grid md:grid-cols-2 sm:py-18 lg:px-8">
+                  {% for project in projects %}
+                  <img src="{{ project.project_images.url }}" alt="{{ project.project_images }}" class="w-full h-90" style="background-size:cover;" />
+
+              {% endfor %}
+                    <div class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
+                        <ul>
+                                    <li scope="col" class="px-4 py-3"><b><u>Title</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.project_title}}</li></li>
+                                      
+                                      {% endfor %}
+                                    </li>
+                                    <li scope="col" class="px-4 py-3" ><b><u>Description</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.project_description}}</li></li>
+                                      {% endfor %}
+                                    <li scope="col" class="px-4 py-3"><b><u>Location</u></b> 
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.project_location}}</li></li>
+                                      {% endfor %}
+                                    </li>
+                                    <li scope="col" class="px-4 py-3"><b><u>Agency</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.implementing_agency}}</li></li>
+                                      
+                                      {% endfor %}
+                                    </li>  
+                                    <li scope="col" class="px-4 py-3"><b><u>Start Date</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.start_date}}</li></li>
+                                      {% endfor %}
+                                    </li>
+                                    <li scope="col" class="px-4 py-3"><b><u>End Date</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.end_date}}</li></li>
+                                      {% endfor %}
+                                    </li>
+                                    <li scope="col" class="px-4 py-3"><b><u>Status</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.project_status}}</li></li>
+                                      {% endfor %}
+                                    </li>
+
+                                    <li scope="col" class="px-4 py-3"><b><u>Budget</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.project_Budget}}</li></li>
+                                      {% endfor %}
+                                    </li>
+
+                                    
+
+        
+                                  
+                          </ul>
+                    </div>
+                </div>
+<div class="max-w-sm w-full bg-gray   p-4 md:p-6">
+
+    <div class="flex ">
+      <dl>
+        <dt class="text-base font-normal text-gray-500 dark:text-gray-400 pb-1">Profit</dt>
+        <dd class="leading-none text-3xl font-bold text-gray-900 dark:text-white">$5,405</dd>
+      </dl>
+      <div>
+        <span class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
+          <svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
+          </svg>
+          Profit rate 23.5%
+        </span>
+      </div>
+    </div>
+  
+    <div class="grid grid-cols-2 py-3">
+      <dl>
+        <dt class="text-base font-normal text-gray-500 dark:text-gray-400 pb-1">Income</dt>
+        <dd class="leading-none text-xl font-bold text-green-500 dark:text-green-400">$23,635</dd>
+      </dl>
+      <dl>
+        <dt class="text-base font-normal text-gray-500 dark:text-gray-400 pb-1">Expense</dt>
+        <dd class="leading-none text-xl font-bold text-red-600 dark:text-red-500">-$18,230</dd>
+      </dl>
+    </div>
+  
+    <div id="bar-chart"></div>
+      <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+        <div class="flex justify-between items-center pt-5">
+          <!-- Button -->
+          <button
+            id="dropdownDefaultButton"
+            data-dropdown-toggle="lastDaysdropdown"
+            data-dropdown-placement="bottom"
+            class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+            type="button">
+            Last 6 months
+            <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+            </svg>
+          </button>
+          <!-- Dropdown menu -->
+          <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+              <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 7 days</a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 30 days</a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 90 days</a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 6 months</a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last year</a>
+                </li>
+              </ul>
+          </div>
+          <a
+            href="#"
+            class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+            Revenue Report
+            <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+  </div>
+  
+                </div>
+            </section>
+          </div>
+        </div>
+            {% include "footer.html" %}
+            {% endblock content %}

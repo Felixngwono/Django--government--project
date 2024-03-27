@@ -1,0 +1,117 @@
+{% load static %}
+{% block content %}
+<header>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <nav class="bg-gray border-gray-200 px-4 lg:px-6 py-2.5 ">
+        <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+            <a href="#" class="flex items-center">
+                <img src="{% static 'images/GOK.png' %}" class="mr-3 h-6 sm:h-9" alt="Flowbite Logo" />
+                <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white"> <b> GovTracker</b></span>
+            </a>
+            <div class="flex items-center lg:order-2">
+                <a href="{% url 'login' %}" class="text-gray-800 dark:text-white hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800">Log in</a>
+                <a href="{% url 'registrationpage' %}" class="text-black bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Register</a>
+                <button data-collapse-toggle="mobile-menu-2" type="button" class="inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="mobile-menu-2" aria-expanded="false">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                    <svg class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            <div class="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
+                <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+                   
+                    
+                    <li>
+                        <a href="{% url 'AboutUs' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">About Us</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'testimonials' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Testimonials</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'team' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Team</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'contactus' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Contact Us</a>
+                    </li>
+                  
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <hr>
+</header>
+
+<header>
+    <!-- Your existing header content here -->
+</header>
+
+<title>Government Development Projects Tracker</title>
+<link rel="stylesheet" type='text/css' media='screen' href="{% static 'css/welcoming.css' %}">
+<div class="slider-item" style="background-image: url({% static 'images/estate.jpg' %}); background-repeat: no-repeat; background-size:cover;">
+<section id="about" >
+    <div class="container mx-auto py-12">
+        <div class="flex flex-col lg:flex-row items-center justify-between">
+            <div class="lg:w-1/2">
+                <h2 class="text-3xl mb-4">About Us</h2>
+                <p class="text-gray-700">We are dedicated to providing transparency and information about government
+                    development projects to empower citizens and stakeholders. Our mission is to ensure that everyone
+                    has access to information about the projects that shape the future of our nation.</p>
+            </div>
+            <div class="lg:w-1/2 mt-4 lg:mt-0">
+                <!-- You can add an image here if needed -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="projects" class="bg-light py-10">
+    <div class="container mx-auto">
+        <h2 class="text-center text-3xl mb-4">Featured Projects</h2>
+        <p class="text-center text-gray-700 mb-8">Explore some of the impactful government development projects
+            below.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Sample project card -->
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <img class="w-full h-48 object-cover object-center" src="{% static 'images/buore.jpg' %}" alt="Project Image">
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-2">Project Title</h3>
+                    <p class="text-gray-700">Giving Kenya a new look. Vision 2030 preparations</p>
+                </div>
+            </div>
+            <!-- Add more project cards here -->
+        </div>
+    </div>
+</section>
+
+<section id="team" class="py-10">
+    <div class="container mx-auto">
+        <h2 class="text-center font-semibold text-orange text-3xl mb-4">Our Team</h2>
+        <p class="text-center text-white mb-8">Meet the dedicated individuals behind GovTracker.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Sample team member card -->
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <img class="w-full h-48 object-cover object-center" src="{% static 'images/dala.jpg' %}" alt="Team Member Image">
+                <div class="p-6">
+                    <h3 class="text-xl text-center font-semibold mb-2">Victoria Amanda</h3>
+                    <p class="text-gray-700">CEO</p>
+                    <p class="text-gray-600">Amanda is the Chief Executive officer in our company.</p>
+                </div>
+            </div>
+            <!-- Add more team member cards here -->
+        </div>
+    </div>
+</section>
+
+<section id="contact" class="bg-gray-100 py-10">
+    <div class="container mx-auto">
+        <h2 class="text-center text-3xl mb-4">Contact Us</h2>
+        <p class="text-center text-gray-700 mb-8">Have questions or feedback? Get in touch with us!</p>
+        <div class="max-w-lg mx-auto">
+            <!-- Add contact form or contact information here -->
+        </div>
+    </div>
+</section>
+</div>
+
+{% include "footer.html" %}
+{% endblock content %}
