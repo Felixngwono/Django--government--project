@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 18, 2024 at 10:21 PM
+-- Generation Time: Mar 27, 2024 at 05:56 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -109,7 +109,11 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 (45, 'Can add project_ division', 10, 'add_project_division'),
 (46, 'Can change project_ division', 10, 'change_project_division'),
 (47, 'Can delete project_ division', 10, 'delete_project_division'),
-(48, 'Can view project_ division', 10, 'view_project_division');
+(48, 'Can view project_ division', 10, 'view_project_division'),
+(49, 'Can add pdf', 12, 'add_pdf'),
+(50, 'Can change pdf', 12, 'change_pdf'),
+(51, 'Can delete pdf', 12, 'delete_pdf'),
+(52, 'Can view pdf', 12, 'view_pdf');
 
 -- --------------------------------------------------------
 
@@ -151,6 +155,7 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (4, 'contenttypes', 'contenttype'),
 (7, 'member', 'contact'),
 (8, 'member', 'feedback'),
+(12, 'member', 'pdf'),
 (9, 'member', 'project'),
 (10, 'member', 'project_division'),
 (11, 'member', 'project_type'),
@@ -230,7 +235,9 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (53, 'member', '0005_rename_project_division_project_division_status', '2024-03-14 09:38:24.450238'),
 (54, 'member', '0006_remove_project_division_project_type_and_more', '2024-03-14 09:49:34.676048'),
 (55, 'member', '0007_rename_status_project_division_project_list', '2024-03-14 16:14:34.632288'),
-(56, 'member', '0008_user_profile', '2024-03-16 20:44:04.191540');
+(56, 'member', '0008_user_profile', '2024-03-16 20:44:04.191540'),
+(57, 'member', '0009_alter_user_profile', '2024-03-19 21:10:28.226833'),
+(58, 'member', '0010_pdf', '2024-03-26 08:08:21.702589');
 
 -- --------------------------------------------------------
 
@@ -250,7 +257,8 @@ CREATE TABLE `django_session` (
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
 ('2vt089yzk93g1jpe57uy09avc6k2uh3w', '.eJxVjMsOwiAURP-FtSGXt7h07zeQy4VK1UBS2pXx36VJF5rZnTkzbxZwW0vYel7CnNiFWXb6ZRHpmetepAfWe-PU6rrMke8KP9rOby3l1_Vw_w4K9jLW4MhokybplCNQWigCi96YLO10ttIJiOhU1NGDlJhADe7NiCBrPbDPF7SFNlM:1rhcPt:u0nI9VTPScEu_f0KIt3qoA0NruBXJG7sQAHQti-AwAo', '2024-03-19 21:33:41.747387'),
-('wdkiunjscvi3ekv4910ipygmzdn1chl6', '.eJxVjDEOwjAQBP_iGlm5I9gxJT1viHzeMw6gRIqTCvF3iJQC2p2ZfZk-rkvp16pzP8CcDZM5_I4S00PHjeAex9tk0zQu8yB2U-xOq71O0Odld_8OSqzlW7vMXloCeWRuHWmCo4aVQ-dDOMJnEsonkEPsRAlQp4kaoPPCic37AwhYOJM:1rmK9z:rEFF5PQLdvuTk0yyU0TGh1qoDbm2sfINQugior9KFuQ', '2024-04-01 21:04:43.276307'),
+('7cqcb4uyhxobtlq22seeqtfjt1p34tfu', '.eJxVjDEOwjAQBP_iGlm5I9gxJT1viHzeMw6gRIqTCvF3iJQC2p2ZfZk-rkvp16pzP8CcDZM5_I4S00PHjeAex9tk0zQu8yB2U-xOq71O0Odld_8OSqzlW7vMXloCeWRuHWmCo4aVQ-dDOMJnEsonkEPsRAlQp4kaoPPCic37AwhYOJM:1rp4im:_tGpGbuxRybIDCAcJDIqgVCh6wnkjv2NKzK_SeOcogU', '2024-04-09 11:12:00.596147'),
+('vq8jx9u6g3jv0rkhvs7p2xrpruyetmaa', '.eJxVjDEOwjAQBP_iGlm5I9gxJT1viHzeMw6gRIqTCvF3iJQC2p2ZfZk-rkvp16pzP8CcDZM5_I4S00PHjeAex9tk0zQu8yB2U-xOq71O0Odld_8OSqzlW7vMXloCeWRuHWmCo4aVQ-dDOMJnEsonkEPsRAlQp4kaoPPCic37AwhYOJM:1rnaJD:lJfsWCpGXA3wipO1J-a77bDDCZKbaWWdVksZqSrTLmc', '2024-04-05 08:31:27.730193'),
 ('yuhw4u40yp7imkfmp1hjsmefrumsjy3k', '.eJxVjDsOwjAQBe_iGlk268-akj5nsNY_HEC2FCcV4u4QKQW0b2bei3na1uq3kRc_J3Zhip1-t0DxkdsO0p3arfPY27rMge8KP-jgU0_5eT3cv4NKo35rGUSRELGgLUUWI43TUWR0VljtSKsIINGBJaBkCBFUQE0SDbpAZ8XeH81wNv8:1reMYv:hpkdkwmRKxdr2tVLRqN6L_QOEpHjcL5ACviepinIcoQ', '2024-03-10 22:01:33.454716');
 
 -- --------------------------------------------------------
@@ -274,7 +282,8 @@ INSERT INTO `member_contact` (`id`, `name`, `email`, `message`) VALUES
 (2, 'Toto Lavender', 'wodinga@gmail.com', 'nmbgv'),
 (3, 'Victoria Amanda', 'lavender@gmail.com', 'ergyujiopmk'),
 (4, 'Toto Vanessah', 'vanessa@gmail.com', 'thanks'),
-(5, 'Toto Lavender', 'oketchmichael7@gmail.com', 'vgdfsaz');
+(5, 'Toto Lavender', 'oketchmichael7@gmail.com', 'vgdfsaz'),
+(6, 'Frank Libe', 'libe@gmail.com', 'im frank libe and thanks for the service');
 
 -- --------------------------------------------------------
 
@@ -297,6 +306,32 @@ CREATE TABLE `member_feedback` (
 INSERT INTO `member_feedback` (`id`, `Full_name`, `email`, `phone_number`, `feedback`) VALUES
 (5, 'Victoria Amanda', 'amanda@gmail.com', 798643789, 'Amanda Nyar Usonga penjo'),
 (6, 'Ashley Young', 'young@gmail.com', 798564321, 'thanks for the service');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_pdf`
+--
+
+CREATE TABLE `member_pdf` (
+  `id` bigint(20) NOT NULL,
+  `project_title` varchar(100) NOT NULL,
+  `project_status` varchar(10) NOT NULL,
+  `project_description` longtext NOT NULL,
+  `project_location` varchar(100) NOT NULL,
+  `implementing_agency` varchar(100) NOT NULL,
+  `project_Budget` varchar(100) NOT NULL,
+  `project_images` varchar(100) DEFAULT NULL,
+  `start_date` datetime(6) DEFAULT NULL,
+  `end_date` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `member_pdf`
+--
+
+INSERT INTO `member_pdf` (`id`, `project_title`, `project_status`, `project_description`, `project_location`, `implementing_agency`, `project_Budget`, `project_images`, `start_date`, `end_date`) VALUES
+(1, 'blas', 'ongoing', 'kjh vgbjhk', 'bjkm,', 'iokl', 'nnklm,', '', '2024-03-26 08:09:03.955929', '2024-03-26');
 
 -- --------------------------------------------------------
 
@@ -414,7 +449,9 @@ CREATE TABLE `member_user` (
 
 INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `username`, `first_name`, `last_name`, `email`, `is_staff`, `is_active`, `date_joined`, `avatar`, `bio`, `name`, `is_enduser`, `profile`) VALUES
 (15, 'pbkdf2_sha256$720000$s0EQTnZrzzLmHe4r4xucPy$w1tK11w+rnmwIzTXcNua1+q5puTyfRe6DoxWdi7RT6w=', '2024-03-18 19:52:21.675846', 0, 'Ajumbutule', '', '', 'omondi@gamil.com', 0, 1, '2024-03-17 08:35:44.262524', 'avatar.png', 'Im Ajumbutule', 'Frank Omondi', 1, 'images/3006.webp'),
-(21, 'pbkdf2_sha256$720000$egu4GkZiUKQyRTWRl8TglI$gDt6MJ/vyTSQghwsNrrBhhV9KPezim4VmS7JYacOQ/I=', '2024-03-18 21:04:43.218217', 1, 'FelloMarley', '', '', 'fellomarley@gmail.com', 0, 1, '2024-03-18 21:04:19.576787', 'avatar.png', 'Im Marley', 'Felix Odhiambo', 0, 'images/chief_J9TcRuW.jpg');
+(21, 'pbkdf2_sha256$720000$egu4GkZiUKQyRTWRl8TglI$gDt6MJ/vyTSQghwsNrrBhhV9KPezim4VmS7JYacOQ/I=', '2024-03-26 11:12:00.513063', 1, 'FelloMarley', '', '', 'fellomarley@gmail.com', 0, 1, '2024-03-18 21:04:19.576787', 'avatar.png', 'Im Marley', 'Felix Odhiambo', 0, 'images/chief_J9TcRuW.jpg'),
+(22, 'felixodhiambo@kabarak.ac.ke', NULL, 1, 'StoryTeller', '', '', NULL, 1, 0, '2024-03-07 12:52:01.000000', '10', 'im Marley', 'Felix Odhiambo', 0, 'avartor.jpg'),
+(23, 'pbkdf2_sha256$720000$DmNhwrWdCFAV35coAQQe6q$7wF5Km+FOQ/lU7yGFCx3bctroyESCsTie2kd/LyadPs=', '2024-03-20 19:39:13.871283', 0, 'Vanessah', '', '', 'vanessa@gmail.com', 0, 1, '2024-03-20 19:38:48.673003', 'avatar.png', 'Im Vanessah. The only Titan from the lake in the family of akina Fellix The StoryTeller', 'Toto Vanessah', 1, 'profile/amanda.jpg');
 
 -- --------------------------------------------------------
 
@@ -507,6 +544,12 @@ ALTER TABLE `member_feedback`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `member_pdf`
+--
+ALTER TABLE `member_pdf`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `member_project`
 --
 ALTER TABLE `member_project`
@@ -569,7 +612,7 @@ ALTER TABLE `auth_group_permissions`
 -- AUTO_INCREMENT for table `auth_permission`
 --
 ALTER TABLE `auth_permission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `django_admin_log`
@@ -581,25 +624,31 @@ ALTER TABLE `django_admin_log`
 -- AUTO_INCREMENT for table `django_content_type`
 --
 ALTER TABLE `django_content_type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `member_contact`
 --
 ALTER TABLE `member_contact`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `member_feedback`
 --
 ALTER TABLE `member_feedback`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `member_pdf`
+--
+ALTER TABLE `member_pdf`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_project`
@@ -623,7 +672,7 @@ ALTER TABLE `member_project_type`
 -- AUTO_INCREMENT for table `member_user`
 --
 ALTER TABLE `member_user`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `member_user_groups`
