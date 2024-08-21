@@ -31,8 +31,6 @@ class Feedback(models.Model):
             return self.name
             
 
- 
-# Create your models here.
 
 class Project(models.Model):
     project_status=(

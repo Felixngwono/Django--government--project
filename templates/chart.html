@@ -1,12 +1,7 @@
-{% comment %} 
 
-{% for x in projects %}
+{% extends "header.html" %}
+{% block content %}
 
-{{ x.project_status }}
-
-
-{{ x.total }}
-{% endfor%} {% endcomment %}
 
 
 <div>
@@ -14,8 +9,8 @@
   </div>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
   <script>
+    
     const ctx = document.getElementById('myChart');
   
     new Chart(ctx, {
@@ -49,4 +44,16 @@
       }
     });
   </script>
-   
+</div>
+</div>
+   {% include "footer.html" %}
+  {% endblock content %}
+  {% comment %} 
+
+{% for x in projects %}
+
+{{ x.project_status }}
+
+
+{{ x.total }}
+{% endfor%} {% endcomment %}
