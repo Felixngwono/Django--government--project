@@ -1,7 +1,7 @@
 {% load static %}
 <script src="https://cdn.tailwindcss.com"></script>
 <div class="flex">
-    <div class="w-1/2 h-screen bg-cover bg-no-repeat" style="background-image: url({% static 'images/bg_1.jpg' %});"></div>
+    <div class="w-1/2 h-screen bg-cover bg-no-repeat  rounded-r-80" style="background-image: url({% static 'images/ease.png' %});"></div>
     
     <div class="w-1/2 flex  justify-center  px-6 py-8">
         
@@ -21,7 +21,7 @@
                     <div>
 
                         <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
-                        <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="name@company.com" required="">
+                        <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="name@gmail.com" required="">
                     </div>
                     <div>
                         <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
@@ -50,11 +50,7 @@
   <script src="{% static 'js/login.js' %}"></script>
 
   <div>
-  {% if messages %}
-    {% for message in messages %}
-    {{ message }}
-    {% endfor %}
-{% endif %}
+  
   </div>
 </div>
-</div>
+</div>+

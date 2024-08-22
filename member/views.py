@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from .forms import MyUserCreationForm,PdfForm, ContactUsForm,FeedbackForm,ProjectCreationForm,ProjectDivisionForm, ProjectTypeForm
 
-
+@login_required
 def PdfFile(request):
     if request.method == 'POST':
         form = PdfForm(request.POST)
@@ -30,7 +30,7 @@ def generate_pdf(request):
                             filename='Project.pdf')
     return response
  
- 
+@login_required
 def generate_pdf_file():
     from io import BytesIO
  
@@ -55,7 +55,7 @@ def generate_pdf_file():
     return buffer
 
 
-
+@login_required
 def AboutUs(request):
     return render(request, 'about_us.html')
 
@@ -80,7 +80,7 @@ def ContactusPage(request):
     return render(request, 'contact_us.html',context)
 
 
-
+@login_required
 def notifications(request):
     return render(request, 'notifications.html')
 
@@ -180,6 +180,7 @@ def header(request):
 def jobApplication(request):
     return render(request,'job.html')
 
+@login_required
 def feedback(request):
     form= FeedbackForm()
     if request.method=='POST':
@@ -227,10 +228,11 @@ def deleteProject(request, pk):
         return redirect ('projectoverview')
     return render(request, 'delete.html')
 
-
+@login_required
 def BudgetAnalysis(request):
     return render(request,'budgetanalysis.html')
 
+@login_required
 def PerfomanceMetrix(request):
     return render(request,'perfomancematrix.html')
 
@@ -244,10 +246,12 @@ def completed(request):
 @login_required
 def upcoming(request):
     return render(request,'upcoming.html')
-    
+ 
+@login_required   
 def teams(request):
     return render(request,'team.html')
 
+@login_required
 def testimonials(request):
     return render(request,'testimonials.html')
 
