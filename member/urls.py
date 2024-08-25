@@ -1,10 +1,10 @@
 
 from django.urls import path
-from .views import sidebar,PdfFile,generate_pdf_file,project_overview,charts,deleteprofile,ptypes,divisionform,updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,testimonials,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  PdfFile, generate_pdf, render_pdf_view, sidebar,project_overview,charts,deleteprofile,ptypes,divisionform,updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,testimonials,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('login/', loginpage, name="login"),
-    path('generate_pdf/', generate_pdf_file, name="generate_pdf"),
-    path('PdfFile/', PdfFile, name="PdfFile"),
+    path('generate_pdf/', generate_pdf, name='generate_pdf'),
+    path('render_pdf/', render_pdf_view, name='render_pdf'),
     path('chart/', charts, name="chart"),
     path('profile/<str:pk>/', updateprofile, name="profile"),
     path('deleteprofile/<str:pk>/', deleteprofile, name="deleteprofile"),
@@ -36,4 +36,8 @@ urlpatterns = [
     path('CompletedStatuses/<str:pk>/', CompletedStatuses, name="CompletedStatuses"),
     path('Upcomingstatus/<str:pk>/', UpcomingStatuses, name="Upcomingstatus"),
     path('ptypes/', ptypes, name="ptypes"),
+    path('PdfFile/', PdfFile, name="PdfFile"),
+
+
+    
 ]

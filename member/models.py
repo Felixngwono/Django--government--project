@@ -95,4 +95,18 @@ class PDF(models.Model):
 
     
     
+class PDF(models.Model):
+    # Basic fields to store metadata about the PDF
+    project_title = models.CharField(max_length=255, null=True)
+    Project_status = models.CharField(max_length=100 ,null=True)
+    implementing_agency = models.CharField(max_length=255, null=True)
     
+    # Field to store the actual PDF file
+    pdf_file = models.FileField(upload_to='pdfs/', blank=True, null=True)
+
+    def __str__(self):
+        return self.project_Title
+
+    class Meta:
+        verbose_name = "PDF"
+        verbose_name_plural = "PDFs"

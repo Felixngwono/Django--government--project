@@ -120,10 +120,7 @@
                 </div>
               </div>
               
-              <script>
-                // Include Alpine.js for data binding and toggling visibility
-                // You can include Alpine.js from a CDN or use your own setup
-              </script>
+             
               
           </div>
       </div>
@@ -133,39 +130,42 @@
   <!-- Mobile menu, show/hide based on menu state. -->
   <div class="sm:hidden" id="mobile-menu">
     <div class="space-y-1 px-2 pb-3 pt-2">
-        <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
-            <li>
-                <a href="{% url 'index' %}" class="block py-2 pr-4 pl-3 text-green rounded bg-primary-700 lg:bg-transparent lg:text-primary-700 lg:p-0 dark:text-green" aria-current="page">Home</a>
-            </li>
-            
-            <li>
-                <a href="{% url 'AboutUs' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:text-blue">About Us</a>
-            </li>
-            <li>
-                <a href="{% url 'testimonials' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Testimonials</a>
-            </li>
-            <li>
-                <a href="{% url 'team' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Team</a>
-            </li>
-            <li>
-                <a href="{% url 'contactus' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Contact Us</a>
-            </li>
-            {%if request.user.is_enduser%}
-            <li>
-                <a href="{% url 'project' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Projects</a>
-            </li>
-            {% endif %}
-            
-            {% if request.user.is_superuser %}
-            <li class="block py-2 pr-4 pl-3 text-green-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Admin</li>
-            
-            {% elif request.user.is_enduser %}
-            <li class="disabled">user</li>
-            {% endif %}
-
-            
-        </ul></div>
+      <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+        <li>
+          <a href="{% url 'index' %}" class="block py-2 pr-4 pl-3 text-green rounded bg-primary-700 lg:bg-transparent lg:text-primary-700 lg:p-0 dark:text-green" aria-current="page">Home</a>
+        </li>
+        <li>
+          <a href="{% url 'AboutUs' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:text-blue">About Us</a>
+        </li>
+        <li>
+          <a href="{% url 'testimonials' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Testimonials</a>
+        </li>
+        <li>
+          <a href="{% url 'team' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Team</a>
+        </li>
+        <li>
+          <a href="{% url 'contactus' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Contact Us</a>
+        </li>
+        {% if request.user.is_enduser %}
+        <li>
+          <a href="{% url 'project' %}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Projects</a>
+        </li>
+        {% endif %}
+        {% if request.user.is_superuser %}
+        <li class="block py-2 pr-4 pl-3 text-green-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Admin</li>
+        {% elif request.user.is_enduser %}
+        <li class="disabled">User</li>
+        {% endif %}
+      </ul>
+  
+      <!-- Search Form -->
+      <div class="pt-4">
+       
+        
+      </div>
+    </div>
   </div>
+  
 </nav>
       
 <script src="{% static 'js/header.js' %}"></script>

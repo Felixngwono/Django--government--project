@@ -1,4 +1,5 @@
 
+from django import forms
 from django.forms import ModelForm
 from .models import PDF, Project_type, User, Project_type,contact,Feedback,Project,Project_Division
 from django.contrib.auth.forms import UserCreationForm
@@ -47,4 +48,9 @@ class PdfForm(ModelForm):
         fields='__all__'
         
 
-            
+       
+
+class PdfForm(ModelForm):
+    class Meta:
+        model = PDF
+        fields = ['project_title', 'Project_status', 'implementing_agency', 'pdf_file']

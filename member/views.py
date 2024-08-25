@@ -1,8 +1,10 @@
+from tkinter import Canvas
+from django.views.generic import ListView
 from django.http import FileResponse
 import csv,io
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -10,49 +12,65 @@ from django.contrib.auth import authenticate, login, logout
 from .models import PDF, Project_Division, User, Project
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .forms import MyUserCreationForm,PdfForm, ContactUsForm,FeedbackForm,ProjectCreationForm,ProjectDivisionForm, ProjectTypeForm
+from .forms import MyUserCreationForm, ContactUsForm,FeedbackForm, PdfForm,ProjectCreationForm,ProjectDivisionForm, ProjectTypeForm
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+@login_required
+def generate_pdf(request):
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    
+    # Example content
+    p.drawString(100, 750, "Project ")
+    
+    # Get data for the PDF (assuming you're using the PDF model)
+    pdfs = PDF.objects.all()
+    y = 700
+    for pdf in pdfs:
+        p.drawString(100, y, f"title: {pdf.project_title}")
+        p.drawString(100, y - 20, f"status: {pdf.Project_status}")
+        p.drawString(100, y - 40, f"agency: {pdf.implementing_agency}")
+        y -= 60
+    
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return HttpResponse(buffer,  content_type='application/pdf')
+
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+
+def render_pdf_view(request):
+    template_path = 'user_printer.html'
+    context = {'myvar': 'this is your template context'}
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'filename="report.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+# views.py
 
 @login_required
 def PdfFile(request):
     if request.method == 'POST':
-        form = PdfForm(request.POST)
+        form = PdfForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-    # Redirect to PDF generation after adding a project
-            return redirect('index')  
+            return redirect('index')  # or wherever you want to redirect after saving
     else:
         form = PdfForm()
     return render(request, 'pdf.html', {'form': form})
- 
-def generate_pdf(request):
-    response = FileResponse(generate_pdf_file(Project), 
-                            as_attachment=True, 
-                            filename='Project.pdf')
-    return response
- 
-@login_required
-def generate_pdf_file():
-    from io import BytesIO
- 
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer,pagesize=letter,bottomup=0)
- 
-    # Create a PDF document
-    x = PDF.objects.all()
-    p.drawString(100, 750, "project Catalog")
- 
-    y = 700
-    for y in x:
-        p.drawString(100, y, f"project_Title: {PDF.project_Title}")
-        p.drawString(100, y - 20, f"Project_status: {PDF.Project_status}")
-        p.drawString(100, y - 40, f"Agency: {PDF.implementing_agency}")
-        y -= 60
- 
-    p.showPage()
-    p.save()
- 
-    buffer.seek(0)
-    return buffer
 
 
 @login_required
