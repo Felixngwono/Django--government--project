@@ -44,7 +44,8 @@
                 <span class="flex-1 ms-3 whitespace-nowrap">Reports</span>
              </a>
              <li>Project Details</li>
-             <li><a href="{% url 'PdfFile' %}">Progress Report</a></li>
+             
+             <li><a href="{% url 'generate_pdf' %}">Progress Report</a></li>
              <li>Related Details</li>
           </li>
           <hr>
@@ -58,7 +59,7 @@
              </a>
             {% if request.user.is_superuser %}
              <li><a href="{% url 'division' %}">Project Divisions</a></li>
-             <li><a href="{% url 'ptypes' %}">Project Tye</a></li>
+             <li><a href="{% url 'ptypes' %}">Project TyPe</a></li>
              <li><a href="{% url 'division_details' %}">Project Details</a></li>
              {% elif request.user.is_enduser %}
              <li><a href="{% url 'division_details' %}">Project Details</a></li>

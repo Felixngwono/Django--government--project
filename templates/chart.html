@@ -1,59 +1,123 @@
-
 {% extends "header.html" %}
 {% block content %}
 
+{% include "sidebar.html" %}
 
-
-<div>
-    <canvas id="myChart"></canvas>
+<div class="content-container" style="padding: 20px; max-width: 1200px; margin: auto;">
+  <h2 style="text-align: center; margin-bottom: 20px;">Project Status Overview</h2>
+  
+  <!-- Responsive container for both charts -->
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+    <!-- Bar Chart -->
+    <div style="flex: 1; min-width: 300px;">
+      <canvas id="barChart" style="width: 100%; max-height: 400px;"></canvas>
+    </div>
+    <!-- Pie Chart -->
+    <div style="flex: 1; min-width: 300px;">
+      <canvas id="pieChart" style="width: 100%; max-height: 400px;"></canvas>
+    </div>
   </div>
-  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    
-    const ctx = document.getElementById('myChart');
-  
-    new Chart(ctx, {
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Data preparation
+    const labels = [
+      {% for x in projects %}
+        "{{ x.project_status }}" {% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    ];
+    const dataValues = [
+      {% for x in projects %}
+        {{ x.total }} {% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    ];
+    const backgroundColors = [
+      'rgba(255, 99, 132, 0.6)', // Red
+      'rgba(54, 162, 235, 0.6)', // Blue
+      'rgba(255, 206, 86, 0.6)', // Yellow
+      'rgba(75, 192, 192, 0.6)', // Green
+      'rgba(153, 102, 255, 0.6)', // Purple
+      'rgba(255, 159, 64, 0.6)'  // Orange
+    ];
+    const borderColors = [
+      'rgba(255, 99, 132, 1)',
+      'rgba(54, 162, 235, 1)',
+      'rgba(255, 206, 86, 1)',
+      'rgba(75, 192, 192, 1)',
+      'rgba(153, 102, 255, 1)',
+      'rgba(255, 159, 64, 1)'
+    ];
+
+    // Bar Chart
+    new Chart(document.getElementById('barChart').getContext('2d'), {
       type: 'bar',
       data: {
-       
-        labels: [  {% for x in projects %}  "{{ x.project_status }}" {% if not forloop.last %}, {% endif %}     {% endfor %} ],
-      
+        labels: labels,
         datasets: [{
-          label: 'Project',
-        
-          data: [ {% for x in projects %}  {{ x.total }} {% if not forloop.last %}, {% endif %} {% endfor %} ],
-          backgroundColor: [ 
-          'rgba(255, 99, 132, 0.6)', // Red
-          'rgba(54, 162, 235, 0.6)', // Blue
-          'rgba(255, 206, 86, 0.6)', // Yellow
-          'rgba(75, 192, 192, 0.6)', // Green
-          'rgba(153, 102, 255, 0.6)', // Purple
-          'rgba(255, 159, 64, 0.6)', // Orange
-          // Add more colors as needed
-      ],
+          label: 'Number of Projects',
+          data: dataValues,
+          backgroundColor: backgroundColors,
+          borderColor: borderColors,
           borderWidth: 1
         }]
       },
       options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
         scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Project Status'
+            }
+          },
           y: {
-            beginAtZero: true
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Total Projects'
+            }
           }
         }
       }
     });
-  </script>
-</div>
-</div>
-   {% include "footer.html" %}
-  {% endblock content %}
-  {% comment %} 
 
-{% for x in projects %}
+    // Pie Chart
+    new Chart(document.getElementById('pieChart').getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: backgroundColors,
+          borderColor: borderColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'Project Distribution'
+          }
+        }
+      }
+    });
+  });
+</script>
 
-{{ x.project_status }}
+{% include "footer.html" %}
 
-
-{{ x.total }}
-{% endfor%} {% endcomment %}
+{% endblock content %}

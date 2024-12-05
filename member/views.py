@@ -1,24 +1,17 @@
-from tkinter import Canvas
-from django.views.generic import ListView
-from django.http import FileResponse
-import csv,io
-from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
-
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import PDF, Project_Division, User, Project
 from django.contrib import messages
-from django.core.paginator import Paginator
 from .forms import MyUserCreationForm, ContactUsForm,FeedbackForm, PdfForm,ProjectCreationForm,ProjectDivisionForm, ProjectTypeForm
 from io import BytesIO
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-@login_required
+@login_required 
 def generate_pdf(request):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
