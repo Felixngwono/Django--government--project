@@ -172,13 +172,15 @@ def index(request):
     agencies=Project_Division.objects.all().count()
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
    
+
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
              'completedcount':completedcount,
              'allproject':allproject,
              'users':users,
              'project':projects,
-             'agencies':agencies
+             'agencies':agencies,
+             'projects':projects,
              }
     return render(request,'index.html',context)
 

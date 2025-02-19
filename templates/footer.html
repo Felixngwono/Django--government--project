@@ -1,36 +1,65 @@
-
-
 {% load static %}
+<footer class="bg-gray-900 text-white py-10">
+    <div class="container mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Company Info -->
+        <div>
+            <a href="https://flowbite.com/" class="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
+                <img src="{% static 'images/GOK.png' %}" class="h-12" alt="FelloMarley Logo" />
+                <span class="self-center text-white font-semibold whitespace-nowrap dark:text-white">FelloMarley</span>
+            </a>
+            <p class="mt-2 text-gray-400">Building innovative tech solutions.</p>
+        </div>
 
-<script src="https://cdn.tailwindcss.com"></script>
+        <!-- Navigation Links -->
+        <div>
+            <h3 class="text-lg font-semibold">Quick Links</h3>
+            <ul class="mt-2 space-y-2">
+                <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white">Projects</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white">About Me</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
+                <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+            </ul>
+        </div>
 
+        <!-- Contact & Socials -->
+        <div>
+            <h3 class="text-lg font-semibold">Contact Me</h3>
+            <p class="mt-2 text-gray-400">Email: felix@example.com</p>
+            <p class="text-gray-400">Phone: +254 700 123 456</p>
+            <div class="mt-4 flex space-x-4">
+                <a href="https://facebook.com/felixodhiambo" class="text-gray-400 hover:text-blue-500" target="_blank">
+                    <i class="fab fa-facebook text-xl"></i>
+                </a>
+                <a href="https://twitter.com/felixodhiambo" class="text-gray-400 hover:text-blue-400" target="_blank">
+                    <i class="fab fa-twitter text-xl"></i>
+                </a>
+                <a href="https://linkedin.com/in/felixodhiambo" class="text-gray-400 hover:text-blue-600" target="_blank">
+                    <i class="fab fa-linkedin text-xl"></i>
+                </a>
+                <a href="https://github.com/felixodhiambo" class="text-gray-400 hover:text-gray-300" target="_blank">
+                    <i class="fab fa-github text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </div>
 
-  
-    
+    <!-- Newsletter Subscription -->
+    <div class="mt-8 text-center">
+        <h3 class="text-lg font-semibold">Subscribe to My Updates</h3>
+        <form class="mt-4 flex items-center justify-center">
+            <input type="email" placeholder="Enter your email"
+                class="px-4 py-2 w-64 text-black rounded-l-md focus:outline-none border-2 border-gray-300 focus:ring-2 focus:ring-blue-500">
+            <button class="bg-blue-600 px-4 py-2 rounded-r-md hover:bg-blue-700 transition duration-300">Subscribe</button>
+        </form>
+    </div>
 
-<footer class="bg-black bottom-0 dark:bg-gray-900 m-4">
-  <div class="w-100% max-w-screen-xl mx-auto p-4 md:py-8">
-      <div class="sm:flex sm:items-center sm:justify-between">
-          <a href="https://flowbite.com/" class="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
-              <img src="{% static 'images/GOK.png' %}" class="h-12" alt="Flowbite Logo" />
-              <span class="self-center text-white font-semibold whitespace-nowrap dark:text-white">GovTracker</span>
-          </a>
-          <ul class="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 sm:mb-0 dark:text-gray-400">
-              <li>
-                  <a href="{% url 'AboutUs' %}" class="hover:underline me-4 md:me-6">About</a>
-              </li>
-              <li>
-                  <a href="#" class="hover:underline me-4 md:me-6">Privacy Policy</a>
-              </li>
-              <li>
-                  <a href="#" class="hover:underline me-4 md:me-6">Licensing</a>
-              </li>
-              <li>
-                  <a href="{% url 'contactus' %}" class="hover:underline">Contact</a>
-              </li>
-          </ul>
-      </div>
-      <hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
-      <span class="block text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2023 -{% now "DATE_FORMAT" %} GovTracker™. Felix Odhiambo.</span>
-  </div>
-  </div>
+    <!-- Footer Bottom -->
+    <div class="mt-6 text-center text-gray-400 text-sm">
+        <p>© 2025 Felix Odhiambo. All Rights Reserved.</p>
+        <p class="mt-2">
+            <a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a> | 
+            <a href="#" class="text-gray-400 hover:text-white">Terms of Service</a>
+        </p>
+    </div>
+</footer>

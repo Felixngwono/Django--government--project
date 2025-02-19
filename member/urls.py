@@ -1,4 +1,5 @@
-
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 from .views import  PdfFile, generate_pdf, render_pdf_view, sidebar,project_overview,charts,deleteprofile,ptypes,divisionform,updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,testimonials,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
@@ -41,3 +42,5 @@ urlpatterns = [
 
     
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
