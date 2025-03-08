@@ -1,0 +1,74 @@
+{% extends 'header.html' %}
+{% block content %}
+{% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="ml-64 w-[calc(100%-16rem)] ">
+    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h1 class="text-3xl font-bold mb-4 ">Project Management Report</h1>
+        
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-blue-100 p-4 rounded-md">
+                <h2 class="text-lg font-semibold">Total Users</h2>
+                <p class="text-xl font-bold">{{ total_users }}</p>
+            </div>
+            <div class="bg-green-100 p-4 rounded-md">
+                <h2 class="text-lg font-semibold">Total Projects</h2>
+                <p class="text-xl font-bold">{{ total_projects }}</p>
+            </div>
+            <div class="bg-yellow-100 p-4 rounded-md">
+                <h2 class="text-lg font-semibold">Total Feedbacks</h2>
+                <p class="text-xl font-bold">{{ total_feedbacks }}</p>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-2">Budget Summary</h2>
+        <div class="bg-gray-200 p-4 rounded-md mb-6">
+            <p><strong>Allocated Budget:</strong> ${{ total_budget_allocated }}</p>
+            <p><strong>Spent Budget:</strong> ${{ total_budget_spent }}</p>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-2">Project Details</h2>
+        <table class="w-full border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border border-gray-300 p-2">Title</th>
+                    <th class="border border-gray-300 p-2">Status</th>
+                    <th class="border border-gray-300 p-2">Budget</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr class="bg-white">
+                    <td class="border border-gray-300 p-2">{{ project.project_title }}</td>
+                    <td class="border border-gray-300 p-2">{{ project.project_status }}</td>
+                    <td class="border border-gray-300 p-2">${{ project.project_Budgeting }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-6 text-center">
+            <a href="{% url 'export_report_pdf' %}" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Download PDF</a>
+        </div>
+    </div>
+</body>
+</html>
+</div>
+</div>
+</div>
+
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

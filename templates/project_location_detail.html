@@ -1,0 +1,9 @@
+{% extends 'header.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-semibold text-gray-800">{{ location.name }}</h1>
+    <p class="mt-2 text-gray-700"><strong>Description:</strong> {{ location.description }}</p>
+    <p class="mt-2 text-gray-600"><strong>Coordinates:</strong> {{ location.latitude }}, {{ location.longitude }}</p>
+    <p class="mt-2 text-gray-600"><strong>Created At:</strong> {{ location.created_at }}</p>
+</div>
+{% endblock %}

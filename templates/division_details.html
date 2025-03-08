@@ -2,8 +2,8 @@
 {% block content %}
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
-<div class=" sm:ml-64">
-    <div class="p-2 border-2">
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+
         <div class="slider-item" style="background-color:bright ; background-repeat: no-repeat; background-size:cover;">
 <div class="relative overflow-x-auto">
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -37,6 +37,8 @@
     </table>
 </div>
 </div>
+</div>
+
 </div>
 {% include "footer.html" %}
 {% endblock content %}

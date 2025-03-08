@@ -1,65 +1,74 @@
 {% load static %}
-<footer class="bg-gray-900 text-white py-10">
-    <div class="container mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Company Info -->
-        <div>
-            <a href="https://flowbite.com/" class="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
-                <img src="{% static 'images/GOK.png' %}" class="h-12" alt="FelloMarley Logo" />
-                <span class="self-center text-white font-semibold whitespace-nowrap dark:text-white">FelloMarley</span>
-            </a>
-            <p class="mt-2 text-gray-400">Building innovative tech solutions.</p>
-        </div>
+<div class="ml-64 w-[calc(100%-16rem)]">
 
-        <!-- Navigation Links -->
-        <div>
-            <h3 class="text-lg font-semibold">Quick Links</h3>
-            <ul class="mt-2 space-y-2">
-                <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
-                <li><a href="#" class="text-gray-400 hover:text-white">Projects</a></li>
-                <li><a href="#" class="text-gray-400 hover:text-white">About Me</a></li>
-                <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
-                <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
-            </ul>
-        </div>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white w-full py-12 mt-auto   ">
+        <div class="container mx-auto px-6  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Company Info -->
+            <div>
+                <a  class="flex items-center mb-4 space-x-3 rtl:space-x-reverse">
+                    <img src="{% static 'images/f1.jpg' %}" class="h-12" alt="FelloMarley Logo" />
+                    <span class="text-2xl font-semibold text-white">FelloMarley</span>
+                </a>
+                <p class="mt-2 text-gray-400">Building innovative tech solutions for a better future.</p>
+            </div>
 
-        <!-- Contact & Socials -->
-        <div>
-            <h3 class="text-lg font-semibold">Contact Me</h3>
-            <p class="mt-2 text-gray-400">Email: felix@example.com</p>
-            <p class="text-gray-400">Phone: +254 700 123 456</p>
-            <div class="mt-4 flex space-x-4">
-                <a href="https://facebook.com/felixodhiambo" class="text-gray-400 hover:text-blue-500" target="_blank">
-                    <i class="fab fa-facebook text-xl"></i>
-                </a>
-                <a href="https://twitter.com/felixodhiambo" class="text-gray-400 hover:text-blue-400" target="_blank">
-                    <i class="fab fa-twitter text-xl"></i>
-                </a>
-                <a href="https://linkedin.com/in/felixodhiambo" class="text-gray-400 hover:text-blue-600" target="_blank">
-                    <i class="fab fa-linkedin text-xl"></i>
-                </a>
-                <a href="https://github.com/felixodhiambo" class="text-gray-400 hover:text-gray-300" target="_blank">
-                    <i class="fab fa-github text-xl"></i>
-                </a>
+            <!-- Navigation Links -->
+            <div>
+                <h3 class="text-lg font-semibold text-white">Quick Links</h3>
+                <ul class="mt-4 space-y-3">
+                    <li><a href="{% url 'index' %}" class="text-gray-400 hover:text-white transition duration-300">Home</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Projects</a></li>
+                    <li><a href="{% url 'AboutUs' %}" class="text-gray-400 hover:text-white transition duration-300">About Me</a></li>
+                    <li><a href="{% url 'contactus' %}" class="text-gray-400 hover:text-white transition duration-300">Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact & Socials -->
+            <div>
+                <h3 class="text-lg font-semibold text-white">Contact Me</h3>
+                <p class="mt-4 text-gray-400">Email: felixngwono@gmail.com</p>
+                <p class="text-gray-400">Phone: +254 700 369300</p>
+                <div class="mt-6 flex space-x-6">
+                    <a href="https://facebook.com/felixodhiambo" class="text-gray-400 hover:text-blue-600 transition duration-300" target="_blank">
+                        <i class="fab fa-facebook text-2xl"></i>
+                    </a>
+                    <a href="https://twitter.com/felixodhiambo" class="text-gray-400 hover:text-blue-400 transition duration-300" target="_blank">
+                        <i class="fab fa-twitter text-2xl"></i>
+                    </a>
+                    <a href="https://linkedin.com/in/felixodhiambo" class="text-gray-400 hover:text-blue-700 transition duration-300" target="_blank">
+                        <i class="fab fa-linkedin text-2xl"></i>
+                    </a>
+                    <a href="https://github.com/felixngwono" class="text-gray-400 hover:text-gray-300 transition duration-300" target="_blank">
+                        <i class="fab fa-github text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Newsletter Subscription -->
+            <div>
+                <h3 class="text-lg font-semibold text-white">Stay Updated</h3>
+                <p class="mt-4 text-gray-400">Subscribe to my newsletter for the latest updates.</p>
+               
             </div>
         </div>
-    </div>
 
-    <!-- Newsletter Subscription -->
-    <div class="mt-8 text-center">
-        <h3 class="text-lg font-semibold">Subscribe to My Updates</h3>
-        <form class="mt-4 flex items-center justify-center">
-            <input type="email" placeholder="Enter your email"
-                class="px-4 py-2 w-64 text-black rounded-l-md focus:outline-none border-2 border-gray-300 focus:ring-2 focus:ring-blue-500">
-            <button class="bg-blue-600 px-4 py-2 rounded-r-md hover:bg-blue-700 transition duration-300">Subscribe</button>
-        </form>
-    </div>
-
-    <!-- Footer Bottom -->
-    <div class="mt-6 text-center text-gray-400 text-sm">
-        <p>© 2025 Felix Odhiambo. All Rights Reserved.</p>
-        <p class="mt-2">
-            <a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a> | 
-            <a href="#" class="text-gray-400 hover:text-white">Terms of Service</a>
-        </p>
-    </div>
-</footer>
+        <!-- Footer Bottom -->
+        <div class="mt-8 text-center text-gray-400 text-sm">
+            <p>© 2025 Felix Odhiambo. All Rights Reserved.</p>
+            <p class="mt-2">
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300">Privacy Policy</a> | 
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300">Terms of Service</a>
+            </p>
+        </div>
+    </footer>
+</div>
+<script>
+    document.getElementById("sidebarToggle").addEventListener("click", function() {
+        document.getElementById("default-sidebar").classList.toggle("-translate-x-full");
+    });
+</script>
+</div>
+</div>
+</div>
+</div></div>

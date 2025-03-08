@@ -3,8 +3,8 @@
 {% include "sidebar.html" %}
 {% load static %}
 <script src="https://cdn.tailwindcss.com"></script>
-<div class=" sm:ml-64">
-    <div class="p-2 border-2">
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+
 <div class="slider-item" style="background-image: url({% static 'images/estate.jpg' %}); background-repeat: no-repeat;">
 <section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
     <p  class=" text-center "><b><u>lists of Ongoing projects</u></b></p>
@@ -97,6 +97,8 @@
     </section>
 </div>
 </div>
+</div>
+
 </div>
 {% include "footer.html" %}
    {% endblock content %}

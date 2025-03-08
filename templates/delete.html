@@ -3,8 +3,8 @@
 {% load static %}
 <script src="https://cdn.tailwindcss.com"></script>
 {% include "sidebar.html" %}
-<div class=" sm:ml-64">
-    <div class="p-2 border-2">
+</div>
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
 <div>
 <form action="" method="POST">
     {% csrf_token %}
@@ -40,6 +40,10 @@
         
 </div>
 </div>
+</div>
+
+</div>
+
 </div>
 {% include "footer.html" %}
 {% endblock content %}

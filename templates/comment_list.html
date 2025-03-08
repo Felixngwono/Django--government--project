@@ -1,0 +1,31 @@
+{% extends 'header.html' %}
+{% block content %}
+{% load static %}
+{% include "sidebar.html" %}
+
+<!-- TailwindCSS CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+<div class="ml-64 w-[calc(100%-16rem)]">
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Comments for {{ project.project_title }}</h1>
+    
+    <div class="mt-4 bg-white p-6 rounded-lg shadow-md">
+        {% for comment in comments %}
+        <div class="border-b py-4">
+            <p class="text-gray-700"><strong>{{ comment.user.username }}</strong> said:</p>
+            <p class="text-gray-600">{{ comment.content }}</p>
+            <p class="text-sm text-gray-500">Posted on {{ comment.created_at }}</p>
+        </div>
+        {% empty %}
+        <p class="text-gray-500">No comments yet.</p>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'add_comment'  %}" class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Comment</a>
+</div>
+</div>
+</div>
+</div>
+{% include "footer.html" %}
+{% endblock %}

@@ -22,8 +22,8 @@
 </style>
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
-<div class=" sm:ml-64">
-  <div class=" bg-gray-50 p-2 border-2">
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+
 <p type="text" class="bg-gray-50 p-10 border border-gray-300 text-gray-900 text-center rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-30 pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><b>Project Status</b></p>
 <hr>
 
@@ -50,7 +50,7 @@
             <section class="bg-gray dark:bg-gray-900">
                 <div class="gap-10 items-center py-8 px-6 mx-auto max-w-screen-xl  md:grid md:grid-cols-2 sm:py-18 lg:px-8">
                   {% for project in projects %}
-                  <img src="{{ project.project_images.url }}" alt="{{ project.project_images }}" class="w-full h-90" style="background-size:cover;" />
+                  <img src="{{ project.images.url }}" alt="{{ project.images }}" class="w-full h-90" style="background-size:cover;" />
 
               {% endfor %}
                     <div class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
@@ -94,9 +94,20 @@
 
                                     <li scope="col" class="px-4 py-3"><b><u>Budget</u></b>
                                       {% for project in projects %}
-                                      <li class="px-4 py-3">{{project.project_Budget}}</li></li>
+                                      <li class="px-4 py-3">{{project.project_Budgeting}}</li></li>
                                       {% endfor %}
                                     </li>
+                                    <li scope="col" class="px-4 py-3"><b><u>project_type</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.project_type}}</li></li>
+                                      {% endfor %}
+                                    </li>
+                                    <li scope="col" class="px-4 py-3"><b><u>division</u></b>
+                                      {% for project in projects %}
+                                      <li class="px-4 py-3">{{project.division}}</li></li>
+                                      {% endfor %}
+                                    </li>
+                                   
 
                                     
 
@@ -190,5 +201,9 @@
             </section>
           </div>
         </div>
-            {% include "footer.html" %}
-            {% endblock content %}
+      </div>
+
+    </div>
+
+  {% include "footer.html" %}
+{% endblock content %}

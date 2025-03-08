@@ -1,3 +1,9 @@
+{% extends "header.html" %}
+ {% block content %} 
+ {% load static %}
+ {% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+  <div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
 
 
 <!DOCTYPE html>
@@ -15,3 +21,8 @@
     <!-- Add more content here as needed -->
 </body>
 </html>
+</div>
+
+</div>
+{% include "footer.html" %}
+{% endblock content %}

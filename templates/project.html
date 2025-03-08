@@ -2,8 +2,8 @@
 {% block content %}
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
-<div class=" sm:ml-64">
-    <div class="p-2 border-2">
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+
 <p type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><b>list of projects</b></p>
 <hr>
 
@@ -39,5 +39,9 @@
             </section>
         </div>
     </div>
-    {% include "footer.html" %}
-            {% endblock content %}
+
+</div>
+
+</div>
+{% include "footer.html" %}
+{% endblock content %}

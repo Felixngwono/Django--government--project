@@ -1,0 +1,37 @@
+{% extends 'header.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Available Tenders</h1>
+
+    <div class="mt-4">
+        <table class="min-w-full bg-white border border-gray-300">
+            <thead>
+                <tr class="bg-gray-800 text-white">
+                    <th class="py-2 px-4 border">Title</th>
+                    <th class="py-2 px-4 border">Description</th>
+                    <th class="py-2 px-4 border">Deadline</th>
+                    <th class="py-2 px-4 border">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tender in tenders %}
+                <tr class="border text-gray-700">
+                    <td class="py-2 px-4 border">{{ tender.title }}</td>
+                    <td class="py-2 px-4 border">{{ tender.description }}</td>
+                    <td class="py-2 px-4 border">{{ tender.deadline }}</td>
+                    <td class="py-2 px-4 border">
+                        <a href="{% url 'tender_detail' tender.id %}" class="text-blue-500 hover:underline">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4">No tenders available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

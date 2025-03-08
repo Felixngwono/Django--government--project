@@ -6,12 +6,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
 <link href="{% static 'css/feedback.css' %}">
    {% include "sidebar.html" %}
-   <div class=" sm:ml-64">
+   <div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
     <div class="p-2 border-2">
 
       <div class="flex">
         <div class="w-1/2 h-screen  bg-cover  flex justify-center items-center bg-no-repeat" style="background-image: url({% static 'images/feedbaack.jpeg' %});"></div>
         <div class="w-1/2 px-8 py-10 "  style="background-color:lightgreen;">
+        
         
 <form method="POST" action="">
     {% csrf_token %}
@@ -41,6 +42,11 @@
 
 </div>
 </section>
+</div>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 {% include "footer.html" %}

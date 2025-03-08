@@ -1,62 +1,77 @@
-
-{% extends 'header.html' %}
+{% extends "header.html" %}
 {% block content %}
-
+{% load static %}
+    {% load widget_tweaks %}
     {% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Government Development Projects Tracker</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="about us.css">
+    <title>About Us - Government Projects Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class=" sm:ml-64">
-        <div class="p-2 border-2">
-    <div class="container mt-5">
-        <h1 class="text-center">About Us</h1>
-        <p class="lead">Empowering Citizens Through Transparency</p>
-        <hr>
-
-        <div class="row">
-            <div class="col-md-6">
-                <h3>Our Mission</h3>
-                <p>We are dedicated to providing transparency and information about government development projects to empower citizens and stakeholders. Our mission is to ensure that everyone has access to information about the projects that shape the future of our nation.</p>
-            </div>
-            <div class="col-md-6">
-                <h3>Our Team</h3>
-
-                <p>We are a passionate team of individuals committed to our mission. Our team members come from diverse backgrounds, including project management, data analysis, and civic engagement. Together, we work tirelessly to make government development projects accessible to all.</p>
-           
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <h3>Our Values</h3>
-                <ul>
-                    <li>Transparency</li>
-                    <li>Accountability</li>
-                    <li>Accessibility</li>
-                    <li>Civic Engagement</li>
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <h3>Contact Us</h3>
-                <p>If you have any questions or feedback, please feel free to contact us at <a href="mailto:info@govdevprojects.com">info@govdevprojects.com</a>.</p>
-            </div>
-        </div>
-    </div>
-
+<body class="bg-gray-100">
     
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Hero Section -->
+    <header class="bg-blue-900 text-white py-16 text-center">
+        <h1 class="text-4xl font-bold">About Us</h1>
+        <p class="mt-2 text-lg">Empowering Transparency in Government Development Projects</p>
+    </header>
+    
+    <!-- Mission & Vision -->
+    <section class="max-w-6xl mx-auto p-8 text-gray-800">
+        <div class="grid md:grid-cols-2 gap-8">
+            <div>
+                <h2 class="text-2xl font-semibold mb-3">Our Mission</h2>
+                <p class="text-gray-600">To provide transparency and accessibility in tracking government development projects, ensuring accountability and progress monitoring for all citizens.</p>
+            </div>
+            <div>
+                <h2 class="text-2xl font-semibold mb-3">Our Vision</h2>
+                <p class="text-gray-600">To be the leading digital platform in enhancing government project oversight, fostering trust, and promoting national development.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Team Section -->
+    <section class="bg-white py-12">
+        <div class="max-w-6xl mx-auto p-8 text-center">
+            <h2 class="text-3xl font-semibold mb-6">Meet Our Team</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-gray-100 p-6 rounded-lg shadow">
+                    <img src="https://via.placeholder.com/150" alt="Team Member" class="mx-auto rounded-full">
+                    <h3 class="mt-4 font-semibold text-lg">John Doe</h3>
+                    <p class="text-gray-600">Project Manager</p>
+                </div>
+                <div class="bg-gray-100 p-6 rounded-lg shadow">
+                    <img src="https://via.placeholder.com/150" alt="Team Member" class="mx-auto rounded-full">
+                    <h3 class="mt-4 font-semibold text-lg">Jane Smith</h3>
+                    <p class="text-gray-600">Lead Developer</p>
+                </div>
+                <div class="bg-gray-100 p-6 rounded-lg shadow">
+                    <img src="https://via.placeholder.com/150" alt="Team Member" class="mx-auto rounded-full">
+                    <h3 class="mt-4 font-semibold text-lg">Michael Johnson</h3>
+                    <p class="text-gray-600">Data Analyst</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section class="bg-blue-900 text-white py-12 text-center">
+        <h2 class="text-3xl font-semibold">Get in Touch</h2>
+        <p class="mt-2 text-lg">Have questions? Reach out to us.</p>
+        <div class="mt-6">
+            <a href="mailto:info@govtracker.com" class="bg-white text-blue-900 font-semibold py-2 px-6 rounded-full">Contact Us</a>
+        </div>
+    </section>
+    
 </body>
 </html>
 </div>
-<div>
-{% include 'footer.html' %}
+</div>
+{% include "footer.html" %}
 {% endblock content %}

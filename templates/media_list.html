@@ -1,0 +1,39 @@
+{% extends 'header.html' %}
+{% block content %}
+{% load static %}
+{% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Media Files</h2>
+        <a href="{% url 'media_upload' %}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Upload Media</a>
+        
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for media in media_files %}
+            {{media_type}}
+{{uploaded_at}}
+                <div class="bg-gray-50 shadow-md rounded-lg p-4">
+
+                    {% if media.media_type == 'image' %}
+                        <img src="{{ media.file.url }}" class="w-full h-48 object-cover rounded-lg" alt="Media Image">
+                    {% elif media.media_type == 'video' %}
+                        <video class="w-full h-48 rounded-lg" controls>
+                            <source src="{{ media.file.url }}" type="video/mp4">
+                        </video>
+                    {% else %}
+                        <a href="{{ media.file.url }}" class="text-blue-600 hover:underline">{{ media.file.name }}</a>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-gray-500 col-span-full">No media files uploaded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

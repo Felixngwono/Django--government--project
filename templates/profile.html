@@ -1,39 +1,85 @@
 {% extends "header.html" %}
 {% block content %}
 {% load static %}
-    {% load widget_tweaks %}
-    {% include "sidebar.html" %}
+{% load widget_tweaks %}
+{% include "sidebar.html" %}
+
 <script src="https://cdn.tailwindcss.com"></script>
-<div class=" sm:ml-64">
-    <div class="p-2 border-2">
-<form action="" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
     
-    <div>
-       
-    <section class="bg-white dark:bg-gray-900">
-        <div class="py-8 px-4 mx-auto max-w-2xl lg:py-16">
-            <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Update profile</h2>
-            <form action="#">
-                <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-                    <div class="sm:col-span-2">
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="user_avatar">Upload file</label>
-                        {%render_field form.profile  class="block  text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="user_avatar_help" id="user_avatar" type="file" %}
-                         </div>
-                   
+            <h2 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Update Profile</h2>
+            
+            <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">Username</label>
+                    {% render_field form.username class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %}
                 </div>
-                <br><br>
-                <a 
-                href="{{ request.META.REFERER }}" class="inline-flex items-center px-4 py-2 text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-lg transition duration-150 ease-in-out"> Go back</a>
-                  <button type="submit" class="w-50 text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Submit Project</button>
+                <!-- Username -->
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">name</label>
+                    {% render_field form.name class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %}
+                </div>
+                
+                <!-- Email -->
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">Email</label>
+                    {% render_field form.email class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %}
+                </div>
+
+                <!-- Full Name -->
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">Full Name</label>
+                    {% render_field form.name class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %}
+                </div>
+
+                <!-- Role -->
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">Role</label>
+                    {% render_field form.role class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %}
+                </div>
+
+                <!-- Bio -->
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">Bio</label>
+                    {% render_field form.bio class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %}
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">is_enduser</label>
+                    {% render_field form.is_enduser class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %}
+                </div>
+
+                <!-- Avatar Upload -->
+                
+
+                <!-- Profile Picture Upload -->
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-900 dark:text-white">Profile Picture</label>
+                    {% if form.instance.profile %}
+                        <img src="{{ form.instance.profile.url }}" alt="Profile Picture" class="mb-2 rounded-lg w-20 h-20 object-cover">
+                    {% endif %}
+                    {% render_field form.profile class="w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600" %}
+                </div>
+
+            </div>
+            
+            <div class="mt-6 flex items-center space-x-4">
+                <a href="{% url 'index' %}" class="px-4 py-2 text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition">Go Back</a>
+                <button type="submit" class="px-5 py-2.5 text-white bg-green-600 hover:bg-green-700 rounded-lg transition">Update Profile</button>
+            </div>
+
+    </form>
+
+
 </div>
-      </form>
-        </div>
-      </section>
-    </div>
-</form>
+
+</div>
+
 <script src="{% static 'js/projectform.js' %}"></script>
-</div>
-</div>
-{% comment %} {% include "footer.html" %} {% endcomment %}
+
+{% include "footer.html" %}
 {% endblock content %}

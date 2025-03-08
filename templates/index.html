@@ -266,7 +266,7 @@ new Chart(ctx1, {
       {% endfor %}
         ],
       datasets: [{
-          label: 'New Users',
+          label: 'total Users',
           data: [
           {% for project in projects %}
            ' {{project.total}}',
@@ -356,6 +356,8 @@ new Chart(ctx4, {
   }
 });
 </script>
+</div>
+
 </div>
 {% include "footer.html" %}
 {% endblock content %}

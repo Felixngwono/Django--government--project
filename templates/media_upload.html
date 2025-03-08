@@ -1,0 +1,23 @@
+{% extends "header.html" %}
+{% block content %}
+{% load static %}
+{% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 flex items-center justify-center p-8">
+    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-lg">
+        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-4">Upload Media</h2>
+        <form method="POST" class="space-y-4" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-2">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                Upload Media
+            </button>
+        </form>
+    </div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}
