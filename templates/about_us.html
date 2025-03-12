@@ -1,77 +1,44 @@
-{% extends "header.html" %}
-{% block content %}
-{% load static %}
-    {% load widget_tweaks %}
-    {% include "sidebar.html" %}
-<script src="https://cdn.tailwindcss.com"></script>
-<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
+{% extends 'header.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Government Projects Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
-    
-    <!-- Hero Section -->
-    <header class="bg-blue-900 text-white py-16 text-center">
-        <h1 class="text-4xl font-bold">About Us</h1>
-        <p class="mt-2 text-lg">Empowering Transparency in Government Development Projects</p>
-    </header>
-    
-    <!-- Mission & Vision -->
-    <section class="max-w-6xl mx-auto p-8 text-gray-800">
-        <div class="grid md:grid-cols-2 gap-8">
-            <div>
-                <h2 class="text-2xl font-semibold mb-3">Our Mission</h2>
-                <p class="text-gray-600">To provide transparency and accessibility in tracking government development projects, ensuring accountability and progress monitoring for all citizens.</p>
-            </div>
-            <div>
-                <h2 class="text-2xl font-semibold mb-3">Our Vision</h2>
-                <p class="text-gray-600">To be the leading digital platform in enhancing government project oversight, fostering trust, and promoting national development.</p>
-            </div>
+{% block content %}
+{% include "sidebar.html" %}
+
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
+        <h2 class="text-2xl font-semibold mb-4 text-center">About Us</h2>
+        
+        <div class="text-gray-700 space-y-4">
+            <p><strong>Our Mission:</strong> To enhance transparency, accountability, and citizen engagement by providing real-time tracking of government projects.</p>
+            
+            <p><strong>Objectives:</strong></p>
+            <ul class="list-disc list-inside">
+                <li>Monitor public infrastructure projects efficiently.</li>
+                <li>Ensure projects are completed on time and within budget.</li>
+                <li>Empower citizens to report concerns and provide feedback.</li>
+                <li>Promote data-driven decision-making for government authorities.</li>
+                <li>Enhance public trust in government project execution.</li>
+            </ul>
+            
+            <p><strong>Platform Features:</strong></p>
+            <ul class="list-disc list-inside">
+                <li>Real-time project tracking.</li>
+                <li>Interactive maps for project locations.</li>
+                <li>Public feedback and reporting tools.</li>
+                <li>Milestone tracking and transparency reports.</li>
+                <li>Data analytics and project performance insights.</li>
+                <li>Automated alerts and notifications for project updates.</li>
+            </ul>
+            
+            <p><strong>Who We Serve:</strong> Our platform benefits government agencies, policymakers, journalists, researchers, and citizens, ensuring effective project oversight and accountability.</p>
+            
+            <p><strong>Our Commitment:</strong> We are committed to leveraging technology to provide a transparent and accessible system for tracking government projects. By fostering collaboration between government entities and the public, we aim to create a more accountable and efficient governance system.</p>
+            
+            <p><strong>Contact Us:</strong> For inquiries, feedback, or partnerships, reach out via our official channels or email us at <a href="mailto:support@govtrack.com" class="text-blue-600 hover:underline">support@govtrack.com</a>.</p>
         </div>
-    </section>
-    
-    <!-- Team Section -->
-    <section class="bg-white py-12">
-        <div class="max-w-6xl mx-auto p-8 text-center">
-            <h2 class="text-3xl font-semibold mb-6">Meet Our Team</h2>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-gray-100 p-6 rounded-lg shadow">
-                    <img src="https://via.placeholder.com/150" alt="Team Member" class="mx-auto rounded-full">
-                    <h3 class="mt-4 font-semibold text-lg">John Doe</h3>
-                    <p class="text-gray-600">Project Manager</p>
-                </div>
-                <div class="bg-gray-100 p-6 rounded-lg shadow">
-                    <img src="https://via.placeholder.com/150" alt="Team Member" class="mx-auto rounded-full">
-                    <h3 class="mt-4 font-semibold text-lg">Jane Smith</h3>
-                    <p class="text-gray-600">Lead Developer</p>
-                </div>
-                <div class="bg-gray-100 p-6 rounded-lg shadow">
-                    <img src="https://via.placeholder.com/150" alt="Team Member" class="mx-auto rounded-full">
-                    <h3 class="mt-4 font-semibold text-lg">Michael Johnson</h3>
-                    <p class="text-gray-600">Data Analyst</p>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Contact Section -->
-    <section class="bg-blue-900 text-white py-12 text-center">
-        <h2 class="text-3xl font-semibold">Get in Touch</h2>
-        <p class="mt-2 text-lg">Have questions? Reach out to us.</p>
-        <div class="mt-6">
-            <a href="mailto:info@govtracker.com" class="bg-white text-blue-900 font-semibold py-2 px-6 rounded-full">Contact Us</a>
-        </div>
-    </section>
-    
-</body>
-</html>
+    </div>
 </div>
 </div>
+
+
 {% include "footer.html" %}
-{% endblock content %}
+{% endblock %}

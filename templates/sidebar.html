@@ -1,95 +1,105 @@
 {% load static %}
-
+<link href="{% static 'css/sidebar.css' %}" rel="stylesheet">
 <!-- Sidebar -->
 <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen bg-gray-900 text-gray-200 shadow-lg transition-transform duration-300 sm:translate-x-0">
-    <div class="h-full px-4 py-6 overflow-y-auto">
-        <ul class="space-y-3 text-sm font-medium">
+    <div class="h-full px-6 py-6 overflow-y-auto flex flex-col justify-between">
+        <div>
+            <h2 class="text-xl font-semibold text-white mb-4">Dashboard</h2>
+            <ul class="space-y-3 text-sm font-medium">
+                
+                <!-- Navigation Links -->
+                <li>
+                    <a href="#" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
+                        <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-gray-400"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
 
-            <!-- Dashboard -->
-            <li>
-                <a href="#" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                    <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-gray-400"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
+                <li>
+                    <a href="{% url 'chart' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
+                        <i class="fas fa-chart-line w-5 h-5 mr-3 text-gray-400"></i>
+                        <span>Performance Matrix</span>
+                    </a>
+                </li>
 
-            <!-- Performance Matrix -->
-            <li>
-                <a href="{% url 'chart' %}" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                    <i class="fas fa-chart-line w-5 h-5 mr-3 text-gray-400"></i>
-                    <span>Performance Matrix</span>
-                </a>
-            </li>
+                <hr class="border-gray-700 my-3">
 
-            <hr class="border-gray-700 my-3">
+                <!-- Projects Section -->
+                <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Projects</li>
+                <li><a href="{% url 'projectoverview' %}" class="sidebar-link">Overview</a></li>
+                <li><a href="{% url 'ongoing' %}" class="sidebar-link">Ongoing Projects</a></li>
+                <li><a href="{% url 'upcoming' %}" class="sidebar-link">Upcoming Projects</a></li>
+                <li><a href="{% url 'completed' %}" class="sidebar-link">Completed Projects</a></li>
+                <li><a href="{% url 'projectstage_list' %}" class="sidebar-link">Project Stages</a></li>
+                <li><a href="{% url 'milestone_list' %}" class="sidebar-link">Project Milestones</a></li>
 
-            <!-- Projects Section -->
-            <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Projects</li>
-            <li><a href="{% url 'projectoverview' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Overview</a></li>
-            <li><a href="{% url 'ongoing' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Ongoing Projects</a></li>
-            <li><a href="{% url 'upcoming' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Upcoming Projects</a></li>
-            <li><a href="{% url 'completed' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Completed Projects</a></li>
+                <hr class="border-gray-700 my-3">
 
-            <hr class="border-gray-700 my-3">
+                <!-- Reports -->
+                <li>
+                    <a href="/reports/" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
+                        <i class="fas fa-file-alt w-5 h-5 mr-3 text-gray-400"></i>
+                        <span>Progress Report</span>
+                    </a>
+                </li>
 
-            <!-- Reports -->
-            <li>
-                <a href="/reports/" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                    <i class="fas fa-file-alt w-5 h-5 mr-3 text-gray-400"></i>
-                    <span>Progress Report</span>
-                </a>
-            </li>
+                <hr class="border-gray-700 my-3">
 
-            <hr class="border-gray-700 my-3">
+                <!-- Divisions -->
+                <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Divisions</li>
+                {% if request.user.is_superuser %}
+                <li><a href="{% url 'division' %}" class="sidebar-link">Project Divisions</a></li>
+                <li><a href="{% url 'ptypes' %}" class="sidebar-link">Project Type</a></li>
+                {% endif %}
+                <li><a href="{% url 'division_details' %}" class="sidebar-link">Project Details</a></li>
 
-            <!-- Divisions -->
-            <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Divisions</li>
-            {% if request.user.is_superuser %}
-            <li><a href="{% url 'division' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Project Divisions</a></li>
-            <li><a href="{% url 'ptypes' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Project Type</a></li>
-            {% endif %}
-            <li><a href="{% url 'division_details' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Project Details</a></li>
+                <hr class="border-gray-700 my-3">
 
-            <hr class="border-gray-700 my-3">
+                <!-- Workspace -->
+                <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Workspace</li>
+                {% if request.user.is_superuser %}
+                <li><a href="{% url 'createproject' %}" class="sidebar-link">Add Project</a></li>
+                {% endif %}
+                <li><a href="{% url 'projectoverview' %}" class="sidebar-link">Project List</a></li>
 
-            <!-- Project Workspace -->
-            <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Workspace</li>
-            {% if request.user.is_superuser %}
-            <li><a href="{% url 'createproject' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Add Project</a></li>
-            {% endif %}
-            <li><a href="{% url 'projectoverview' %}" class="block px-4 py-2 text-gray-400 hover:text-white">Project List</a></li>
+                <hr class="border-gray-700 my-3">
+                <li><a href="{% url 'AuditLog' %}" class="sidebar-link">Auditing</a></li>
+                <li><a href="{% url 'media_list' %}" class="sidebar-link">Media</a></li>
 
-            <hr class="border-gray-700 my-3">
+                <hr class="border-gray-700 my-3">
+                
+                <!-- Other Sections -->
+                <li>
+                    <a href="{% url 'tender_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
+                        <i class="fas fa-file-contract w-5 h-5 mr-3 text-gray-400"></i>
+                        <span>Tenders</span>
+                    </a>
+                </li>
 
-            <!-- Additional Sections -->
-            <li>
-                <a href="{% url 'tender_list' %}" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                    <i class="fas fa-file-contract w-5 h-5 mr-3 text-gray-400"></i>
-                    <span>Tenders</span>
-                </a>
-            </li>
-            
-            <li>
-                <a href="{% url 'issue_list' %}" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                    <i class="fas fa-exclamation-triangle w-5 h-5 mr-3 text-gray-400"></i>
-                    <span>Report Issues</span>
-                </a>
-            </li>
+                <li>
+                    <a href="{% url 'issue_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
+                        <i class="fas fa-exclamation-triangle w-5 h-5 mr-3 text-gray-400"></i>
+                        <span>Report Issues</span>
+                    </a>
+                </li>
 
-            <li>
-                <a href="{% url 'project_location_list' %}" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                    <i class="fas fa-map-marker-alt w-5 h-5 mr-3 text-gray-400"></i>
-                    <span>Project Location</span>
-                </a>
-            </li>
+                <li>
+                    <a href="{% url 'project_location_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
+                        <i class="fas fa-map-marker-alt w-5 h-5 mr-3 text-gray-400"></i>
+                        <span>Project Location</span>
+                    </a>
+                </li>
 
-            <li>
-                <a href="{% url 'comment_list' %}" class="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                    <i class="fas fa-comments w-5 h-5 mr-3 text-gray-400"></i>
-                    <span>Comments</span>
-                </a>
-            </li>
-        </ul>
+                <li>
+                    <a href="{% url 'comment_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
+                        <i class="fas fa-comments w-5 h-5 mr-3 text-gray-400"></i>
+                        <span>Comments</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+       
     </div>
 </aside>
 
@@ -104,3 +114,5 @@
 <!-- Tailwind & FontAwesome -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://kit.fontawesome.com/YOUR_FONTAWESOME_KIT.js" crossorigin="anonymous"></script>
+
+

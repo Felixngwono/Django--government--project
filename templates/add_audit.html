@@ -1,0 +1,14 @@
+{% extends "header.html " %}
+ {% block content %} 
+{% include "sidebar.html" %}
+<div class="ml-64 w-[calc(100%-16rem)]">
+   <form action='' method='POST'>
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Audit</button>
+</form>
+</div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

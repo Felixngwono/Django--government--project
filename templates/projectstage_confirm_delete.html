@@ -1,0 +1,16 @@
+{% extends 'header.html' %}
+
+{% block content %}
+{% include "sidebar.html" %}
+<div class="ml-64 w-[calc(100%-16rem)]">
+<h2>Are you sure you want to delete "{{ stage.project.project_title }} - {{ stage.get_stage_name_display }}"?</h2>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a href="{% url 'projectstage_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+</div>
+
+</div>
+{% include "footer.html" %}
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'header.html' %}
+
+{% block content %}
+{% include "sidebar.html" %}
+
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
+        <h2 class="text-2xl font-semibold mb-4 text-center">{{ stage.project.project_title }} - {{ stage.get_stage_name_display }}</h2>
+        
+        <div class="text-gray-700 space-y-2">
+            <p><strong>Description:</strong> {{ stage.description }}</p>
+            <p><strong>Start Date:</strong> {{ stage.start_date }}</p>
+            <p><strong>End Date:</strong> {{ stage.end_date }}</p>
+            <p><strong>Progress:</strong> <span class="font-bold text-blue-600">{{ stage.progress_percentage }}%</span></p>
+        </div>
+        
+        <div class="mt-6 flex justify-between">
+            <a href="{% url 'projectstage_update' stage.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg">Edit</a>
+            <a href="{% url 'projectstage_delete' stage.pk %}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg">Delete</a>
+            <a href="{% url 'projectstage_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg">Back to List</a>
+        </div>
+    </div>
+</div>
+
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

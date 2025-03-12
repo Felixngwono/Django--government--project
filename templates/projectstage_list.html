@@ -1,0 +1,29 @@
+{% extends 'header.html' %}
+
+{% block content %}
+{% include "sidebar.html" %}
+
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+    <h2 class="text-2xl font-semibold mb-4">Project Stages</h2>
+    {% if request.user.is_superuser %}
+    <a href="{% url 'projectstage_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg mb-6">Add Stage</a>
+    {% endif %}
+    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
+        <ul class="divide-y divide-gray-300">
+            {% for stage in stages %}
+            <li class="py-3">
+                <a href="{% url 'projectstage_detail' stage.pk %}" class="text-blue-600 hover:underline font-medium">
+                    {{ stage.project.project_title }} - {{ stage.get_stage_name_display }}
+                </a>
+            </li>
+            {% empty %}
+            <li class="py-3 text-gray-500">No project stages available.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+</div>
+
+
+{% include "footer.html" %}
+{% endblock %}

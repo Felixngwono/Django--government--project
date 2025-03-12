@@ -1,0 +1,26 @@
+{% extends 'header.html' %}
+
+{% block content %}
+{% include "sidebar.html" %}
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-6">
+    <div class="container mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-3xl font-bold text-gray-800">{{ audit_details.user }}</h1>
+        
+        <div class="mt-4">
+            <p class="text-lg text-gray-700"><strong>Action:</strong> {{ audit_details.action }}</p>
+            <p class="text-lg text-gray-600"><strong>Timestamp:</strong> {{ audit_details.timestamp }}</p>
+            <p class="text-lg text-gray-600"><strong>Project:</strong> {{ audit_details.project }}</p>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-6">
+            <a href="{% url 'AuditLog' %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                ← Back to Audits
+            </a>
+        </div>
+    </div>
+</div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

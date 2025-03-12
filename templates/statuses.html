@@ -59,51 +59,61 @@
                                       {% for project in projects %}
                                       <li class="px-4 py-3">{{project.project_title}}</li></li>
                                       
-                                      {% endfor %}
+                                      
                                     </li>
                                     <li scope="col" class="px-4 py-3" ><b><u>Description</u></b>
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.project_description}}</li></li>
-                                      {% endfor %}
+                                      
                                     <li scope="col" class="px-4 py-3"><b><u>Location</u></b> 
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.project_location}}</li></li>
-                                      {% endfor %}
+                                      
                                     </li>
                                     <li scope="col" class="px-4 py-3"><b><u>Agency</u></b>
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.implementing_agency}}</li></li>
                                       
-                                      {% endfor %}
+                                      
                                     </li>  
+                                    <li scope="col" class="px-4 py-3"><b><u>Budget</u></b>
+                                      <li class="px-4 py-3">{{project.project_Budgeting}}</li></li>
+                                      
+                                      
+                                    </li>
                                     <li scope="col" class="px-4 py-3"><b><u>Start Date</u></b>
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.start_date}}</li></li>
-                                      {% endfor %}
+                                      
                                     </li>
                                     <li scope="col" class="px-4 py-3"><b><u>End Date</u></b>
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.end_date}}</li></li>
-                                      {% endfor %}
+                                      
                                     </li>
-                                    <li scope="col" class="px-4 py-3"><b><u>Status</u></b>
-                                      {% for project in projects %}
-                                      <li class="px-4 py-3">{{project.project_status}}</li></li>
-                                      {% endfor %}
+
+                                    <li scope="col" class="px-4 py-3"><b><u>beneficiaries</u></b>
+                                      <li class="px-4 py-3">{{project.beneficiaries}}</li></li>
+                                      
+                                      <li scope="col" class="px-4 py-3"><b><u>stakeholders</u></b>
+                                        <li class="px-4 py-3">{{project.stakeholders}}</li></li>
+                                        
+                                      </li>
+                                 
+                                      
+                                    <li scope="col" class="px-4 py-3"><b><u>impact</u></b>
+                                      <li class="px-4 py-3">{{project.impact}}</li></li>
+                                      
+                                    </li>
+                                    <li scope="col" class="px-4 py-3"><b><u>progress</u></b>
+                                      <li class="px-4 py-3">{{project.progress}}</li></li>
+                                      
                                     </li>
 
                                     <li scope="col" class="px-4 py-3"><b><u>Budget</u></b>
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.project_Budgeting}}</li></li>
-                                      {% endfor %}
+                                      
                                     </li>
                                     <li scope="col" class="px-4 py-3"><b><u>project_type</u></b>
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.project_type}}</li></li>
-                                      {% endfor %}
+                                      
                                     </li>
                                     <li scope="col" class="px-4 py-3"><b><u>division</u></b>
-                                      {% for project in projects %}
                                       <li class="px-4 py-3">{{project.division}}</li></li>
                                       {% endfor %}
                                     </li>

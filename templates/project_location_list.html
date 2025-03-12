@@ -1,5 +1,12 @@
-{% extends 'header.html' %}
+{% extends "header.html" %}
 {% block content %}
+{% load static %}
+{% include "sidebar.html" %}
+
+<!-- TailwindCSS CDN -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8 flex justify-center items-center">
 <div class="container mx-auto px-4 py-6">
     <h1 class="text-2xl font-semibold text-gray-800">Project Locations</h1>
     <table class="min-w-full bg-white border border-gray-300 mt-4">
@@ -26,5 +33,21 @@
             {% endfor %}
         </tbody>
     </table>
+    <a href="https://www.google.com/maps?q={{ location.latitude }},{{ location.longitude }}" target="_blank" class="text-blue-500 hover:underline">
+        View on Google Maps
+    </a>
+    
+    <div class="mt-4">
+        {% if request.user.is_superuser %}
+
+        <a href="{% url 'add_project_location' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow">
+            Add location
+        </a>
+        {% endif %}
+    </div>
 </div>
+</div>
+</div>
+
+{% include "footer.html" %}
 {% endblock %}

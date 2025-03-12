@@ -1,5 +1,7 @@
 {% extends 'header.html' %}
 {% block content %}
+{% include "sidebar.html" %}
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8 flex justify-center items-center">
 <div class="container mx-auto px-4 py-6">
     <h1 class="text-2xl font-semibold text-gray-800">{{ issue.title }}</h1>
     <p class="mt-2 text-gray-700">{{ issue.description }}</p>
@@ -7,4 +9,9 @@
     <p class="mt-2 text-gray-600"><strong>Reported By:</strong> {{ issue.user.username }}</p>
     <p class="mt-2 text-gray-600"><strong>Created At:</strong> {{ issue.created_at }}</p>
 </div>
+</div></div>
+
+
+
+{% include "footer.html" %}
 {% endblock %}

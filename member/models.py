@@ -17,8 +17,7 @@ class User(AbstractUser):
         ('others', 'others'),
         ('staff', 'Staff'),
         ('guest', 'Guest'),
-        ('developer', 'Developer'),
-        ('manager', 'Manager'),
+        
         
             ]
     
@@ -71,6 +70,9 @@ class Project_Division(models.Model):
     def __str__(self):
         return self.name
 
+    
+
+
 # 🔹 Project Model
 class Project(models.Model):
     project_status = [
@@ -78,6 +80,8 @@ class Project(models.Model):
         ('upcoming', 'Upcoming'),
         ('completed', 'Completed'),
         ('stalled', 'Stalled'),
+        ('Delayed', 'Delayed'),
+
     ]
 
     project_title = models.CharField(max_length=100,null=True)
@@ -88,6 +92,11 @@ class Project(models.Model):
     images = models.ImageField(null=True, blank=True, upload_to='projects/')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
+    beneficiaries = models.TextField(null=True)
+    stakeholders = models.TextField(null=True)  # List of agencies involved
+    impact = models.TextField(blank=True, null=True)
+    progress = models.TextField(blank=True, null=True)  # Ongoing updates on progress
+    last_updated = models.DateTimeField(auto_now=True)
     project_status= models.CharField(max_length=10,choices=project_status)
     project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True)
     division = models.ForeignKey(Project_Division, on_delete=models.SET_NULL, null=True, blank=True)
@@ -96,18 +105,74 @@ class Project(models.Model):
         ordering = ['-start_date']
 
     def __str__(self):
-        return self.title
+        return self.project_title
+
+class ProjectStage(models.Model):
+    STAGES = [
+        ('planning', 'Planning'),
+        ('procurement', 'Procurement'),
+        ('construction', 'Construction'),
+        ('completion', 'Completion'),
+        ('monitoring', 'Monitoring'),
+        ('evaluation', 'Evaluation'),
+        ('others', 'Others'),
+
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='stages')
+    stage_name = models.CharField(max_length=20, choices=STAGES)
+    description = models.TextField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    progress_percentage = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.project.project_title} - {self.get_stage_name_display()}"
+
+# 🔹 Progress Update Model (Tracks Project Progress )
+# 🔹 Program Funding Model
+class ProgramFunding(models.Model):
+    project = models.ForeignKey(Project, related_name="funding", on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    funding_source = models.CharField(max_length=255)  # Government agency, partnership, etc.
+    date_funded = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Funding: {self.amount} for {self.project.project_title}"
+
+# 🔹 Model for tracking progress and impact metrics for programs
+class ProgramImpact(models.Model):
+    project = models.ForeignKey(Project, related_name="impacts", on_delete=models.CASCADE)
+    metric_name = models.CharField(max_length=255)
+    metric_value = models.FloatField()
+    measurement_date = models.DateField()
+
+    def __str__(self):
+        return f"Impact: {self.metric_name} for {self.project.project_title}"
+    
+
+
+class ProgressUpdate(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='progress_updates')
+    stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, related_name='progress_updates', null=True, blank=True)
+    description = models.TextField()
+    date_reported = models.DateTimeField(auto_now_add=True)
+    progress_percentage = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Progress for {self.project.project_title} - {self.progress_percentage}%"
 
 # 🔹 Milestone Model (Tracks Project Progress)
 class Milestone(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='milestones')
+    stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, related_name='milestones', null=True, blank=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
-    completion_date = models.DateField(null=True, blank=True)
+    completion_date = models.DateField(auto_now=True,null=True, blank=True)
     progress_percentage = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.project.title} - {self.title}"
+        return f"{self.project.project_title} - {self.title}"
 
 
 # 🔹 Notification Model (Alerts for Users)
@@ -131,7 +196,7 @@ class Budget(models.Model):
         return self.allocated_amount - self.spent_amount
     
     def __str__(self):
-        return f"Budget for {self.project.title}"
+        return f"Budget for {self.project.project_title}"
 
 
 
@@ -142,6 +207,8 @@ class Media(models.Model):
         ('video', 'Video'),
         ('pdf', 'PDF Document'),
     ]
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='media',null=True)
+
     file = models.FileField(upload_to='project_media/')
     media_type = models.CharField(max_length=10, choices=MEDIA_TYPES, default='image')
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -156,7 +223,7 @@ class PDF(models.Model):
     document = models.FileField(upload_to='pdfs/document', blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True,null=True)
     project_title = models.CharField(max_length=255, null=True)
-    Project_status = models.CharField(max_length=100 ,null=True)
+    project_status = models.CharField(max_length=100 ,null=True)
     implementing_agency = models.CharField(max_length=255, null=True)
     
     # Field to store the actual PDF file
@@ -170,6 +237,9 @@ class AuditLog(models.Model):
     action = models.CharField(max_length=255)  # e.g., "Project Updated"
     timestamp = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-timestamp']
 
     def __str__(self):
         return f"{self.user} - {self.action} - {self.timestamp}"
@@ -197,26 +267,32 @@ class ProgressReport(models.Model):
         return f"Report: {self.report_title} - {self.project.project_title}"
 
 class Tender(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tenders')
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    opening_date = models.DateField()
-    closing_date = models.DateField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tenders',null=True)
+    title = models.CharField(max_length=255,null=True)
+    description = models.TextField(null=True)
+    opening_date = models.DateField(null=True)
+    closing_date = models.DateField(null=True)
     document = models.FileField(upload_to='tenders/', null=True, blank=True)
-    file= models.FileField(upload_to='tenders_files/', null=True, blank=True)
     def __str__(self):
         return f"Tender: {self.title} for {self.project.project_title}"
 
 
 class ProjectLocation(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='location')
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    name = models.CharField(max_length=255,null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=1, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=1, null=True, blank=True)
+    name = models.CharField(max_length=255, null=True)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Location for {self.project.project_title}"
+
+    def google_maps_link(self):
+        """Returns a Google Maps link for this location."""
+        if self.latitude and self.longitude:
+            return f"https://www.google.com/maps/search/?api=1&query={self.latitude},{self.longitude}"
+        return None
+
 
 
 class ReportIssue(models.Model):
@@ -234,3 +310,42 @@ class ReportIssue(models.Model):
     )
     def __str__(self):
         return f"Issue on {self.project.project_title} by {self.user.username if self.user else 'Anonymous'}"
+
+class Stakeholder(models.Model):
+    name = models.CharField(max_length=255)
+    contact_details = models.TextField()
+    role_in_program = models.TextField()
+    program = models.ForeignKey(Project, related_name="stakeholder", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+# Track the program's funding history
+class ProgramFunding(models.Model):
+    program = models.ForeignKey(Project, related_name="funding", on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    funding_source = models.CharField(max_length=255)  # Government agency, partnership, etc.
+    date_funded = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Funding: {self.amount} for {self.program.name}"
+
+# Model for tracking progress and impact metrics for programs
+class ProgramImpact(models.Model):
+    program = models.ForeignKey(Project, related_name="impacts", on_delete=models.CASCADE)
+    metric_name = models.CharField(max_length=255)
+    metric_value = models.FloatField()
+    measurement_date = models.DateField()
+
+    def __str__(self):
+        return f"Impact: {self.metric_name} for {self.program.name}"
+    
+class ProgressUpdate(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='progress_updates')
+    stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, related_name='progress_updates', null=True, blank=True)
+    description = models.TextField()
+    date_reported = models.DateTimeField(auto_now_add=True)
+    progress_percentage = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Progress for {self.project.project_title} - {self.progress_percentage}%"

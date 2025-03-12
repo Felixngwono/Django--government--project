@@ -1,22 +1,17 @@
-from reportlab.lib.pagesizes import letter
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import PDF, Project_Division, User, Project
+from .models import PDF, AuditLog, Project_Division, User, Project,User, Project, Budget, Feedback, Notification, Milestone, PDF, Media
 from django.contrib import messages
-from .forms import MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, PdfForm,ProjectCreationForm,ProjectDivisionForm, ProjectTypeForm
-from io import BytesIO
+from .forms import AuditLogForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProjectCreationForm,ProjectDivisionForm, ProjectTypeForm
 from django.http import HttpResponse
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
-from .models import User, Project, Budget, Feedback, Notification, Milestone, PDF, Media
 
 def generate_report(request):
     # Fetch data for reports
@@ -143,7 +138,6 @@ def registrationpage(request):
 
 @login_required
 def updateprofile(request,pk):
-    user = request.user
 
     profiles = get_object_or_404(User, id=pk)
     
@@ -156,7 +150,7 @@ def updateprofile(request,pk):
     else: 
         form = MyUserCreationForm(instance=profiles)   
 
-    return render(request, 'profile.html', {'form': form, 'profiles': profiles, 'user': user})
+    return render(request, 'profile.html', {'form': form, 'profiles': profiles})
 
 @login_required
 def deleteprofile(request, pk):
@@ -196,6 +190,7 @@ def sidebar(request):
 def header(request):
     return render(request,'header.html')
 
+@login_required
 def jobApplication(request):
     return render(request,'job.html')
 
@@ -304,6 +299,7 @@ def UpcomingStatuses(request,pk):
     projects= Project.objects.filter(project_status='upcoming', id=pk)
     context= {'projects':projects}
     return render( request,'statuses.html', context) 
+
 @login_required
 def CompletedStatuses(request,pk):
     projects= Project.objects.filter(project_status='completed',id=pk)
@@ -358,10 +354,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Milestone
 from .forms import MilestoneForm
 
+@login_required
 def milestone_list(request):
     milestones = Milestone.objects.all()
     return render(request, 'milestone_list.html', {'milestones': milestones})
 
+@login_required
 def milestone_create(request):
     if request.method == 'POST':
         form = MilestoneForm(request.POST)
@@ -372,6 +370,7 @@ def milestone_create(request):
         form = MilestoneForm()
     return render(request, 'milestone_form.html', {'form': form})
 
+@login_required
 def milestone_update(request, pk):
     milestone = get_object_or_404(Milestone, pk=pk)
     if request.method == 'POST':
@@ -383,6 +382,7 @@ def milestone_update(request, pk):
         form = MilestoneForm(instance=milestone)
     return render(request, 'milestone_form.html', {'form': form})
 
+@login_required
 def milestone_delete(request, pk):
     milestone = get_object_or_404(Milestone, pk=pk)
     if request.method == 'POST':
@@ -393,10 +393,12 @@ def milestone_delete(request, pk):
 from django.shortcuts import render
 from .models import Notification
 
+@login_required
 def notification_list(request):
     notifications = Notification.objects.all()
     return render(request, 'notification_list.html', {'notifications': notifications})
 
+@login_required
 def notification_create(request):
     form=NotificationForm()
     if request.method=='POST':
@@ -411,11 +413,12 @@ def notification_create(request):
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Media
 from .forms import MediaForm
-
+@login_required
 def media_list(request):
     media_files = Media.objects.all()
     return render(request, 'media_list.html', {'media_files': media_files})
 
+@login_required
 def media_upload(request):
     form = MediaForm()
     if request.method == 'POST':
@@ -427,20 +430,25 @@ def media_upload(request):
     return render(request, 'media_upload.html', {'form': form})
 
 
-from django.shortcuts import render, redirect
-from .models import Milestone
-from .forms import MilestoneForm
 
+@login_required
+def milestone(request):
+    milestones=Milestone.objects.all()
+    return render(request,'milestone.html',{'milestones':milestones})
+
+
+@login_required
 def milestone_create(request):
     form = MilestoneForm()
     if request.method == "POST":
-        form = MilestoneForm(request.POST,request.FILES)
+        form = MilestoneForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('milestone_list')  # Redirect after saving
+            return redirect('milestone_list')
+        else:
+            print(form.errors)  # Print errors in console
     
     return render(request, 'milestone_form.html', {'form': form})
-
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -450,6 +458,7 @@ from .models import Project, Comment, ProgressReport, Tender, ProjectLocation, R
 from .forms import CommentForm, ProgressReportForm, TenderForm, ReportIssueForm
 
 # 🔹 Project Comments View
+@login_required
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     comments = project.comments.all()
@@ -496,25 +505,23 @@ def upload_tender(request, project_id):
     return render(request, 'upload_tender.html', {'form': form, 'project': project})
 
 # 🔹 Report Issue View
-@login_required
-def report_issue(request, pk):
-    project = get_object_or_404(Project, id=pk)
-    if request.method == "POST":
-        form = ReportIssueForm(request.POST, request.FILES)
-        if form.is_valid():
-            issue = form.save(commit=False)
-            issue.project = project
-            issue.user = request.user
-            issue.save()
-            return redirect('project_detail')
-    else:
-        form = ReportIssueForm()
-    return render(request, 'report_issue.html', {'form': form, 'project': project})
+
 
 @login_required
 def issue_list(request):
     issues = ReportIssue.objects.all()
     return render(request, 'issue_list.html', {'issues': issues})
+
+@login_required
+def add_report_issue(request):
+    form=ReportIssueForm()
+    if request.method == "POST":
+        form = ReportIssueForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('issue_list')
+    
+    return render(request, 'report_issue.html', {'form': form})
 
 @login_required
 def issue_detail(request, issue_id):
@@ -524,10 +531,53 @@ def issue_detail(request, issue_id):
 from django.shortcuts import render, get_object_or_404
 from .models import Tender
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Tender
+from .forms import TenderForm
+
+# List all tenders
 def tender_list(request):
     tenders = Tender.objects.all()
     return render(request, 'tender_list.html', {'tenders': tenders})
 
+# View tender details
+def tender_detail(request, tender_id):
+    tender = get_object_or_404(Tender, id=tender_id)
+    return render(request, 'tender_detail.html', {'tender': tender})
+
+# Add a new tender
+def add_tender(request):
+    form = TenderForm()
+
+    if request.method == "POST":
+        form = TenderForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('tender_list')
+    return render(request, 'tender_form.html', {'form': form})
+
+# Update an existing tender
+def update_tender(request, tender_id):
+    tender = get_object_or_404(Tender, id=tender_id)
+    if request.method == "POST":
+        form = TenderForm(request.POST, request.FILES, instance=tender)
+        if form.is_valid():
+            form.save()
+            return redirect('tender_list')
+    else:
+        form = TenderForm(instance=tender)
+    return render(request, 'tender_form.html', {'form': form, 'title': 'Update Tender'})
+
+# Delete a tender
+def delete_tender(request, tender_id):
+    tender = get_object_or_404(Tender, id=tender_id)
+    if request.method == "POST":
+        tender.delete()
+        return redirect('tender_list')
+    return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
+
+
+@login_required
 def tender_detail(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     return render(request, 'tender_detail.html', {'tender': tender})
@@ -581,5 +631,67 @@ def add_comment(request):
 
     return render(request, 'add_comment.html', {'form': form})
 
+def AuditLogs(request):
+    auditing=AuditLog.objects.all()
+    return render(request,'audit.html',{'auditing':auditing})
 
+def add_audit(request):
+    form=AuditLogForm()
+    if request.method=='POST':
+        form=AuditLogForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('AuditLog')
+    return render(request,'add_audit.html',{'form':form})
+
+
+def audit_details(request,pk):
+    audit_details=get_object_or_404(AuditLog,id=pk)
+    if request.method=='POST':
+        form=AuditLogForm(request.POST,request.FILES,instance=audit_details),
+        if form.is_valid():
+            form.save()
+            return redirect('AuditLog')
+    else:
+        form=AuditLogForm(instance=audit_details)
+    context={'audit_details':audit_details}
+    return render(request,'audit_details.html',context)
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from .models import ProjectStage
+from .forms import ProjectStageForm
+
+# 🔹 List All Project Stages
+class ProjectStageListView(ListView):
+    model = ProjectStage
+    template_name = 'projectstage_list.html'
+    context_object_name = 'stages'
+
+# 🔹 View Project Stage Details
+class ProjectStageDetailView(DetailView):
+    model = ProjectStage
+    template_name = 'projectstage_detail.html'
+    context_object_name = 'stage'
+
+# 🔹 Create New Project Stage
+class ProjectStageCreateView(CreateView):
+    model = ProjectStage
+    form_class = ProjectStageForm
+    template_name = 'projectstage_form.html'
+    success_url = reverse_lazy('projectstage_list')
+
+# 🔹 Update Project Stage
+class ProjectStageUpdateView(UpdateView):
+    model = ProjectStage
+    form_class = ProjectStageForm
+    template_name = 'projectstage_form.html'
+    success_url = reverse_lazy('projectstage_list')
+
+# 🔹 Delete Project Stage
+class ProjectStageDeleteView(DeleteView):
+    model = ProjectStage
+    template_name = 'projectstage_confirm_delete.html'
+    success_url = reverse_lazy('projectstage_list')
 
