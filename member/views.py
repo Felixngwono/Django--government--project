@@ -258,6 +258,11 @@ def completed(request):
     return render( request,'completed.html', context) 
 
 @login_required
+def delayed(request):
+    projects= Project.objects.filter(project_status='delayed')
+    context= {'projects':projects}
+    return render( request,'delayed.html', context) 
+@login_required
 def upcoming(request):
     return render(request,'upcoming.html')
  

@@ -65,7 +65,7 @@ class Project_type(models.Model):
 # 🔹 Project Division Model
 class Project_Division(models.Model):
     name = models.CharField(max_length=100)
-    project_type = models.ForeignKey(Project_type, on_delete=models.CASCADE, null=True, related_name="divisions")
+    project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True, related_name="divisions")
 
     def __str__(self):
         return self.name
@@ -88,7 +88,7 @@ class Project(models.Model):
     project_description = models.TextField(null=True)
     project_location = models.CharField(max_length=100,null=True)
     implementing_agency = models.CharField(max_length=100,null=True)
-    project_Budgeting = models.DecimalField(max_digits=15, decimal_places=2,null=True)  # Improved data type
+    project_Budgeting = models.CharField(max_length=15,null=True)  # Improved data type
     images = models.ImageField(null=True, blank=True, upload_to='projects/')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -96,7 +96,6 @@ class Project(models.Model):
     stakeholders = models.TextField(null=True)  # List of agencies involved
     impact = models.TextField(blank=True, null=True)
     progress = models.TextField(blank=True, null=True)  # Ongoing updates on progress
-    last_updated = models.DateTimeField(auto_now=True)
     project_status= models.CharField(max_length=10,choices=project_status)
     project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True)
     division = models.ForeignKey(Project_Division, on_delete=models.SET_NULL, null=True, blank=True)
@@ -124,7 +123,7 @@ class ProjectStage(models.Model):
     description = models.TextField(null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
-    progress_percentage = models.IntegerField(default=0)
+    progress_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"{self.project.project_title} - {self.get_stage_name_display()}"
@@ -322,13 +321,13 @@ class Stakeholder(models.Model):
 
 # Track the program's funding history
 class ProgramFunding(models.Model):
-    program = models.ForeignKey(Project, related_name="funding", on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name="funding", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     funding_source = models.CharField(max_length=255)  # Government agency, partnership, etc.
     date_funded = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Funding: {self.amount} for {self.program.name}"
+        return f"Funding: {self.amount} for {self.project.project_title}"
 
 # Model for tracking progress and impact metrics for programs
 class ProgramImpact(models.Model):

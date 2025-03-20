@@ -2,103 +2,72 @@
 {% block content %}
 {% include "sidebar.html" %}
 {% load static %}
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 <div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
 
-<div class="slider-item" style="background-image: url({% static 'images/estate.jpg' %}); background-repeat: no-repeat;">
-<section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
-    <p  class=" text-center "><b><u>lists of Ongoing projects</u></b></p>
-    <div class="mx-auto max-w-screen-full px-4 lg:px-12">
-        <!-- Start coding here -->
-        <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
-            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
-                
-                
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
-                            <th scope="col" class="px-4 py-3">Title</th>
-                            <th scope="col" class="px-4 py-3">Description</th>
-                            
+    <!-- Background Banner -->
+    <div class="relative w-full h-64 bg-cover bg-center rounded-lg shadow-lg" style="background-image: url({% static 'images/estate.jpg' %});">
+        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+            <h1 class="text-white text-3xl font-bold text-center">Ongoing Projects</h1>
+        </div>
+    </div>
 
-                            <th scope="col" class="px-4 py-3">
-                                <span class="sr-only">Actions</span>
-                            </th>
+    <!-- Project List Container -->
+    <div class="mt-8 mx-auto max-w-screen-xl px-6 lg:px-12">
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            
+            <!-- Table Header -->
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h2 class="text-xl font-semibold text-gray-800">List of Ongoing Projects</h2>
+            </div>
+
+            <!-- Projects Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="text-xs uppercase bg-gray-200 text-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Title</th>
+                            <th scope="col" class="px-6 py-3">Description</th>
+                            <th scope="col" class="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for project in projects %}
-                        <tr class="border-b dark:border-gray-700">
-                            <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{project.project_title}} </th>
-                            
-                            <td class="px-4 py-3">{{project.project_description}}</td>
-                           
-                            
-                            <td class="px-4 py-3 flex items-center justify-end">
-                                
-                                <div>
-                                   
-                                    <button type="button" class="text-white bg-green-500 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 font-small rounded-50 text-sm px-2 py-1 text-center me-1 mb-1 dark:bg-blue-300 dark:hover:bg-blue-400 dark:focus:ring-blue-500"><a href="{% url 'Ongoingstatuses' project.id %}">view</a></button>
-                                </div>
+                        <tr class="border-b hover:bg-gray-100 transition">
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ project.project_title }}</td>
+                            <td class="px-6 py-4">{{ project.project_description }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{% url 'Ongoingstatuses' project.id %}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                                    View
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
-                       
                     </tbody>
                 </table>
             </div>
-            
-            <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4" aria-label="Table navigation">
-                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                    Showing
-                    <span class="font-semibold text-gray-900 dark:text-white">1-10</span>
-                    of
-                    <span class="font-semibold text-gray-900 dark:text-white">1000</span>
+
+            <!-- Pagination -->
+            <div class="flex justify-between items-center p-4 border-t bg-gray-50">
+                <span class="text-sm text-gray-600">
+                    Showing <span class="font-semibold">1-10</span> of <span class="font-semibold">1000</span>
                 </span>
-                <ul class="inline-flex items-stretch -space-x-px">
-                    <li>
-                        <a href="#" class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                            <span class="sr-only">Previous</span>
-                            <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
-                    </li>
-                    <li>
-                        <a href="#" aria-current="page" class="flex items-center justify-center text-sm z-10 py-2 px-3 leading-tight text-primary-600 bg-primary-50 border border-primary-300 hover:bg-primary-100 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">...</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">100</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                            <span class="sr-only">Next</span>
-                            <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+                <div class="flex space-x-2">
+                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">Previous</a>
+                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">1</a>
+                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">2</a>
+                    <a href="#" class="px-3 py-1 text-white bg-blue-500 border rounded-lg hover:bg-blue-600">3</a>
+                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">...</a>
+                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">Next</a>
+                </div>
+            </div>
+
         </div>
     </div>
-    </section>
-</div>
 </div>
 </div>
 
-</div>
 {% include "footer.html" %}
-   {% endblock content %}
+{% endblock content %}
