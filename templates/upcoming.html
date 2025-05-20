@@ -16,14 +16,10 @@
                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                     </svg>
                 </div>
-                <div>
-                    <select class="border rounded-lg p-2 text-sm" id="filter-status">
-                        <option value="all">All Projects</option>
-                        <option value="planning">Planning</option>
-                        <option value="ongoing">Ongoing</option>
-                        <option value="completed">Completed</option>
-                    </select>
-                </div>
+               <a href="{% url 'createproject' %}"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition duration-300">
+                    + Add New Project
+                </a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">

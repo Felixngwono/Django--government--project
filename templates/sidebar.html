@@ -1,116 +1,114 @@
 {% load static %}
 <link href="{% static 'css/sidebar.css' %}" rel="stylesheet">
+
 <!-- Sidebar -->
-<aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen bg-gray-900 text-gray-200 shadow-lg transition-transform duration-300 sm:translate-x-0">
+<aside id="default-sidebar"
+    class="fixed top-0 left-0 z-40 w-64 h-screen bg-gray-950 text-white shadow-xl transition-transform duration-300 sm:translate-x-0">
+
     <div class="h-full px-6 py-6 overflow-y-auto flex flex-col justify-between">
         <div>
-            <h2 class="text-xl font-semibold text-white mb-4">Dashboard</h2>
-            <ul class="space-y-3 text-sm font-medium">
-                
-                <!-- Navigation Links -->
-                <li>
-                    <a href="#" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                        <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-gray-400"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
+            <!-- Dashboard -->
+            <h2 class="text-xl font-bold text-teal-400 mb-6 flex items-center">
+                <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-teal-300"></i>
+                Dashboard
+            </h2>
 
+            <ul class="space-y-3 text-sm font-medium">
+
+                <!-- Performance -->
                 <li>
-                    <a href="{% url 'chart' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                        <i class="fas fa-chart-line w-5 h-5 mr-3 text-gray-400"></i>
+                    <a href="{% url 'chart' %}" class="flex items-center rounded-lg px-3 py-2 bg-indigo-800 hover:bg-teal-700 transition">
+                        <i class="fas fa-chart-line w-5 h-5 mr-3 text-yellow-300"></i>
                         <span>Performance Matrix</span>
                     </a>
                 </li>
 
-                <hr class="border-gray-700 my-3">
+                <hr class="border-indigo-700 my-4">
 
-                <!-- Projects Section -->
-                <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Projects</li>
+                <!-- Projects -->
+                <li class="text-pink-400 uppercase text-xs font-bold tracking-widest">Projects</li>
                 <li><a href="{% url 'projectoverview' %}" class="sidebar-link">Overview</a></li>
                 <li><a href="{% url 'ongoing' %}" class="sidebar-link">Ongoing Projects</a></li>
                 <li><a href="{% url 'upcoming' %}" class="sidebar-link">Upcoming Projects</a></li>
-                <li><a href="#" class="sidebar-link">Delayed Projects</a></li>
-                <li><a href="" class="sidebar-link">stalled Projects</a></li>
-
+                <li><a href="{% url 'delayed' %}" class="sidebar-link">Delayed Projects</a></li>
+                <li><a href="{% url 'stalled' %}" class="sidebar-link">Stalled Projects</a></li>
                 <li><a href="{% url 'completed' %}" class="sidebar-link">Completed Projects</a></li>
 
+                <hr class="border-indigo-700 my-4">
+
+                <!-- Stages & Milestones -->
                 <li><a href="{% url 'projectstage_list' %}" class="sidebar-link">Project Stages</a></li>
                 <li><a href="{% url 'milestone_list' %}" class="sidebar-link">Project Milestones</a></li>
 
-                <hr class="border-gray-700 my-3">
+                <hr class="border-indigo-700 my-4">
 
                 <!-- Reports -->
                 <li>
-                    <a href="/reports/" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                        <i class="fas fa-file-alt w-5 h-5 mr-3 text-gray-400"></i>
+                    <a href="/reports/" class="flex items-center px-4 py-3 rounded-lg bg-indigo-800 hover:bg-blue-600 transition">
+                        <i class="fas fa-file-alt w-5 h-5 mr-3 text-orange-300"></i>
                         <span>Progress Report</span>
                     </a>
                 </li>
 
-                <hr class="border-gray-700 my-3">
+                <hr class="border-indigo-700 my-4">
 
                 <!-- Divisions -->
-                <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Divisions</li>
+                <li class="text-purple-400 uppercase text-xs font-bold tracking-widest">Divisions</li>
                 {% if request.user.is_superuser %}
                 <li><a href="{% url 'division' %}" class="sidebar-link">Project Divisions</a></li>
                 <li><a href="{% url 'ptypes' %}" class="sidebar-link">Project Type</a></li>
                 {% endif %}
                 <li><a href="{% url 'division_details' %}" class="sidebar-link">Project Details</a></li>
 
-                <hr class="border-gray-700 my-3">
+                <hr class="border-indigo-700 my-4">
 
                 <!-- Workspace -->
-                <li class="text-gray-400 px-4 py-2 uppercase text-xs font-semibold">Workspace</li>
-                {% if request.user.is_superuser %}
-                <li><a href="{% url 'createproject' %}" class="sidebar-link">Add Project</a></li>
-                {% endif %}
+                <li class="text-blue-400 uppercase text-xs font-bold tracking-widest">Workspace</li>
+               
                 <li><a href="{% url 'projectoverview' %}" class="sidebar-link">Project List</a></li>
-
-                <hr class="border-gray-700 my-3">
                 <li><a href="{% url 'AuditLog' %}" class="sidebar-link">Auditing</a></li>
                 <li><a href="{% url 'media_list' %}" class="sidebar-link">Media</a></li>
 
-                <hr class="border-gray-700 my-3">
-                
-                <!-- Other Sections -->
+                <hr class="border-indigo-700 my-4">
+
+                <!-- Other -->
                 <li>
-                    <a href="{% url 'tender_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                        <i class="fas fa-file-contract w-5 h-5 mr-3 text-gray-400"></i>
+                    <a href="{% url 'tender_list' %}" class="flex items-center px-4 py-3 tracking-widest hover:bg-pink-600 transition">
+                        <i class="fas fa-file-contract w-5 h-5 mr-3 text-green-300"></i>
                         <span>Tenders</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'issue_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                        <i class="fas fa-exclamation-triangle w-5 h-5 mr-3 text-gray-400"></i>
+                    <a href="{% url 'issue_list' %}" class="flex items-center px-4 py-3 tracking-widest hover:bg-red-600 transition">
+                        <i class="fas fa-exclamation-triangle w-5 h-5 mr-3 text-red-300"></i>
                         <span>Report Issues</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'project_location_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                        <i class="fas fa-map-marker-alt w-5 h-5 mr-3 text-gray-400"></i>
+                    <a href="{% url 'project_location_list' %}" class="flex items-center px-4 py-3 tracking-widest hover:bg-green-600 transition">
+                        <i class="fas fa-map-marker-alt w-5 h-5 mr-3 text-lime-300"></i>
                         <span>Project Location</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'comment_list' %}" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 hover:text-white transition-all">
-                        <i class="fas fa-comments w-5 h-5 mr-3 text-gray-400"></i>
+                    <a href="{% url 'comment_list' %}" class="flex tracking-widest items-center px-4 py-3   hover:bg-yellow-500 transition">
+                        <i class="fas fa-comments w-5 h-5 mr-3 text-white"></i>
                         <span>Comments</span>
                     </a>
                 </li>
+
             </ul>
         </div>
-
-       
     </div>
 </aside>
 
 <!-- Sidebar Toggle Button (For Mobile) -->
 <button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar"
     aria-controls="default-sidebar" type="button"
-    class="inline-flex items-center p-2 mt-2 ms-3 text-gray-500 rounded-lg sm:hidden hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300">
+    class="inline-flex items-center p-2 mt-2 ms-3 text-white bg-indigo-900 rounded-lg sm:hidden hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
     <span class="sr-only">Open sidebar</span>
     <i class="fas fa-bars w-6 h-6"></i>
 </button>
@@ -118,5 +116,3 @@
 <!-- Tailwind & FontAwesome -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://kit.fontawesome.com/YOUR_FONTAWESOME_KIT.js" crossorigin="anonymous"></script>
-
-

@@ -2,16 +2,15 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import PDF, AuditLog, Project_Division, User, Project,User, Project, Budget, Feedback, Notification, Milestone, PDF, Media
+from .models import PDF, AuditLog, Project_Division, ProjectStage, Testimonial, User, Project,User, Project, Budget, Feedback, Notification, Milestone, PDF, Media
 from django.contrib import messages
-from .forms import AuditLogForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProjectCreationForm,ProjectDivisionForm, ProjectTypeForm
-from django.http import HttpResponse
-
-from django.shortcuts import render
-from django.http import HttpResponse
+from .forms import AuditLogForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProjectCreationForm,ProjectDivisionForm, ProjectLocationForm, ProjectStageForm, ProjectTypeForm, TestimonialForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+
 
 def generate_report(request):
     # Fetch data for reports
@@ -167,6 +166,8 @@ def index(request):
     ongoingcount=Project.objects.filter(project_status='ongoing').count()
     upcomingcount=Project.objects.filter(project_status='upcoming').count()
     completedcount=Project.objects.filter(project_status='completed').count()
+    delayedcount=Project.objects.filter(project_status='delayed').count()
+    stalledcount=Project.objects.filter(project_status='stalled').count()
     allproject=Project.objects.all().count()
     users=User.objects.all().count()
     agencies=Project_Division.objects.all().count()
@@ -176,6 +177,8 @@ def index(request):
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
              'completedcount':completedcount,
+             'delayedcount':delayedcount,
+            'stalledcount':stalledcount,
              'allproject':allproject,
              'users':users,
              'project':projects,
@@ -250,6 +253,14 @@ def BudgetAnalysis(request):
 def PerfomanceMetrix(request):
     return render(request,'perfomancematrix.html')
 
+@login_required
+def stalled(request):
+    stalling= Project.objects.filter(project_status='stalled')
+    context= {'stalling':stalling}
+    return render( request,'stalledprojects.html', context)
+
+
+    
 
 @login_required
 def completed(request):
@@ -259,9 +270,17 @@ def completed(request):
 
 @login_required
 def delayed(request):
-    projects= Project.objects.filter(project_status='delayed')
-    context= {'projects':projects}
+    delaying= Project.objects.filter(project_status='delayed')
+    context= {'delaying':delaying}
     return render( request,'delayed.html', context) 
+
+@login_required(login_url='login')
+def delayedstatus(request,pk):
+    projects= Project.objects.filter(project_status='delayed', id=pk)
+    context= {'projects':projects}
+    return render( request,'statuses.html', context)
+
+
 @login_required
 def upcoming(request):
     return render(request,'upcoming.html')
@@ -588,10 +607,6 @@ def tender_detail(request, tender_id):
     return render(request, 'tender_detail.html', {'tender': tender})
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import ProjectLocation
-from .forms import ProjectLocationForm
 
 @login_required
 def add_project_location(request):
@@ -614,10 +629,7 @@ def project_location_detail(request, location_id):
     location = get_object_or_404(ProjectLocation, id=location_id)
     return render(request, 'project_location_detail.html', {'location': location})
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Comment, Project
-from .forms import CommentForm
+
 
 @login_required
 def comment_list(request):
@@ -662,12 +674,6 @@ def audit_details(request,pk):
     context={'audit_details':audit_details}
     return render(request,'audit_details.html',context)
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from .models import ProjectStage
-from .forms import ProjectStageForm
-
 # 🔹 List All Project Stages
 class ProjectStageListView(ListView):
     model = ProjectStage
@@ -700,3 +706,60 @@ class ProjectStageDeleteView(DeleteView):
     template_name = 'projectstage_confirm_delete.html'
     success_url = reverse_lazy('projectstage_list')
 
+
+def Testimony(request):
+    testimonials = Testimonial.objects.all()
+    form = TestimonialForm()
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST,request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('testimonials')
+    context = {'form': form, 'testimonials': testimonials}
+    return render(request,'testimonials.html', context)
+
+def add_testimonials(request):
+    form = TestimonialForm()
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('testimonials')
+    context = {'form': form}
+    return render(request, 'add_testimonial.html', context)
+
+def testimonial_details(request, pk):
+    testimonial = get_object_or_404(Testimonial, id=pk)
+    form= TestimonialForm(instance=testimonial)
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST, request.FILES, instance=testimonial)
+        if form.is_valid():
+            form.save()
+            return redirect('testimonials')
+        messages.success(request, "view testimonials in detail.")
+    context = {'testimonial': testimonial}
+    return render(request, 'testimonial_details.html', context)
+
+def update_testimonial(request, pk):
+    testimonial = get_object_or_404(Testimonial, id=pk)
+    form = TestimonialForm(instance=testimonial)
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST,request.FILES, instance=testimonial)
+        if form.is_valid():
+            form.save()
+            return redirect('testimonials')
+    context = {'form': form, 'testimonial': testimonial}
+    return render(request, 'testimonial_update.html', context)
+
+def delete_testimonial(request, pk):
+    testimonial = get_object_or_404(Testimonial, id=pk)
+    form= TestimonialForm(instance=testimonial)
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST, request.FILES,instance=testimonial)
+        testimonial.delete()
+        messages.success(request, "Testimonial deleted successfully.")
+        return redirect('testimonials')
+    context = {'testimonial': testimonial,
+                'form': form
+               }
+    return render(request, 'testimonial_delete.html', context)

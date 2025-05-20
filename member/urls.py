@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import   ProjectStageListView, ProjectStageDetailView,  ProjectStageCreateView, ProjectStageUpdateView, ProjectStageDeleteView,AuditLogs, add_audit, add_comment, add_project_location, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, project_location_detail, project_location_list, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, tender_detail, tender_list, update_tender,updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,testimonials,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report, upload_tender,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  Testimony, add_testimonials, delayedstatus, stalled,delayed, ProjectStageListView, ProjectStageDetailView,  ProjectStageCreateView, ProjectStageUpdateView, ProjectStageDeleteView,AuditLogs, add_audit, add_comment, add_project_location, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, project_location_detail, project_location_list, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, tender_detail, tender_list, testimonial_details, update_tender, update_testimonial,updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report, upload_tender,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -26,19 +26,37 @@ urlpatterns = [
     path('updateproject/<str:pk>/', updateProject, name="update"),
     path('budgetAnalysis/', BudgetAnalysis, name="BudgetAnalysis"),
     path('metrix/', PerfomanceMetrix, name="metrix"),
-    path('ongoing/', ongoing, name="ongoing"),
-    path('upcoming/', upcoming, name="upcoming"),
-    path('completed/', completed, name="completed"),
+
+
+    
+
+
     path('team/', teams, name="team"),
-    path('testimonials/', testimonials, name="testimonials"),
+
+    path('testimonials/', Testimony, name="testimonials"),
+    path('add_testimonial/', add_testimonials, name="add_testimonial"),
+    path('testimonial_details/<str:pk>/', testimonial_details, name="testimonial_details"),
+    path('update_testimonial/<str:pk>/', update_testimonial, name="update_testimonial"),
+    path('delete_testimonial/<str:pk>/', deleteProject, name="delete_testimonial"),
+
+
     path('projectoverview/', project_overview, name="projectoverview"),
     path('deleteProject/<str:pk>/', deleteProject, name="delete"),
     path('project/', project, name="project"),
+
+    path('ongoing/', ongoing, name="ongoing"),
+    path('stalled/', stalled, name="stalled"),
+    path('delayed/', delayed, name="delayed"),
+    path('delayedstatus/<str:pk>/', delayedstatus, name="delayedstatus"),
+    path('upcoming/', upcoming, name="upcoming"),
+    path('completed/', completed, name="completed"),
     path('statuses/<str:pk>/', OngoingStatuses, name="Ongoingstatuses"),
-    path('division/', divisionform, name="division"),
-    path('division_details/', Division_details, name="division_details"),
     path('CompletedStatuses/<str:pk>/', CompletedStatuses, name="CompletedStatuses"),
     path('Upcomingstatus/<str:pk>/', UpcomingStatuses, name="Upcomingstatus"),
+
+    path('division/', divisionform, name="division"),
+    path('division_details/', Division_details, name="division_details"),
+
     path('ptypes/', ptypes, name="ptypes"),
 
     path('milestones/', milestone_list, name='milestone_list'),
@@ -93,3 +111,6 @@ urlpatterns = [
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

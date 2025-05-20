@@ -11,16 +11,24 @@
     <div class="relative w-full h-64 bg-cover bg-center rounded-lg shadow-lg" style="background-image: url({% static 'images/estate.jpg' %});">
         <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
             <h1 class="text-white text-3xl font-bold text-center">Ongoing Projects</h1>
+            
         </div>
     </div>
-
+<br>
+<br>
     <!-- Project List Container -->
-    <div class="mt-8 mx-auto max-w-screen-xl px-6 lg:px-12">
-        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="">
+        <div class="bg-white overflow-hidden">
             
             <!-- Table Header -->
             <div class="p-4 border-b flex justify-between items-center bg-gray-50">
                 <h2 class="text-xl font-semibold text-gray-800">List of Ongoing Projects</h2>
+                {% if request.user.is_superuser %}
+                <a href="{% url 'createproject' %}"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition duration-300">
+                    + Add New Project
+                </a>
+                {% endif %}
             </div>
 
             <!-- Projects Table -->

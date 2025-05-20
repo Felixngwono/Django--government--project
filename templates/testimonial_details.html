@@ -1,0 +1,69 @@
+{% extends "header.html" %}
+{% load static %}
+{% block content %}
+{% include "Sidebar.html" %}
+<div class="ml-64 w-[calc(100%-16rem)]">
+
+    {% for message in messages %}
+    <p id="messages" class="font-semibold text-lg text-center text-green-600 py-2">{{ message }}</p>
+    {% endfor %}
+
+    <div class="flex justify-center">
+        <div class="max-w-4xl w-full bg-white shadow-lg rounded-2xl p-8 mt-6 space-y-6">
+
+            <h2 class="text-3xl font-bold text-center text-gray-800">Testimonial Details</h2>
+
+            <div class="flex flex-col items-center space-y-4">
+                {% if testimonial.image %}
+                <a href="{{ testimonial.image.url }}" class="hover:opacity-90 transition">
+                    <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}"
+                         class="w-40 h-40 rounded-full object-cover shadow-md border-4 border-gray-200">
+                </a>
+                {% else %}
+                <div class="w-40 h-40 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 text-sm">
+                    No Image
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
+                <div>
+                    <label class="text-sm text-gray-500">Name</label>
+                    <div class="p-3 mt-1 bg-gray-100 rounded-md font-medium">{{ testimonial.name }}</div>
+                </div>
+
+                <div>
+                    <label class="text-sm text-gray-500">Position</label>
+                    <div class="p-3 mt-1 bg-gray-100 rounded-md font-medium">{{ testimonial.position }}</div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="text-sm text-gray-500">Content</label>
+                    <div class="p-4 mt-1 bg-gray-50 rounded-md text-gray-800 leading-relaxed border border-gray-200">
+                        {{ testimonial.content }}
+                    </div>
+                </div>
+            </div>
+
+            {% if request.user.is_superuser %}
+            <div class="pt-6 border-t mt-6 flex justify-center space-x-4">
+                <a href="{% url 'update_testimonial' testimonial.id %}" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md transition-all">
+                    ✏️ Update
+                </a>
+
+                <a href="{% url 'delete_testimonial' testimonial.id %}" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg shadow-md transition-all">
+                    🗑️ Delete
+                </a>
+
+                <a href="{% url 'testimonials' %}" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg shadow-md transition-all">
+                    🔙 Go Back
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

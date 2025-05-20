@@ -320,7 +320,7 @@ class Stakeholder(models.Model):
         return self.name
 
 # Track the program's funding history
-class ProgramFunding(models.Model):
+class ProgramFunding(models.Model):  # noqa: F811
     project = models.ForeignKey(Project, related_name="funding", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     funding_source = models.CharField(max_length=255)  # Government agency, partnership, etc.
@@ -330,7 +330,7 @@ class ProgramFunding(models.Model):
         return f"Funding: {self.amount} for {self.project.project_title}"
 
 # Model for tracking progress and impact metrics for programs
-class ProgramImpact(models.Model):
+class ProgramImpact(models.Model): 
     program = models.ForeignKey(Project, related_name="impacts", on_delete=models.CASCADE)
     metric_name = models.CharField(max_length=255)
     metric_value = models.FloatField()
@@ -339,7 +339,7 @@ class ProgramImpact(models.Model):
     def __str__(self):
         return f"Impact: {self.metric_name} for {self.program.name}"
     
-class ProgressUpdate(models.Model):
+class ProgressUpdate(models.Model):  
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='progress_updates')
     stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, related_name='progress_updates', null=True, blank=True)
     description = models.TextField()
@@ -348,3 +348,65 @@ class ProgressUpdate(models.Model):
 
     def __str__(self):
         return f"Progress for {self.project.project_title} - {self.progress_percentage}%"
+
+class Testimonial(models.Model):
+    name = models.CharField(max_length=100,null=True)
+    content= models.TextField(null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='testimonials',null=True)
+    testimonial_text = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to='testimonials/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Testimonial by {self.name} for {self.project.project_title}"
+class ProjectUpdate(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='updates')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    update_date = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to='project_updates/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Update: {self.title} for {self.project.project_title}"
+    
+class ProjectReport(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='reports')
+    report_file = models.FileField(upload_to='project_reports/')
+    report_date = models.DateTimeField(auto_now_add=True)
+    report_title = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"Report: {self.report_title} for {self.project.project_title}"
+    
+class ProjectBudget(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='budgets')
+    allocated_budget = models.DecimalField(max_digits=15, decimal_places=2)
+    spent_budget = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    budget_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Budget for {self.project.project_title}"
+    def remaining_budget(self):
+        return self.allocated_budget - self.spent_budget
+   
+class ProjectExpense(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='expenses')
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    description = models.TextField()
+    expense_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Expense for {self.project.project_title} - {self.amount}"
+
+class ProjectRisk(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='risks')
+    risk_description = models.TextField()
+    risk_level = models.CharField(max_length=20, choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High')])
+    mitigation_plan = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Risk for {self.project.project_title} - {self.risk_level}"
+    

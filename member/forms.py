@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Milestone, Notification, Comment, ProgramFunding, ProgramImpact,ProgressReport, Project_type, ProjectLocation, ProjectStage, ReportIssue, Tender, User, Project_type,contact,Feedback,Project,Project_Division
+from .models import PDF, AuditLog, Milestone, Notification, Comment, ProgramFunding, ProgramImpact,ProgressReport, Testimonial, ProjectLocation, ProjectStage, ReportIssue, Tender, User, Project_type,contact,Feedback,Project,Project_Division
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -103,8 +103,6 @@ class ProjectLocationForm(forms.ModelForm):
         model = ProjectLocation
         fields = ['name', 'description', 'latitude', 'longitude']
 
-from django import forms
-from .models import Comment
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -131,4 +129,9 @@ class ProgramImpactForm(forms.ModelForm):
         model = ProgramImpact
         fields = '__all__'
 
+
+class TestimonialForm(forms.ModelForm):
+    class Meta:
+        model = Testimonial
+        fields = ['name', 'content', 'image']
 

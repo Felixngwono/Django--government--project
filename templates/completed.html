@@ -1,99 +1,92 @@
 {% extends "header.html" %}
 {% block content %}
 {% include "sidebar.html" %}
-<script src="https://cdn.tailwindcss.com"></script>
-<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
-<section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
 
-    <p  class=" text-center "><b><u>lists of completed projects</u></b></p>
+<!-- Main Content Wrapper -->
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen  ">
 
-    <div class="mx-auto max-w-screen-full px-4 lg:px-12">
-        <!-- Start coding here -->
-        <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
-          
-                
-            
+    <h2 class="text-2xl font-semibold text-center text-gray-800 underline mb-6">List of Completed Projects</h2>
+
+    <div class="w-full  px-4 lg:px-12">
+        <div class="w-full h-full">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Completed Projects</h2>
+                {% if request.user.is_superuser %}
+                <a href="{% url 'createproject' %}"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition duration-300">
+                    + Add New Project
+                </a>
+                {% endif %}
+            </div>
+            <p class="text-gray-600 mb-4">Here you can find the list of all completed projects.</p>
+           
+        <div class="bg-white  shadow-md sm:rounded-lg overflow-hidden">
+
+            <!-- Search and Add -->
+            <div class="flex flex-col ">
+                <div class="w-full md:w-1/2 relative">
+                    <input type="text" id="simple-search" placeholder="Search"
+                        class="w-full  border border-gray-300 text-gray-900 text-sm rounded-lg pl-10 p-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                    <svg class="absolute left-3 top-3 w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor"
+                        viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+               
+            </div>
+
+            <!-- Table -->
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <table class="min-w-full text-sm text-left text-gray-700">
+                    <thead class=" text-gray-600 uppercase text-xs">
                         <tr>
-                            <th scope="col" class="px-4 py-3">Title</th>
-                            <th scope="col" class="px-4 py-3">Description</th>
-                          
-
-                            <th scope="col" class="px-4 py-3">
-                                <span class="sr-only">Actions</span>
-                            </th>
+                            <th class="px-6 py-4">Title</th>
+                            <th class="px-6 py-4">Description</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-200">
                         {% for project in projects %}
-                        <tr class="border-b dark:border-gray-700">
-                            <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{project.project_title}} </th>
-                            
-                            <td class="px-4 py-3">{{project.project_description}}</td>
-                            
-                            <td class="px-4 py-3 flex items-center justify-end">
-                                
-                                <div>
-                                   
-                                    <button type="button" class="text-white bg-green-500 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 font-small rounded-50 text-sm px-2 py-1 text-center me-1 mb-1 dark:bg-blue-300 dark:hover:bg-blue-400 dark:focus:ring-blue-500"><a href="{% url 'CompletedStatuses' project.id %}">view</a></button>
-                                </div>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ project.project_title }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ project.project_description }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{% url 'CompletedStatuses' project.id %}"
+                                    class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded-md transition">
+                                    View
+                                </a>
                             </td>
                         </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-center text-gray-500">No completed projects found.</td>
+                        </tr>
                         {% endfor %}
-                       
                     </tbody>
                 </table>
             </div>
-            
-            <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4" aria-label="Table navigation">
-                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                    Showing
-                    <span class="font-semibold text-gray-900 dark:text-white">1-10</span>
-                    of
-                    <span class="font-semibold text-gray-900 dark:text-white">1000</span>
-                </span>
-                <ul class="inline-flex items-stretch -space-x-px">
-                    <li>
-                        <a href="#" class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                            <span class="sr-only">Previous</span>
-                            <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
-                    </li>
-                    <li>
-                        <a href="#" aria-current="page" class="flex items-center justify-center text-sm z-10 py-2 px-3 leading-tight text-primary-600 bg-primary-50 border border-primary-300 hover:bg-primary-100 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">...</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">100</a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                            <span class="sr-only">Next</span>
-                            <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    </li>
+
+            <!-- Pagination -->
+            <div class="flex flex-col md:flex-row items-center justify-between px-6 py-4 bg-gray-50">
+                <span class="text-sm text-gray-600">Showing <span class="font-semibold text-gray-900">1-10</span> of <span class="font-semibold text-gray-900">1000</span></span>
+                <ul class="inline-flex items-center -space-x-px text-sm mt-2 md:mt-0">
+                    <li><a href="#" class="px-3 py-2 ml-0 leading-tight text-gray-500 border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700">&lt;</a></li>
+                    <li><a href="#" class="px-3 py-2 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700">1</a></li>
+                    <li><a href="#" class="px-3 py-2 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700">2</a></li>
+                    <li><a href="#" class="px-3 py-2 leading-tight text-white bg-gray-700 border border-gray-700">3</a></li>
+                    <li><a href="#" class="px-3 py-2 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700">...</a></li>
+                    <li><a href="#" class="px-3 py-2 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700">100</a></li>
+                    <li><a href="#" class="px-3 py-2 leading-tight text-gray-500 border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700">&gt;</a></li>
                 </ul>
-            </nav>
+            </div>
+
         </div>
     </div>
-</section>
 </div>
 </div>
 
 </div>
 {% include "footer.html" %}
-    {% endblock content %}
+{% endblock content %}
