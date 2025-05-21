@@ -8,89 +8,112 @@
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/register.css' %}">
 
+<div class="ml-64 w-[calc(100%-16rem)]">
+    <div class="flex flex-col md:flex-row justify-between mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Project List</h2>
+        {% if request.user.is_superuser %}
+        <a href="{% url 'createproject' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
+            <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+            </svg>
+            Add Project
+        </a>
+        {% endif %}
+    </div>
 
-
-<div class="ml-64 w-[calc(100%-16rem)] ">
-                <div class="flex flex-col md:flex-row justify-between  mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Project List</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-gray-700 border rounded-lg">
+            <thead class="bg-gray-200 text-gray-700">
+                <tr>
+                    <th class="px-4 py-3">Title</th>
+                    <th class="px-4 py-3">Description</th>
+                    <th class="px-4 py-3">Location</th>
+                    <th class="px-4 py-3">Agency</th>
+                    <th class="px-4 py-3">Start Date</th>
+                    <th class="px-4 py-3">End Date</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Budget</th>
+                    <th class="px-4 py-3">Image</th>
                     {% if request.user.is_superuser %}
-                    <a href="{% url 'createproject' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
-                        <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
-                        </svg>
-                        Add Project
-                    </a>
+                    <th class="px-4 py-3 text-center">Actions</th>
                     {% endif %}
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full  text-left text-gray-700 border rounded-lg">
-                        <thead class="bg-gray-200 text-gray-700">
-                            <tr>
-                                <th class="px-4 py-3">Title</th>
-                                <th class="px-4 py-3">Description</th>
-                                <th class="px-4 py-3">Location</th>
-                                <th class="px-4 py-3">Agency</th>
-                                <th class="px-4 py-3">Start Date</th>
-                                <th class="px-4 py-3">End Date</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3">Budget</th>
-                                <th class="px-4 py-3">Image</th>
-                                {% if request.user.is_superuser %}
-                                <th class="px-4 py-3 text-center">Actions</th>
-                                {% endif %}
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y">
-                            {% for project in projects %}
-                            <tr>
-                                <td class="px-4 py-3 font-medium">{{ project.project_title }}</td>
-                                <td class="px-4 py-3">{{ project.project_description }}</td>
-                                <td class="px-4 py-3">{{ project.project_location }}</td>
-                                <td class="px-4 py-3">{{ project.implementing_agency }}</td>
-                                <td class="px-4 py-3">{{ project.start_date }}</td>
-                                <td class="px-4 py-3">{{ project.end_date }}</td>
-                                <td class="px-4 py-3">{{ project.project_status }}</td>
-                                <td class="px-4 py-3">{{ project.project_Budgeting }}</td>
-                                {% if project.images %}
-                                <td class="px-4 py-3"><img src="{{ project.images.url }}" alt="Project Image" class="w-30 h-30 object-cover rounded"></td>
-                                {% endif %}
-                                <td class="px-4 py-3 text-center">
-                                    {% if request.user.is_superuser %}
-                                <div class="dropdown inline-block relative">
-                                    <button id="dropdownHoverButton" data-dropdown-toggle="dropdownHover" data-dropdown-trigger="onclick" class="text-black bg-blue-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">View
-                                     
-                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M8.293 12.707a1 1 0 01-1.414-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 11-1.414 1.414L10 10.414l-1.293 1.293z"/></svg>
-                                    </button>
-                                    {% endif %}
-                                    <ul class="dropdown-content absolute hidden text-gray-700 pt-1">
-                                        <li><a class="rounded-t bg-lightgtey-200 hover:bg-blue-400 py-2 px-4 block whitespace-no-wrap" href="{% url 'update' project.id %}">Update</a></li>
-                                        <li><a class="bg-lightgtey-200 hover:bg-blue-400 py-2 px-4 block whitespace-no-wrap" href="{% url 'delete' project.id %}">Delete</a></li>
-                                        
-                                    </ul>
-                                </div>
-                            
-    
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y">
+                {% for project in projects %}
+                <tr>
+                    <td class="px-4 py-3 font-medium">{{ project.project_title }}</td>
+                    <td class="px-4 py-3">{{ project.project_description }}</td>
+                    <td class="px-4 py-3">{{ project.project_location }}</td>
+                    <td class="px-4 py-3">{{ project.implementing_agency }}</td>
+                    <td class="px-4 py-3">{{ project.start_date }}</td>
+                    <td class="px-4 py-3">{{ project.end_date }}</td>
+                    <td class="px-4 py-3">{{ project.project_status }}</td>
+                    <td class="px-4 py-3">{{ project.project_Budgeting }}</td>
+                    <td class="px-4 py-3">
+                        {% if project.images %}
+                        <img src="{{ project.images.url }}" alt="Project Image" class="w-20 h-20 object-cover rounded">
+                        {% else %}
+                        <span class="text-gray-500 italic">No Image</span>
+                        {% endif %}
+                    </td>
+                    {% if request.user.is_superuser %}
+                    <td class="px-4 py-3 text-center">
+                        <div class="relative inline-block text-left">
+                            <button type="button" class="dropdown-toggle text-black bg-blue-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center">
+                                View
+                                <svg class="fill-current h-4 w-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"/>
+                                </svg>
+                            </button>
+                            <ul class="dropdown-menu absolute hidden bg-white text-gray-700 mt-2 right-0 shadow-lg rounded-md w-32 z-10">
+                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'update' project.id %}">Update</a></li>
+                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delete' project.id %}">Delete</a></li>
+                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'project_details' project.id %}">details</a></li>
 
-                                    {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Pagination -->
-                <div class="flex justify-between items-center mt-4">
-                    <span class="text-sm text-gray-600">Showing {{ venues }} of {{ venues }}</span>
-                    <div class="flex space-x-2">
-                        <a href="#" class="px-3 py-1 bg-gray-300 rounded">Previous</a>
-                        <a href="#" class="px-3 py-1 bg-gray-500 text-white rounded">1</a>
-                        <a href="#" class="px-3 py-1 bg-gray-300 rounded">2</a>
-                        <a href="#" class="px-3 py-1 bg-gray-300 rounded">Next</a>
-                    </div>
-                </div>
-</div>
+                            </ul>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-4">
+        <span class="text-sm text-gray-600">Showing {{ venues }} of {{ venues }}</span>
+        <div class="flex space-x-2">
+            <a href="#" class="px-3 py-1 bg-gray-300 rounded">Previous</a>
+            <a href="#" class="px-3 py-1 bg-gray-500 text-white rounded">1</a>
+            <a href="#" class="px-3 py-1 bg-gray-300 rounded">2</a>
+            <a href="#" class="px-3 py-1 bg-gray-300 rounded">Next</a>
+        </div>
+    </div>
 </div>
 
+<script>
+    // Dropdown toggle for all buttons
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
+            const menu = button.nextElementSibling;
+
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!button.contains(e.target) && !menu.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
 
 <script src="{% static 'js/projectforms.js' %}"></script>
-
+</div>
 {% include "footer.html" %}
 {% endblock content %}

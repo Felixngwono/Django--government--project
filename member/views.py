@@ -299,6 +299,18 @@ def project_overview(request):
     context= {'projects':projects,}
     return render( request,'overview.html', context)  
 
+@login_required(login_url='login')
+def project_details(request,pk):
+    project= Project.objects.get(id=pk)
+    form= ProjectCreationForm(instance=project)
+    if request.method=='POST':
+        form= ProjectCreationForm(request.POST,request.FILES,instance=project)
+        if form.is_valid():
+            form.save()
+            return redirect('projectoverview')
+    context={'form':form}
+    return render(request,'project_details.html', context)
+
 @login_required
 def ongoing(request):
     projects= Project.objects.filter(project_status='ongoing')

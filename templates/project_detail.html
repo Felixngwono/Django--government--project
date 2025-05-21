@@ -1,12 +1,47 @@
-<h1>{{ project.project_title }}</h1>
-<p>{{ project.project_description }}</p>
-<h2>Comments</h2>
-{% for comment in comments %}
-    <p>{{ comment.text }} - {{ comment.user.username }}</p>
-{% endfor %}
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Add Comment</button>
-</form>
+{% extends "header.html" %}
+{% load static %}
+{% block content %}
+{% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
 
+<div class="ml-64 w-[calc(100%-16rem)]">
+
+    <p class="text-2xl font-bold text-center  text-gray-800">Project Status</p>
+    <hr class="my-6 border-gray-300">
+
+    <div class="w-full h-full bg-white ">
+            <div class="flex justify-end">
+                <a href="{% url 'project' %}" class="bg-blue-700 hover:bg-blue-800 text-white font-medium py-2 px-4 ">Collapse</a>
+            </div>
+
+        {% for project in projects %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-lg shadow-md p-6 mb-10">
+            <div>
+              <img src="{{ project.images.url }}" alt="Project Image" class="w-full max-h-[500px] object-cover rounded-lg shadow-lg" />            
+            </div>
+            <div class="space-y-4 text-gray-700">
+                <h2 class="text-xl font-bold underline text-green-800">{{ project.project_title }}</h2>
+                <p><span class="font-semibold">Description:</span> {{ project.project_description }}</p>
+                <p><span class="font-semibold">Location:</span> {{ project.project_location }}</p>
+                <p><span class="font-semibold">Agency:</span> {{ project.implementing_agency }}</p>
+                <p><span class="font-semibold">Budget:</span> {{ project.project_Budgeting }}</p>
+                <p><span class="font-semibold">Start Date:</span> {{ project.start_date }}</p>
+                <p><span class="font-semibold">End Date:</span> {{ project.end_date }}</p>
+                <p><span class="font-semibold">Beneficiaries:</span> {{ project.beneficiaries }}</p>
+                <p><span class="font-semibold">Stakeholders:</span> {{ project.stakeholders }}</p>
+                <p><span class="font-semibold">Impact:</span> {{ project.impact }}</p>
+                <p><span class="font-semibold">Progress:</span> {{ project.progress }}</p>
+                <p><span class="font-semibold">Project Type:</span> {{ project.project_type }}</p>
+                <p><span class="font-semibold">Division:</span> {{ project.division }}</p>
+            </div>
+        </div>
+        {% endfor %}
+
+       
+    </div>
+</div>
+</div>
+
+
+{% include "footer.html" %}
+{% endblock content %}

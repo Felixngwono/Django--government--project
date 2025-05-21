@@ -50,6 +50,7 @@ urlpatterns = [
     path('delayedstatus/<str:pk>/', delayedstatus, name="delayedstatus"),
     path('upcoming/', upcoming, name="upcoming"),
     path('completed/', completed, name="completed"),
+    path('project_details/<str:pk>/', project_detail, name="project_details"),
     path('statuses/<str:pk>/', OngoingStatuses, name="Ongoingstatuses"),
     path('CompletedStatuses/<str:pk>/', CompletedStatuses, name="CompletedStatuses"),
     path('Upcomingstatus/<str:pk>/', UpcomingStatuses, name="Upcomingstatus"),
@@ -70,10 +71,7 @@ urlpatterns = [
 
     path('media/', media_list, name='media_list'),
     path('media/upload/', media_upload, name='media_upload'),
-    
-
-    path('project/<int:project_id>/', project_detail, name='project_detail'),
-
+     
     
     path('project/<int:project_id>/upload-progress/', upload_progress_report, name='upload_progress_report'),
     path('add_report_issue/', add_report_issue, name='add_report_issue'),
