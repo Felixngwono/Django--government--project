@@ -4,12 +4,11 @@
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="ml-64 w-[calc(100%-16rem)]">
 
-    <p class="text-2xl font-bold text-center  text-gray-800">Project Status</p>
+    <p class="text-3xl font-bold   text-gray-800">Project Status</p>
     <hr class="my-6 border-gray-300">
 
-    <div class="w-full h-full bg-white ">
+    <div class="w-100 h-full bg-gray ">
             <div class="flex justify-end">
                 <a href="{% url 'project' %}" class="bg-blue-700 hover:bg-blue-800 text-white font-medium py-2 px-4 ">Collapse</a>
             </div>
@@ -17,7 +16,9 @@
         {% for project in projects %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-lg shadow-md p-6 mb-10">
             <div>
-              <img src="{{ project.images.url }}" alt="Project Image" class="w-full max-h-[500px] object-cover rounded-lg shadow-lg" />            
+                 <a href="{{ project.images.url }}">
+              <img src="{{ project.images.url }}" alt="Project Image" class="w-full max-h-[1000px] object-cover rounded-lg shadow-lg" />   
+                 </a>         
             </div>
             <div class="space-y-4 text-gray-700">
                 <h2 class="text-xl font-bold underline text-green-800">{{ project.project_title }}</h2>

@@ -5,12 +5,11 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
 
     <!-- Background Banner -->
-    <div class="relative w-full h-64 bg-cover bg-center rounded-lg shadow-lg" style="background-image: url({% static 'images/estate.jpg' %});">
+    <div class="relative w-full h-64 bg-cover opacity-80 bg-center text-center rounded-lg shadow-lg" style="background-image: url({% static 'images/estate.jpg' %});">
         <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <h1 class="text-white text-3xl font-bold text-center">Ongoing Projects</h1>
+            <h1 class="text-red text-3xl font-bold text-center">Ongoing Projects</h1>
             
         </div>
     </div>
@@ -33,7 +32,7 @@
 
             <!-- Projects Table -->
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-600">
+                <table class="w-full text-sm text-left text-gray-600 p-8">
                     <thead class="text-xs uppercase bg-gray-200 text-gray-700">
                         <tr>
                             <th scope="col" class="px-6 py-3">Title</th>

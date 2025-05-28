@@ -58,6 +58,20 @@
                     {% endif %}
                     {% render_field form.profile class="w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600" %}
                 </div>
+                 {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-gray-700 font-medium mb-1">
+                        {{ field.label }}
+                    </label>
+                    {{ field|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" }}
+                    {% if field.help_text %}
+                        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-sm text-red-500">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
 
             </div>
             

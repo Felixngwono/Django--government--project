@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.db.models import Count
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import PDF, AuditLog, Project_Division, ProjectStage, Testimonial, User, Project,User, Project, Budget, Feedback, Notification, Milestone, PDF, Media
+from .models import Comment,PDF, AuditLog, ProgramImpact, ProgressUpdate, Project_Division, ProjectLocation, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProjectCreationForm,ProjectDivisionForm, ProjectLocationForm, ProjectStageForm, ProjectTypeForm, TestimonialForm
+from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectLocationForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TenderForm, TestimonialForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
@@ -85,6 +86,40 @@ def ContactusPage(request):
     context={'form':form}
     return render(request, 'contact_us.html',context)
 
+def adminview(request):
+    feedbacks=Feedback.objects.all()
+    impacts=ProgramImpact.objects.all()
+    updates=ProgressUpdate.objects.all()
+    budgetings=Budget.objects.all()
+    comments=Comment.objects.all()
+    risks=ProjectRisk.objects.all()
+    stakeholder=Stakeholder.objects.all()
+    reportedissues=ReportIssue.objects.all()
+
+    context={'feedbacks':feedbacks,
+             'impacts':impacts,
+             'updates':updates,
+             'budgetings':budgetings,
+             'comments':comments,
+             'risks':risks,
+             'stakeholder':stakeholder,
+             'reportedissues':reportedissues
+             }
+    return render(request,'adminview.html',context)
+
+def feedback_details(request,pk):
+    feed=get_object_or_404(Feedback,id=pk)
+    context={'feed':feed}
+    return render(request,'feedback_details.html',context)
+
+def reportedissuesdetails(request,pk):
+    issues=get_object_or_404(ReportIssue,id=pk)
+    return render(request,'reportedissuesdetails.html',context={'issues':issues})
+
+
+def comment(request,pk):
+    comments=get_object_or_404(Comment,id=pk)
+    return render(request,'comments.html',context={'comments':comments})
 
 @login_required
 def notifications(request):
@@ -135,20 +170,18 @@ def registrationpage(request):
     return render(request, 'register.html', {'form': form})
 
 
-@login_required
+@login_required(login_url='login')
 def updateprofile(request,pk):
 
     profiles = get_object_or_404(User, id=pk)
-    
+    form = MyUserCreationForm(instance=profiles)   
     if request.method == 'POST':
         form = MyUserCreationForm(request.POST, request.FILES, instance=profiles)
         if form.is_valid():
             form.save()
+            messages.info(request,'Profile updated successfully')
             return redirect('index')
-    
-    else: 
-        form = MyUserCreationForm(instance=profiles)   
-
+   
     return render(request, 'profile.html', {'form': form, 'profiles': profiles})
 
 @login_required
@@ -260,7 +293,12 @@ def stalled(request):
     return render( request,'stalledprojects.html', context)
 
 
-    
+@login_required(login_url='login')
+def stalledstatus(request,pk):
+    projects= Project.objects.filter(project_status='stalled', id=pk)
+    context= {'projects':projects}
+    return render( request,'statuses.html', context)
+
 
 @login_required
 def completed(request):
@@ -281,10 +319,7 @@ def delayedstatus(request,pk):
     return render( request,'statuses.html', context)
 
 
-@login_required
-def upcoming(request):
-    return render(request,'upcoming.html')
- 
+
 @login_required   
 def teams(request):
     return render(request,'team.html')
@@ -342,6 +377,8 @@ def CompletedStatuses(request,pk):
     context= {'projects':projects}
     return render( request,'statuses.html', context) 
 
+
+
 @login_required
 def OngoingStatuses(request,pk):
     projects= Project.objects.filter(project_status='ongoing',id=pk)
@@ -376,7 +413,6 @@ def ptypes(request):
     context={'form':form}
     return render(request,'projectTypes.html',context)
 
-from django.db.models import Count
 @login_required
 def charts(request):
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
@@ -386,9 +422,7 @@ def charts(request):
     }
     return render(request,'chart.html',context)
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Milestone
-from .forms import MilestoneForm
+
 
 @login_required
 def milestone_list(request):
@@ -426,8 +460,7 @@ def milestone_delete(request, pk):
         return redirect('milestone_list')
     return render(request, 'milestone_confirm_delete.html', {'milestone': milestone})
 
-from django.shortcuts import render
-from .models import Notification
+
 
 @login_required
 def notification_list(request):
@@ -446,9 +479,6 @@ def notification_create(request):
     return render(request, 'notification_create.html',{'form':form})
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Media
-from .forms import MediaForm
 @login_required
 def media_list(request):
     media_files = Media.objects.all()
@@ -473,25 +503,7 @@ def milestone(request):
     return render(request,'milestone.html',{'milestones':milestones})
 
 
-@login_required
-def milestone_create(request):
-    form = MilestoneForm()
-    if request.method == "POST":
-        form = MilestoneForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('milestone_list')
-        else:
-            print(form.errors)  # Print errors in console
-    
-    return render(request, 'milestone_form.html', {'form': form})
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.urls import path
-from .models import Project, Comment, ProgressReport, Tender, ProjectLocation, ReportIssue
-from .forms import CommentForm, ProgressReportForm, TenderForm, ReportIssueForm
 
 # 🔹 Project Comments View
 @login_required
@@ -564,12 +576,7 @@ def issue_detail(request, issue_id):
     issue = get_object_or_404(ReportIssue, id=issue_id)
     return render(request, 'issue_detail.html', {'issue': issue})
 
-from django.shortcuts import render, get_object_or_404
-from .models import Tender
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Tender
-from .forms import TenderForm
 
 # List all tenders
 def tender_list(request):
@@ -611,12 +618,6 @@ def delete_tender(request, tender_id):
         tender.delete()
         return redirect('tender_list')
     return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
-
-
-@login_required
-def tender_detail(request, tender_id):
-    tender = get_object_or_404(Tender, id=tender_id)
-    return render(request, 'tender_detail.html', {'tender': tender})
 
 
 

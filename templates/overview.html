@@ -1,19 +1,22 @@
 {% extends "header.html" %}
 {% block content %}
-
 {% load static %}
-{% include "sidebar.html" %}
 
-<!-- TailwindCSS CDN -->
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/register.css' %}">
+<!-- Wrapper for Sidebar + Main Content -->
+<div class="flex min-h-screen bg-gray-100">
 
-<div class="ml-64 w-[calc(100%-16rem)]">
+  <!-- Sidebar (1/6 width) -->
+    {% include "sidebar.html" %}
+
+  <!-- Main Content (remaining space) -->
+  <div class="flex-1 p-6 overflow-x-auto">
+
+    <!-- Header Actions -->
     <div class="flex flex-col md:flex-row justify-between mb-4">
         <h2 class="text-xl font-semibold text-gray-800">Project List</h2>
         {% if request.user.is_superuser %}
         <a href="{% url 'createproject' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
-            <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
             </svg>
             Add Project
@@ -21,6 +24,7 @@
         {% endif %}
     </div>
 
+    <!-- Table -->
     <div class="overflow-x-auto">
         <table class="w-full text-left text-gray-700 border rounded-lg">
             <thead class="bg-gray-200 text-gray-700">
@@ -69,8 +73,18 @@
                             <ul class="dropdown-menu absolute hidden bg-white text-gray-700 mt-2 right-0 shadow-lg rounded-md w-32 z-10">
                                 <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'update' project.id %}">Update</a></li>
                                 <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delete' project.id %}">Delete</a></li>
-                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'project_details' project.id %}">details</a></li>
-
+                                
+                                {% if project.project_status == 'ongoing' %}
+                                     <li><a href="{% url 'Ongoingstatuses' project.id %}">details</a></li>
+                                {% elif project.project_status == 'upcoming' %}
+                                    <li><a href="{% url 'Upcomingstatus' project.id %}">details</a></li>
+                                {% elif project.project_status == 'Delayed' %}
+                                   <li><a href="{% url 'delayedstatus' project.id %}">details</a></li>
+                                {% elif project.project_status == 'stalled' %}
+                                    <li><a href="{% url 'stalledstatus' project.id %}">details</a></li>
+                                {% else %}
+                                    <li><a href="{% url 'CompletedStatuses' project.id %}">details</a></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </td>
@@ -91,10 +105,14 @@
             <a href="#" class="px-3 py-1 bg-gray-300 rounded">Next</a>
         </div>
     </div>
-</div>
 
+
+  </div> <!-- End Main Content -->
+</div> <!-- End Wrapper -->
+
+<!-- Scripts -->
 <script>
-    // Dropdown toggle for all buttons
+    // Dropdown toggle
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
             const menu = button.nextElementSibling;
@@ -115,5 +133,6 @@
 
 <script src="{% static 'js/projectforms.js' %}"></script>
 </div>
-{% include "footer.html" %}
+    {% include "footer.html" %}
+
 {% endblock content %}

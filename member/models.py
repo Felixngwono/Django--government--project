@@ -82,6 +82,7 @@ class Project(models.Model):
         ('stalled', 'Stalled'),
         ('Delayed', 'Delayed'),
 
+
     ]
 
     project_title = models.CharField(max_length=100,null=True)

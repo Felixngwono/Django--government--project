@@ -2,46 +2,42 @@
 {% block content %}
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
+
 <div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8">
 
-<p type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"><b>list of projects</b></p>
-<hr>
-
-
-    <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-<section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
-    <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-        <!-- Start coding here -->
-        <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
-            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
-              
-                <div>
-
-                    <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"><a href="{% url 'ongoing' %}">Ongoing</a></button>
-                    <button type="button" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-full text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"><a href="{% url 'upcoming' %}">Upcoming</a></button>
-<button type="button" class="text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"><a href="{% url 'completed' %}">Completed</a></button>                  
-                </div>
-            </div>
-            
-           
-
-<section class="bg-fill bg-no-repeat bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/conference.jpg')] bg-gray-700 bg-blend-multiply">
-    <div class="px-4 mx-auto max-w-screen-xl text-center py-24 lg:py-56">
-        <h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-white md:text-5xl lg:text-6xl">Government Tracking Records</h1>
-        <p class="mb-8 text-lg font-normal text-gray-300 lg:text-xl sm:px-16 lg:px-48">In this platform, we are tying to make sure there is accountability, transparency and citizen engament. We are doing this by showing the projects the government is working on and the statuses of these projects.</p>
-        
+    <!-- Page Title -->
+    <div class="mb-6">
+        <p class="text-lg font-semibold bg-white p-4 rounded-lg shadow border border-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700">
+            List of Projects
+        </p>
     </div>
-</section>
 
-   
-  
-                </div>
-            </section>
+    <!-- Status Buttons -->
+    <div class="mb-8">
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'ongoing' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Ongoing</a>
+            <a href="{% url 'upcoming' %}" class="bg-gray-800 hover:bg-gray-900 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Upcoming</a>
+            <a href="{% url 'completed' %}" class="bg-purple-700 hover:bg-purple-800 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Completed</a>
+            <a href="{% url 'delayed' %}" class="bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Delayed</a>
+            <a href="{% url 'stalled' %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Stalled</a>
         </div>
     </div>
 
-</div>
+    <!-- Hero Section -->
+    <section class="relative bg-cover bg-center bg-no-repeat bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/conference.jpg')] bg-gray-700 bg-blend-multiply rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-20 text-center text-white max-w-4xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-6">Government Tracking Records</h1>
+            <p class="text-lg md:text-xl text-gray-300">
+                On this platform, we ensure <span class="font-semibold text-white">accountability</span>,
+                <span class="font-semibold text-white">transparency</span>, and
+                <span class="font-semibold text-white">citizen engagement</span> by showing the current projects the government is working on and their statuses.
+            </p>
+        </div>
+    </section>
 
 </div>
+</div>
+
+
 {% include "footer.html" %}
 {% endblock content %}
