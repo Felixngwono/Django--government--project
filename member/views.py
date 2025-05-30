@@ -126,7 +126,8 @@ def notifications(request):
     return render(request, 'notifications.html')
 
 def welcomingpage(request):
-    return render(request, 'welcoming page.html') 
+    projects=Project.objects.all()[:6]
+    return render(request, 'welcoming page.html',context={'projects':projects}) 
 
  
 def loginpage(request):
