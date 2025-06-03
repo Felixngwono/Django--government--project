@@ -62,9 +62,10 @@ def export_report_pdf(request):
 
 
 
-@login_required
+@login_required(login_url='login')
 def AboutUs(request):
     return render(request, 'about_us.html')
+
 
 def Home(request):
     projects= Project.objects.filter(project_status='ongoing').count()
@@ -72,7 +73,7 @@ def Home(request):
     context ={'projects':projects}
     return render(request, 'home.html', context)
 
-@login_required
+@login_required(login_url='login')
 def ContactusPage(request):
     form = ContactUsForm()
     
@@ -86,6 +87,7 @@ def ContactusPage(request):
     context={'form':form}
     return render(request, 'contact_us.html',context)
 
+@login_required(login_url='login')
 def adminview(request):
     feedbacks=Feedback.objects.all()
     impacts=ProgramImpact.objects.all()
@@ -107,6 +109,7 @@ def adminview(request):
              }
     return render(request,'adminview.html',context)
 
+@login_required(login_url='login')
 def feedback_details(request,pk):
     feed=get_object_or_404(Feedback,id=pk)
     context={'feed':feed}
@@ -116,12 +119,12 @@ def reportedissuesdetails(request,pk):
     issues=get_object_or_404(ReportIssue,id=pk)
     return render(request,'reportedissuesdetails.html',context={'issues':issues})
 
-
+@login_required(login_url='login')
 def comment(request,pk):
     comments=get_object_or_404(Comment,id=pk)
     return render(request,'comments.html',context={'comments':comments})
 
-@login_required
+@login_required(login_url='login')
 def notifications(request):
     return render(request, 'notifications.html')
 
@@ -150,6 +153,7 @@ def loginpage(request):
              messages.warning(request,'Wrong username or password')
     return render(request, 'login.html')
 
+@login_required(login_url='login')
 def logoutuser(request):
     logout(request)
     messages.info(request,"Its sad to see you leave, welcome again")
@@ -185,7 +189,7 @@ def updateprofile(request,pk):
    
     return render(request, 'profile.html', {'form': form, 'profiles': profiles})
 
-@login_required
+@login_required(login_url='login')
 def deleteprofile(request, pk):
     project= User.objects.get(id=pk)
     if request.method== 'POST':
@@ -195,7 +199,7 @@ def deleteprofile(request, pk):
 
 
 
-@login_required
+@login_required(login_url='login')
 def index(request):
     ongoingcount=Project.objects.filter(project_status='ongoing').count()
     upcomingcount=Project.objects.filter(project_status='upcoming').count()
@@ -227,11 +231,11 @@ def sidebar(request):
 def header(request):
     return render(request,'header.html')
 
-@login_required
+@login_required(login_url='login')
 def jobApplication(request):
     return render(request,'job.html')
 
-@login_required
+@login_required(login_url='login')
 def feedback(request):
     form= FeedbackForm()
     if request.method=='POST':
@@ -246,10 +250,8 @@ def feedback(request):
 
 
     
-@login_required
+@login_required(login_url='login')
 def CreateProject(request):
-    
-    
     form= ProjectCreationForm()
     if request.method=='POST':
         form= ProjectCreationForm(request.POST,request.FILES)
@@ -259,7 +261,7 @@ def CreateProject(request):
     context={'form':form,}
     return render(request,'project_form.html', context)
 
-@login_required
+@login_required(login_url='login')
 def updateProject(request,pk):
     project=Project.objects.get(id= pk)
     form= ProjectCreationForm(instance=project)
@@ -271,7 +273,7 @@ def updateProject(request,pk):
     context={'form':form}
     return render(request,'project_form.html', context)
 
-@login_required
+@login_required(login_url='login')
 def deleteProject(request, pk):
     project= Project.objects.get(id=pk)
     if request.method== 'POST':
@@ -279,15 +281,15 @@ def deleteProject(request, pk):
         return redirect ('projectoverview')
     return render(request, 'delete.html')
 
-@login_required
+@login_required(login_url='login')
 def BudgetAnalysis(request):
     return render(request,'budgetanalysis.html')
 
-@login_required
+@login_required(login_url='login')
 def PerfomanceMetrix(request):
     return render(request,'perfomancematrix.html')
 
-@login_required
+@login_required(login_url='login')
 def stalled(request):
     stalling= Project.objects.filter(project_status='stalled')
     context= {'stalling':stalling}
@@ -301,13 +303,13 @@ def stalledstatus(request,pk):
     return render( request,'statuses.html', context)
 
 
-@login_required
+@login_required(login_url='login')
 def completed(request):
     projects= Project.objects.filter(project_status='completed')
     context= {'projects':projects}
     return render( request,'completed.html', context) 
 
-@login_required
+@login_required(login_url='login')
 def delayed(request):
     delaying= Project.objects.filter(project_status='delayed')
     context= {'delaying':delaying}
@@ -321,15 +323,15 @@ def delayedstatus(request,pk):
 
 
 
-@login_required   
+@login_required(login_url='login')
 def teams(request):
     return render(request,'team.html')
 
-@login_required
+@login_required(login_url='login')
 def testimonials(request):
     return render(request,'testimonials.html')
 
-@login_required
+@login_required(login_url='login')
 def project_overview(request):
     projects= Project.objects.all()
     context= {'projects':projects,}
@@ -347,32 +349,32 @@ def project_details(request,pk):
     context={'form':form}
     return render(request,'project_details.html', context)
 
-@login_required
+@login_required(login_url='login')
 def ongoing(request):
     projects= Project.objects.filter(project_status='ongoing')
    
     context= {'projects':projects }
     return render( request,'ongoing.html', context) 
 
-@login_required
+@login_required(login_url='login')
 def upcoming(request):
     projects= Project.objects.filter(project_status='upcoming')
     context= {'projects':projects}
     return render( request,'upcoming.html', context) 
 
-@login_required
+@login_required(login_url='login')
 def project(request):
     projects= Project.objects.filter(project_status='project')
     context= {'projects':projects}
     return render(request, "project.html",context)
 
-@login_required
+@login_required(login_url='login')
 def UpcomingStatuses(request,pk):
     projects= Project.objects.filter(project_status='upcoming', id=pk)
     context= {'projects':projects}
     return render( request,'statuses.html', context) 
 
-@login_required
+@login_required(login_url='login')
 def CompletedStatuses(request,pk):
     projects= Project.objects.filter(project_status='completed',id=pk)
     context= {'projects':projects}
@@ -380,13 +382,13 @@ def CompletedStatuses(request,pk):
 
 
 
-@login_required
+@login_required(login_url='login')
 def OngoingStatuses(request,pk):
     projects= Project.objects.filter(project_status='ongoing',id=pk)
     context= {'projects':projects}
     return render( request,'statuses.html', context) 
   
-@login_required
+@login_required(login_url='login')
 def divisionform(request):
     form= ProjectDivisionForm()
     if request.method=='POST':
@@ -397,13 +399,13 @@ def divisionform(request):
     context={'form':form}
     return render(request,'division.html', context)
 
-@login_required
+@login_required(login_url='login')
 def Division_details(request):
     divisions=Project_Division.objects.all()
     context={'divisions':divisions}
     return render(request,'division_details.html', context)
 
-@login_required
+@login_required(login_url='login')
 def ptypes(request):
     form=ProjectTypeForm()
     if request.method=='POST':
@@ -414,7 +416,7 @@ def ptypes(request):
     context={'form':form}
     return render(request,'projectTypes.html',context)
 
-@login_required
+@login_required(login_url='login')
 def charts(request):
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
    
@@ -423,14 +425,12 @@ def charts(request):
     }
     return render(request,'chart.html',context)
 
-
-
-@login_required
+@login_required(login_url='login')
 def milestone_list(request):
     milestones = Milestone.objects.all()
     return render(request, 'milestone_list.html', {'milestones': milestones})
 
-@login_required
+@login_required(login_url='login')
 def milestone_create(request):
     if request.method == 'POST':
         form = MilestoneForm(request.POST)
@@ -441,7 +441,7 @@ def milestone_create(request):
         form = MilestoneForm()
     return render(request, 'milestone_form.html', {'form': form})
 
-@login_required
+@login_required(login_url='login')
 def milestone_update(request, pk):
     milestone = get_object_or_404(Milestone, pk=pk)
     if request.method == 'POST':
@@ -453,7 +453,7 @@ def milestone_update(request, pk):
         form = MilestoneForm(instance=milestone)
     return render(request, 'milestone_form.html', {'form': form})
 
-@login_required
+@login_required(login_url='login')
 def milestone_delete(request, pk):
     milestone = get_object_or_404(Milestone, pk=pk)
     if request.method == 'POST':
@@ -463,12 +463,12 @@ def milestone_delete(request, pk):
 
 
 
-@login_required
+@login_required(login_url='login')
 def notification_list(request):
     notifications = Notification.objects.all()
     return render(request, 'notification_list.html', {'notifications': notifications})
 
-@login_required
+@login_required(login_url='login')
 def notification_create(request):
     form=NotificationForm()
     if request.method=='POST':
@@ -480,12 +480,12 @@ def notification_create(request):
     return render(request, 'notification_create.html',{'form':form})
 
 
-@login_required
+@login_required(login_url='login')
 def media_list(request):
     media_files = Media.objects.all()
     return render(request, 'media_list.html', {'media_files': media_files})
 
-@login_required
+@login_required(login_url='login')
 def media_upload(request):
     form = MediaForm()
     if request.method == 'POST':
@@ -498,7 +498,7 @@ def media_upload(request):
 
 
 
-@login_required
+@login_required(login_url='login')
 def milestone(request):
     milestones=Milestone.objects.all()
     return render(request,'milestone.html',{'milestones':milestones})
@@ -507,7 +507,7 @@ def milestone(request):
 
 
 # 🔹 Project Comments View
-@login_required
+@login_required(login_url='login')
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     comments = project.comments.all()
@@ -524,7 +524,7 @@ def project_detail(request, project_id):
     return render(request, 'project_detail.html', {'project': project, 'comments': comments, 'form': form})
 
 # 🔹 Progress Report View
-@login_required
+@login_required(login_url='login')
 def upload_progress_report(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     if request.method == "POST":
@@ -539,7 +539,7 @@ def upload_progress_report(request, project_id):
     return render(request, 'upload_progress_report.html', {'form': form, 'project': project})
 
 # 🔹 Tender View
-@login_required
+@login_required(login_url='login')
 def upload_tender(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     if request.method == "POST":
@@ -556,12 +556,12 @@ def upload_tender(request, project_id):
 # 🔹 Report Issue View
 
 
-@login_required
+@login_required(login_url='login')
 def issue_list(request):
     issues = ReportIssue.objects.all()
     return render(request, 'issue_list.html', {'issues': issues})
 
-@login_required
+@login_required(login_url='login')
 def add_report_issue(request):
     form=ReportIssueForm()
     if request.method == "POST":
@@ -572,7 +572,7 @@ def add_report_issue(request):
     
     return render(request, 'report_issue.html', {'form': form})
 
-@login_required
+@login_required(login_url='login')
 def issue_detail(request, issue_id):
     issue = get_object_or_404(ReportIssue, id=issue_id)
     return render(request, 'issue_detail.html', {'issue': issue})
@@ -580,16 +580,19 @@ def issue_detail(request, issue_id):
 
 
 # List all tenders
+@login_required(login_url='login')
 def tender_list(request):
     tenders = Tender.objects.all()
     return render(request, 'tender_list.html', {'tenders': tenders})
 
 # View tender details
+@login_required(login_url='login')
 def tender_detail(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     return render(request, 'tender_detail.html', {'tender': tender})
 
 # Add a new tender
+@login_required(login_url='login')
 def add_tender(request):
     form = TenderForm()
 
@@ -601,6 +604,7 @@ def add_tender(request):
     return render(request, 'tender_form.html', {'form': form})
 
 # Update an existing tender
+@login_required(login_url='login')
 def update_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     if request.method == "POST":
@@ -613,6 +617,7 @@ def update_tender(request, tender_id):
     return render(request, 'tender_form.html', {'form': form, 'title': 'Update Tender'})
 
 # Delete a tender
+@login_required(login_url='login')
 def delete_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     if request.method == "POST":
@@ -622,7 +627,7 @@ def delete_tender(request, tender_id):
 
 
 
-@login_required
+@login_required(login_url='login')
 def add_project_location(request):
     if request.method == 'POST':
         form = ProjectLocationForm(request.POST)
@@ -633,25 +638,25 @@ def add_project_location(request):
         form = ProjectLocationForm()
     return render(request, 'add_project_location.html', {'form': form})
 
-@login_required
+@login_required(login_url='login')
 def project_location_list(request):
     locations = ProjectLocation.objects.all()
     return render(request, 'project_location_list.html', {'locations': locations})
 
-@login_required
+@login_required(login_url='login')
 def project_location_detail(request, location_id):
     location = get_object_or_404(ProjectLocation, id=location_id)
     return render(request, 'project_location_detail.html', {'location': location})
 
 
 
-@login_required
+@login_required(login_url='login')
 def comment_list(request):
     comments = Comment.objects.all()
     return  render(request, 'comment_list.html', { 'comments': comments})
 
 
-@login_required
+@login_required(login_url='login')
 def add_comment(request):
     form = CommentForm()
     if request.method=='POST':
@@ -662,10 +667,12 @@ def add_comment(request):
 
     return render(request, 'add_comment.html', {'form': form})
 
+@login_required(login_url='login')
 def AuditLogs(request):
     auditing=AuditLog.objects.all()
     return render(request,'audit.html',{'auditing':auditing})
 
+@login_required(login_url='login')
 def add_audit(request):
     form=AuditLogForm()
     if request.method=='POST':
@@ -675,7 +682,7 @@ def add_audit(request):
             return redirect('AuditLog')
     return render(request,'add_audit.html',{'form':form})
 
-
+@login_required(login_url='login')
 def audit_details(request,pk):
     audit_details=get_object_or_404(AuditLog,id=pk)
     if request.method=='POST':
@@ -689,6 +696,7 @@ def audit_details(request,pk):
     return render(request,'audit_details.html',context)
 
 # 🔹 List All Project Stages
+
 class ProjectStageListView(ListView):
     model = ProjectStage
     template_name = 'projectstage_list.html'
@@ -720,7 +728,7 @@ class ProjectStageDeleteView(DeleteView):
     template_name = 'projectstage_confirm_delete.html'
     success_url = reverse_lazy('projectstage_list')
 
-
+@login_required(login_url='login')
 def Testimony(request):
     testimonials = Testimonial.objects.all()
     form = TestimonialForm()
@@ -732,6 +740,7 @@ def Testimony(request):
     context = {'form': form, 'testimonials': testimonials}
     return render(request,'testimonials.html', context)
 
+@login_required(login_url='login')
 def add_testimonials(request):
     form = TestimonialForm()
     if request.method == 'POST':
@@ -742,6 +751,7 @@ def add_testimonials(request):
     context = {'form': form}
     return render(request, 'add_testimonial.html', context)
 
+@login_required(login_url='login')
 def testimonial_details(request, pk):
     testimonial = get_object_or_404(Testimonial, id=pk)
     form= TestimonialForm(instance=testimonial)
@@ -765,6 +775,7 @@ def update_testimonial(request, pk):
     context = {'form': form, 'testimonial': testimonial}
     return render(request, 'testimonial_update.html', context)
 
+@login_required(login_url='login')
 def delete_testimonial(request, pk):
     testimonial = get_object_or_404(Testimonial, id=pk)
     form= TestimonialForm(instance=testimonial)

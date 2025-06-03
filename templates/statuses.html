@@ -4,43 +4,103 @@
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
 
-
-    <p class="text-3xl font-bold   text-gray-800">Project Status</p>
-    <hr class="my-6 border-gray-300">
-
-    <div class="w-100 h-full bg-gray ">
-            <div class="flex justify-end">
-                <a href="{% url 'project' %}" class="bg-blue-700 hover:bg-blue-800 text-white font-medium py-2 px-4 ">Collapse</a>
+<div class="flex w-full h-screen">
+    <div class="flex-1 min-h-full w-full bg-gradient-to-br font-large p-12 from-gray-50 to-blue-50 py-10 px-8">
+        <div class="flex justify-between mb-8">
+            <div class="flex flex-col items-center justify-center w-full text-center">
+                {% if project_status == "completed" %}
+                    <h1 class="text-4xl font-extrabold text-green-800 tracking-tight">Completed Projects Dashboard</h1>
+                {% elif project_status == "ongoing" %}
+                    <h1 class="text-4xl font-extrabold text-yellow-700 tracking-tight">Ongoing Projects Dashboard</h1>
+                {% elif project_status == "Delayed" %}
+                    <h1 class="text-4xl font-extrabold text-red-700 tracking-tight">delayed Projects Dashboard</h1>
+                {% elif project_status == "stalled" %}
+                    <h1 class="text-4xl font-extrabold text-red-700 tracking-tight">Stalled Projects Dashboard</h1>
+                {% elif project_status == "upcoming" %}
+                    <h1 class="text-4xl font-extrabold text-red-700 tracking-tight">Upcoming Projects Dashboard</h1>
+                {% else %}
+                    <h1 class="text-4xl font-extrabold text-blue-900 tracking-tight">Project Status Dashboard</h1>
+                {% endif %}
+                <p class="text-lg text-gray-600 mt-2">Monitor and track the progress of government projects in real time.</p>
             </div>
-
-        {% for project in projects %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-lg shadow-md p-6 mb-10">
-            <div>
-                 <a href="{{ project.images.url }}">
-              <img src="{{ project.images.url }}" alt="Project Image" class="w-full max-h-[1000px] object-cover rounded-lg shadow-lg" />   
-                 </a>         
-            </div>
-            <div class="space-y-4 text-gray-700">
-                <h2 class="text-xl font-bold underline text-green-800">{{ project.project_title }}</h2>
-                <p><span class="font-semibold">Description:</span> {{ project.project_description }}</p>
-                <p><span class="font-semibold">Location:</span> {{ project.project_location }}</p>
-                <p><span class="font-semibold">Agency:</span> {{ project.implementing_agency }}</p>
-                <p><span class="font-semibold">Budget:</span> {{ project.project_Budgeting }}</p>
-                <p><span class="font-semibold">Start Date:</span> {{ project.start_date }}</p>
-                <p><span class="font-semibold">End Date:</span> {{ project.end_date }}</p>
-                <p><span class="font-semibold">Beneficiaries:</span> {{ project.beneficiaries }}</p>
-                <p><span class="font-semibold">Stakeholders:</span> {{ project.stakeholders }}</p>
-                <p><span class="font-semibold">Impact:</span> {{ project.impact }}</p>
-                <p><span class="font-semibold">Progress:</span> {{ project.progress }}</p>
-                <p><span class="font-semibold">Project Type:</span> {{ project.project_type }}</p>
-                <p><span class="font-semibold">Division:</span> {{ project.division }}</p>
-            </div>
+            <a href="{% url 'project' %}" class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-6 rounded-lg shadow transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+                Collapse
+            </a>
         </div>
-        {% endfor %}
 
-       
+        <div class="space-y-10">
+            {% for project in projects %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-2xl shadow-lg p-8 border border-blue-100 hover:shadow-2xl transition">
+                <div class="md:col-span-1 flex flex-col items-center justify-center">
+                    <a href="{{ project.images.url }}">
+                        <img src="{{ project.images.url }}" alt="Project Image" class="w-full h-80 object-cover rounded-xl shadow-md border border-gray-200" />
+                    </a>
+                    <div class="mt-4 flex flex-col items-center">
+                        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full mb-2">{{ project.project_type }}</span>
+                        <span class="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">{{ project.progress }}% Complete</span>
+                    </div>
+                </div>
+                <div class="md:col-span-2 space-y-4 text-gray-700">
+                    <h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                        {{ project.project_title }}
+                    </h2>
+                    <p class="text-gray-600 italic">{{ project.project_description }}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p><span class="font-semibold">Location:</span> {{ project.project_location }}</p>
+                            <p><span class="font-semibold">Division:</span> {{ project.division }}</p>
+                            <p><span class="font-semibold">Agency:</span> {{ project.implementing_agency }}</p>
+                            <p><span class="font-semibold">Budget:</span> <span class="text-green-700 font-bold">{{ project.project_Budgeting }}</span></p>
+                            <p><span class="font-semibold">Start Date:</span> {{ project.start_date }}</p>
+                            <p><span class="font-semibold">End Date:</span> {{ project.end_date }}</p>
+                            <p><span class="font-semibold">Status:</span>
+                                {% if project.progress_percentage == 100 %}
+                                    <span class="text-green-600 font-semibold">Completed</span>
+                                {% elif project.progress_percentage > 0 and project.progress_percentage < 100 %}
+                                    <span class="text-yellow-600 font-semibold">Ongoing</span>
+                                {% elif project.progress_percentage == 0 %}
+                                    <span class="text-blue-600 font-semibold">Upcoming</span>
+                                {% else %}
+                                    <span class="text-red-600 font-semibold">Stalled/Delayed</span>
+                                {% endif %}
+                            </p>
+                            <p><span class="font-semibold">Last Updated:</span> {{ project.last_updated|date:"M d, Y" }}</p>
+                        </div>
+                        <div>
+                            <div class="mb-2">
+                                <iframe
+                                    width="100%"
+                                    height="180"
+                                    frameborder="0"
+                                    style="border:0; border-radius: 8px;"
+                                    src="https://www.google.com/maps?q={{ project.project_location|urlencode }}&output=embed"
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <p><span class="font-semibold">Beneficiaries:</span> {{ project.beneficiaries }}</p>
+                            <p><span class="font-semibold">Stakeholders:</span> {{ project.stakeholders }}</p>
+                            <p><span class="font-semibold">Impact:</span> {{ project.impact }}</p>
+                            <p><span class="font-semibold">Project Contractor:</span> {{ project.project_contractor|default:"N/A" }}</p>
+                            <p><span class="font-semibold">Contact Email:</span> <a href="mailto:{{ project.contact_email }}" class="text-blue-600 underline">{{ project.contact_email|default:"N/A" }}</a></p>
+                            <p><span class="font-semibold">Remarks:</span> {{ project.remarks|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-blue-600 h-3 rounded-full transition-all" style="width: {{ project.project_contractor }}%"></div>
+                        </div>
+                        <div class="text-right text-xs text-gray-500 mt-1">{{ project.progress_update }}% Progress</div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-500 text-lg py-20">No projects found.</div>
+            {% endfor %}
+        </div>
     </div>
-</div>
+  </div>
 </div>
 
 

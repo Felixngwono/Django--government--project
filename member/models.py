@@ -100,6 +100,11 @@ class Project(models.Model):
     project_status= models.CharField(max_length=10,choices=project_status)
     project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True)
     division = models.ForeignKey(Project_Division, on_delete=models.SET_NULL, null=True, blank=True)
+    remarks = models.TextField(null=True, blank=True)
+    impact = models.TextField(null=True, blank=True)
+    project_contractor = models.CharField(max_length=255, null=True, blank=True)
+    progress_update = models.CharField(max_length=1000, null=True, blank=True)
+    contact_email = models.EmailField(null=True, blank=True)
 
     class Meta:
         ordering = ['-start_date']

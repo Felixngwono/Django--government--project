@@ -13,7 +13,7 @@
     <div class="slider-item" style="background-image: url({% static 'images/wstr.jpg' %}); background-repeat: no-repeat;">
         {% if request.user.is_superuser %}
         <div class="py-12  bg-blue px-4 mx-auto  max-w-fill lg:py-20">
-            <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Add a new Project</h2>
+            <h2 class="mb-4 text-center p-10 font-bold text-gray-900 dark:text-white">Add a new Project</h2>
             <form action="#" method='POST'>
                 <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
                     <div class="sm:col-span-2">
@@ -36,10 +36,25 @@
                         </div>
                         <div class="w-auto">
                             <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">project_Budgeting</label>
-                            {%render_field form.project_Budgeting class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
+                            {%render_field form.project_Budgeting class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Project Budget " required=""%}
+                        </div>
+                        <div class="w-auto">
+                            <label for="project_manager" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Manager</label>
+                            {% render_field form.project_contractor class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Project Contractor" required="" %}
+                        </div>
+                        <div class="w-auto">
+                            <label for="funding_source" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contacting Mail</label>
+                            {% render_field form.contact_email class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Funding Source" required="" %}
+                        </div>
+                        <div class="w-auto">
+                            <label for="completion_percentage" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Completion Status</label>
+                            {% render_field form.progress_update class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Completion %" required="" %}
                         </div>
 
-                       
+                       <div class="w-auto">
+                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Remarks</label>
+                            {%render_field form.remarks  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
+                        </div>
                         <div class="w-auto">
                             <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">start_date</label>
                             {%render_field form.start_date type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
@@ -55,15 +70,15 @@
                         </div>
                         <div class="w-auto">
                             <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">stakeholders</label>
-                            {%render_field form.stakeholders  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
+                            {%render_field form.stakeholders  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Stakeholders " required=""%}
                         </div>
                         <div class="w-auto">
                             <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">impact</label>
-                            {%render_field form.impact  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
+                            {%render_field form.impact  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="impact of the project " required=""%}
                         </div>
                         <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">progress</label>
-                            {%render_field form.progress  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
+                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">progress update</label>
+                            {%render_field form.progress_update   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="progressing update " required=""%}
                         </div>
                     <div>
                         <label for="category" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>

@@ -2,104 +2,183 @@
 <link href="{% static 'css/sidebar.css' %}" rel="stylesheet">
 
 <!-- Sidebar -->
-<aside id="default-sidebar"
-    class="fixed top-0 left-0 z-50 w-64 h-screen bg-gray-950 text-white shadow-xl transition-transform duration-300 sm:translate-x-0">
+<aside id="default-sidebar" class="fixed top-0 left-0 z-50 w-72 h-screen bg-gray-900 text-white shadow-lg transition-transform duration-300 sm:translate-x-0">
 
-    <div class="h-full px-8 py-8 overflow-y-auto flex flex-col justify-between">
+    <div class="h-full px-6 py-8 overflow-y-auto flex flex-col justify-between">
         <div>
-            <!-- Dashboard -->
-            <h2 class="text-xl font-bold text-teal-400 mb-6 flex items-center">
-                <i class="fas fa-tachometer-alt w-5 h-5 mr-3 text-teal-300"></i>
-                Dashboard
-            </h2>
+            <div class="flex flex-col items-center mb-8">
+                <img src="{{ request.user.profile.url }}" alt="Profile" class="w-28 h-28 rounded-full mb-2 border-4 ">
+                <div class="text-center">
+                    <span class="block text-lg font-semibold text-white">{{ request.user.username }}</span>
+                    <span class="block text-sm text-gray-300">{{ request.user.email }}</span>
+                </div>
+            </div>
+                <hr class="border-gray-700 my-4">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-cogs text-teal-400 text-2xl mr-3"></i>
+                <h2 class="text-2xl font-extrabold text-teal-300">Dashboard</h2>
+            </div>
 
-            <ul class="space-y-3 text-sm font-medium">
+            <ul class="space-y-4 text-base font-medium">
 
                 <!-- Performance -->
                 <li>
-                    <a href="{% url 'chart' %}" class="flex items-center rounded-lg px-3 py-2 bg-indigo-800 hover:bg-teal-700 transition">
-                        <i class="fas fa-chart-line w-5 h-5 mr-3 text-yellow-300"></i>
+                    <a href="{% url 'chart' %}" class="flex items-center rounded-lg px-4 py-3 bg-indigo-800 hover:bg-teal-600 transition-all duration-200">
+                        <i class="fas fa-chart-line text-yellow-300 text-lg mr-4"></i>
                         <span>Performance Matrix</span>
                     </a>
                 </li>
 
-                <hr class="border-indigo-700 my-4">
+                <hr class="border-gray-700 my-4">
 
                 <!-- Projects -->
-                <li class="text-pink-400 uppercase text-xs font-bold tracking-widest">Projects</li>
-                <li><a href="{% url 'projectoverview' %}" class="sidebar-link">Overview</a></li>
-                <li><a href="{% url 'ongoing' %}" class="sidebar-link">Ongoing Projects</a></li>
-                <li><a href="{% url 'upcoming' %}" class="sidebar-link">Upcoming Projects</a></li>
-                <li><a href="{% url 'delayed' %}" class="sidebar-link">Delayed Projects</a></li>
-                <li><a href="{% url 'stalled' %}" class="sidebar-link">Stalled Projects</a></li>
-                <li><a href="{% url 'completed' %}" class="sidebar-link">Completed Projects</a></li>
-
-                <hr class="border-indigo-700 my-4">
+                <li class="text-blue-400 uppercase text-sm font-semibold tracking-widest mb-2">Projects</li>
+                <li>
+                    <a href="{% url 'projectoverview' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-tachometer-alt text-cyan-300 text-lg mr-3"></i>
+                        <span>Overview</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'ongoing' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-spinner text-green-300 text-lg mr-3"></i>
+                        <span>Ongoing</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'upcoming' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-yellow-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-hourglass-start text-yellow-300 text-lg mr-3"></i>
+                        <span>Upcoming</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'delayed' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-clock text-red-300 text-lg mr-3"></i>
+                        <span>Delayed</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'stalled' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-pink-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-pause-circle text-pink-300 text-lg mr-3"></i>
+                        <span>Stalled</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'completed' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-teal-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-check-circle text-teal-300 text-lg mr-3"></i>
+                        <span>Completed</span>
+                    </a>
+                </li>
+                <hr class="border-gray-700 my-4">
 
                 <!-- Stages & Milestones -->
-                <li><a href="{% url 'projectstage_list' %}" class="sidebar-link">Project Stages</a></li>
-                <li><a href="{% url 'milestone_list' %}" class="sidebar-link">Project Milestones</a></li>
+                <li class="text-green-400 uppercase text-sm font-semibold tracking-widest">Stages & Milestones</li>
+                <li>
+                    <a href="{% url 'projectstage_list' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-layer-group text-green-300 text-lg mr-3"></i>
+                        <span>Project Stages</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'milestone_list' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-yellow-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-flag-checkered text-yellow-300 text-lg mr-3"></i>
+                        <span>Milestones</span>
+                    </a>
+                </li>
 
-                <hr class="border-indigo-700 my-4">
+                <hr class="border-gray-700 my-4">
 
                 <!-- Reports -->
                 <li>
-                    <a href="/reports/" class="flex items-center px-4 py-3 rounded-lg bg-indigo-800 hover:bg-blue-600 transition">
-                        <i class="fas fa-file-alt w-5 h-5 mr-3 text-orange-300"></i>
+                    <a href="/reports/"
+                        class="flex items-center px-4 py-3 rounded-lg bg-indigo-800 hover:bg-blue-600 transition-all duration-200">
+                        <i class="fas fa-file-alt text-orange-300 text-lg mr-4"></i>
                         <span>Progress Report</span>
                     </a>
                 </li>
 
-                <hr class="border-indigo-700 my-4">
+                <hr class="border-gray-700 my-4">
 
                 <!-- Divisions -->
-                <li class="text-purple-400 uppercase text-xs font-bold tracking-widest">Divisions</li>
+                <li class="text-purple-400 uppercase text-sm font-semibold tracking-widest mb-2">Divisions</li>
                 {% if request.user.is_superuser %}
-                <li><a href="{% url 'division' %}" class="sidebar-link">Project Divisions</a></li>
-                <li><a href="{% url 'ptypes' %}" class="sidebar-link">Project Type</a></li>
+                <li>
+                    <a href="{% url 'division' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-sitemap text-purple-300 text-lg mr-3"></i>
+                        <span>Project Divisions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'ptypes' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-th-large text-indigo-300 text-lg mr-3"></i>
+                        <span>Project Type</span>
+                    </a>
+                </li>
                 {% endif %}
-                <li><a href="{% url 'division_details' %}" class="sidebar-link">Project Details</a></li>
+                <li>
+                    <a href="{% url 'division_details' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-pink-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-info-circle text-pink-300 text-lg mr-3"></i>
+                        <span>Project Details</span>
+                    </a>
+                </li>
 
-                <hr class="border-indigo-700 my-4">
+                <hr class="border-gray-700 my-4">
 
                 <!-- Workspace -->
-                <li class="text-blue-400 uppercase text-xs font-bold tracking-widest">Workspace</li>
-               
-                <li><a href="{% url 'projectoverview' %}" class="sidebar-link">Project List</a></li>
-                <li><a href="{% url 'AuditLog' %}" class="sidebar-link">Auditing</a></li>
-                <li><a href="{% url 'media_list' %}" class="sidebar-link">Media</a></li>
+                <li class="text-blue-400 uppercase text-sm font-semibold tracking-widest mb-2">Workspace</li>
+                <li>
+                    <a href="{% url 'projectoverview' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-list-alt text-blue-300 text-lg mr-3"></i>
+                        <span>Project List</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'AuditLog' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-clipboard-list text-indigo-300 text-lg mr-3"></i>
+                        <span>Auditing</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'media_list' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-pink-700 transition-all duration-200 sidebar-link">
+                        <i class="fas fa-photo-video text-pink-300 text-lg mr-3"></i>
+                        <span>Media</span>
+                    </a>
+                </li>
 
-                <hr class="border-indigo-700 my-4">
+                <hr class="border-gray-700 my-4">
 
                 <!-- Other -->
                 <li>
-                    <a href="{% url 'tender_list' %}" class="flex items-center px-4 py-3 tracking-widest hover:bg-pink-600 transition">
-                        <i class="fas fa-file-contract w-5 h-5 mr-3 text-green-300"></i>
+                    <a href="{% url 'tender_list' %}"
+                        class="flex items-center px-4 py-3 rounded-lg hover:bg-pink-600 transition">
+                        <i class="fas fa-file-contract text-green-300 text-lg mr-4"></i>
                         <span>Tenders</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'issue_list' %}" class="flex items-center px-4 py-3 tracking-widest hover:bg-red-600 transition">
-                        <i class="fas fa-exclamation-triangle w-5 h-5 mr-3 text-red-300"></i>
+                    <a href="{% url 'issue_list' %}"
+                        class="flex items-center px-4 py-3 rounded-lg hover:bg-red-600 transition">
+                        <i class="fas fa-exclamation-triangle text-red-300 text-lg mr-4"></i>
                         <span>Report Issues</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'project_location_list' %}" class="flex items-center px-4 py-3 tracking-widest hover:bg-green-600 transition">
-                        <i class="fas fa-map-marker-alt w-5 h-5 mr-3 text-lime-300"></i>
+                    <a href="{% url 'project_location_list' %}"
+                        class="flex items-center px-4 py-3 rounded-lg hover:bg-green-600 transition">
+                        <i class="fas fa-map-marker-alt text-lime-300 text-lg mr-4"></i>
                         <span>Project Location</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'comment_list' %}" class="flex tracking-widest items-center px-4 py-3   hover:bg-yellow-500 transition">
-                        <i class="fas fa-comments w-5 h-5 mr-3 text-white"></i>
+                    <a href="{% url 'comment_list' %}"
+                        class="flex items-center px-4 py-3 rounded-lg hover:bg-yellow-500 transition">
+                        <i class="fas fa-comments text-white text-lg mr-4"></i>
                         <span>Comments</span>
                     </a>
                 </li>
-
             </ul>
         </div>
     </div>
@@ -110,7 +189,7 @@
     aria-controls="default-sidebar" type="button"
     class="inline-flex items-center p-2 mt-2 ms-3 text-white bg-indigo-900 rounded-lg sm:hidden hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
     <span class="sr-only">Open sidebar</span>
-    <i class="fas fa-bars w-6 h-6"></i>
+    <i class="fas fa-bars text-xl"></i>
 </button>
 
 <!-- Tailwind & FontAwesome -->

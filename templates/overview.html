@@ -3,17 +3,15 @@
 {% load static %}
 
 <!-- Wrapper for Sidebar + Main Content -->
-<div class="flex min-h-screen bg-gray-100">
 
   <!-- Sidebar (1/6 width) -->
     {% include "sidebar.html" %}
+<div class="ml-64 w-[calc(100%-16rem)]">
 
-  <!-- Main Content (remaining space) -->
-  <div class="flex-1 p-6 overflow-x-auto">
 
     <!-- Header Actions -->
     <div class="flex flex-col md:flex-row justify-between mb-4">
-        <h2 class="text-xl font-semibold text-gray-800">Project List</h2>
+        <h2 class=" font-bold text-center">Project List</h2>
         {% if request.user.is_superuser %}
         <a href="{% url 'createproject' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
             <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -63,30 +61,50 @@
                     </td>
                     {% if request.user.is_superuser %}
                     <td class="px-4 py-3 text-center">
-                        <div class="relative inline-block text-left">
+                        <div class="relative inline-block text-left group">
                             <button type="button" class="dropdown-toggle text-black bg-blue-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center">
                                 View
                                 <svg class="fill-current h-4 w-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"/>
                                 </svg>
                             </button>
-                            <ul class="dropdown-menu absolute hidden bg-white text-gray-700 mt-2 right-0 shadow-lg rounded-md w-32 z-10">
+                            <ul class="dropdown-menu absolute hidden group-hover:block group-focus-within:block bg-white text-gray-700 mt-2 right-0 shadow-lg rounded-md w-32 z-10">
                                 <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'update' project.id %}">Update</a></li>
                                 <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delete' project.id %}">Delete</a></li>
-                                
                                 {% if project.project_status == 'ongoing' %}
-                                     <li><a href="{% url 'Ongoingstatuses' project.id %}">details</a></li>
+                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Ongoingstatuses' project.id %}">details</a></li>
                                 {% elif project.project_status == 'upcoming' %}
-                                    <li><a href="{% url 'Upcomingstatus' project.id %}">details</a></li>
+                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Upcomingstatus' project.id %}">details</a></li>
                                 {% elif project.project_status == 'Delayed' %}
-                                   <li><a href="{% url 'delayedstatus' project.id %}">details</a></li>
+                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delayedstatus' project.id %}">details</a></li>
                                 {% elif project.project_status == 'stalled' %}
-                                    <li><a href="{% url 'stalledstatus' project.id %}">details</a></li>
+                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'stalledstatus' project.id %}">details</a></li>
                                 {% else %}
-                                    <li><a href="{% url 'CompletedStatuses' project.id %}">details</a></li>
+                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'CompletedStatuses' project.id %}">details</a></li>
                                 {% endif %}
                             </ul>
                         </div>
+                        <script>
+                            // Show dropdown on click or hover
+                            document.querySelectorAll('.dropdown-toggle').forEach(function(btn) {
+                                const menu = btn.parentElement.querySelector('.dropdown-menu');
+                                btn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    menu.classList.toggle('hidden');
+                                });
+                                btn.parentElement.addEventListener('mouseenter', function() {
+                                    menu.classList.remove('hidden');
+                                });
+                                btn.parentElement.addEventListener('mouseleave', function() {
+                                    menu.classList.add('hidden');
+                                });
+                            });
+                            document.addEventListener('click', function() {
+                                document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
+                                    menu.classList.add('hidden');
+                                });
+                            });
+                        </script>
                     </td>
                     {% endif %}
                 </tr>
