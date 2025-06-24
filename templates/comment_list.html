@@ -8,7 +8,7 @@
 
         <!-- Page Title -->
         <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-3">
-            💬 Comments on: <span class="text-blue-600">{{ project.project_title }}</span>
+            💬 Comments on: <span class="text-blue-600">{{ project.title }}</span>
         </h1>
 
         <!-- Comments List -->
@@ -33,21 +33,22 @@
             </div>
             {% empty %}
             <p class="text-gray-500">No comments yet. Be the first to share your thoughts!</p>
-            {% endfor %}
+           
         </div>
-            {% if request.user.is_superuser %}
-        <!-- Add Comment Button -->
+
+        <!-- Add Comment Button for Superuser -->
+        {% if request.user.is_superuser %}
         <div class="mt-8 text-right">
-            <a href="{% url 'add_comment' %}" 
+            <a href="{% url 'add_comment' project.project_id %}" 
                class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold shadow transition">
                 ➕ Add Comment
             </a>
         </div>
-            {% endif %}
+        {% endif %}
+ {% endfor %}
     </div>
 </div>
-
 </div>
-
+</div>
 {% include "footer.html" %}
 {% endblock %}

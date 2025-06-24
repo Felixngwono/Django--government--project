@@ -3,9 +3,9 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Comment,PDF, AuditLog, ProgramImpact, ProgressUpdate, Project_Division, ProjectLocation, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
+from .models import Comment,PDF, AuditLog, ProgramImpact, ProgressUpdate, Project_Division, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectLocationForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TenderForm, TestimonialForm
+from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TenderForm, TestimonialForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
@@ -129,11 +129,12 @@ def notifications(request):
     return render(request, 'notifications.html')
 
 def welcomingpage(request):
-    projects=Project.objects.all()[:6]
-    return render(request, 'welcoming page.html',context={'projects':projects}) 
+    comment=Comment.objects.all()
+    projects = Project.objects.all()[:6]
+    return render(request, 'welcoming page.html', context={'projects': projects,'comment':comment})
 
- 
 def loginpage(request):
+    next_url = request.GET.get('next') or request.POST.get('next')
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -147,11 +148,13 @@ def loginpage(request):
 
         if user is not None:
             login(request, user)
-            messages.info(request,'Login successful')
+            messages.info(request, 'Login successful')
+            if next_url:
+                return redirect(next_url)
             return redirect('index')
         else:
-             messages.warning(request,'Wrong username or password')
-    return render(request, 'login.html')
+            messages.warning(request, 'Wrong username or password')
+    return render(request, 'login.html', {'next': next_url})
 
 @login_required(login_url='login')
 def logoutuser(request):
@@ -626,30 +629,6 @@ def delete_tender(request, tender_id):
     return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
 
 
-
-@login_required(login_url='login')
-def add_project_location(request):
-    if request.method == 'POST':
-        form = ProjectLocationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('project_location_list')
-    else:
-        form = ProjectLocationForm()
-    return render(request, 'add_project_location.html', {'form': form})
-
-@login_required(login_url='login')
-def project_location_list(request):
-    locations = ProjectLocation.objects.all()
-    return render(request, 'project_location_list.html', {'locations': locations})
-
-@login_required(login_url='login')
-def project_location_detail(request, location_id):
-    location = get_object_or_404(ProjectLocation, id=location_id)
-    return render(request, 'project_location_detail.html', {'location': location})
-
-
-
 @login_required(login_url='login')
 def comment_list(request):
     comments = Comment.objects.all()
@@ -657,16 +636,23 @@ def comment_list(request):
 
 
 @login_required(login_url='login')
-def add_comment(request):
-    form = CommentForm()
-    if request.method=='POST':
-        form=CommentForm(request.POST,request.FILES)
+def add_comment(request, pk):
+    projects = get_object_or_404(Comment, id=pk)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('comment_list')
+            comment = form.save(commit=False)
+            comment.projects = projects
+            comment.save()
+            messages.success(request, 'Comment added successfully!')
+            return redirect('projectoverview')  # Or redirect to a detail page for the project
+    else:
+        form = CommentForm()
 
-    return render(request, 'add_comment.html', {'form': form})
-
+    return render(request, "add_comment.html", {
+        'project': projects,
+        'form': form
+    })
 @login_required(login_url='login')
 def AuditLogs(request):
     auditing=AuditLog.objects.all()

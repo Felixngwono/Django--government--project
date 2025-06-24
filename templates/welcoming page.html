@@ -63,9 +63,9 @@
         </svg>
       </div>
       <div class="relative left-0 mt-2 bg-white text-black rounded shadow-lg min-w-[160px] opacity-0 group-hover:opacity-100 hover:opacity-100 pointer-events-none group-hover:pointer-events-auto hover:pointer-events-auto transition-opacity duration-300 flex-col z-50 hidden group-hover:flex hover:flex">
-        <a href="#" class="px-4 py-2 hover:bg-gray-100">Nairobi</a>
-        <a href="#" class="px-4 py-2 hover:bg-gray-100">Mombasa</a>
-        <a href="#" class="px-4 py-2 hover:bg-gray-100">Kisumu</a>
+        <a href="https://nairobi.go.ke/" class="px-4 py-2 hover:bg-gray-100">Nairobi</a>
+        <a href="https://web.mombasa.go.ke/" class="px-4 py-2 hover:bg-gray-100">Mombasa</a>
+        <a href="https://www.kisumu.go.ke/" class="px-4 py-2 hover:bg-gray-100">Kisumu</a>
       </div>
     </div>
 
@@ -119,23 +119,65 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
         </svg>
       </div>
+     
       <div class="relative left-0 mt-2 bg-white text-black rounded shadow-lg min-w-[160px] opacity-0 group-hover:opacity-100 hover:opacity-100 pointer-events-none group-hover:pointer-events-auto hover:pointer-events-auto transition-opacity duration-300 flex-col z-50 hidden group-hover:flex hover:flex">
         <a href="#" class="px-4 py-2 hover:bg-gray-100">Surveys</a>
-        <a href="#" class="px-4 py-2 hover:bg-gray-100">Comments</a>
+        <a href="{% url 'login' %}?next={% url "comment_list" %}" class="px-4 py-2 hover:bg-gray-100">Comments</a>
       </div>
     </div>
+   
+    <div class="relative left-0 mt-2 bg-white text-black rounded shadow-lg min-w-[160px] opacity-0 group-hover:opacity-100 hover:opacity-100 pointer-events-none group-hover:pointer-events-auto hover:pointer-events-auto transition-opacity duration-300 flex-col z-50 hidden group-hover:flex hover:flex">
+        <a href="#" class="px-4 py-2 hover:bg-gray-100">Surveys</a>
+        <a href="{% url "comment_list" %}" class="px-4 py-2 hover:bg-gray-100">Comments</a>
+      </div>
 
   </div>
 </section>
 
 <br>
-
-<!-- Hero with Slideshow -->
+<!-- Key Government Agenda Section -->
+<section class="bg-white-100 py-12 px-6">
+  <div>
+    <h2 class="text-3xl font-bold text-green-800 mb-6 text-center">Key Government Agenda</h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+        <img src="{% static 'images/educ.jpg' %}" alt="Universal Education" class="w-30 h-30 mb-4" />
+        <h3 class="text-xl font-semibold mb-2 text-gray-800">Universal Education</h3>
+        <p class="text-gray-600 text-center">Ensuring access to quality education for all children and youth across Kenya.</p>
+       <a href="https://education.go.ke/" class="mt-5 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition duration-200 group">
+          <span>Read more</span>
+          <i class="fas fa-arrow-right ml-2 text-white group-hover:translate-x-1 transition-transform"></i>
+        </a>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+        <img src="{% static 'images/nhif.jpg' %}" alt="Affordable Healthcare" class="w-30 h-30 mb-4" />
+        <h3 class="text-xl font-semibold mb-2 text-gray-800">Affordable Healthcare</h3>
+        <p class="text-gray-600 text-center">Expanding healthcare coverage and improving health facilities nationwide.</p>
+        <a href="https://health.go.ke/" class="mt-5 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition duration-200 group">
+          <span>Read more</span>
+          <i class="fas fa-arrow-right ml-2 text-white group-hover:translate-x-1 transition-transform"></i>
+        </a>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+        <img src="{% static 'images/tran.webp' %}" alt="Infrastructure Development" class="w-30 h-30 mb-4" />
+        <h3 class="text-xl font-semibold mb-2 text-gray-800">Infrastructure Development</h3>
+        <p class="text-gray-600 text-center">Investing in roads, housing, and energy to boost economic growth and connectivity.</p>
+        <a href="https://www.transport.go.ke/" class="mt-5 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition duration-200 group">
+          <span>Read more</span>
+          <i class="fas fa-arrow-right ml-2 text-white group-hover:translate-x-1 transition-transform"></i>
+        </a>
+      </div>
+      
+      
+    </div>
+  </div>
+</section>
+<!-- Hero Slideshow Section with Enhanced Live-like Image Styles -->
 <section class="relative h-[65vh] md:h-[75vh] overflow-hidden">
   <div class="absolute top-0 left-0 w-full h-full z-0">
-    <div class="slide active absolute inset-0 transition-opacity duration-1000">
-      <img src="{% static 'images/buore.jpg' %}" class="w-full h-full object-cover" alt="Slide 1">
-      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4">
+    <div class="slide active absolute inset-0 transition-all duration-1000" data-direction="left">
+      <img src="{% static 'images/buore.jpg' %}" class="w-full h-full object-cover object-center brightness-90 rounded-xl shadow-2xl border-8 border-white" alt="Slide 1">
+      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4 rounded-xl">
         <div class="text-center max-w-4xl">
           <h1 class="text-white text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
             Accountability is a key figure in any nation
@@ -143,10 +185,10 @@
           <p class="text-gray-300 text-lg mt-4">We empower citizens through transparency and access.</p>
         </div>
       </div>
-      <div class="absolute top-10 right-10 text-black z-10 bg-gray-200 p-8 rounded shadow">
+      <div class="absolute top-10 right-10 text-black z-10 bg-gray-200 p-8 rounded shadow-lg bg-opacity-90">
         <h2 class="text-green-800 h-50 font-bold uppercase">Our Mission</h2>
         <p class="text-sm">To enhance transparency by tracking every government project in real-time.</p>
-          <ul class="list-disc mt-4 pl-6 text-gray-600 text-sm space-y-1">
+        <ul class="list-disc mt-4 pl-6 text-gray-600 text-sm space-y-1">
           <li>Provide real-time project tracking data</li>
           <li>Foster civic engagement and awareness</li>
           <li>Bridge the gap between citizens and government</li>
@@ -154,9 +196,9 @@
       </div>
     </div>
 
-    <div class="slide absolute inset-0 transition-opacity duration-1000">
-      <img src="{% static 'images/housing.jpg' %}" class="w-full h-full object-cover" alt="Slide 2">
-      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4">
+    <div class="slide absolute inset-0 transition-all duration-1000" data-direction="right">
+      <img src="{% static 'images/housing.jpg' %}" class="w-full h-full object-cover object-center brightness-90 rounded-xl shadow-2xl border-8 border-white" alt="Slide 2">
+      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4 rounded-xl">
         <div class="text-center max-w-4xl">
           <h1 class="text-white text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
             Tracking Kenya's Government Development
@@ -164,51 +206,221 @@
           <p class="text-gray-300 text-lg mt-4">Stay informed about national and county-level projects in real time.</p>
         </div>
       </div>
-      <div class="absolute top-10 right-10 text-black z-10 bg-gray-200 p-8 rounded shadow">
+      <div class="absolute top-10 right-10 text-black z-10 bg-gray-200 p-8 rounded shadow-lg bg-opacity-90">
         <h2 class="text-green-800 font-bold uppercase">Our Vision</h2>
         <p class="text-sm">A transparent Kenya where every citizen is informed and empowered.</p>
-         <ul class="list-disc mt-4 pl-6 text-gray-600 text-sm space-y-1">
+        <ul class="list-disc mt-4 pl-6 text-gray-600 text-sm space-y-1">
           <li>Digitize public infrastructure data</li>
           <li>Promote data-driven governance</li>
           <li>Support open, accessible government systems</li>
         </ul>
       </div>
-      
     </div>
 
-    <div class="slide absolute inset-0 transition-opacity duration-1000">
-      <img src="{% static 'images/re.webp' %}" class="w-full h-full object-cover" alt="Slide 3">
-      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4">
+    <div class="slide absolute inset-0 transition-all duration-1000" data-direction="top">
+      <img src="{% static 'images/re.webp' %}" class="w-full h-full object-cover object-center brightness-90 rounded-xl shadow-2xl border-8 border-white" alt="Slide 3">
+      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4 rounded-xl">
         <div class="text-center max-w-4xl">
           <h1 class="text-white text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
             Transparency in my country is mandatory
           </h1>
           <p class="text-gray-300 text-lg mt-4">Let’s make every shilling count by tracking development progress.</p>
         </div>
-        <div class="absolute top-10 right-10 text-black z-10 bg-gray-200 p-8 rounded shadow max-w-sm">
-  <h2 class="text-green-800 text-xl font-bold uppercase mb-2">Core Values</h2>
-  <ul class="list-disc pl-5 text-sm space-y-1 text-gray-700">
-    <li>Transparency</li>
-    <li>Accountability</li>
-    <li>Integrity</li>
-    <li>Inclusiveness</li>
-    <li>Innovation</li>
-  </ul>
-</div>
-
+        <div class="absolute top-10 right-10 text-black z-10 bg-gray-200 p-8 rounded shadow-lg bg-opacity-90 max-w-sm">
+          <h2 class="text-green-800 text-xl font-bold uppercase mb-2">Core Values</h2>
+          <ul class="list-disc pl-5 text-sm space-y-1 text-gray-700">
+            <li>Transparency</li>
+            <li>Accountability</li>
+            <li>Integrity</li>
+            <li>Inclusiveness</li>
+            <li>Innovation</li>
+          </ul>
+        </div>
       </div>
     </div>
+    <div class="slide absolute inset-0 transition-all duration-1000" data-direction="left">
+      <img src="{% static 'images/food.jpg' %}" class="w-full h-full object-cover object-center rounded-xl shadow-2xl border-8 border-white" alt="Slide 4">
+      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4 rounded-xl">
+        <div class="text-center max-w-4xl">
+          <h1 class="text-white text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
+            Empowering Progress, One Project at a Time
+          </h1>
+          <p class="text-gray-300 text-lg mt-4">Track the impact of government initiatives on communities across Kenya.</p>
+        </div>
+      </div>
+      <div class="absolute top-10 right-10 text-black z-10 bg-gray-200 p-8 rounded shadow-lg bg-opacity-90">
+        <h2 class="text-green-800 h-50 font-bold uppercase">Project Spotlight</h2>
+        <p class="text-sm">Discover how government projects are transforming lives and driving sustainable development.</p>
+        <ul class="list-disc mt-4 pl-6 text-gray-600 text-sm space-y-1">
+          <li>Monitor project implementation and outcomes</li>
+          <li>Promote transparency in resource allocation</li>
+          <li>Support community-driven development</li>
+        </ul>
+      </div>
+      <div class="absolute top-10 left-10 bg-white bg-opacity-90 rounded shadow-lg p-8 max-w-xs z-20">
+        <h3 class="text-green-700 font-bold text-lg mb-2">Government Priorities</h3>
+        <ul class="list-disc pl-5 text-gray-700 text-sm space-y-1">
+          <li>Enhance public service delivery</li>
+          <li>Foster economic growth</li>
+          <li>Promote social inclusion</li>
+          <li>Advance digital transformation</li>
+        </ul>
+      </div>
+      <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-100 bg-opacity-90 rounded shadow-lg p-8 max-w-xs z-20">
+        <h3 class="text-blue-800 font-bold text-lg mb-2">Sustainable Development</h3>
+        <ul class="list-disc pl-5 text-gray-700 text-sm space-y-1">
+          <li>Green energy initiatives</li>
+          <li>Water and sanitation projects</li>
+          <li>Climate resilience programs</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Info boxes OUTSIDE slides so they don't overlap/interfere -->
+    <div class="absolute bottom-10 left-10 bg-white bg-opacity-80 rounded-xl shadow-lg p-6 max-w-xs z-30 pointer-events-auto">
+      <h3 class="text-green-700 font-bold text-lg mb-2">Why GovTracker?</h3>
+      <ul class="list-disc pl-5 text-gray-700 text-sm space-y-1">
+        <li>Track project milestones</li>
+        <li>Access verified government data</li>
+        <li>Report issues or delays</li>
+        <li>Connect with local leaders</li>
+        <li>Promote open governance</li>
+      </ul>
+    </div>
+    <div class="absolute bottom-10 right-10 bg-green-700 bg-opacity-90 rounded-xl shadow-lg p-6 max-w-xs z-30 text-white pointer-events-auto">
+      <h3 class="font-bold text-lg mb-2">Get Involved</h3>
+      <p class="mb-3 text-sm">Join our community to receive updates and participate in surveys.</p>
+      <a href="{% url 'registrationpage' %}" class="inline-block bg-yellow-400 hover:bg-yellow-500 text-green-900 font-semibold px-4 py-2 rounded-full transition">Sign Up</a>
+      <a href="{% url 'login' %}" class="inline-block bg-white hover:bg-gray-100 text-green-700 font-semibold px-4 py-2 rounded-full transition mt-2">Sign In</a>
+    </div>
+    <!-- Next button -->
+    <button id="nextSlideBtn" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg z-40 focus:outline-none" aria-label="Next Slide">
+      <i class="fas fa-arrow-right text-2xl"></i>
+    </button>
   </div>
 </section>
 
+<style>
+  .slide {
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+    transform: none;
+    transition: opacity 1s, transform 1s;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 2;
+    transform: none;
+  }
+  .slide.enter-left {
+    opacity: 1;
+    transform: translateX(-100%);
+    animation: slideInLeft 1s forwards;
+  }
+  .slide.enter-right {
+    opacity: 1;
+    transform: translateX(100%);
+    animation: slideInRight 1s forwards;
+  }
+  .slide.enter-top {
+    opacity: 1;
+    transform: translateY(-100%);
+    animation: slideInTop 1s forwards;
+  }
+  .slide.enter-bottom {
+    opacity: 1;
+    transform: translateY(100%);
+    animation: slideInBottom 1s forwards;
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-100%);}
+    to { opacity: 1; transform: translateX(0);}
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(100%);}
+    to { opacity: 1; transform: translateX(0);}
+  }
+  @keyframes slideInTop {
+    from { opacity: 0; transform: translateY(-100%);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+  @keyframes slideInBottom {
+    from { opacity: 0; transform: translateY(100%);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+</style>
+
 <script>
-  let currentIndex = 0;
-  const slides = document.querySelectorAll('.slide');
-  setInterval(() => {
-    slides[currentIndex].classList.remove('active');
-    currentIndex = (currentIndex + 1) % slides.length;
-    slides[currentIndex].classList.add('active');
-  }, 5000);
+  document.addEventListener('DOMContentLoaded', function () {
+    const directions = ['top', 'right', 'bottom', 'left','top'];
+    let currentIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    let intervalId = null;
+    let started = false;
+    const nextBtn = document.getElementById('nextSlideBtn');
+
+    function getDirection(index) {
+      return directions[index % directions.length];
+    }
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.remove('active', 'enter-right', 'enter-bottom', 'enter-left', 'enter-top');
+        slide.style.zIndex = 1;
+      });
+      const direction = getDirection(index);
+      slides[index].classList.add('active');
+      slides[index].classList.add('enter-' + direction);
+      slides[index].style.zIndex = 2;
+    }
+
+    function nextSlide() {
+      slides[currentIndex].classList.remove('active', 'enter-left', 'enter-right', 'enter-top', 'enter-bottom');
+      currentIndex = (currentIndex + 1) % slides.length;
+      showSlide(currentIndex);
+    }
+
+    showSlide(currentIndex);
+
+    function startSlideshow() {
+      if (started) return;
+      started = true;
+      intervalId = setInterval(() => {
+        nextSlide();
+      }, 20000);
+    }
+
+    function resetInterval() {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(() => {
+        nextSlide();
+      }, 10000);
+    }
+
+    // Next button click
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function () {
+        nextSlide();
+        resetInterval();
+      });
+    }
+
+    // Use IntersectionObserver to detect when hero section is visible
+    const heroSection = document.querySelector('section.relative');
+    if ('IntersectionObserver' in window && heroSection) {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          startSlideshow();
+          observer.disconnect();
+        }
+      }, { threshold: 0.4 });
+      observer.observe(heroSection);
+    } else {
+      // Fallback: start on DOMContentLoaded
+      startSlideshow();
+    }
+  });
 </script>
 
 <!-- About -->
@@ -248,28 +460,41 @@
 
 
 <!-- Featured Projects -->
-<div class="bg-white bg-opacity-90 rounded-xl shadow-md p-8 md:p-10" style="background-image: url('{% static 'images/project.webp' %}'); background-size: cover; background-position: center;">
+<div class="bg-white bg-opacity-90 rounded-xl shadow-md p-8 md:p-10" style="background-image: url('{% static 'images/project.webmp' %}'); background-size: cover; background-position: center;">
   <h2 class="text-3xl md:text-4xl font-bold text-center text-green-900 mb-10">
     Featured Projects
   </h2>
 
-  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+  <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
     {% for project in projects %}
-    <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 border border-green-100 overflow-hidden">
-      
+    <div class="bg-white bg-opacity-90 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-transform duration-300 border-t-8 border-green-400 flex flex-col overflow-hidden group">
       <!-- Image -->
-      <img src="{{ project.images.url }}" alt="{{ project.project_title }}" class="w-80 h-48 ">
-
-      <!-- Content -->
-      <div class="p-4">
-        <h3 class="text-xl font-semibold text-green-800 mb-2 truncate">{{ project.project_title }}</h3>
-        <p class="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-3">{{ project.project_description|truncatewords:20 }}</p>
-
-        <div class="text-sm text-gray-700 bg-green-50 rounded px-3 py-2">
-          <span class="font-medium">Project Type:</span> {{ project.project_status }}
+      <div class="relative">
+        <div class="flex justify-center items-center w-full">
+          <img src="{{ project.images.url }}" alt="{{ project.project_title }}" class="w-90 h-56 object-center group-hover:brightness-90 transition duration-300">
         </div>
+        <span class="absolute top-4 left-4 bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow font-semibold uppercase tracking-wide">{{ project.project_status }}</span>
+      </div>
+      <!-- Content -->
+      <div class="p-6 flex-1 flex flex-col">
+        <h3 class="text-2xl font-bold text-green-800 mb-2 truncate group-hover:text-green-600 transition">{{ project.project_title }}</h3>
+        <p class="text-gray-600 text-base leading-relaxed mb-4 line-clamp-3">{{ project.project_description|truncatewords:20 }}</p>
+        {% if user.is_authenticated %}
+        <div class="mt-auto flex items-center justify-between">
+          <span class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Type: {{ project.project_status }}</span>
+          <a href="{% url 'login' %}?next={% url 'project_details' project.id %}" class="inline-flex items-center text-green-700 hover:text-green-900 font-semibold text-sm group">
+            View Details
+            <i class="fas fa-arrow-right ml-2 text-green-600 group-hover:translate-x-1 transition-transform"></i>
+          </a>
+        </div>
+       
+        {% endif %}
       </div>
     </div>
+    {% empty %}
+      <div class="col-span-full text-center text-gray-500 py-10">
+        No featured projects available at the moment.
+      </div>
     {% endfor %}
   </div>
 </div>
@@ -278,51 +503,98 @@
 <br>
 
 <!-- Impact -->
-<section class="bg-green-300 py-20 px-6 ">
+<section class="relative bg-gradient-to-r from-green-200 via-green-100 to-green-300 py-20 px-6">
   <div class="">
-    <h2 class="text-4xl font-bold mb-10 text-gray-800 text-center">Our Impact</h2>
-    <div class="grid md:grid-cols-4 gap-8 text-green-700 font-semibold text-lg">
-      <div class="transition transform hover:scale-105 hover:bg-green-100 hover:shadow-lg rounded-xl p-6 text-center">
-        <span class="text-3xl md:text-4xl block">+120</span>
-        Projects Monitored
+    <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-green-800 text-center tracking-tight drop-shadow-lg">
+      Our Impact
+    </h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
+      <!-- Projects Monitored -->
+      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-400">
+        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4 shadow">
+          <i class="fas fa-tasks text-green-600 text-3xl"></i>
+        </div>
+        <span class="text-4xl font-bold text-green-700 mb-2">+120</span>
+        <span class="text-gray-700 font-medium text-lg">Projects Monitored</span>
       </div>
-      <div class="transition transform hover:scale-105 hover:bg-green-100 hover:shadow-lg rounded-xl p-6 text-center">
-        <span class="text-3xl md:text-4xl block">47</span>
-        Counties Covered
+      <!-- Counties Covered -->
+      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-blue-400">
+        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4 shadow">
+          <i class="fas fa-map-marked-alt text-blue-600 text-3xl"></i>
+        </div>
+        <span class="text-4xl font-bold text-blue-700 mb-2">47</span>
+        <span class="text-gray-700 font-medium text-lg">Counties Covered</span>
       </div>
-      <div class="transition transform hover:scale-105 hover:bg-green-100 hover:shadow-lg rounded-xl p-6 text-center">
-        <span class="text-3xl md:text-4xl block">+5K</span>
-        Citizens Engaged
+      <!-- Citizens Engaged -->
+      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-yellow-400">
+        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4 shadow">
+          <i class="fas fa-users text-yellow-600 text-3xl"></i>
+        </div>
+        <span class="text-4xl font-bold text-yellow-700 mb-2">+5K</span>
+        <span class="text-gray-700 font-medium text-lg">Citizens Engaged</span>
       </div>
-      <div class="transition transform hover:scale-105 hover:bg-green-100 hover:shadow-lg rounded-xl p-6 text-center">
-        <span class="text-3xl md:text-4xl block">98%</span>
-        Feedback Accuracy
+      <!-- Feedback Accuracy -->
+      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-600">
+        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-200 mb-4 shadow">
+          <i class="fas fa-check-circle text-green-700 text-3xl"></i>
+        </div>
+        <span class="text-4xl font-bold text-green-800 mb-2">98%</span>
+        <span class="text-gray-700 font-medium text-lg">Feedback Accuracy</span>
       </div>
     </div>
   </div>
 </section>
 
 <!-- Team -->
-  <div class="bg-blue-300 py-20 px-6">
-    <h2 class="text-4xl font-bold mb-12 text-gray-800 text-center">Meet Our Team</h2>
-    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-      <div class="bg-white rounded-2xl shadow-md p-6">
-        <img src="{% static 'images/Buore.jpg' %}" class="w-32 h-32 mx-auto rounded-full object-cover mb-4" />
-        <h3 class="text-xl font-semibold">Victoria Amanda</h3>
-        <p class="text-green-600">CEO</p>
+  <section class="bg-gradient-to-r from-blue-200 via-blue-100 to-green-100 py-20 px-6">
+    <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-green-800 text-center tracking-tight drop-shadow-lg">
+      Meet Our Team
+    </h2>
+    <div class="grid gap-10 md:grid-cols-3 ">
+      <!-- Team Member 1 -->
+      <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center group hover:scale-105 transition-transform duration-300 border-t-8 border-green-400">
+        <div class="relative mb-5">
+          <img src="{% static 'images/nicky.jpg' %}" alt="Nicole Atieno" class="w-36 h-36 rounded-full object-cover border-4 border-green-200 shadow-lg group-hover:border-blue-400 transition">
+          <span class="absolute bottom-2 right-2 bg-green-500 text-white text-xs px-3 py-1 rounded-full shadow">CEO</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1">Nicole Atieno</h3>
+        <p class="text-green-600 font-medium mb-3">Chief Executive Officer</p>
+        <p class="text-gray-500 text-center text-sm">Visionary leader driving innovation and strategic growth for GovTracker.</p>
+        <div class="flex space-x-3 mt-4">
+          <a href="#" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin text-xl"></i></a>
+          <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-twitter text-xl"></i></a>
+        </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-md p-6">
-        <img src="{% static 'images/team2.jpg' %}" alt='David Kimani' class="w-32 h-32 mx-auto rounded-full object-cover mb-4" />
-        <h3 class="text-xl font-semibold">David Kimani</h3>
-        <p class="text-green-600">CTO</p>
+      <!-- Team Member 2 -->
+      <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center group hover:scale-105 transition-transform duration-300 border-t-8 border-blue-400">
+        <div class="relative mb-5">
+          <img src="{% static 'images/frank.jpg' %}" alt="Francis Odhiambo" class="w-36 h-36 rounded-full object-cover border-4 border-blue-200 shadow-lg group-hover:border-green-400 transition">
+          <span class="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full shadow">CTO</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1">Francis Odhiambo</h3>
+        <p class="text-blue-600 font-medium mb-3">Chief Technology Officer</p>
+        <p class="text-gray-500 text-center text-sm">Architect of robust digital solutions and technology strategy for the platform.</p>
+        <div class="flex space-x-3 mt-4">
+          <a href="#" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin text-xl"></i></a>
+          <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-github text-xl"></i></a>
+        </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-md p-6">
-        <img src="{% static 'images/team3.jpg' %}" class="w-32 h-32 mx-auto rounded-full object-cover mb-4" />
-        <h3 class="text-xl font-semibold">Aisha Hassan</h3>
-        <p class="text-green-600">Project Analyst</p>
+      <!-- Team Member 3 -->
+      <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center group hover:scale-105 transition-transform duration-300 border-t-8 border-yellow-400">
+        <div class="relative mb-5">
+          <img src="{% static 'images/marley.jpg' %}" alt="Felix Odhiambo" class="w-36 h-36 rounded-full object-cover border-4 border-yellow-200 shadow-lg group-hover:border-green-400 transition">
+          <span class="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-3 py-1 rounded-full shadow">Analyst</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 mb-1">Felix Odhiambo</h3>
+        <p class="text-yellow-600 font-medium mb-3">Project Analyst</p>
+        <p class="text-gray-500 text-center text-sm">Ensures data accuracy and insightful project analysis for transparency.</p>
+        <div class="flex space-x-3 mt-4">
+          <a href="#" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin text-xl"></i></a>
+          <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-twitter text-xl"></i></a>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 </section>
 <!-- Footer -->
 <footer class="bg-gray-900 text-white w-full py-12 mt-auto">

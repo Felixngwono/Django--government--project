@@ -105,7 +105,9 @@ class Project(models.Model):
     project_contractor = models.CharField(max_length=255, null=True, blank=True)
     progress_update = models.CharField(max_length=1000, null=True, blank=True)
     contact_email = models.EmailField(null=True, blank=True)
-
+    sector = models.CharField(max_length=100,null=True)  # e.g., Health, Education, Roads
+    county = models.CharField(max_length=100,null=True)
+    constituency = models.CharField(max_length=100,null=True)
     class Meta:
         ordering = ['-start_date']
 
@@ -257,8 +259,17 @@ class Comment(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering=['-created_at']
+
     def __str__(self):
         return f"Comment by {self.user.username} on {self.project.project_title}"
+
+class ProjectDocument(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='documents')
+    name = models.CharField(max_length=200)
+    file = models.FileField(upload_to='project_docs/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
 
 class ProgressReport(models.Model):
@@ -280,23 +291,6 @@ class Tender(models.Model):
     document = models.FileField(upload_to='tenders/', null=True, blank=True)
     def __str__(self):
         return f"Tender: {self.title} for {self.project.project_title}"
-
-
-class ProjectLocation(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='location')
-    latitude = models.DecimalField(max_digits=9, decimal_places=1, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=1, null=True, blank=True)
-    name = models.CharField(max_length=255, null=True)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return f"Location for {self.project.project_title}"
-
-    def google_maps_link(self):
-        """Returns a Google Maps link for this location."""
-        if self.latitude and self.longitude:
-            return f"https://www.google.com/maps/search/?api=1&query={self.latitude},{self.longitude}"
-        return None
 
 
 
