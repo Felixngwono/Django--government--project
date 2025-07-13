@@ -4,40 +4,65 @@
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8 flex justify-center">
-    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-semibold text-gray-800">Milestones</h2>
+<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-10 flex justify-center items-start">
+    <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-3xl border border-blue-100">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold text-blue-800 tracking-tight">Milestones</h2>
             {% if request.user.is_superuser %}
-
             <a href="{% url 'milestone_create' %}" 
-               class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">
+               class="bg-blue-700 text-white px-5 py-2 rounded-xl text-base font-semibold shadow hover:bg-blue-800 transition-all duration-200">
                + Add Milestone
             </a>
             {% endif %}
         </div>
 
-        <ul class="divide-y divide-gray-200">
+        <div class="mb-8">
+            <p class="text-gray-700 text-base">
+                Project milestones are key events or deliverables that mark significant progress in the government project. 
+                They help track the completion of important phases such as planning, approvals, procurement, implementation, and evaluation.
+            </p>
+            <ul class="list-disc pl-6 mt-3 text-gray-600 text-sm space-y-1">
+                <li>Project Initiation &amp; Stakeholder Engagement</li>
+                <li>Feasibility Study &amp; Approval</li>
+                <li>Budget Allocation &amp; Resource Planning</li>
+                <li>Procurement &amp; Contracting</li>
+                <li>Implementation of Core Activities</li>
+                <li>Monitoring &amp; Progress Reporting</li>
+                <li>Final Evaluation &amp; Project Closure</li>
+            </ul>
+        </div>
+
+        <ul class="divide-y divide-blue-100">
             {% for milestone in milestones %}
-                <li class="py-4 px-4 flex justify-between items-center">
+                <li class="py-5 px-4 flex justify-between items-center hover:bg-blue-50 rounded-lg transition">
                     <div>
-                        <p class="text-lg font-medium text-gray-900">{{ milestone.title }}</p>
-                        <p class="text-sm text-gray-600">Progress: {{ milestone.progress_percentage }}%</p>
+                        <p class="text-xl font-semibold text-gray-900">{{ milestone.title }}</p>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <div class="w-40 bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ milestone.progress_percentage }}%"></div>
+                            </div>
+                            <span class="text-xs text-gray-600 font-medium">{{ milestone.progress_percentage }}%</span>
+                        </div>
+                        {% if milestone.description %}
+                        <p class="text-gray-500 text-sm mt-2">{{ milestone.description }}</p>
+                        {% endif %}
+                        {% if milestone.due_date %}
+                        <p class="text-gray-400 text-xs mt-1">Due: {{ milestone.due_date }}</p>
+                        {% endif %}
                     </div>
-                    <div class="flex space-x-3">
+                    <div class="flex space-x-4">
                         <a href="{% url 'milestone_update' milestone.pk %}" 
-                           class="text-blue-600 hover:underline text-sm">Edit</a> 
-                        <span>|</span>
+                           class="text-blue-700 hover:underline text-sm font-medium">Edit</a>
+                        <span class="text-gray-300">|</span>
                         <a href="{% url 'milestone_delete' milestone.pk %}" 
-                           class="text-red-600 hover:underline text-sm">Delete</a>
+                           class="text-red-600 hover:underline text-sm font-medium">Delete</a>
                     </div>
                 </li>
             {% empty %}
-                <li class="py-4 text-gray-500 text-center">No milestones available.</li>
+                <li class="py-6 text-gray-400 text-center text-lg">No milestones available.</li>
             {% endfor %}
         </ul>
     </div>
-
 </div>
 </div>
 

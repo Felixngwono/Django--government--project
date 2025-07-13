@@ -48,6 +48,23 @@
     </div>
   </nav>
 </header>
+<div class="bg-red-400 text-white shadow-md py-10 relative">
+  <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="background-attachment: fixed;" id="heroVideo">
+    <source src="{% static 'videos/live.mp4' %}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var video = document.getElementById('heroVideo');
+      video.currentTime = 9;
+      video.addEventListener('timeupdate', function () {
+        if (video.currentTime > 9) { // play only from 0s to 9s (9s duration)
+          video.currentTime = 0;
+        }
+      });
+    });
+  </script>
+  <div class="relative z-10">
 <section class='bg-red-400 text-white shadow-md py-10'>
   <div class="px-6 flex flex-wrap gap-10 text-lg font-medium relative z-10">
     
@@ -138,7 +155,7 @@
 <!-- Key Government Agenda Section -->
 <section class="bg-white-100 py-12 px-6">
   <div>
-    <h2 class="text-3xl font-bold text-green-800 mb-6 text-center">Key Government Agenda</h2>
+    <h2 class="text-3xl font-bold text-white-800 mb-6 text-center">Key Government Agenda</h2>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
         <img src="{% static 'images/educ.jpg' %}" alt="Universal Education" class="w-30 h-30 mb-4" />
@@ -424,21 +441,18 @@
 </script>
 
 <!-- About -->
-<section id="about" class="bg-white py-20 px-6">
-  <div class=" grid md:grid-cols-2 gap-12 ">
-    
+<section id="about" class="bg-white py-20 px-6" style="background-image: url('{% static 'images/bg.jpg' %}'); background-attachment: fixed; background-repeat: no-repeat; background-size: cover;">
+  <div class="grid md:grid-cols-2 gap-12">
     <!-- Left: Image -->
     <div>
       <img src="{% static 'images/future.jpg' %}" class="w-full h-full object-cover rounded-xl shadow-lg" alt="GovTracker Overview" style="border-top-right-radius: 140px; border-bottom-right-radius: 140px;">
     </div>
-    
     <!-- Right: Text Content -->
     <div class='bg-green'>
       <h2 class="text-4xl font-bold mb-6 text-gray-800">About GovTracker</h2>
       <p class="text-lg text-gray-600 mb-8 leading-relaxed">
         GovTracker Kenya is a digital platform designed to improve transparency and accountability in government spending by tracking national and county-level development projects.
       </p>
-      
       <div class="grid sm:grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-green-50 p-6 rounded-xl shadow">
           <h3 class="text-xl font-semibold text-green-700 mb-2">Transparency</h3>
@@ -460,8 +474,8 @@
 
 
 <!-- Featured Projects -->
-<div class="bg-white bg-opacity-90 rounded-xl shadow-md p-8 md:p-10" style="background-image: url('{% static 'images/project.webmp' %}'); background-size: cover; background-position: center;">
-  <h2 class="text-3xl md:text-4xl font-bold text-center text-green-900 mb-10">
+<div class="bg-opacity-90 rounded-xl shadow-md p-8 md:p-10" style="background-image: url('{% static 'images/project.webmp' %}'); background-size: cover; background-position: center;">
+  <h2 class="text-3xl md:text-4xl font-bold text-center text-white-900 mb-10">
     Featured Projects
   </h2>
 
@@ -503,54 +517,57 @@
 <br>
 
 <!-- Impact -->
-<section class="relative bg-gradient-to-r from-green-200 via-green-100 to-green-300 py-20 px-6">
-  <div class="">
-    <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-green-800 text-center tracking-tight drop-shadow-lg">
-      Our Impact
-    </h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
-      <!-- Projects Monitored -->
-      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-400">
-        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4 shadow">
-          <i class="fas fa-tasks text-green-600 text-3xl"></i>
-        </div>
-        <span class="text-4xl font-bold text-green-700 mb-2">+120</span>
-        <span class="text-gray-700 font-medium text-lg">Projects Monitored</span>
-      </div>
-      <!-- Counties Covered -->
-      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-blue-400">
-        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4 shadow">
-          <i class="fas fa-map-marked-alt text-blue-600 text-3xl"></i>
-        </div>
-        <span class="text-4xl font-bold text-blue-700 mb-2">47</span>
-        <span class="text-gray-700 font-medium text-lg">Counties Covered</span>
-      </div>
-      <!-- Citizens Engaged -->
-      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-yellow-400">
-        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4 shadow">
-          <i class="fas fa-users text-yellow-600 text-3xl"></i>
-        </div>
-        <span class="text-4xl font-bold text-yellow-700 mb-2">+5K</span>
-        <span class="text-gray-700 font-medium text-lg">Citizens Engaged</span>
-      </div>
-      <!-- Feedback Accuracy -->
-      <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-600">
-        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-200 mb-4 shadow">
-          <i class="fas fa-check-circle text-green-700 text-3xl"></i>
-        </div>
-        <span class="text-4xl font-bold text-green-800 mb-2">98%</span>
-        <span class="text-gray-700 font-medium text-lg">Feedback Accuracy</span>
-      </div>
+<div class="relative bg-gradient-to-r from-green-200 via-green-100 to-green-300 py-20 px-6"
+     style="background-image: url('{% static 'images/impact-bg.jpg' %}'); background-repeat: no-repeat; background-attachment: fixed; background-size: cover; background-position: right top;">
+  <div class="bg-opacity-80 rounded-3xl shadow-lg p-10 md:p-16 max-w-6xl mx-auto" style="backdrop-filter: blur(2px);">
+  <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-white-800 text-center tracking-tight drop-shadow-lg">
+    Our Impact
+  </h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 w-full md:grid-cols-4 gap-10">
+    <!-- Projects Monitored -->
+    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-400">
+    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4 shadow">
+      <i class="fas fa-tasks text-green-600 text-3xl"></i>
+    </div>
+    <span class="text-4xl font-bold text-green-700 mb-2">+120</span>
+    <span class="text-gray-700 font-medium text-lg">Projects Monitored</span>
+    </div>
+    <!-- Counties Covered -->
+    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-blue-400">
+    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4 shadow">
+      <i class="fas fa-map-marked-alt text-blue-600 text-3xl"></i>
+    </div>
+    <span class="text-4xl font-bold text-blue-700 mb-2">47</span>
+    <span class="text-gray-700 font-medium text-lg">Counties Covered</span>
+    </div>
+    <!-- Citizens Engaged -->
+    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-yellow-400">
+    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4 shadow">
+      <i class="fas fa-users text-yellow-600 text-3xl"></i>
+    </div>
+    <span class="text-4xl font-bold text-yellow-700 mb-2">+5K</span>
+    <span class="text-gray-700 font-medium text-lg">Citizens Engaged</span>
+    </div>
+    <!-- Feedback Accuracy -->
+    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-600">
+    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-200 mb-4 shadow">
+      <i class="fas fa-check-circle text-green-700 text-3xl"></i>
+    </div>
+    <span class="text-4xl font-bold text-green-800 mb-2">98%</span>
+    <span class="text-gray-700 font-medium text-lg">Feedback Accuracy</span>
     </div>
   </div>
-</section>
+  </div>
+</div>
 
 <!-- Team -->
-  <section class="bg-gradient-to-r from-blue-200 via-blue-100 to-green-100 py-20 px-6">
-    <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-green-800 text-center tracking-tight drop-shadow-lg">
+  <section class="bg-gradient-to-r from-blue-200 via-blue-100 to-green-100 py-20 px-6"
+       style="background-image: url('{% static 'images/team.jpg' %}'); background-attachment: fixed; background-repeat: no-repeat; background-size: cover; background-position: center;">
+    <div class="  rounded-3xl shadow-lg p-10 md:p-16 max-w-7xl mx-auto">
+    <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-white-800 text-center tracking-tight drop-shadow-lg">
       Meet Our Team
     </h2>
-    <div class="grid gap-10 md:grid-cols-3 ">
+    <div class="grid gap-8 md:grid-cols-3 ">
       <!-- Team Member 1 -->
       <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center group hover:scale-105 transition-transform duration-300 border-t-8 border-green-400">
         <div class="relative mb-5">
@@ -596,7 +613,6 @@
     </div>
   </section>
 </section>
-<!-- Footer -->
 <footer class="bg-gray-900 text-white w-full py-12 mt-auto">
   <div class="container mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
     <div>
