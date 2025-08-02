@@ -4,12 +4,11 @@
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
-<div class="ml-64 w-[calc(100%-16rem)]">
 
 
     <!-- Background Banner -->
-    <div class="relative w-full h-64 bg-cover opacity-80 bg-center text-center rounded-lg shadow-lg" style="background-image: url({% static 'images/estate.jpg' %});">
-        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="relative w-full h-64 bg-cover opacity-80   rounded-lg shadow-lg" style="background-image: url({% static 'images/estate.jpg' %});">
+        <div class="absolute inset-0 bg-black bg-opacity-40 flex  justify-center">
             <h1 class="text-red text-3xl font-bold text-center">Ongoing Projects</h1>
             
         </div>
@@ -76,6 +75,5 @@
     </div>
 </div>
 </div>
-
 {% include "footer.html" %}
 {% endblock content %}

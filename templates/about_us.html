@@ -1,43 +1,73 @@
 {% extends 'header.html' %}
 
 {% block content %}
-{% include "sidebar.html" %}
+    {% include "sidebar.html" %}
 
-    <div class="bg-white shadow-md rounded-lg p-12 w-full max-w-full">
-        <h2 class="text-2xl font-semibold mb-4 text-center">About Us</h2>
-        
-        <div class="text-gray-700 space-y-4">
-            <p><strong>Our Mission:</strong> To enhance transparency, accountability, and citizen engagement by providing real-time tracking of government projects.</p>
-            
-            <p><strong>Objectives:</strong></p>
-            <ul class="list-disc list-inside">
-                <li>Monitor public infrastructure projects efficiently.</li>
-                <li>Ensure projects are completed on time and within budget.</li>
-                <li>Empower citizens to report concerns and provide feedback.</li>
-                <li>Promote data-driven decision-making for government authorities.</li>
-                <li>Enhance public trust in government project execution.</li>
-            </ul>
-            
-            <p><strong>Platform Features:</strong></p>
-            <ul class="list-disc list-inside">
-                <li>Real-time project tracking.</li>
-                <li>Interactive maps for project locations.</li>
-                <li>Public feedback and reporting tools.</li>
-                <li>Milestone tracking and transparency reports.</li>
-                <li>Data analytics and project performance insights.</li>
-                <li>Automated alerts and notifications for project updates.</li>
-            </ul>
-            
-            <p><strong>Who We Serve:</strong> Our platform benefits government agencies, policymakers, journalists, researchers, and citizens, ensuring effective project oversight and accountability.</p>
-            
-            <p><strong>Our Commitment:</strong> We are committed to leveraging technology to provide a transparent and accessible system for tracking government projects. By fostering collaboration between government entities and the public, we aim to create a more accountable and efficient governance system.</p>
-            
-            <p><strong>Contact Us:</strong> For inquiries, feedback, or partnerships, reach out via our official channels or email us at <a href="mailto:support@govtrack.com" class="text-blue-600 hover:underline">support@govtrack.com</a>.</p>
-        </div>
-    </div>
+{% load static %}
+<div class="flex bg-gray-100">
+        <section class="bg-white shadow-lg rounded-xl w-full  p-10">
+            <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">About Us</h2>
+            <div 
+                class="mb-8 h-56 rounded-lg flex items-center justify-center"
+                style="background-image: url('{% static 'images/bg.jpg' %}'); background-size: cover; background-position: center;"
+            >
+                <div class="bg-white bg-opacity-70 rounded p-4">
+                    <p class="text-center text-gray-700 text-lg">
+                        Government Insights Hub is dedicated to providing comprehensive and transparent information on government activities, policies, and initiatives. Our mission is to empower individuals and organizations with accurate data to make informed decisions and engage actively in their communities. By utilizing cutting-edge tracking technologies and analysis tools, we ensure a seamless and user-friendly experience for our customers.
+                    </p>
+                </div>
+            </div>
+            <div class="text-gray-700 space-y-6">
+                <div>
+                    <h3 class="font-semibold text-xl mb-2">Our Mission</h3>
+                    <p>
+                        To enhance transparency, accountability, and citizen engagement by providing real-time tracking of government projects.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xl mb-2">Objectives</h3>
+                    <ul class="list-disc list-inside space-y-1 ml-4">
+                        <li>Monitor public infrastructure projects efficiently.</li>
+                        <li>Ensure projects are completed on time and within budget.</li>
+                        <li>Empower citizens to report concerns and provide feedback.</li>
+                        <li>Promote data-driven decision-making for government authorities.</li>
+                        <li>Enhance public trust in government project execution.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xl mb-2">Platform Features</h3>
+                    <ul class="list-disc list-inside space-y-1 ml-4">
+                        <li>Real-time project tracking.</li>
+                        <li>Interactive maps for project locations.</li>
+                        <li>Public feedback and reporting tools.</li>
+                        <li>Milestone tracking and transparency reports.</li>
+                        <li>Data analytics and project performance insights.</li>
+                        <li>Automated alerts and notifications for project updates.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xl mb-2">Who We Serve</h3>
+                    <p>
+                        Our platform benefits government agencies, policymakers, journalists, researchers, and citizens, ensuring effective project oversight and accountability.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xl mb-2">Our Commitment</h3>
+                    <p>
+                        We are committed to leveraging technology to provide a transparent and accessible system for tracking government projects. By fostering collaboration between government entities and the public, we aim to create a more accountable and efficient governance system.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xl mb-2">Contact Us</h3>
+                    <p>
+                        For inquiries, feedback, or partnerships, reach out via our official channels or email us at 
+                        <a href="mailto:support@govtrack.com" class="text-blue-600 hover:underline">support@govtrack.com</a>.
+                    </p>
+                </div>
+            </div>
+        </section>
 </div>
 </div>
-
-
+</div>
 {% include "footer.html" %}
 {% endblock %}

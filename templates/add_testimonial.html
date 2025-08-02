@@ -4,8 +4,7 @@
 {% include "Sidebar.html" %}
 {% load widget_tweaks %}
 
-<div class="ml-64 w-[calc(100%-16rem)] py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen">
-    <div class="max-w-3xl mx-auto text-center">
+    <div class=" text-center">
         <div class="text-green-500 mb-6">
             {% for message in messages %}
                 <p id="messages" class="font-semibold text-lg">{{ message }}</p>

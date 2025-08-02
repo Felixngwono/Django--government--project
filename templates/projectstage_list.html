@@ -3,7 +3,6 @@
 {% block content %}
 {% include "sidebar.html" %}
 
-<div class="ml-64 w-[calc(100%-16rem)] min-h-screen bg-gray-100 p-8 flex flex-col items-center">
     <h2 class="text-2xl font-semibold mb-4">Project Stages</h2>
     {% if request.user.is_superuser %}
     <a href="{% url 'projectstage_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg mb-6">Add Stage</a>

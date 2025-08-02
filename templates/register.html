@@ -3,70 +3,61 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="{% static 'register.css' %}">
 
-<div class="flex">
-    <div class="w-1/2 h-screen bg-cover bg-no-repeat" style="background-image: url({% static 'images/buore.jpg' %});"></div>
-    
-    <div class="w-1/2 flex justify-center px-6 py-8">
-        <section class="bg-green-100 dark:bg-gray-900 w-full">
-            <div class="w-full items-center justify-center mb-6 text-2 font-semibold text-gray-900 dark:text-white">
-                <a href="#" class="flex items-cover mb-4 text-2xl font-semibold text-gray-900 dark:text-white">
-                    <img class="w-8 h-8 mr-2" src="{% static 'images/GOK.png' %}" alt="logo">
-                    Government Tracker
-                </a>
-                <div class="w-full bg-white dark:border xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-                    <div>
-                        <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                            Create an account
-                        </h1>
-                        <form class="space-y-4 md:space-y-6" action="" method="POST" enctype="multipart/form-data">
-                            {% csrf_token %}
-                           <div>
-                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your Name</label>
-                                {% render_field form.name class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter Name" required="" %}
-                            </div>
-                            <div>
-                                <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your Username</label>
-                                {% render_field form.username class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter Username" required="" %}
-                            </div>
-                            <div>
-                                <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
-                                {% render_field form.email class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="email@gmail.com" required="" %}
-                            </div>
-                            <div>
-                                <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your role</label>
-                                {% render_field form.role class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter Username" required="" %}
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" type="file" for="file_input">Upload file</label>
-                                {% render_field form.profile class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required="" %}
-                            </div>
-                            <div>
-                                <label for="bio" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">End User</label>
-                                {% render_field form.is_enduser class="block w-full" %}
-                            </div>
-                            <div>
-                                <label for="bio" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your Bio</label>
-                                {% render_field form.bio class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Your Biography" required="" %}
-                            </div>
-                            <div>
-                                <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-                                {% render_field form.password1 class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter Password" required="" %}
-                            </div>
-                            <div>
-                                <label for="confirm-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm password</label>
-                                {% render_field form.password2 class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Confirm Password" required="" %}
-                            </div>
-                            
-                            <button type="submit" class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Create an account</button>
-                            <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-                                Already have an account? <a href="{% url 'login' %}" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Login here</a>
-                            </p>
-                        </form>
-                    </div>
+<div class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <div>
+            <h2 class="mt-2 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+                Create your account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
+                Please fill in the information below
+            </p>
+        </div>
+        <form class="mt-8 space-y-6" action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label for="name" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Name</label>
+                    {% render_field form.name class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Name" required="" %}
+                </div>
+                <div>
+                    <label for="username" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Username</label>
+                    {% render_field form.username class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Username" required="" %}
+                </div>
+                <div>
+                    <label for="email" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Email</label>
+                    {% render_field form.email class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="email@gmail.com" required="" %}
+                </div>
+                <div>
+                    <label for="role" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Role</label>
+                    {% render_field form.role class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Role" required="" %}
+                </div>
+                <div>
+                    <label for="file_input" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Upload Profile</label>
+                    {% render_field form.profile class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required="" %}
+                </div>
+                <div class="flex items-center">
+                    {% render_field form.is_enduser class="mr-2" %}
+                    <label for="bio" class="text-sm font-medium text-gray-700 dark:text-gray-200">End User</label>
+                </div>
+                <div>
+                    <label for="bio" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Bio</label>
+                    {% render_field form.bio class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Your Biography" required="" %}
+                </div>
+                <div>
+                    <label for="password" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+                    {% render_field form.password1 class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Password" required="" %}
+                </div>
+                <div>
+                    <label for="confirm-password" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Confirm Password</label>
+                    {% render_field form.password2 class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Confirm Password" required="" %}
                 </div>
             </div>
-        </section>
+            <button type="submit" class="w-full mt-4 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-semibold rounded-md text-base px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition">Create an account</button>
+            <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                Already have an account?
+                <a href="{% url 'login' %}" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Login here</a>
+            </p>
+        </form>
     </div>
 </div>
-
-<script src="{% static 'js/register.js' %}"></script>

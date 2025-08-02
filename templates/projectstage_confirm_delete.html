@@ -2,7 +2,6 @@
 
 {% block content %}
 {% include "sidebar.html" %}
-<div class="ml-64 w-[calc(100%-16rem)]">
 <h2>Are you sure you want to delete "{{ stage.project.project_title }} - {{ stage.get_stage_name_display }}"?</h2>
 <form method="post">
     {% csrf_token %}

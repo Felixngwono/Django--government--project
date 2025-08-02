@@ -2,7 +2,6 @@
 
 {% block content %}
 {% include "sidebar.html" %}
-<div class="ml-64 w-[calc(100%-16rem)]">
 <h2>{% if form.instance.pk %}Edit{% else %}New{% endif %} Project Stage</h2>
 <form method="post">
     {% csrf_token %}
