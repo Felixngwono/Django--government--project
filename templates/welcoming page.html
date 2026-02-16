@@ -49,21 +49,8 @@
   </nav>
 </header>
 <div class="bg-red-400 text-white shadow-md py-10 relative">
-  <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="background-attachment: fixed;" id="heroVideo">
-    <source src="{% static 'videos/live.mp4' %}" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var video = document.getElementById('heroVideo');
-      video.currentTime = 9;
-      video.addEventListener('timeupdate', function () {
-        if (video.currentTime > 9) { // play only from 0s to 9s (9s duration)
-          video.currentTime = 0;
-        }
-      });
-    });
-  </script>
+ 
+ 
   <div class="relative z-10">
 <section class='bg-red-400 text-white shadow-md py-10'>
   <div class="px-6 flex flex-wrap gap-10 text-lg font-medium relative z-10">
@@ -612,7 +599,36 @@
       </div>
     </div>
   </section>
+  <section >
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-white text-center tracking-tight drop-shadow-lg">
+        Our Testimonials
+      </h2>
+
 </section>
+<section class="bg-gray-50 py-20 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Testimonial 1 -->
+       {% for x in testimonials %}
+      <div class="bg-white rounded-xl shadow-lg p-8 border-l-4 border-green-600 hover:shadow-xl transition">
+        <div class="flex items-center mb-4">
+          <img src="{{x.image.url}}" alt="{{x.name}}" class="w-12 h-12 rounded-full mr-4 object-cover">
+          <div>
+            <h4 class="font-bold text-gray-800">{{x.name}}</h4>
+            <p class="text-sm text-gray-500"><span class="font-semibold text-gray-700">Project:</span> {{x.project}}</p>
+          </div>
+        </div>
+        <div class="flex text-yellow-400 mb-3">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
+        <p class="text-gray-600">"{{x.content}}"</p>
+      </div>
+{% endfor %}
+      
+</section>
+
+
 <footer class="bg-gray-900 text-white w-full py-12 mt-auto">
   <div class="container mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
     <div>

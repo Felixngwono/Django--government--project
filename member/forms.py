@@ -1,9 +1,9 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Milestone, Notification, Comment, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, Testimonial, ProjectStage, ReportIssue, Tender, User, Project_type,contact,Feedback,Project,Project_Division
+from .models import PDF, AuditLog, Milestone, Notification, Comment, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, ProjectStage, ReportIssue, Team, Tender, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
 from django.contrib.auth.forms import UserCreationForm
-
+from .models import Media
 
 class MyUserCreationForm(UserCreationForm):
     
@@ -24,6 +24,12 @@ class ContactUsForm(ModelForm):
         model = contact
         fields = '__all__'
         
+        
+class TestimonialForm(ModelForm):
+    class Meta:
+        model= Testimonial
+        fields= '__all__'
+        
 class FeedbackForm(ModelForm):
     class Meta:
         model= Feedback
@@ -41,6 +47,7 @@ class ProjectDivisionForm(ModelForm):
         model= Project_Division
         fields='__all__'
         
+
         
 class ProjectTypeForm(ModelForm):
     class Meta:
@@ -56,20 +63,13 @@ class PdfForm(ModelForm):
 
        
 
-class PdfForm(ModelForm):
-    class Meta:
-        model = PDF
-        fields = ['project_title', 'project_status', 'implementing_agency', 'pdf_file']
-
-
 
 class MilestoneForm(ModelForm):
     class Meta:
         model = Milestone
         fields = '__all__'
 
-from django import forms
-from .models import Media
+
 
 class MediaForm(ModelForm):
     class Meta:
@@ -126,15 +126,14 @@ class ProgramImpactForm(forms.ModelForm):
         fields = '__all__'
 
 
-class TestimonialForm(forms.ModelForm):
-    class Meta:
-        model = Testimonial
-        fields = ['name', 'content', 'image']
-
-
 # forms.py
 
 class ProjectDocumentForm(forms.ModelForm):
     class Meta:
         model = ProjectDocument
         fields = ['name', 'file']
+        
+class TeamsForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = '__all__'

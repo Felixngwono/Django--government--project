@@ -100,14 +100,12 @@ class Project(models.Model):
     project_status= models.CharField(max_length=10,choices=project_status)
     project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True)
     division = models.ForeignKey(Project_Division, on_delete=models.SET_NULL, null=True, blank=True)
-    remarks = models.TextField(null=True, blank=True)
     impact = models.TextField(null=True, blank=True)
-    project_contractor = models.CharField(max_length=255, null=True, blank=True)
-    progress_update = models.CharField(max_length=1000, null=True, blank=True)
-    contact_email = models.EmailField(null=True, blank=True)
-    sector = models.CharField(max_length=100,null=True)  # e.g., Health, Education, Roads
-    county = models.CharField(max_length=100,null=True)
-    constituency = models.CharField(max_length=100,null=True)
+    project_manager=models.CharField(max_length=100,null=True, blank=True)
+    project_contractor=models.CharField(max_length=100,null=True, blank=True)
+    contact_email=models.EmailField(null=True, blank=True)
+    progress_update=models.CharField(max_length=255,null=True, blank=True)
+    remarks=models.TextField(null=True, blank=True)
     class Meta:
         ordering = ['-start_date']
 
@@ -138,14 +136,6 @@ class ProjectStage(models.Model):
 
 # 🔹 Progress Update Model (Tracks Project Progress )
 # 🔹 Program Funding Model
-class ProgramFunding(models.Model):
-    project = models.ForeignKey(Project, related_name="funding", on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    funding_source = models.CharField(max_length=255)  # Government agency, partnership, etc.
-    date_funded = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Funding: {self.amount} for {self.project.project_title}"
 
 # 🔹 Model for tracking progress and impact metrics for programs
 class ProgramImpact(models.Model):
@@ -330,24 +320,7 @@ class ProgramFunding(models.Model):  # noqa: F811
         return f"Funding: {self.amount} for {self.project.project_title}"
 
 # Model for tracking progress and impact metrics for programs
-class ProgramImpact(models.Model): 
-    program = models.ForeignKey(Project, related_name="impacts", on_delete=models.CASCADE)
-    metric_name = models.CharField(max_length=255)
-    metric_value = models.FloatField()
-    measurement_date = models.DateField()
 
-    def __str__(self):
-        return f"Impact: {self.metric_name} for {self.program.name}"
-    
-class ProgressUpdate(models.Model):  
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='progress_updates')
-    stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, related_name='progress_updates', null=True, blank=True)
-    description = models.TextField()
-    date_reported = models.DateTimeField(auto_now_add=True)
-    progress_percentage = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"Progress for {self.project.project_title} - {self.progress_percentage}%"
 
 class Testimonial(models.Model):
     name = models.CharField(max_length=100,null=True)
@@ -355,12 +328,15 @@ class Testimonial(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='testimonials',null=True)
-    testimonial_text = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='testimonials/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Testimonial by {self.name} for {self.project.project_title}"
+    
 class ProjectUpdate(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='updates')
     title = models.CharField(max_length=255)
@@ -410,3 +386,19 @@ class ProjectRisk(models.Model):
     def __str__(self):
         return f"Risk for {self.project.project_title} - {self.risk_level}"
     
+class sponsors(models.Model):
+    name=models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
+    
+class Team(models.Model):
+    name=models.CharField(max_length=100)
+    role=models.CharField(max_length=100)
+    image=models.ImageField(upload_to='team/', null=True, blank=True)
+    created_at=models.DateTimeField(auto_now_add=True,null=True,blank=True)
+    class Meta:
+        ordering=['-created_at']
+
+    def __str__(self):
+        return self.name

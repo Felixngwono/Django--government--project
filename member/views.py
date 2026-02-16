@@ -3,9 +3,9 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Comment,PDF, AuditLog, ProgramImpact, ProgressUpdate, Project_Division, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
+from .models import Comment,PDF, AuditLog, ProgramImpact, ProgressUpdate, Project_Division, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TenderForm, TestimonialForm
+from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderForm, TestimonialForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
@@ -88,6 +88,52 @@ def ContactusPage(request):
     return render(request, 'contact_us.html',context)
 
 @login_required(login_url='login')
+def Testimonials(request):
+    testimonials= Testimonial.objects.all()
+    
+    context={
+        'testimonials':testimonials,
+    }
+    return render(request,'testimonials.html',context)
+
+@login_required(login_url='login')
+def testimonial_details(request,pk):
+    testimonial=get_object_or_404(Testimonial,id=pk)
+    context={'testimonial':testimonial}
+    return render(request,'testimonial_details.html',context)
+
+@login_required(login_url='login')
+def add_testimonial(request):
+    form=TestimonialForm()
+    if request.method=='POST':
+        form=TestimonialForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('testimonials')
+    context={'form':form}
+    return render(request,'add_testimonial.html',context)
+
+@login_required(login_url='login')
+def delete_testimonial(request, pk):
+    testimonial= Testimonial.objects.get(id=pk)
+    if request.method== 'POST':
+        testimonial.delete()
+        return redirect ('testimonials')
+    return render(request, 'delete_testimonial.html')
+
+@login_required(login_url='login')
+def update_testimonial(request, pk):
+    testimonial=Testimonial.objects.get(id= pk)
+    form= TestimonialForm(instance=testimonial)
+    if request.method=='POST':
+        form= TestimonialForm(request.POST,request.FILES,instance=testimonial)
+        if form.is_valid():
+            form.save()
+            return redirect('testimonials')
+    context={'form':form}
+    return render(request,'add_testimonial.html', context)
+
+@login_required(login_url='login')
 def adminview(request):
     feedbacks=Feedback.objects.all()
     impacts=ProgramImpact.objects.all()
@@ -131,7 +177,8 @@ def notifications(request):
 def welcomingpage(request):
     comment=Comment.objects.all()
     projects = Project.objects.all()[:6]
-    return render(request, 'welcoming page.html', context={'projects': projects,'comment':comment})
+    testimonials=Testimonial.objects.all()[:5]
+    return render(request, 'welcoming page.html', context={'projects': projects,'comment':comment,'testimonials':testimonials})
 
 def loginpage(request):
     next_url = request.GET.get('next') or request.POST.get('next')
@@ -211,9 +258,10 @@ def index(request):
     stalledcount=Project.objects.filter(project_status='stalled').count()
     allproject=Project.objects.all().count()
     users=User.objects.all().count()
+    people=User.objects.all()
     agencies=Project_Division.objects.all().count()
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
-   
+    
 
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
@@ -225,8 +273,15 @@ def index(request):
              'project':projects,
              'agencies':agencies,
              'projects':projects,
+             'people':people,
              }
     return render(request,'index.html',context)
+
+@login_required(login_url='login')
+def people(request):
+    pp=User.objects.all()
+    context={'pp':pp}
+    return(request,'users.html',context)
 
 def sidebar(request):
     return render(request,'sidebar.html')
@@ -328,12 +383,57 @@ def delayedstatus(request,pk):
 
 @login_required(login_url='login')
 def teams(request):
-    return render(request,'team.html')
+    tim=Team.objects.all()
+    context={'tim':tim}
+    return render(request,'team.html',context)
 
 @login_required(login_url='login')
-def testimonials(request):
-    return render(request,'testimonials.html')
+def add_team(request):
+    form=TeamsForm()
+    if request.method=='POST':
+        form=TeamsForm(request.POST,request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('team')
+    return render(request,'add_team.html',context={'form':form})
 
+@login_required(login_url='login')
+def update_team(request,pk):
+    tim=get_object_or_404(Team,pk=pk)
+    form=TeamsForm(instance=tim)
+    if request.method=='POST':
+        form=TeamsForm(request.POST,request.FILES,instance=tim)
+        if request.is_valid():
+            form.save()
+            return redirect('team')
+    context={'tim':tim}
+    return render(request,'update_team.html',context)
+
+@login_required(login_url='login')
+def delete_team(request,pk):
+    deletetim=get_object_or_404(Team,pk=pk)
+    if request.method=='POST':
+        deletetim.delete()
+        return redirect('team')
+    return render(request,'delete_team.html',{'deletetim':deletetim})
+
+@login_required(login_url='login')
+def teams_details(request,pk):
+    details=get_object_or_404(Team,id=pk)
+    form=TeamsForm(instance=details)
+    if request.method=='POST':
+        form=TeamsForm(request.POST,request.FILES,instance=details)
+        if request.is_valid():
+            form.save()
+            return redirect('team')
+    context={
+           'details':details,
+           'form':form 
+        }
+    return render(request, 'teams_details.html',context)
+    
+    
+        
 @login_required(login_url='login')
 def project_overview(request):
     projects= Project.objects.all()
@@ -714,63 +814,3 @@ class ProjectStageDeleteView(DeleteView):
     template_name = 'projectstage_confirm_delete.html'
     success_url = reverse_lazy('projectstage_list')
 
-@login_required(login_url='login')
-def Testimony(request):
-    testimonials = Testimonial.objects.all()
-    form = TestimonialForm()
-    if request.method == 'POST':
-        form = TestimonialForm(request.POST,request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('testimonials')
-    context = {'form': form, 'testimonials': testimonials}
-    return render(request,'testimonials.html', context)
-
-@login_required(login_url='login')
-def add_testimonials(request):
-    form = TestimonialForm()
-    if request.method == 'POST':
-        form = TestimonialForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('testimonials')
-    context = {'form': form}
-    return render(request, 'add_testimonial.html', context)
-
-@login_required(login_url='login')
-def testimonial_details(request, pk):
-    testimonial = get_object_or_404(Testimonial, id=pk)
-    form= TestimonialForm(instance=testimonial)
-    if request.method == 'POST':
-        form = TestimonialForm(request.POST, request.FILES, instance=testimonial)
-        if form.is_valid():
-            form.save()
-            return redirect('testimonials')
-        messages.success(request, "view testimonials in detail.")
-    context = {'testimonial': testimonial}
-    return render(request, 'testimonial_details.html', context)
-
-def update_testimonial(request, pk):
-    testimonial = get_object_or_404(Testimonial, id=pk)
-    form = TestimonialForm(instance=testimonial)
-    if request.method == 'POST':
-        form = TestimonialForm(request.POST,request.FILES, instance=testimonial)
-        if form.is_valid():
-            form.save()
-            return redirect('testimonials')
-    context = {'form': form, 'testimonial': testimonial}
-    return render(request, 'testimonial_update.html', context)
-
-@login_required(login_url='login')
-def delete_testimonial(request, pk):
-    testimonial = get_object_or_404(Testimonial, id=pk)
-    form= TestimonialForm(instance=testimonial)
-    if request.method == 'POST':
-        form = TestimonialForm(request.POST, request.FILES,instance=testimonial)
-        testimonial.delete()
-        messages.success(request, "Testimonial deleted successfully.")
-        return redirect('testimonials')
-    context = {'testimonial': testimonial,
-                'form': form
-               }
-    return render(request, 'testimonial_delete.html', context)
