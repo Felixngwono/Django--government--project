@@ -1,68 +1,169 @@
 {% extends "header.html" %}
 {% load static %}
 {% block content %}
+
 {% include "Sidebar.html" %}
 
-    {% for message in messages %}
-    <div class="flex justify-center">
-        <div class="w-full max-w-2xl">
-            <div id="messages" class="font-semibold text-lg text-center text-green-600 py-2 rounded-lg bg-green-50 border border-green-200 shadow">
-                {{ message }}
-            </div>
+<!-- Flash Messages -->
+{% if messages %}
+<div class="flex justify-center mt-6 px-4">
+    <div class="w-full max-w-2xl space-y-3">
+        {% for message in messages %}
+        <div class="flex justify-between items-center bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl shadow-sm">
+            <span class="font-medium">{{ message }}</span>
+            <button onclick="this.parentElement.remove()" class="text-green-600 hover:text-green-800">✕</button>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+</div>
+{% endif %}
 
-    <div class="flex justify-center">
-        <div class="max-w-3xl w-full bg-white/90 shadow-2xl rounded-3xl p-10 mt-8 space-y-10 border border-gray-200 backdrop-blur-lg">
+<div class="flex justify-center px-4 mt-10 mb-20">
+    <div class="w-full max-w-4xl bg-white/80 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-3xl p-10 md:p-14 space-y-12 transition-all duration-300">
 
-            <div class="flex flex-col items-center space-y-4">
-                {% if testimonial.image %}
-                <a href="{{ testimonial.image.url }}" class="hover:scale-105 transition-transform duration-300">
-                    <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}"
-                         class="w-44 h-44 rounded-full object-cover shadow-xl border-4 border-indigo-200 ring-4 ring-indigo-100">
-                </a>
-                {% else %}
-                <div class="w-44 h-44 flex items-center justify-center bg-gradient-to-tr from-indigo-100 to-purple-100 rounded-full text-gray-400 text-xl shadow-inner border-4 border-gray-200">
-                    No Image
-                </div>
-                {% endif %}
-                <h2 class="text-4xl font-extrabold text-indigo-700 drop-shadow text-center mt-2">{{ testimonial.name }}</h2>
-                <div class="text-lg text-indigo-500 font-medium">{{ testimonial.position }}</div>
-            </div>
+        <!-- Profile Header -->
+        <div class="flex flex-col items-center text-center space-y-6">
 
-            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 shadow-inner border border-indigo-100">
-                <label class="block text-base text-gray-500 mb-2 font-semibold">Testimonial</label>
-                <blockquote class="text-2xl italic text-gray-800 leading-relaxed relative pl-8">
-                    <svg class="absolute left-0 top-0 w-6 h-6 text-indigo-200" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M7.17 6A5.001 5.001 0 002 11c0 2.76 2.24 5 5 5 .55 0 1-.45 1-1s-.45-1-1-1a3 3 0 01-3-3c0-1.65 1.35-3 3-3 .55 0 1-.45 1-1s-.45-1-1-1zm10 0a5.001 5.001 0 00-5.17 5c0 2.76 2.24 5 5 5 .55 0 1-.45 1-1s-.45-1-1-1a3 3 0 01-3-3c0-1.65 1.35-3 3-3 .55 0 1-.45 1-1s-.45-1-1-1z"/>
-                    </svg>
-                    {{ testimonial.content }}
-                </blockquote>
-            </div>
-
-            {% if request.user.is_superuser %}
-            <div class="pt-8 border-t border-indigo-100 mt-8 flex justify-center space-x-6">
-                <a href="{% url 'update_testimonial' testimonial.id %}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold text-lg transition-all flex items-center gap-2">
-                    <span>✏️</span> Update
-                </a>
-                <a href="{% url 'delete_testimonial' testimonial.id %}" class="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold text-lg transition-all flex items-center gap-2">
-                    <span>🗑️</span> Delete
-                </a>
-                <a href="{% url 'testimonials' %}" class="bg-gray-600 hover:bg-gray-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold text-lg transition-all flex items-center gap-2">
-                    <span>🔙</span> Go Back
-                </a>
-            </div>
+            {% if testimonial.image %}
+            <img src="{{ testimonial.image.url }}"
+                 alt="{{ testimonial.name }}"
+                 class="w-48 h-48 rounded-full object-cover border-4 border-indigo-200 shadow-xl hover:scale-105 transition duration-300">
             {% else %}
-            <div class="flex justify-center pt-8">
-                <a href="{% url 'testimonials' %}" class="bg-indigo-500 hover:bg-indigo-400 text-white px-8 py-3 rounded-xl shadow-lg font-semibold text-lg transition-all flex items-center gap-2">
-                    <span>🔙</span> Back to Testimonials
-                </a>
+            <div class="w-48 h-48 flex items-center justify-center bg-gradient-to-tr from-indigo-100 to-purple-100 rounded-full text-gray-400 border-4 border-gray-200 shadow-inner">
+                No Image
             </div>
             {% endif %}
+
+            <div>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-700">
+                    {{ testimonial.name }}
+                </h1>
+
+                {% if testimonial.position %}
+                <p class="text-lg text-indigo-500 font-medium">
+                    {{ testimonial.position }}
+                </p>
+                {% endif %}
+
+                {% if testimonial.company %}
+                <p class="text-gray-500 text-sm mt-1">
+                    {{ testimonial.company }}
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Rating -->
+            {% if testimonial.rating %}
+            <div class="flex space-x-1 mt-2">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= testimonial.rating %}
+                        <span class="text-yellow-400 text-xl">★</span>
+                    {% else %}
+                        <span class="text-gray-300 text-xl">★</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Status Badge -->
+            {% if testimonial.is_published %}
+            <span class="mt-3 inline-block bg-green-100 text-green-700 px-4 py-1 text-sm rounded-full font-semibold">
+                Published
+            </span>
+            {% else %}
+            <span class="mt-3 inline-block bg-yellow-100 text-yellow-700 px-4 py-1 text-sm rounded-full font-semibold">
+                Draft
+            </span>
+            {% endif %}
         </div>
+
+        <!-- Testimonial Content -->
+        <div class="relative bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-10 shadow-inner">
+
+            <span class="absolute -top-6 left-8 text-7xl text-indigo-200 font-serif select-none">“</span>
+
+            <blockquote class="text-xl md:text-2xl italic text-gray-800 leading-relaxed pl-6">
+                {{ testimonial.content }}
+            </blockquote>
+
+            <span class="absolute bottom-0 right-8 text-7xl text-indigo-200 font-serif select-none">”</span>
+
+            <!-- Metadata -->
+            <div class="mt-10 border-t border-indigo-100 pt-4 text-sm text-gray-500 space-y-1">
+                {% if testimonial.created_at %}
+                <p><strong>Created:</strong> {{ testimonial.created_at|date:"F d, Y" }}</p>
+                {% endif %}
+                {% if testimonial.updated_at %}
+                <p><strong>Last Updated:</strong> {{ testimonial.updated_at|date:"F d, Y" }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Contact / Extra Info (Superuser only) -->
+        {% if request.user.is_superuser %}
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-2 text-sm text-gray-700">
+            <h3 class="font-semibold text-gray-800 mb-2">Additional Information</h3>
+
+            {% if testimonial.email %}
+            <p><strong>Email:</strong> {{ testimonial.email }}</p>
+            {% endif %}
+
+            {% if testimonial.website %}
+            <p>
+                <strong>Website:</strong>
+                <a href="{{ testimonial.website }}" target="_blank" class="text-indigo-600 hover:underline">
+                    {{ testimonial.website }}
+                </a>
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-6 pt-6 border-t border-indigo-100">
+
+            {% if request.user.is_superuser %}
+            <a href="{% url 'update_testimonial' testimonial.id %}"
+               class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold transition hover:scale-105">
+                ✏️ Update
+            </a>
+
+            <button onclick="document.getElementById('deleteModal').classList.remove('hidden')"
+                    class="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold transition hover:scale-105">
+                🗑️ Delete
+            </button>
+            {% endif %}
+
+            <a href="{% url 'testimonials' %}"
+               class="bg-gray-600 hover:bg-gray-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold transition hover:scale-105">
+                🔙 Back
+            </a>
+        </div>
+
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+{% if request.user.is_superuser %}
+<div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full space-y-6">
+        <h2 class="text-xl font-bold text-gray-800">Confirm Delete</h2>
+        <p class="text-gray-600">Are you sure you want to delete this testimonial?</p>
+
+        <div class="flex justify-end space-x-4">
+            <button onclick="document.getElementById('deleteModal').classList.add('hidden')"
+                    class="px-5 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                Cancel
+            </button>
+            <a href="{% url 'delete_testimonial' testimonial.id %}"
+               class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500">
+                Delete
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+</div>
+</div>
 {% include "footer.html" %}
 {% endblock %}

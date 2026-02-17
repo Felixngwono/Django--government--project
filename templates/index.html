@@ -1,418 +1,239 @@
 {% extends "header.html" %}
- {% block content %} 
- {% include "sidebar.html" %}
-{%load static %}
+{% block content %}
+{% include "sidebar.html" %}
+{% load static %}
 {% load widget_tweaks %}
+
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js" integrity="sha256-xKeoJ50pzbUGkpQxDYHD7o7hxe0LaOGeguUidbq6vis=" crossorigin="anonymous"></script>
+<div class="w-full bg-gray-100 min-h-screen flex-1">
+  <!-- Header -->
+  <div class="mb-8 p-8 pb-0">
+    <h1 class="text-4xl font-bold text-gray-800">Welcome, {{ user }}</h1>
+    <p class="text-lg text-gray-600 mt-2">Overseeing Government's work.</p>
+  </div>
 
+  <!-- Analytics Header -->
+  <div class="bg-gradient-to-r from-blue-900 to-gray-800 rounded-tl-3xl p-4 shadow mb-6 mx-8 mt-8">
+    <h3 class="font-bold text-2xl text-white pl-2">Analytics</h3>
+  </div>
 
-<br>
+  <!-- Metric Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 px-8">
+    <!-- Ongoing Projects -->
+    <a href="{% url 'ongoing' %}" class="bg-gradient-to-b from-green-200 to-green-100 border-b-4 border-green-600 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-green-600 text-white mr-4">
+          <i class="fa fa-wallet fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{ongoingcount}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Ongoing Projects</h5>
+        </div>
+      </div>
+    </a>
 
-<h1 class="text-4xl font-bold text-gray-800">Welcome, {{ user }} </h1>
-<p class="text-lg text-gray-600 ">Oversigting Governments work.</p>
-<br>
-<br>
+    <!-- Stalled Projects -->
+    <a href="{% url 'stalled' %}" class="bg-gradient-to-b from-blue-200 to-blue-100 border-b-4 border-blue-600 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-blue-600 text-white mr-4">
+          <i class="fa fa-id-badge fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{stalledcount}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Stalled Projects</h5>
+        </div>
+      </div>
+    </a>
 
-<div class=" ">
-  <div class="item-cover">
-    <div class="bg-gray-800 pt-3">
-      <div
-        class="rounded-tl-3xl bg-gradient-to-r from-blue-900 to-gray-800 p-4 shadow text-2xl text-white"
-      >
-        <h3 class="font-bold pl-2">Analytics</h3>
+    <!-- Delayed Projects -->
+    <a href="{% url 'delayed' %}" class="bg-gradient-to-b from-yellow-200 to-yellow-100 border-b-4 border-yellow-600 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-yellow-600 text-white mr-4">
+          <i class="fa fa-exclamation-triangle fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{delayedcount}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Delayed Projects</h5>
+        </div>
+      </div>
+    </a>
+
+    <!-- Total Users -->
+    {% if request.user.is_superuser %}
+    <a href='{% url "user" %}' class="bg-gradient-to-b from-pink-200 to-pink-100 border-b-4 border-pink-500 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+    {% else %}
+    <div class="bg-gradient-to-b from-pink-200 to-pink-100 border-b-4 border-pink-500 rounded-lg shadow-xl p-6">
+    {% endif %}
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-pink-600 text-white mr-4">
+          <i class="fas fa-users fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{users}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Total Users</h5>
+        </div>
+      </div>
+    {% if request.user.is_superuser %}</a>{% else %}</div>{% endif %}
+
+    <!-- Project Divisions -->
+    <a href='{% url "division" %}' class="bg-gradient-to-b from-purple-200 to-purple-100 border-b-4 border-purple-600 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-purple-600 text-white mr-4">
+          <i class="fas fa-sitemap fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{agencies}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Project Divisions</h5>
+        </div>
+      </div>
+    </a>
+
+    <!-- Upcoming Projects -->
+    <a href='{% url "upcoming" %}' class="bg-gradient-to-b from-cyan-200 to-cyan-100 border-b-4 border-cyan-500 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-cyan-600 text-white mr-4">
+          <i class="fas fa-rocket fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{upcomingcount}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Upcoming Projects</h5>
+        </div>
+      </div>
+    </a>
+
+    <!-- Completed Projects -->
+    <a href='{% url "completed" %}' class="bg-gradient-to-b from-indigo-200 to-indigo-100 border-b-4 border-indigo-500 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-indigo-600 text-white mr-4">
+          <i class="fas fa-check-circle fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{completedcount}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Completed</h5>
+        </div>
+      </div>
+    </a>
+
+    <!-- All Projects -->
+    <a href="{% url 'projectoverview' %}" class="bg-gradient-to-b from-red-200 to-red-100 border-b-4 border-red-500 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-red-600 text-white mr-4">
+          <i class="fas fa-folder fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{allproject}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">All Projects</h5>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- KPI Section -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 px-8">
+    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition">
+      <h3 class="text-2xl font-semibold text-gray-800">Total Users</h3>
+      <p class="text-gray-600 mt-4 text-3xl font-bold text-blue-600">{{users}}</p>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
+    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Recent Activity</h2>
+    <ul class="space-y-4">
+      <li class="border-l-4 border-blue-500 pl-4 py-2">🔔 New user registration: John Doe</li>
+      <li class="border-l-4 border-green-500 pl-4 py-2">💼 New order received: Order #1234</li>
+      <li class="border-l-4 border-purple-500 pl-4 py-2">📈 Analytics update completed</li>
+      <li class="border-l-4 border-orange-500 pl-4 py-2">🔧 System maintenance scheduled</li>
+    </ul>
+  </section>
+
+  <!-- Analytics Charts -->
+  <section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
+    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Analytics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="h-64 bg-gray-50 rounded p-4">
+        <canvas id="userGrowthChart"></canvas>
+      </div>
+      <div class="h-64 bg-gray-50 rounded p-4">
+        <canvas id="trafficPieChart"></canvas>
+      </div>
+      <div class="h-64 bg-gray-50 rounded p-4">
+        <canvas id="engagementLineChart"></canvas>
+      </div>
+      <div class="h-64 bg-gray-50 rounded p-4">
+        <canvas id="revenueDoughnutChart"></canvas>
       </div>
     </div>
-
-    <div class="flex flex-wrap">
-      <div class="w-full">
-        <!--Metric Card-->
-        <div class="bg-gradient-to-b from-green-200 to-green-100 border-b-4 border-green-600 rounded-lg shadow-xl p-5">
-          <div class="flex flex-row ">
-            <div class="flex-shrink pr-4"><div class="rounded-full p-5 bg-green-600"><i class="fa fa-wallet fa-2x fa-inverse"></i></div>
-            </div>
-            
-            <a href="{% url 'ongoing' %}">
-            <div class="flex-1 text-right">
-              <h3 class="font-bold text-3xl">  {{ongoingcount}}<span class="text-green-500"><i class="fas fa-caret-up"></i></span> </h3>
-              <br />
-              <h5 class="font-bold uppercase text-gray-600"> Ongoing Projects</h5>
-            </div>
-            </a> 
-          </div>
-        </div> 
-      </div>
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div class="bg-gradient-to-b from-green-200 to-green-100 border-b-4 border-green-600 rounded-lg shadow-xl p-5">
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4"><div class="rounded-full p-5 bg-green-600"><i class="fa fa-id-badge" aria-hidden="true"></i>
-            </div>
-            </div>
-            
-            <a href="{% url 'stalled' %}">
-            <div class="flex-1 text-right md:text-center">
-              <h3 class="font-bold text-3xl">  {{stalledcount}}<span class="text-blue-500"><i class="fas fa-caret-up"></i>
-
-              </span> </h3>
-              <br />
-              <h5 class="font-bold uppercase text-gray-600"> stalled Projects</h5>
-            </div>
-            </a> 
-          </div>
-        </div> 
-      </div>
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div class="bg-gradient-to-b from-green-200 to-green-100 border-b-4 border-green-600 rounded-lg shadow-xl p-5">
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4"><div class="rounded-full p-5 bg-green-600"><i class="fa fa-free-code-camp" aria-hidden="true"></i>
-            </div>
-            </div>
-            
-            <a href="{% url 'delayed' %}">
-            <div class="flex-1 text-right md:text-center">
-              <h3 class="font-bold text-3xl">  {{delayedcount}}<span class="text-green-500"><i class="fas fa-caret-up"></i></span> </h3>
-              <br />
-              <h5 class="font-bold uppercase text-gray-600"> delayed Projects</h5>
-            </div>
-            </a> 
-          </div>
-        </div> 
-      </div>
-      
-      
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div class="bg-gradient-to-b from-pink-200 to-pink-100 border-b-4 border-pink-500 rounded-lg shadow-xl p-5" >
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4">
-              <div class="rounded-full p-5 bg-pink-600">
-                <i class="fas fa-users fa-2x fa-inverse"></i>
-              </div>
-            </div>
-            {% if request.user.is_superuser %}
-            <a href='{% url "user" %}'>
-            <div class="flex-1 text-right md:text-center">
-              <h3 class="font-bold text-3xl">
-                {{users}}
-                <span class="text-pink-500"
-                  ><i class="fas fa-exchange-alt"></i
-                ></span>
-              </h3><br>
-              <h5 class="font-bold uppercase text-gray-600">Total Users</h5>
-             
-            </div>
-          </div>
-        </div>
-      </a>
-        <!--/Metric Card-->
-      </div>
-      {% else %}
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div class="bg-gradient-to-b from-pink-200 to-pink-100 border-b-4 border-pink-500 rounded-lg shadow-xl p-5" >
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4">
-              <div class="rounded-full p-5 bg-pink-600">
-                <i class="fas fa-users fa-2x fa-inverse"></i>
-              </div>
-            </div>
-            <div class="flex-1 text-right md:text-center">
-              <h3 class="font-bold text-3xl">
-                {{users}}
-                <span class="text-pink-500"
-                  ><i class="fas fa-exchange-alt"></i
-                ></span>
-              </h3><br>
-              <h5 class="font-bold uppercase text-gray-600">Total Users</h5>
-             
-            </div>
-          </div>
-        </div>
-        <!--/Metric Card-->
-      </div>
-      {% endif %}
-      
-
-      
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div class="bg-gradient-to-b from-yellow-200 to-yellow-100 border-b-4 border-yellow-600 rounded-lg shadow-xl p-5"
-        >
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4">
-              <div class="rounded-full p-5 bg-yellow-600">
-                <i class="fas fa-user-plus fa-2x fa-inverse"></i>
-              </div>
-            </div>
-            <a href='{% url "division" %}'>
-            <div class="flex-1 text-right md:text-center">
-              <h5 class="font-bold uppercase text-gray-600">project divisions</h5>
-              <h3 class="font-bold text-3xl">
-                {{agencies}}
-                <span class="text-yellow-600"
-                  ><i class="fas fa-caret-up"></i
-                ></span>
-              </h3>
-            </div>
-            </a>
-          </div>
-        </div>
-        <!--/Metric Card-->
-      </div>
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div
-          class="bg-gradient-to-b from-blue-200 to-blue-100 border-b-4 border-blue-500 rounded-lg shadow-xl p-5" >
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4">
-              <div class="rounded-full p-5 bg-blue-600">
-                <i class="fas fa-server fa-2x fa-inverse"></i>
-              </div>
-            </div>
-            <a href='{% url "upcoming" %}'>
-              <div class="flex-1 text-right md:text-center">
-              <h3 class="font-bold text-3xl">{{upcomingcount}}<h3>
-              <br>
-              <h5 class="font-bold uppercase text-gray-600">
-                Upcoming projects
-              </h5>
-              
-            </div>
-            </a>
-
-          </div>
-        </div>
-        <!--/Metric Card-->
-      </div>
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div
-          class="bg-gradient-to-b from-indigo-200 to-indigo-100 border-b-4 border-indigo-500 rounded-lg shadow-xl p-5"
-        >
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4">
-              <div class="rounded-full p-5 bg-indigo-600">
-                <i class="fas fa-tasks fa-2x fa-inverse"></i>
-              </div>
-            </div>
-            <a href='{% url "completed" %}'><div class="flex-1 text-right md:text-center">
-              <h3 class="font-bold text-3xl">{{completedcount}}</h3>
-              <br>
-              <h5 class="font-bold uppercase text-gray-600">Completed Projects</h5>
-             
-            </div>
-            </a>
-          </div>
-        </div>
-        <!--/Metric Card-->
-      </div>
-      <div class="w-full md:w-1/2 xl:w-1/3 p-6">
-        <!--Metric Card-->
-        <div
-          class="bg-gradient-to-b from-red-200 to-red-100 border-b-4 border-red-500 rounded-lg shadow-xl p-5"
-        >
-          <div class="flex flex-row items-center">
-            <div class="flex-shrink pr-4">
-              <div class="rounded-full p-5 bg-red-600">
-                <i class="fas fa-inbox fa-2x fa-inverse"></i>
-              </div>
-            </div>
-            <a href="{% url 'projectoverview' %}"><div class="flex-1 text-right md:text-center">
-              <h3 class="font-bold text-3xl">
-               {{allproject}}
-                <span class="text-red-500"
-                  ><i class="fas fa-caret-up"></i
-                ></span>
-              </h3><br>
-              <h5 class="font-bold uppercase text-gray-600">All Projects</h5>
-              
-            </div>
-            </a>
-          </div>
-        </div>
-        <!--/Metric Card-->
-      </div>
-    </div>
-
-    
-  </div>
-</div>
-    
-  </div>
-</div>
-<div class="ml-64 p-8 w-full pb-20">
-
- 
-  <!-- Key Performance Indicators (KPIs) Section -->
-  <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:scale-105">
-          <h3 class="text-2xl font-semibold text-gray-800">Earnings</h3>
-          <p class="text-gray-600 mt-2 text-lg">Total: <span class="font-bold text-green-600">$4,500</span></p>
-          <a href="#" class="inline-block mt-4 text-blue-600 font-semibold hover:underline">View Details</a>
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:scale-105">
-          <h3 class="text-2xl font-semibold text-gray-800">Active Users</h3>
-          <p class="text-gray-600 mt-2 text-lg">Total: <span class="font-bold text-yellow-600">{{users}}</span></p>
-          <a href="#" class="inline-block mt-4 text-blue-600 font-semibold hover:underline">View Details</a>
-      </div>
-     
-  </div>
-  <!-- Recent Activity Section -->
-  <section class="mt-12 bg-white p-8 rounded-lg shadow-lg min-h-[400px]">
-      <h2 class="text-3xl font-semibold text-gray-800">Recent Activity</h2>
-      <ul class="mt-6 space-y-4">
-          <li class="border-b border-gray-300 py-4">🔔 New user registration: John Doe</li>
-          <li class="border-b border-gray-300 py-4">💼 New order received: Order #1234</li>
-          <li class="border-b border-gray-300 py-4">📈 Analytics update completed</li>
-          <li class="border-b border-gray-300 py-4">🔧 System maintenance scheduled for tomorrow</li>
-      </ul>
   </section>
 
-  <!-- Analytics & Graphs Section -->
-  <section id="analytics" class="mt-12 bg-white p-8 rounded-lg shadow-lg min-h-[400px]">
-      <h2 class="text-3xl font-semibold text-gray-800">User Analytics</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <div class="h-64">
-              <canvas id="userGrowthChart"></canvas>
-          </div>
-          <div class="h-64">
-              <canvas id="trafficPieChart"></canvas>
-          </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <div class="h-64">
-              <canvas id="engagementLineChart"></canvas>
-          </div>
-          <div class="h-64">
-              <canvas id="revenueDoughnutChart"></canvas>
-          </div>
-      </div>
-  </section>
-
-  <!-- Tasks Section -->
-  <section id="tasks" class="mt-12 bg-white p-8 rounded-lg shadow-lg min-h-[400px]">
-      <h2 class="text-3xl font-semibold text-gray-800">Tasks</h2>
-      <ul class="mt-6 space-y-4">
-          <li class="py-4">✅ Complete analytics report</li>
-          <li class="py-4">✅ Finish user onboarding process</li>
-          <li class="py-4">✅ Respond to customer feedback</li>
-          <li class="py-4">✅ Review new features for next release</li>
-      </ul>
-  </section>
-
- 
-
-</div>
 </div>
 
-<!-- Chart.js for Analytics -->
+<!-- Chart.js Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Chart implementations remain the same
 var ctx1 = document.getElementById('userGrowthChart').getContext('2d');
 new Chart(ctx1, {
   type: 'bar',
   data: {
-      labels: [
-      {% for project in projects %}
-'        {{project.project_status}}',
-      {% endfor %}
-        ],
+      labels: [{% for project in projects %}'{{project.project_status}}',{% endfor %}],
       datasets: [{
-          label: 'total Users',
-          data: [
-          {% for project in projects %}
-           ' {{project.total}}',
-          {% endfor %}
-            ],
+          label: 'Total Projects',
+          data: [{% for project in projects %}{{project.total}},{% endfor %}],
           backgroundColor: 'rgba(75, 192, 192, 0.5)',
           borderColor: 'rgba(75, 192, 192, 1)',
           borderWidth: 2
       }]
   },
-  options: {
-      responsive: true,
-      maintainAspectRatio: false
-  }
+  options: { responsive: true, maintainAspectRatio: false }
 });
 
 var ctx2 = document.getElementById('trafficPieChart').getContext('2d');
 new Chart(ctx2, {
   type: 'pie',
   data: {
-      labels: [
-      {% for project in projects %}
-       '{{project.project_status}}',
-      {% endfor %}
-        ],
+      labels: [{% for project in projects %}'{{project.project_status}}',{% endfor %}],
       datasets: [{
-          data: [
-            {% for project in projects %}
-            ' {{project.total}}',
-           {% endfor %}
-          ],
-          backgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
+          data: [{% for project in projects %}{{project.total}},{% endfor %}],
+          backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff']
       }]
   },
-  options: {
-      responsive: true,
-      maintainAspectRatio: false
-  }
+  options: { responsive: true, maintainAspectRatio: false }
 });
 
 var ctx3 = document.getElementById('engagementLineChart').getContext('2d');
 new Chart(ctx3, {
   type: 'line',
   data: {
-      labels: [
-      {% for x in projects %}
-        '{{x.project_status}}',
-      {% endfor %}
-        ],
+      labels: [{% for x in projects %}'{{x.project_status}}',{% endfor %}],
       datasets: [{
           label: 'Total Projects',
-          data: [
-          {% for x in projects %}
-            '{{x.total}}',
-          {% endfor %}
-            ],
-          backgroundColor: 'rgba(153, 102, 255, 0.5)',
+          data: [{% for x in projects %}{{x.total}},{% endfor %}],
+          backgroundColor: 'rgba(153, 102, 255, 0.1)',
           borderColor: 'rgba(153, 102, 255, 1)',
-          borderWidth: 2
+          borderWidth: 2,
+          tension: 0.4
       }]
   },
-  options: {
-      responsive: true,
-      maintainAspectRatio: false
-  }
+  options: { responsive: true, maintainAspectRatio: false }
 });
 
 var ctx4 = document.getElementById('revenueDoughnutChart').getContext('2d');
 new Chart(ctx4, {
   type: 'doughnut',
   data: {
-      labels: [{% for x in projects %}
-      '{{x.project_status}}',
-    {% endfor %}],
+      labels: [{% for x in projects %}'{{x.project_status}}',{% endfor %}],
       datasets: [{
-          data: [
-          {% for x in projects %}
-            '{{x.total}}',
-          {% endfor %}
-            ],
-          backgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
+          data: [{% for x in projects %}{{x.total}},{% endfor %}],
+          backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff']
       }]
   },
-  options: {
-      responsive: true,
-      maintainAspectRatio: false
-  }
+  options: { responsive: true, maintainAspectRatio: false }
 });
 </script>
 </div>
-
 </div>
 {% include "footer.html" %}
 {% endblock content %}

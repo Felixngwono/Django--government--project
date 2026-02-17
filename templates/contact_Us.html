@@ -9,38 +9,41 @@
          style="background-image: url('{% static 'images/contact.webp' %}');">
 
         <!-- Dark overlay -->
-        <div class="absolute inset-0  bg-opacity-60 "></div>
+        <div class="absolute inset-0 bg-black bg-opacity-60"></div>
 
         <!-- Full-width form content -->
-        <div class="relative w-full max-w-4xl p-8 text-white z-10">
-            <h2 class="text-3xl font-bold mb-8 text-center">Contact Us</h2>
+        <div class="relative w-full max-w-2xl mx-auto p-6 sm:p-8 text-white z-10">
+            <div class="bg-black bg-opacity-40 backdrop-blur-sm rounded-lg p-8 shadow-2xl">
+                <h2 class="text-4xl font-bold mb-2 text-center">Contact Us</h2>
+                <p class="text-center text-gray-200 mb-8">We'd love to hear from you. Send us a message!</p>
 
-            <form action="" method="POST" class="space-y-6">
-                {% csrf_token %}
+                <form action="" method="POST" class="space-y-6">
+                    {% csrf_token %}
 
-                <div>
-                    <label class="block text-sm font-medium mb-1">Your Name</label>
-                    {% render_field form.name class="w-full bg-white text-gray-900 rounded-lg p-4 focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Enter Full Name" %}
-                </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Your Name</label>
+                        {% render_field form.name class="w-full bg-white text-gray-900 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Enter Full Name" %}
+                    </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-1">Your Email</label>
-                    {% render_field form.email class="w-full bg-white text-gray-900 rounded-lg p-4 focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Enter Email" %}
-                </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Your Email</label>
+                        {% render_field form.email class="w-full bg-white text-gray-900 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Enter Email" %}
+                    </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-1">Your Message</label>
-                    {% render_field form.message class="w-full bg-white text-gray-900 rounded-lg p-4 h-32 focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Enter Your Message" %}
-                </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Your Message</label>
+                        {% render_field form.message class="w-full bg-white text-gray-900 rounded-lg p-3 h-40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition resize-none" placeholder="Enter Your Message" %}
+                    </div>
 
-                <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
-                    Submit
-                </button>
-            </form>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-lg hover:shadow-xl">
+                        Send Message
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-</div>
 
+    </div>
+    </div>
 {% include "footer.html" %}
 {% endblock content %}
