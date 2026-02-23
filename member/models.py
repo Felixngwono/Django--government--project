@@ -29,6 +29,7 @@ class User(AbstractUser):
     is_enduser = models.BooleanField(default=False)
     avatar = models.ImageField(null=True, blank=True, upload_to='avatars/', default="avatar.png")
     profile = models.ImageField(null=True, blank=True, upload_to='profiles/', default="avatar.png")
+    updated=models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -79,7 +80,6 @@ class Project(models.Model):
         ('ongoing', 'Ongoing'),
         ('upcoming', 'Upcoming'),
         ('completed', 'Completed'),
-        ('stalled', 'Stalled'),
         ('Delayed', 'Delayed'),
 
 
@@ -106,11 +106,26 @@ class Project(models.Model):
     contact_email=models.EmailField(null=True, blank=True)
     progress_update=models.CharField(max_length=255,null=True, blank=True)
     remarks=models.TextField(null=True, blank=True)
+    
     class Meta:
         ordering = ['-start_date']
 
     def __str__(self):
         return self.project_title
+    
+class Participation(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    content= models.TextField(null=True, blank=True)  # Optional field for user comments or feedback
+    joined_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+
+    def __str__(self):
+        return f"{self.user.username} - {self.project.project_title}"
+     
+
 
 class ProjectStage(models.Model):
     STAGES = [
@@ -386,11 +401,7 @@ class ProjectRisk(models.Model):
     def __str__(self):
         return f"Risk for {self.project.project_title} - {self.risk_level}"
     
-class sponsors(models.Model):
-    name=models.CharField(max_length=100)
-    
-    def __str__(self):
-        return self.name
+
     
 class Team(models.Model):
     name=models.CharField(max_length=100)
@@ -402,3 +413,12 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Activity(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='activities')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    activity_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Activity: {self.title} for {self.project.project_title}"

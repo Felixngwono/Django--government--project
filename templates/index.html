@@ -3,14 +3,15 @@
 {% include "sidebar.html" %}
 {% load static %}
 {% load widget_tweaks %}
-
+<link rel="stylesheet" href="{% static 'css/pro_overview.css' %}">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
 
+<div class='proj_container'>
 <div class="w-full bg-gray-100 min-h-screen flex-1">
   <!-- Header -->
   <div class="mb-8 p-8 pb-0">
-    <h1 class="text-4xl font-bold text-gray-800">Welcome, {{ user }}</h1>
+    <h1 class="text-4xl font-bold text-gray-800">Welcome, {{ user.name }}</h1>
     <p class="text-lg text-gray-600 mt-2">Overseeing Government's work.</p>
   </div>
 
@@ -34,18 +35,7 @@
       </div>
     </a>
 
-    <!-- Stalled Projects -->
-    <a href="{% url 'stalled' %}" class="bg-gradient-to-b from-blue-200 to-blue-100 border-b-4 border-blue-600 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
-      <div class="flex items-center">
-        <div class="rounded-full p-5 bg-blue-600 text-white mr-4">
-          <i class="fa fa-id-badge fa-2x"></i>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-3xl font-bold">{{stalledcount}}</h3>
-          <h5 class="text-sm font-bold uppercase text-gray-600">Stalled Projects</h5>
-        </div>
-      </div>
-    </a>
+   
 
     <!-- Delayed Projects -->
     <a href="{% url 'delayed' %}" class="bg-gradient-to-b from-yellow-200 to-yellow-100 border-b-4 border-yellow-600 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
@@ -142,15 +132,15 @@
   <section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
     <h2 class="text-3xl font-semibold text-gray-800 mb-6">Recent Activity</h2>
     <ul class="space-y-4">
-      <li class="border-l-4 border-blue-500 pl-4 py-2">🔔 New user registration: John Doe</li>
-      <li class="border-l-4 border-green-500 pl-4 py-2">💼 New order received: Order #1234</li>
+      <li class="border-l-4 border-blue-500 pl-4 py-2">🔔 New user registration:<b> {{user.name}}</b></li>
+      <li class="border-l-4 border-green-500 pl-4 py-2">💼 New order received: <b>{{project}}</b></li>
       <li class="border-l-4 border-purple-500 pl-4 py-2">📈 Analytics update completed</li>
       <li class="border-l-4 border-orange-500 pl-4 py-2">🔧 System maintenance scheduled</li>
     </ul>
   </section>
 
   <!-- Analytics Charts -->
-  <section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
+  <section class="bg-white p-8 rounded-lg shadow-lg">
     <h2 class="text-3xl font-semibold text-gray-800 mb-6">Analytics</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="h-64 bg-gray-50 rounded p-4">
@@ -233,7 +223,93 @@ new Chart(ctx4, {
   options: { responsive: true, maintainAspectRatio: false }
 });
 </script>
+<!-- Participants -->
+<section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
+  <h2 class="text-3xl font-semibold text-gray-800 mb-6">
+    👷 {% if request.user.is_superuser %}All Participations{% else %}My Participations{% endif %}
+  </h2>
+
+  <div class="space-y-4">
+    {% for participation in participants %}
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 shadow-md hover:shadow-lg transition border-l-4 border-blue-500">
+        
+        <div class="flex items-start justify-between">
+
+          <!-- Left Content -->
+          <div class="flex-1">
+
+            <div class="flex items-center gap-3 mb-2">
+              {% if participation.user.profile %}
+                <img src="{{ participation.user.profile.url }}"
+                     alt="{{ participation.user.username }}"
+                     class="w-12 h-12 rounded-full object-cover">
+              {% else %}
+                <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-white">
+                  {{ participation.user.username|first|upper }}
+                </div>
+              {% endif %}
+
+              <div>
+                <p class="font-semibold text-gray-900">
+                  @{{ participation.user.username }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  <b>Project:</b> {{ participation.project.project_title }}
+                </p>
+              </div>
+            </div>
+
+            <p class="text-sm text-gray-600">
+              <b>Status:</b> {{ participation.project.project_status|title }}
+            </p>
+
+            <p class="text-sm text-gray-600">
+              <b>Role:</b> {{ participation.user.role }}
+            </p>
+
+            {% if participation.content %}
+            <p class="text-sm text-gray-700 mt-2">
+              <b>Feedback:</b> {{ participation.content }}
+            </p>
+            {% endif %}
+
+            <p class="text-xs text-gray-500 mt-2">
+              Joined {{ participation.joined_at|timesince }} ago
+            </p>
+
+          </div>
+
+          <!-- Active Badge -->
+          <div>
+            {% if participation.is_active %}
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                🟢 Active
+              </span>
+            {% else %}
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                🔴 Inactive
+              </span>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+
+    {% empty %}
+      <div class="text-center py-12 bg-gray-50 rounded-lg">
+        <p class="text-gray-500">
+          {% if request.user.is_superuser %}
+            No participations found.
+          {% else %}
+            You are not participating in any project yet.
+          {% endif %}
+        </p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
 </div>
 </div>
-{% include "footer.html" %}
+  {% include "footer.html" %}
 {% endblock content %}

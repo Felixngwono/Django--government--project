@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Milestone, Notification, Comment, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, ProjectStage, ReportIssue, Team, Tender, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
+from .models import PDF, AuditLog, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, ProjectStage, ReportIssue, Team, Tender, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -17,7 +17,11 @@ class MyUserCreationForm(UserCreationForm):
             raise forms.ValidationError("This email is already taken.")
         return email
         
-        
+class participationForm(ModelForm):
+    class Meta:
+        model = Participation
+        fields =['content']
+                
 class ContactUsForm(ModelForm):
     
     class Meta:

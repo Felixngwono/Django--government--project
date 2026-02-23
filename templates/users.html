@@ -1,94 +1,144 @@
 {% extends "header.html" %}
+{% load static %}
 {% block content %}
-{% load static %}
-{% include "widget_tweaks" %}
 
+{% include "Sidebar.html" %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+<div class="mb-8 flex gap-4">
+    <input type="text" placeholder="Search by name or username..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    <button class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Search</button>
+</div>
+    <!-- Page Header -->
+    <div class="mb-10 text-center">
+        <h1 class="text-4xl font-extrabold text-indigo-700">People Directory</h1>
+        <p class="text-gray-500 mt-2">All registered users and professionals</p>
+    </div>
 
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>User Directory</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 40px auto;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .user-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .user-card {
-            background-color: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .user-card:hover {
-            transform: translateY(-5px);
-        }
-        .user-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 15px;
-        }
-        .user-name {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        .user-role {
-            font-size: 0.95em;
-            color: #555;
-            margin: 5px 0;
-        }
-        .user-bio {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>User Directory</h1>
-        <div class="user-grid">
-            {% for user in pp %}
-            <div class="user-card">
-                <img class="user-avatar" src="{{user.profile.url}}" alt="{{ user.username }}">
-                <div class="user-name">{{ user.name|default:user.username }}</div>
-                <div class="user-role">{{ user.role }}</div>
-                {% if user.bio %}
-                <div class="user-bio">{{ user.bio }}</div>
+    {% if pp %}
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8  bg-blue">
+
+        {% for user in pp %}
+        <div class="bg-white/80 backdrop-blur-lg border border-gray-200 rounded-3xl shadow-xl p-8 hover:shadow-2xl transition duration-300 flex flex-col items-center text-center space-y-5">
+
+            <!-- Avatar -->
+            <div class="relative">
+                <a href="{{ user.profile.url }}" target="_blank">
+
+                <img src="{{ user.profile.url }}"
+                     alt="{{ user.username }}"
+                     class="w-28 h-28 rounded-full object-cover border-4 border-indigo-200 shadow-lg">
+
+                {% if user.is_superuser %}
+                <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-3 py-1 rounded-full shadow">
+                    Admin
+                </span>
+                {% elif user.is_staff %}
+                <span class="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs px-3 py-1 rounded-full shadow">
+                    Staff
+                </span>
+                {% endif %}
+            </a>
+            </div>
+
+            <!-- Name -->
+            <div>
+                <h2 class="text-xl font-bold text-indigo-700">
+                    {{ user.name|default:user.username }}
+                </h2>
+
+                <p class="text-sm text-gray-500">@{{ user.username }}</p>
+            </div>
+
+            <!-- Role Badge -->
+            <div>
+                <span class="px-4 py-1 rounded-full text-sm font-semibold
+                    {% if user.role == 'engineer' %} bg-blue-100 text-blue-700
+                    {% elif user.role == 'architect' %} bg-purple-100 text-purple-700
+                    {% elif user.role == 'manager' %} bg-green-100 text-green-700
+                    {% elif user.role == 'developer' %} bg-indigo-100 text-indigo-700
+                    {% elif user.role == 'official' %} bg-red-100 text-red-700
+                    {% elif user.role == 'citizen' %} bg-gray-100 text-gray-700
+                    {% else %} bg-yellow-100 text-yellow-700
+                    {% endif %}
+                ">
+                    {{ user.get_role_display }}
+                </span>
+            </div>
+
+            <!-- Email -->
+            {% if user.email %}
+            <div class="text-sm text-gray-600 break-words">
+                📧 {{ user.email }}
+            </div>
+            {% endif %}
+
+            <!-- Bio -->
+            {% if user.bio %}
+            <div class="text-sm text-gray-500 italic line-clamp-3">
+                "{{ user.bio }}"
+            </div>
+            {% else %}
+            <div class="text-sm text-gray-400 italic">
+                No bio provided.
+            </div>
+            {% endif %}
+
+            <!-- End User Status -->
+            <div class="mt-2">
+                {% if user.is_enduser %}
+                <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                    End User
+                </span>
+                {% else %}
+                <span class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+                    Internal User
+                </span>
                 {% endif %}
             </div>
-            {% empty %}
-            <p>No users found.</p>
-            {% endfor %}
+
+            <!-- Last Active -->
+            {% if user.last_active %}
+            <div class="text-xs text-gray-400">
+                Last active: {{ user.last_active|timesince }} ago
+            </div>
+
+            {% endif %}
+
         </div>
+        {% endfor %}
+
     </div>
-</body>
-</html>
+    {% else %}
+    <div class="text-center py-20">
+        <p class="text-gray-500 text-lg">No users found.</p>
+    </div>
+    {% endif %}
+
+</div>
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="flex justify-center items-center gap-4 mt-12">
+    <nav class="flex gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page=1" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Previous</a>
+        {% endif %}
+
+        <span class="px-4 py-2 text-gray-600">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Last</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+
+</div>
+</div>
 
 
 {% include "footer.html" %}
-{% endblock content %}
+{% endblock %}

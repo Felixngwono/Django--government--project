@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import  Testimonials, add_team, add_testimonial, adminview, comment, delayedstatus, delete_testimonial, feedback_details, people, reportedissuesdetails, stalled,delayed, ProjectStageListView, ProjectStageDetailView,  ProjectStageCreateView, ProjectStageUpdateView, ProjectStageDeleteView,AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, stalledstatus, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  Testimonials, add_team, add_testimonial, adminview, comment, delayedstatus, delete_testimonial, feedback_details, people, reportedissuesdetails,delayed, ProjectStageListView, ProjectStageDetailView,  ProjectStageCreateView, ProjectStageUpdateView, ProjectStageDeleteView,AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, stalledstatus, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -56,10 +56,8 @@ urlpatterns = [
     path('project/', project, name="project"),
 
     path('ongoing/', ongoing, name="ongoing"),
-    path('stalled/', stalled, name="stalled"),
     path('delayed/', delayed, name="delayed"),
     path('delayedstatus/<str:pk>/', delayedstatus, name="delayedstatus"),
-    path('stalledstatus/<str:pk>/', stalledstatus, name="stalledstatus"),
     path('upcoming/', upcoming, name="upcoming"),
     path('completed/', completed, name="completed"),
     path('project_details/<str:pk>/', project_detail, name="project_details"),

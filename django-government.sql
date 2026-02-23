@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 16, 2026 at 07:45 PM
+-- Generation Time: Feb 23, 2026 at 10:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -209,7 +209,19 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 (145, 'Can add team', 36, 'add_team'),
 (146, 'Can change team', 36, 'change_team'),
 (147, 'Can delete team', 36, 'delete_team'),
-(148, 'Can view team', 36, 'view_team');
+(148, 'Can view team', 36, 'view_team'),
+(149, 'Can add messages', 37, 'add_messages'),
+(150, 'Can change messages', 37, 'change_messages'),
+(151, 'Can delete messages', 37, 'delete_messages'),
+(152, 'Can view messages', 37, 'view_messages'),
+(153, 'Can add activity', 38, 'add_activity'),
+(154, 'Can change activity', 38, 'change_activity'),
+(155, 'Can delete activity', 38, 'delete_activity'),
+(156, 'Can view activity', 38, 'view_activity'),
+(157, 'Can add participation', 39, 'add_participation'),
+(158, 'Can change participation', 39, 'change_participation'),
+(159, 'Can delete participation', 39, 'delete_participation'),
+(160, 'Can view participation', 39, 'view_participation');
 
 -- --------------------------------------------------------
 
@@ -249,14 +261,17 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (3, 'auth', 'group'),
 (2, 'auth', 'permission'),
 (4, 'contenttypes', 'contenttype'),
+(38, 'member', 'activity'),
 (17, 'member', 'auditlog'),
 (16, 'member', 'budget'),
 (20, 'member', 'comment'),
 (7, 'member', 'contact'),
 (8, 'member', 'feedback'),
 (15, 'member', 'media'),
+(37, 'member', 'messages'),
 (14, 'member', 'milestone'),
 (13, 'member', 'notification'),
+(39, 'member', 'participation'),
 (12, 'member', 'pdf'),
 (25, 'member', 'programfunding'),
 (24, 'member', 'programimpact'),
@@ -380,7 +395,17 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (78, 'member', '0004_alter_testimonial_options_remove_testimonial_image', '2026-02-15 09:09:14.199509'),
 (79, 'member', '0005_testimonial_image', '2026-02-15 09:10:07.702415'),
 (80, 'member', '0006_team', '2026-02-15 11:24:30.196341'),
-(81, 'member', '0007_alter_team_options_team_created_at', '2026-02-15 12:31:29.833638');
+(81, 'member', '0007_alter_team_options_team_created_at', '2026-02-15 12:31:29.833638'),
+(82, 'member', '0008_project_participants_messages', '2026-02-22 12:36:05.280509'),
+(83, 'member', '0009_user_updated', '2026-02-22 13:21:42.508793'),
+(84, 'member', '0010_alter_project_participants', '2026-02-22 18:38:46.068274'),
+(85, 'member', '0011_activity', '2026-02-22 18:41:12.867692'),
+(86, 'member', '0012_messages_participants', '2026-02-22 18:43:40.506206'),
+(87, 'member', '0013_remove_project_participants_participation', '2026-02-22 18:52:47.852355'),
+(88, 'member', '0014_participation_content', '2026-02-22 19:31:06.110265'),
+(89, 'member', '0015_remove_messages_participants', '2026-02-23 06:18:10.098430'),
+(90, 'member', '0016_alter_participation_unique_together_and_more', '2026-02-23 07:11:29.451697'),
+(91, 'member', '0017_remove_messages_projects_remove_messages_user_and_more', '2026-02-23 09:00:30.055651');
 
 -- --------------------------------------------------------
 
@@ -407,16 +432,17 @@ INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALU
 ('44or4nmv3ixv7puvu1la3zpa5g7ozh8x', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tkoDm:Y0Au_Or_uIR4iqr2QVUlMZWGZnyPTEN-gsD4IHdJBpI', '2025-03-05 17:50:54.908126'),
 ('4chhsa9uotlsh1msgdf27gadn7kjsdnf', '.eJxVjMsOwiAUBf-FtSE8SqEu3fcbyOVykKqhSR8r47-bJl3odmYybxFp32rcVyxxyuIqtBOXX5iIn2iHyQ9q91ny3LZlSvJI5GlXOc4Zr9vZ_g0qrfX4mk4BHl1C0cUrgoE1xQZNSKkvnp3tXWBwYR1oYDjFFtYxVFY8iM8XLw85TA:1tBAr1:nFPqPljNhFQiJQqrDZIVtYzGeK_MzfAwEnq5WWZ3zlk', '2024-11-27 10:44:07.995680'),
 ('7cqcb4uyhxobtlq22seeqtfjt1p34tfu', '.eJxVjDEOwjAQBP_iGlm5I9gxJT1viHzeMw6gRIqTCvF3iJQC2p2ZfZk-rkvp16pzP8CcDZM5_I4S00PHjeAex9tk0zQu8yB2U-xOq71O0Odld_8OSqzlW7vMXloCeWRuHWmCo4aVQ-dDOMJnEsonkEPsRAlQp4kaoPPCic37AwhYOJM:1rqffS:ek80ZJ_IDnypSHsUAnP_WfJllTJZRdWPyIuTFXl3Ly0', '2024-04-13 20:51:10.482297'),
+('7g0ocx6hjrseq24753q4nxqohkiyr81s', '.eJxVjMsOgjAQAP9lz6aBvpZy9O43NNvdIqhpEwon478bEg56nZnMGyLt2xz3lte4CIygHVx-YSJ-5nIYeVC5V8W1bOuS1JGo0zZ1q5Jf17P9G8zUZhhh0Dwgdn6aCDU7Z7FL2to-GE-cDWIygX3XD30SsmK9DtkhivWBjRGCzxfnVTdV:1vsFRO:oK_XQCrjq3yBkNgWX5gZOJUCo50-z54MxP3pLQouFes', '2026-03-03 07:24:14.365614'),
 ('ac1iqdnc9itb6edmyqjgyvtrkke6h6hk', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1s6usV:WBMXVtjVwkpH_ur4IuY9o4vXMteQEezmYN5Qske4K_Q', '2024-05-28 16:19:47.141825'),
 ('bez41nkz8t4mrr0f73q7sumv192z8dsi', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1sFJWI:6KNEbzRCEKY64WkpAfMlfuqHKvf1trqC2xjrq5XkUX8', '2024-06-20 20:15:34.466513'),
 ('bhr5zwl65707lgrv0jihhdhe9ndhb3gy', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tsMvz:O4NYZwQzfpO1h_7V-VgfZCuBs4-VgWJWR98ns_bu0M8', '2025-03-26 14:19:47.333607'),
 ('ejbsep4cmtyygxbrjqoakxyei26x9nsg', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tqzEE:FLXpmalKJETrDqWtrxLEJxBFIgxwx6Ee0oKDikkQ2n4', '2025-03-22 18:48:54.540699'),
-('gpx1q1nxj2vgdvtmlpxna4642na93xkd', '.eJxVjDEOgzAMAP_iuYoSQxLK2J03INtxGtoKJAJT1b9XSAztene6N4y0b2Xcq67jlKAHjHD5hUzy1Pkw6UHzfTGyzNs6sTkSc9pqhiXp63a2f4NCtUAPGQVTUKWslJ3znfi2Yc0swtz4qzbOi43c-WiZQiKMKNYharDakoXPF0fROQU:1vrz7p:cl2fbTVyTB0U-MvRFgG8rqCV0DS3Rgh_XFNQb30JYMI', '2026-03-02 13:58:57.787315'),
 ('mjnnzpzonp4v3apw8cwo1lnl07h5ujmi', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tg05O:XqeOUj8mp89cYrAfcmCX4LsSY37h8jCKlIIsO98hQFI', '2025-02-20 11:30:22.700353'),
 ('nciqfgqr78fx9emb357tw63yt4dnnj96', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1shkMn:vUqKrLfh7O5JyFTTk1RDk05Eb4RvST7DlxzdBuWtn4E', '2024-09-07 06:35:17.662831'),
 ('osp0rcjfu925gu390k70vrbry9xohckx', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tdt4N:njJwSKKySCAID27oOJXjdm3ijNeaHwyDy4E02YmxKUY', '2025-02-14 15:36:35.327760'),
 ('pjvadvja7jynx5mgp9098rfuivn7uvn6', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tg0N4:eYsJf1GUNUuuNrXCESOukXNLgUQO0m69DkZZ0t6PBlo', '2025-02-20 11:48:38.401943'),
 ('qbjr8gfmpegyad9vfnb8c6n4gcght0sr', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1tJ2J3:Ik0Ip84zxApLJfvWFaFm0dJ2rWX7yXP_oEYjFLVe1bU', '2024-12-19 03:13:33.221493'),
+('qqxsg3wqhixcwxbh5xxafjs7e8oblg3w', '.eJxVjDEOgzAMAP_iuYoSQxLK2J03INtxGtoKJAJT1b9XSAztene6N4y0b2Xcq67jlKAHjHD5hUzy1Pkw6UHzfTGyzNs6sTkSc9pqhiXp63a2f4NCtUAPGQVTUKWslJ3znfi2Yc0swtz4qzbOi43c-WiZQiKMKNYharDakoXPF0fROQU:1vuS0D:DnHUgq_9UGjacJB5MBcyDok8hzrM0cec4KoZ-TMz6zg', '2026-03-09 09:13:17.525417'),
 ('qrmofx88zu92r43gn3b1nc4jqebv7aqe', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tqykS:6IgrEMD_uX-dk515ADeCUPxDOXWc15IJSpCcYNybObs', '2025-03-22 18:18:08.805637'),
 ('qzbxhc6l1yx27yefgplrqdzu29gtlc5u', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1teABV:XtErjKHyUDzvPLt9TfQImZ0Z6zw57kDaKbomE0fqaSc', '2025-02-15 09:53:05.618967'),
 ('v249filfksnkujac1a8qaiffqknfnag3', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1tBtey:VKrjxw3n2uG9EB3hGIgcn5BhIN8MksVhxq70EDtivs0', '2024-11-29 10:34:40.157844'),
@@ -427,6 +453,20 @@ INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALU
 ('xex6sofii4qd1zdd62adh0rmw5p344nq', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1sQiCI:lHpcSjwW2hr43r0OYgqsl55tSyhA1v-ko7bSQyM8VR0', '2024-07-22 06:50:02.662253'),
 ('yuhw4u40yp7imkfmp1hjsmefrumsjy3k', '.eJxVjDsOwjAQBe_iGlk268-akj5nsNY_HEC2FCcV4u4QKQW0b2bei3na1uq3kRc_J3Zhip1-t0DxkdsO0p3arfPY27rMge8KP-jgU0_5eT3cv4NKo35rGUSRELGgLUUWI43TUWR0VljtSKsIINGBJaBkCBFUQE0SDbpAZ8XeH81wNv8:1reMYv:hpkdkwmRKxdr2tVLRqN6L_QOEpHjcL5ACviepinIcoQ', '2024-03-10 22:01:33.454716'),
 ('z6cgpk5lwu28infm4bhd4hdurbjg6jeh', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1si9NS:QZXcK2OgxgqKVl2PCyXg7LUBl95AVRyKMjLevJhgVYA', '2024-09-08 09:17:38.636187');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_activity`
+--
+
+CREATE TABLE `member_activity` (
+  `id` bigint(20) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext NOT NULL,
+  `activity_date` datetime(6) NOT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -606,6 +646,30 @@ INSERT INTO `member_notification` (`id`, `message`, `is_read`, `created_at`, `re
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_participation`
+--
+
+CREATE TABLE `member_participation` (
+  `id` bigint(20) NOT NULL,
+  `joined_at` datetime(6) NOT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  `project_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `content` longtext DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `member_participation`
+--
+
+INSERT INTO `member_participation` (`id`, `joined_at`, `is_active`, `project_id`, `user_id`, `content`) VALUES
+(1, '2026-02-23 07:08:43.825185', 1, 38, 27, 'good'),
+(5, '2026-02-23 07:38:01.415471', 1, 34, 27, 'The project is not clerly showing the milstones, im curious'),
+(6, '2026-02-23 08:03:52.925874', 1, 37, 25, 'certisfied');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_pdf`
 --
 
@@ -737,7 +801,8 @@ INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `pro
 (35, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', '2025-12-06', '2027-12-06', 4, 'projects/im.jpg', '10000000.00', 5, 'upcoming', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', '2024-03-07', '2025-03-12', 5, 'projects/tana_river_Laq2K1W.jpg', '23456789876.00', 6, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', '2025-03-13', '2028-02-12', 4, 'projects/sgr_C3xUDYT.png', 'ksh.50 billion', 1, 'upcoming', 'Railway users', 'speeding the rate of transportation and reducing the trafficking in public roads', 'upcoming', 'multi billionares', NULL, NULL, NULL, NULL, NULL),
-(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', '2026-02-27', '2031-05-16', 1, 'projects/house.jpg', 'ksh. 100billion', 2, 'Delayed', '-common mwananchi\r\n- government', 'reduction of overcrowding in the country', '', '-Government tycoons\r\n- president William Ruto', 'felixngwono@gmail.com', 'upcoming, yet to be scheduled for the start', 'George Mbola', NULL, '-this will impact on the reduction of slums in the country\r\n-clean environment');
+(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', '2026-02-27', '2031-05-16', 1, 'projects/house.jpg', 'ksh. 100billion', 2, 'Delayed', '-common mwananchi\r\n- government', 'reduction of overcrowding in the country', '', '-Government tycoons\r\n- president William Ruto', 'felixngwono@gmail.com', 'upcoming, yet to be scheduled for the start', 'George Mbola', NULL, '-this will impact on the reduction of slums in the country\r\n-clean environment'),
+(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', '2024-06-04', '2026-02-21', 7, 'projects/house_wMsNgUd.jpg', 'ksh. 100billion', 1, 'completed', 'citizens', '- Ease of access of clean and free energy', '', 'county government', 'felixngwono@gmail.com', 'completed', 'George Mbola', NULL, 'free and favourable energy');
 
 -- --------------------------------------------------------
 
@@ -1012,21 +1077,22 @@ CREATE TABLE `member_user` (
   `name` varchar(50) DEFAULT NULL,
   `is_enduser` tinyint(1) NOT NULL,
   `profile` varchar(100) DEFAULT NULL,
-  `role` varchar(20) NOT NULL
+  `role` varchar(20) NOT NULL,
+  `updated` datetime(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_user`
 --
 
-INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `username`, `first_name`, `last_name`, `email`, `is_staff`, `is_active`, `date_joined`, `avatar`, `bio`, `name`, `is_enduser`, `profile`, `role`) VALUES
-(15, 'pbkdf2_sha256$600000$sdZXg14tgnO7xa9BZMRudV$15CmOFaWIpD5svoHyNtsQKA70oqKwIhFRoihCTrZTBo=', '2024-11-13 10:44:07.903587', 0, 'Ajumbutule', '', '', 'omondi@gamil.com', 0, 1, '2024-03-17 08:35:44.262524', 'avatar.png', 'Im Ajumbutule', 'Frank Omondi', 1, 'images/3006.webp', 'citizen'),
-(21, 'pbkdf2_sha256$390000$L3rjadbchaO0SpN9HBxF3S$7IwkCJCvSjH+A153Y3J+8W2hT03K8drd0wkQGjzV7iI=', '2026-02-15 09:24:48.995603', 1, 'FelloMarley', '', '', 'fellomarley@gmail.com', 0, 1, '2024-03-18 21:04:19.576787', 'avatar.png', 'Im Marley', 'Felix Odhiambo', 0, 'images/chief_J9TcRuW.jpg', 'citizen'),
-(22, 'felixodhiambo@kabarak.ac.ke', NULL, 1, 'StoryTeller', '', '', NULL, 1, 0, '2024-03-07 12:52:01.000000', '10', 'im Marley', 'Felix Odhiambo', 0, 'avartor.jpg', 'citizen'),
-(23, 'pbkdf2_sha256$600000$1iwabvH8yisaHvUbtgof7P$Q++M3cu6Moxh51jh9R4iISo0Jt4Ig18nDxqu3LKohfw=', '2024-08-22 08:40:23.079615', 0, 'Vanessah', '', '', 'vanessa@gmail.com', 0, 1, '2024-03-20 19:38:48.673003', 'avatar.png', 'Im Vanessah. The only Titan from the lake in the family of akina Fellix The StoryTeller', 'Toto Vanessah', 1, 'profile/amanda.jpg', 'citizen'),
-(25, 'pbkdf2_sha256$260000$kxK8tsibyLuXYgHpcRRdUn$kAiu1DZTVk5cmIrnlr0sUGYpWIEzO3aQJXY/rJqlw2s=', '2025-03-12 10:02:56.418112', 0, 'assiello', '', '', 'assielo@gmail.com', 0, 1, '2025-03-12 10:02:37.372369', 'avatar.png', 'Assiello Norma', 'Assiello Nomar', 1, 'profiles/solar.jpg', 'citizen'),
-(26, 'pbkdf2_sha256$390000$rvjkDxGKNzDBpOphsu5Rss$fBQTcWntdNp131fgkCqBTyd69P8/xm3kYdLvNG81S1Y=', '2026-02-16 13:53:31.721283', 0, 'Amanda', '', '', 'betty@gmail.com', 0, 1, '2026-02-15 09:22:02.825205', 'avatar.png', 'im betty amanda', 'Betty Amanda', 0, 'profiles/038e478f9c094c01be86505e030c974d_DC7y9U9.jpg', 'developer'),
-(27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-16 13:58:57.783787', 1, 'Odinga', '', '', 'felixngwono@gmail.com', 1, 1, '2026-02-16 13:56:00.197953', 'avatar.png', 'im felix odhiamo', 'Felix Odhiambo', 0, 'profiles/Fel14.jpg', 'developer');
+INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `username`, `first_name`, `last_name`, `email`, `is_staff`, `is_active`, `date_joined`, `avatar`, `bio`, `name`, `is_enduser`, `profile`, `role`, `updated`) VALUES
+(15, 'pbkdf2_sha256$600000$sdZXg14tgnO7xa9BZMRudV$15CmOFaWIpD5svoHyNtsQKA70oqKwIhFRoihCTrZTBo=', '2024-11-13 10:44:07.903587', 0, 'Ajumbutule', '', '', 'omondi@gamil.com', 0, 1, '2024-03-17 08:35:44.262524', 'avatar.png', 'Im Ajumbutule', 'Frank Omondi', 1, 'images/3006.webp', 'citizen', '2026-02-22 13:21:42.485592'),
+(21, 'pbkdf2_sha256$390000$L3rjadbchaO0SpN9HBxF3S$7IwkCJCvSjH+A153Y3J+8W2hT03K8drd0wkQGjzV7iI=', '2026-02-15 09:24:48.995603', 1, 'FelloMarley', '', '', 'fellomarley@gmail.com', 0, 1, '2024-03-18 21:04:19.576787', 'avatar.png', 'Im Marley', 'Felix Odhiambo', 0, 'images/chief_J9TcRuW.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
+(22, 'felixodhiambo@kabarak.ac.ke', NULL, 1, 'StoryTeller', '', '', NULL, 1, 0, '2024-03-07 12:52:01.000000', '10', 'im Marley', 'Felix Odhiambo', 0, 'avartor.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
+(23, 'pbkdf2_sha256$390000$WQOqv9km54x7scaodebVCd$HYGL9+bFmqvTtlw+RAE5YgIwulygM1B9Egut5CAJry0=', '2026-02-23 08:19:46.449107', 0, 'Vanessah', '', '', 'vanessa@gmail.com', 0, 1, '2024-03-20 19:38:48.673003', 'avatar.png', 'Im Vanessah. The only Titan from the lake in the family of akina Fellix The StoryTeller', 'Toto Vanessah', 1, 'profiles/tree.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
+(25, 'pbkdf2_sha256$390000$QCtLfFIyYQvtD9z4whkpmK$QSWeErI3jRNzVRw1BnuRCRDR23Sy3FCsF5Z74v2OLXo=', '2026-02-23 09:07:24.976027', 0, 'assiello', '', '', 'assielo@gmail.com', 0, 1, '2025-03-12 10:02:37.372369', 'avatar.png', 'Assiello Norma', 'Assiello Nomar', 1, 'profiles/solar.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
+(26, 'pbkdf2_sha256$390000$rvjkDxGKNzDBpOphsu5Rss$fBQTcWntdNp131fgkCqBTyd69P8/xm3kYdLvNG81S1Y=', '2026-02-17 04:59:35.298470', 0, 'Amanda', '', '', 'betty@gmail.com', 0, 1, '2026-02-15 09:22:02.825205', 'avatar.png', 'im betty amanda', 'Betty Amanda', 0, 'profiles/038e478f9c094c01be86505e030c974d_DC7y9U9.jpg', 'developer', '2026-02-22 13:21:42.485592'),
+(27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-23 09:13:17.518974', 1, 'Odinga', '', '', 'felixngwono@gmail.com', 1, 1, '2026-02-16 13:56:00.197953', 'avatar.png', 'im felix odhiamo', 'Felix Odhiambo', 0, 'profiles/Fel14.jpg', 'developer', '2026-02-22 13:21:42.485592');
 
 -- --------------------------------------------------------
 
@@ -1107,6 +1173,13 @@ ALTER TABLE `django_session`
   ADD KEY `django_session_expire_date_a5c62663` (`expire_date`);
 
 --
+-- Indexes for table `member_activity`
+--
+ALTER TABLE `member_activity`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_activity_project_id_67a37100_fk_member_project_id` (`project_id`);
+
+--
 -- Indexes for table `member_auditlog`
 --
 ALTER TABLE `member_auditlog`
@@ -1162,6 +1235,14 @@ ALTER TABLE `member_milestone`
 ALTER TABLE `member_notification`
   ADD PRIMARY KEY (`id`),
   ADD KEY `member_notification_recipient_id_6a3177d9_fk_member_user_id` (`recipient_id`);
+
+--
+-- Indexes for table `member_participation`
+--
+ALTER TABLE `member_participation`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_participation_project_id_654a0392_fk_member_project_id` (`project_id`),
+  ADD KEY `member_participation_user_id_87e6bb26` (`user_id`);
 
 --
 -- Indexes for table `member_pdf`
@@ -1331,7 +1412,7 @@ ALTER TABLE `auth_group_permissions`
 -- AUTO_INCREMENT for table `auth_permission`
 --
 ALTER TABLE `auth_permission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=161;
 
 --
 -- AUTO_INCREMENT for table `django_admin_log`
@@ -1343,13 +1424,19 @@ ALTER TABLE `django_admin_log`
 -- AUTO_INCREMENT for table `django_content_type`
 --
 ALTER TABLE `django_content_type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=92;
+
+--
+-- AUTO_INCREMENT for table `member_activity`
+--
+ALTER TABLE `member_activity`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_auditlog`
@@ -1400,6 +1487,12 @@ ALTER TABLE `member_notification`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `member_participation`
+--
+ALTER TABLE `member_participation`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `member_pdf`
 --
 ALTER TABLE `member_pdf`
@@ -1433,7 +1526,7 @@ ALTER TABLE `member_progressupdate`
 -- AUTO_INCREMENT for table `member_project`
 --
 ALTER TABLE `member_project`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `member_projectexpense`
@@ -1550,6 +1643,12 @@ ALTER TABLE `django_admin_log`
   ADD CONSTRAINT `django_admin_log_user_id_c564eba6_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
 
 --
+-- Constraints for table `member_activity`
+--
+ALTER TABLE `member_activity`
+  ADD CONSTRAINT `member_activity_project_id_67a37100_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+
+--
 -- Constraints for table `member_auditlog`
 --
 ALTER TABLE `member_auditlog`
@@ -1587,6 +1686,13 @@ ALTER TABLE `member_milestone`
 --
 ALTER TABLE `member_notification`
   ADD CONSTRAINT `member_notification_recipient_id_6a3177d9_fk_member_user_id` FOREIGN KEY (`recipient_id`) REFERENCES `member_user` (`id`);
+
+--
+-- Constraints for table `member_participation`
+--
+ALTER TABLE `member_participation`
+  ADD CONSTRAINT `member_participation_project_id_654a0392_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_participation_user_id_87e6bb26_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
 
 --
 -- Constraints for table `member_pdf`

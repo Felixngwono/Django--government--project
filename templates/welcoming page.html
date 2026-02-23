@@ -599,19 +599,18 @@
       </div>
     </div>
   </section>
-  <section >
-    <div class="max-w-6xl mx-auto">
-      <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-white text-center tracking-tight drop-shadow-lg">
+  
+<section class="bg-gray-50 py-20 px-6">
+   <div class="max-w-6xl mx-auto">
+      <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-black text-center tracking-tight drop-shadow-lg">
         Our Testimonials
       </h2>
 
-</section>
-<section class="bg-gray-50 py-20 px-6">
   <div class="max-w-6xl mx-auto">
     <div class="grid md:grid-cols-3 gap-8">
       <!-- Testimonial 1 -->
        {% for x in testimonials %}
-      <div class="bg-white rounded-xl shadow-lg p-8 border-l-4 border-green-600 hover:shadow-xl transition">
+      <div class=" rounded-xl shadow-lg p-8 border-l-4 border-green-600 hover:shadow-xl transition">
         <div class="flex items-center mb-4">
           <img src="{{x.image.url}}" alt="{{x.name}}" class="w-12 h-12 rounded-full mr-4 object-cover">
           <div>

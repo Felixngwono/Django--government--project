@@ -3,7 +3,7 @@
 {% block content %}
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
-
+{% load widget_tweaks %}
 <div class="flex">
     <div class="flex-1 min-h-full w-full bg-gradient-to-br font-large p-12 from-gray-50 to-blue-50 py-10 px-8">
         <div class="flex justify-between mb-8">
@@ -89,50 +89,70 @@
                     </div>
                     <div class="mt-4">
                         <div class="w-full bg-gray-200 rounded-full h-3">
-                            <div class="bg-blue-600 h-3 rounded-full transition-all" style="width: {{ project.project_contractor }}%"></div>
+                            <div class="bg-blue-600 h-3 rounded-full transition-all" style="width: {{ project.progress_update }}%"></div>
                         </div>
                         <div class="text-right text-xs text-gray-500 mt-1">{{ project.progress_update }}% Progress</div>
                     </div>
                 </div>
             </div>
-            {% empty %}
-            <div class="text-center text-gray-500 text-lg py-20">No projects found.</div>
+
+            <!-- Comments Section -->
+            <div class="max-w-4xl mx-auto bg-white rounded-xl shadow p-8 border border-blue-100">
+                <h3 class="text-2xl font-bold text-blue-800 mb-6">Participant Feedback</h3>
+                
+            <form method="POST" action="" class="space-y-6">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                        <p class="text-red-800 font-semibold mb-2">Error submitting feedback:</p>
+                        <ul class="text-red-700 text-sm space-y-1">
+                            {% for error in form.non_field_errors %}
+                                <li>• {{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border-l-4 border-blue-600">
+                    <h3 class="text-lg font-bold text-blue-900 mb-2">✨ Your Feedback Matters!</h3>
+                    <p class="text-sm text-gray-700">Help us improve by sharing your thoughts on <span class="font-semibold">{{ project.project_title }}</span></p>
+                    {% if user.is_authenticated %}
+                        <p class="text-sm text-gray-600 mt-2">Submitted by: <span class="font-semibold">{{ user.get_full_name|default:user.username }}</span></p>
+                    {% endif %}
+                    
+                </div> 
+               
+
+                <div class="space-y-6">
+                    <div>
+                        <label for="role" class="block text-gray-800 font-semibold mb-3">Your Role in the Project</label>
+                        <div class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                            {{ user.role|default:"Not specified" }}
+                        </div>
+                    </div>
+                   
+                    <div>
+                        <label for="comment" class="block text-gray-800 font-semibold mb-3">Your Feedback</label>
+                        {% render_field form.content class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="5" placeholder="Share your thoughts on the project..." %}
+                        {% if form.content.errors %}
+                            <ul class="text-red-600 text-sm mt-2 space-y-1">
+                                {% for error in form.content.errors %}
+                                    <li>• {{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+                    Submit Feedback
+                </button>
+            </form>
+            </div>
             {% endfor %}
-
-             <div class="mt-16 max-w-2xl mx-auto bg-white rounded-xl shadow p-8 border border-blue-100">
-            <h3 class="text-2xl font-bold text-blue-800 mb-4">Leave Your Comment</h3>
-            {% for project in projects %}
-    <!-- ...project display code... -->
-
-    <div class="mt-8 max-w-2xl mx-auto bg-white rounded-xl shadow p-8 border border-blue-100">
-        <h3 class="text-2xl font-bold text-blue-800 mb-4">Leave Your Comment</h3>
-    {% if project.comments.all %}
-        <ul class="mb-4">
-            {% for comment in project.comments.all %}
-                <li class="border-b py-2">
-                    <strong>{{ comment.author }}</strong> ({{ comment.created_at|date:"M d, Y H:i" }}):<br>
-                    {{ comment.text }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="text-gray-500 mb-4">No comments yet.</p>
-    {% endif %}
-    <form method="post" action="{% url 'add_comment' project.pk %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-6 rounded-lg shadow transition">Submit Feedback</button>
-    </form>
-{% endfor %}
         </div>
-        </div>
-
-       
     </div>
-  </div>
 </div>
 
 </div>
-
 {% include "footer.html" %}
 {% endblock content %}

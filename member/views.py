@@ -3,15 +3,15 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Comment,PDF, AuditLog, ProgramImpact, ProgressUpdate, Project_Division, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
+from .models import Comment,PDF, AuditLog, Participation, ProgramImpact, ProgressUpdate, Project_Division, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderForm, TestimonialForm
+from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderForm, TestimonialForm, participationForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-
+from django.db.models import Q
 
 def generate_report(request):
     # Fetch data for reports
@@ -262,7 +262,11 @@ def index(request):
     agencies=Project_Division.objects.all().count()
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
     
-
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
              'completedcount':completedcount,
@@ -274,14 +278,16 @@ def index(request):
              'agencies':agencies,
              'projects':projects,
              'people':people,
+             'participants':participants
              }
     return render(request,'index.html',context)
 
+
 @login_required(login_url='login')
 def people(request):
-    pp=User.objects.all()
-    context={'pp':pp}
-    return(request,'users.html',context)
+    pp = User.objects.all().order_by('-date_joined')
+    context = {'pp': pp}
+    return render(request, 'users.html', context)
 
 def sidebar(request):
     return render(request,'sidebar.html')
@@ -347,24 +353,35 @@ def BudgetAnalysis(request):
 def PerfomanceMetrix(request):
     return render(request,'perfomancematrix.html')
 
-@login_required(login_url='login')
-def stalled(request):
-    stalling= Project.objects.filter(project_status='stalled')
-    context= {'stalling':stalling}
-    return render( request,'stalledprojects.html', context)
-
 
 @login_required(login_url='login')
 def stalledstatus(request,pk):
     projects= Project.objects.filter(project_status='stalled', id=pk)
-    context= {'projects':projects}
+    form = participationForm()
+
+    if request.method == 'POST':
+        form = participationForm(request.POST)
+        if form.is_valid():
+            participation = form.save(commit=False)
+            participation.user = request.user
+            participation.project = project
+            participation.save()
+            return redirect('stalled')
+        
+    context= {'projects':projects, 'form':form}
     return render( request,'statuses.html', context)
 
 
 @login_required(login_url='login')
 def completed(request):
     projects= Project.objects.filter(project_status='completed')
-    context= {'projects':projects}
+    q=request.GET.get('q') if request.GET.get('q') is not None else ''
+    project = Project.objects.filter(
+        Q(project_title__icontains=q) |
+        Q(project_description__icontains=q) |
+        Q(project_status__icontains=q) 
+    )
+    context= {'projects':projects, 'project':project}
     return render( request,'completed.html', context) 
 
 @login_required(login_url='login')
@@ -376,7 +393,18 @@ def delayed(request):
 @login_required(login_url='login')
 def delayedstatus(request,pk):
     projects= Project.objects.filter(project_status='delayed', id=pk)
-    context= {'projects':projects}
+    form = participationForm()
+
+    if request.method == 'POST':
+        form = participationForm(request.POST)
+        if form.is_valid():
+            participation = form.save(commit=False)
+            participation.user = request.user
+            participation.project = projects[0]  # Assuming only one project is returned
+            participation.save()
+            return redirect('delayed')
+
+    context= {'projects':projects, 'form':form}
     return render( request,'statuses.html', context)
 
 
@@ -437,7 +465,17 @@ def teams_details(request,pk):
 @login_required(login_url='login')
 def project_overview(request):
     projects= Project.objects.all()
-    context= {'projects':projects,}
+    q=request.GET.get('q') if request.GET.get('q') is not None else ''
+    projects = Project.objects.filter(
+        Q(project_title__icontains=q) |
+        Q(project_description__icontains=q) |
+        Q(project_status__icontains=q) |
+        Q(division__name__icontains=q)|
+        Q(implementing_agency__icontains=q)
+    )
+    
+    
+    context= {'projects':projects}
     return render( request,'overview.html', context)  
 
 @login_required(login_url='login')
@@ -455,14 +493,25 @@ def project_details(request,pk):
 @login_required(login_url='login')
 def ongoing(request):
     projects= Project.objects.filter(project_status='ongoing')
-   
-    context= {'projects':projects }
+    q=request.GET.get('q') if request.GET.get('q') is not None else ''
+    project = Project.objects.filter(
+        Q(project_title__icontains=q) |
+        Q(project_description__icontains=q) |
+        Q(project_status__icontains=q) 
+    )
+    context= {'projects':projects, 'project':project}
     return render( request,'ongoing.html', context) 
 
 @login_required(login_url='login')
 def upcoming(request):
     projects= Project.objects.filter(project_status='upcoming')
-    context= {'projects':projects}
+    q=request.GET.get('q') if request.GET.get('q') is not None else ''
+    project = Project.objects.filter(
+        Q(project_title__icontains=q) |
+        Q(project_description__icontains=q) |
+        Q(project_status__icontains=q) 
+    )
+    context= {'projects':projects, 'project':project}
     return render( request,'upcoming.html', context) 
 
 @login_required(login_url='login')
@@ -474,13 +523,35 @@ def project(request):
 @login_required(login_url='login')
 def UpcomingStatuses(request,pk):
     projects= Project.objects.filter(project_status='upcoming', id=pk)
-    context= {'projects':projects}
+    Participants=Participation.objects.filter(user=request.user)
+    form = participationForm()
+
+    if request.method == 'POST':
+        form = participationForm(request.POST)
+        if form.is_valid():
+            participation = form.save(commit=False)
+            participation.user = request.user
+            participation.project = projects[0] 
+            participation.save()
+            return redirect('upcoming')
+    context= {'projects':projects, 'Participants':Participants, 'form':form}
     return render( request,'statuses.html', context) 
 
 @login_required(login_url='login')
 def CompletedStatuses(request,pk):
     projects= Project.objects.filter(project_status='completed',id=pk)
-    context= {'projects':projects}
+    Participants=Participation.objects.filter(user=request.user)
+    form = participationForm()
+
+    if request.method == 'POST':
+        form = participationForm(request.POST)
+        if form.is_valid():
+            participation = form.save(commit=False)
+            participation.user = request.user
+            participation.project = projects[0]  # Assuming only one project is returned
+            participation.save()
+            return redirect('completed')
+    context= {'projects':projects, 'Participants':Participants, 'form':form}
     return render( request,'statuses.html', context) 
 
 
@@ -488,7 +559,18 @@ def CompletedStatuses(request,pk):
 @login_required(login_url='login')
 def OngoingStatuses(request,pk):
     projects= Project.objects.filter(project_status='ongoing',id=pk)
-    context= {'projects':projects}
+    Participants=Participation.objects.filter(user=request.user)
+    form = participationForm()
+
+    if request.method == 'POST':
+        form = participationForm(request.POST)
+        if form.is_valid():
+            participation = form.save(commit=False)
+            participation.user = request.user
+            participation.project = projects[0]  # Assuming only one project is returned
+            participation.save()
+            return redirect('ongoing')
+    context= {'projects':projects, 'Participants':Participants, 'form':form}
     return render( request,'statuses.html', context) 
   
 @login_required(login_url='login')
