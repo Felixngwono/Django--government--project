@@ -96,7 +96,7 @@ class ProgressReportForm(forms.ModelForm):
 class TenderForm(forms.ModelForm):
     class Meta:
         model = Tender
-        fields = ['title', 'description', 'document']
+        fields = ['project','reference_number', 'description', 'document', 'estimated_budget', 'opening_date', 'closing_date', 'eligibility_criteria', 'evaluation_criteria', 'procurement_method']
 
 class ReportIssueForm(forms.ModelForm):
     class Meta:

@@ -12,9 +12,11 @@
   <style>
     .slide { display: none; }
     .slide.active { display: block; }
+  body {
+  font-size: 14px;
+  }
   </style>
 </head>
-<body class="bg-[url('/static/images/bgh.avif')] bg-cover bg-center text-gray-800">
 
 <!-- Header -->
 <header>
@@ -47,11 +49,8 @@
       </div>
     </div>
   </nav>
-</header>
-<div class="bg-red-400 text-white shadow-md py-10 relative">
+</header> 
  
- 
-  <div class="relative z-10">
 <section class='bg-red-400 text-white shadow-md py-10'>
   <div class="px-6 flex flex-wrap gap-10 text-lg font-medium relative z-10">
     
@@ -140,12 +139,12 @@
 
 <br>
 <!-- Key Government Agenda Section -->
-<section class="bg-white-100 py-12 px-6">
+<section class="bg-white-100 py-6 px-4">
   <div>
     <h2 class="text-3xl font-bold text-white-800 mb-6 text-center">Key Government Agenda</h2>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-        <img src="{% static 'images/educ.jpg' %}" alt="Universal Education" class="w-30 h-30 mb-4" />
+        <img src="{% static 'images/educ.jpg' %}" alt="Universal Education" class="w-21 h-21 mb-4" />
         <h3 class="text-xl font-semibold mb-2 text-gray-800">Universal Education</h3>
         <p class="text-gray-600 text-center">Ensuring access to quality education for all children and youth across Kenya.</p>
        <a href="https://education.go.ke/" class="mt-5 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition duration-200 group">
@@ -154,7 +153,7 @@
         </a>
       </div>
       <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-        <img src="{% static 'images/nhif.jpg' %}" alt="Affordable Healthcare" class="w-30 h-30 mb-4" />
+        <img src="{% static 'images/nhif.jpg' %}" alt="Affordable Healthcare" class="w-21 h-21 mb-4" />
         <h3 class="text-xl font-semibold mb-2 text-gray-800">Affordable Healthcare</h3>
         <p class="text-gray-600 text-center">Expanding healthcare coverage and improving health facilities nationwide.</p>
         <a href="https://health.go.ke/" class="mt-5 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition duration-200 group">
@@ -163,7 +162,7 @@
         </a>
       </div>
       <div class="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-        <img src="{% static 'images/tran.webp' %}" alt="Infrastructure Development" class="w-30 h-30 mb-4" />
+        <img src="{% static 'images/tran.webp' %}" alt="Infrastructure Development" class="w-21 h-21" />
         <h3 class="text-xl font-semibold mb-2 text-gray-800">Infrastructure Development</h3>
         <p class="text-gray-600 text-center">Investing in roads, housing, and energy to boost economic growth and connectivity.</p>
         <a href="https://www.transport.go.ke/" class="mt-5 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-full font-semibold shadow hover:bg-green-700 transition duration-200 group">
@@ -177,8 +176,8 @@
   </div>
 </section>
 <!-- Hero Slideshow Section with Enhanced Live-like Image Styles -->
-<section class="relative h-[65vh] md:h-[75vh] overflow-hidden">
-  <div class="absolute top-0 left-0 w-full h-full z-0">
+<section class="w-full relative h-[35vh] sm:h-[40vh] md:h-[50vh] flex items-center justify-center bg-gray-900">
+    <div class="absolute top-0 left-0 w-full h-full z-0">
     <div class="slide active absolute inset-0 transition-all duration-1000" data-direction="left">
       <img src="{% static 'images/buore.jpg' %}" class="w-full h-full object-cover object-center brightness-90 rounded-xl shadow-2xl border-8 border-white" alt="Slide 1">
       <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 px-4 rounded-xl">
@@ -428,7 +427,7 @@
 </script>
 
 <!-- About -->
-<section id="about" class="bg-white py-20 px-6" style="background-image: url('{% static 'images/bg.jpg' %}'); background-attachment: fixed; background-repeat: no-repeat; background-size: cover;">
+<section id="about" class="bg-white py-15 px-4" style="background-image: url('{% static 'images/bng.jpg' %}'); background-attachment: fixed; background-repeat: no-repeat; background-size: cover;">
   <div class="grid md:grid-cols-2 gap-12">
     <!-- Left: Image -->
     <div>
@@ -504,101 +503,112 @@
 <br>
 
 <!-- Impact -->
-<div class="relative bg-gradient-to-r from-green-200 via-green-100 to-green-300 py-20 px-6"
-     style="background-image: url('{% static 'images/impact-bg.jpg' %}'); background-repeat: no-repeat; background-attachment: fixed; background-size: cover; background-position: right top;">
-  <div class="bg-opacity-80 rounded-3xl shadow-lg p-10 md:p-16 max-w-6xl mx-auto" style="backdrop-filter: blur(2px);">
-  <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-white-800 text-center tracking-tight drop-shadow-lg">
-    Our Impact
-  </h2>
-  <div class="grid grid-cols-1 sm:grid-cols-2 w-full md:grid-cols-4 gap-10">
-    <!-- Projects Monitored -->
-    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-400">
-    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4 shadow">
-      <i class="fas fa-tasks text-green-600 text-3xl"></i>
+<section class="w-full bg-green-600 text-white py-16 px-4 sm:px-8 md:px-16">
+
+    <h2 class="text-2xl sm:text-3xl font-bold text-center mb-10">
+        Our Impact
+    </h2>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+
+        <div>
+            <div class="text-3xl font-bold">120+</div>
+            <div class="text-sm">Projects Monitored</div>
+        </div>
+
+        <div>
+            <div class="text-3xl font-bold">47</div>
+            <div class="text-sm">Counties Covered</div>
+        </div>
+
+        <div>
+            <div class="text-3xl font-bold">5K+</div>
+            <div class="text-sm">Citizens Engaged</div>
+        </div>
+
+        <div>
+            <div class="text-3xl font-bold">98%</div>
+            <div class="text-sm">Accuracy</div>
+        </div>
+
     </div>
-    <span class="text-4xl font-bold text-green-700 mb-2">+120</span>
-    <span class="text-gray-700 font-medium text-lg">Projects Monitored</span>
-    </div>
-    <!-- Counties Covered -->
-    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-blue-400">
-    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4 shadow">
-      <i class="fas fa-map-marked-alt text-blue-600 text-3xl"></i>
-    </div>
-    <span class="text-4xl font-bold text-blue-700 mb-2">47</span>
-    <span class="text-gray-700 font-medium text-lg">Counties Covered</span>
-    </div>
-    <!-- Citizens Engaged -->
-    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-yellow-400">
-    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4 shadow">
-      <i class="fas fa-users text-yellow-600 text-3xl"></i>
-    </div>
-    <span class="text-4xl font-bold text-yellow-700 mb-2">+5K</span>
-    <span class="text-gray-700 font-medium text-lg">Citizens Engaged</span>
-    </div>
-    <!-- Feedback Accuracy -->
-    <div class="bg-white bg-opacity-80 rounded-2xl shadow-xl p-8 flex flex-col items-center hover:scale-105 hover:shadow-2xl transition-transform duration-300 border-t-8 border-green-600">
-    <div class="flex items-center justify-center w-16 h-16 rounded-full bg-green-200 mb-4 shadow">
-      <i class="fas fa-check-circle text-green-700 text-3xl"></i>
-    </div>
-    <span class="text-4xl font-bold text-green-800 mb-2">98%</span>
-    <span class="text-gray-700 font-medium text-lg">Feedback Accuracy</span>
-    </div>
-  </div>
-  </div>
-</div>
+
+</section>
 
 <!-- Team -->
-  <section class="bg-gradient-to-r from-blue-200 via-blue-100 to-green-100 py-20 px-6"
-       style="background-image: url('{% static 'images/team.jpg' %}'); background-attachment: fixed; background-repeat: no-repeat; background-size: cover; background-position: center;">
-    <div class="  rounded-3xl shadow-lg p-10 md:p-16 max-w-7xl mx-auto">
-    <h2 class="text-4xl md:text-5xl font-extrabold mb-14 text-white-800 text-center tracking-tight drop-shadow-lg">
-      Meet Our Team
-    </h2>
-    <div class="grid gap-8 md:grid-cols-3 ">
-      <!-- Team Member 1 -->
-      <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center group hover:scale-105 transition-transform duration-300 border-t-8 border-green-400">
-        <div class="relative mb-5">
-          <img src="{% static 'images/nicky.jpg' %}" alt="Nicole Atieno" class="w-36 h-36 rounded-full object-cover border-4 border-green-200 shadow-lg group-hover:border-blue-400 transition">
-          <span class="absolute bottom-2 right-2 bg-green-500 text-white text-xs px-3 py-1 rounded-full shadow">CEO</span>
+  <section class="relative w-full min-h-48 flex items-center justify-center bg-gradient-to-r from-blue-200 via-blue-100 to-green-100"
+         style="background-image: url('{% static 'images/team.jpg' %}');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;">
+
+    <!-- Dark overlay for readability -->
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+
+    <div class="relative w-full max-w-7xl px-4 sm:px-6 md:px-12 py-12">
+
+        <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-10 text-white text-center drop-shadow-lg">
+            Meet Our Team
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+            <!-- Team Member 1 -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 flex flex-col items-center text-center hover:scale-105 transition duration-300 border-t-4 border-green-400">
+
+                <div class="relative mb-4">
+                    <img src="{% static 'images/nicky.jpg' %}" alt="Nicole Atieno" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-green-200 shadow-lg"><span class="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-full"> CEO</span>
+                </div>
+
+                <h3 class="text-lg sm:text-xl font-bold text-gray-800">Nicole Atieno</h3>
+                <p class="text-green-600 text-sm mb-2">Chief Executive Officer</p>
+                <p class="text-gray-500 text-sm">
+                    Visionary leader driving innovation and strategic growth.
+                </p>
+            </div>
+
+            <!-- Team Member 2 -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 flex flex-col items-center text-center hover:scale-105 transition duration-300 border-t-4 border-blue-400">
+
+                <div class="relative mb-4">
+                    <img src="{% static 'images/frank.jpg' %}"
+                         alt="Francis Odhiambo"
+                         class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-blue-200 shadow-lg">
+                    <span class="absolute bottom-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                        CTO
+                    </span>
+                </div>
+
+                <h3 class="text-lg sm:text-xl font-bold text-gray-800">Francis Odhiambo</h3>
+                <p class="text-blue-600 text-sm mb-2">Chief Technology Officer</p>
+                <p class="text-gray-500 text-sm">
+                    Architect of robust digital solutions and strategy.
+                </p>
+            </div>
+
+            <!-- Team Member 3 -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 flex flex-col items-center text-center hover:scale-105 transition duration-300 border-t-4 border-yellow-400">
+
+                <div class="relative mb-4">
+                    <img src="{% static 'images/marley.jpg' %}"
+                         alt="Felix Odhiambo"
+                         class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-yellow-200 shadow-lg">
+                    <span class="absolute bottom-0 right-0 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                        Analyst
+                    </span>
+                </div>
+
+                <h3 class="text-lg sm:text-xl font-bold text-gray-800">Felix Odhiambo</h3>
+                <p class="text-yellow-600 text-sm mb-2">Project Analyst</p>
+                <p class="text-gray-500 text-sm">
+                    Ensures data accuracy and transparency in project analysis.
+                </p>
+            </div>
+
         </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1">Nicole Atieno</h3>
-        <p class="text-green-600 font-medium mb-3">Chief Executive Officer</p>
-        <p class="text-gray-500 text-center text-sm">Visionary leader driving innovation and strategic growth for GovTracker.</p>
-        <div class="flex space-x-3 mt-4">
-          <a href="#" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin text-xl"></i></a>
-          <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-twitter text-xl"></i></a>
-        </div>
-      </div>
-      <!-- Team Member 2 -->
-      <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center group hover:scale-105 transition-transform duration-300 border-t-8 border-blue-400">
-        <div class="relative mb-5">
-          <img src="{% static 'images/frank.jpg' %}" alt="Francis Odhiambo" class="w-36 h-36 rounded-full object-cover border-4 border-blue-200 shadow-lg group-hover:border-green-400 transition">
-          <span class="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-3 py-1 rounded-full shadow">CTO</span>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1">Francis Odhiambo</h3>
-        <p class="text-blue-600 font-medium mb-3">Chief Technology Officer</p>
-        <p class="text-gray-500 text-center text-sm">Architect of robust digital solutions and technology strategy for the platform.</p>
-        <div class="flex space-x-3 mt-4">
-          <a href="#" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin text-xl"></i></a>
-          <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-github text-xl"></i></a>
-        </div>
-      </div>
-      <!-- Team Member 3 -->
-      <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center group hover:scale-105 transition-transform duration-300 border-t-8 border-yellow-400">
-        <div class="relative mb-5">
-          <img src="{% static 'images/marley.jpg' %}" alt="Felix Odhiambo" class="w-36 h-36 rounded-full object-cover border-4 border-yellow-200 shadow-lg group-hover:border-green-400 transition">
-          <span class="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-3 py-1 rounded-full shadow">Analyst</span>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-1">Felix Odhiambo</h3>
-        <p class="text-yellow-600 font-medium mb-3">Project Analyst</p>
-        <p class="text-gray-500 text-center text-sm">Ensures data accuracy and insightful project analysis for transparency.</p>
-        <div class="flex space-x-3 mt-4">
-          <a href="#" class="text-blue-600 hover:text-blue-800"><i class="fab fa-linkedin text-xl"></i></a>
-          <a href="#" class="text-gray-500 hover:text-gray-700"><i class="fab fa-twitter text-xl"></i></a>
-        </div>
-      </div>
+
     </div>
-  </section>
+</section>
   
 <section class="bg-gray-50 py-20 px-6">
    <div class="max-w-6xl mx-auto">
@@ -606,7 +616,7 @@
         Our Testimonials
       </h2>
 
-  <div class="max-w-6xl mx-auto">
+  <div class="max-w-screen ">
     <div class="grid md:grid-cols-3 gap-8">
       <!-- Testimonial 1 -->
        {% for x in testimonials %}

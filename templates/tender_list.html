@@ -4,52 +4,131 @@
 {% block content %}
 {% include "sidebar.html" %}
 
-<div class="container mx-auto px-4 py-6">
-    <h1 class="text-2xl font-semibold text-gray-800">Available Tenders</h1>
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
 
-    <!-- Add Tender Button -->
-    <div class="my-4">
-        <a href="{% url 'add_tender' %}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            + Add Tender
-        </a>
+<div class="proj_container flex">
+
+    <div class="">
+
+        <div class="container mx-auto">
+
+            <!-- Page Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Available Tenders</h1>
+
+
+                <a href="{% url 'add_tender' %}"
+                   class="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-300">
+                    + Add Tender
+                </a>
+            </div>
+            <div class="mb-6">
+                <p class="text-gray-600">
+                    Browse and manage all available tenders. Click "Add Tender" to create a new one.
+                </p>
+            </div>
+
+
+            <!-- Tender Table Card -->
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+
+                        <thead class="bg-gray-800 text-white text-sm uppercase">
+                            <tr>
+                                <th class="py-3 px-4 text-left">Project</th>
+                                <th class="py-3 px-4 text-left">Reference</th>
+                                <th class="py-3 px-4 text-left">Opening</th>
+                                <th class="py-3 px-4 text-left">Closing</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-center">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="text-gray-700 text-sm">
+
+                            {% for tender in tenders %}
+                            <tr class="border-b hover:bg-gray-50 transition">
+
+                               
+
+                                <td class="py-3 px-4">
+                                    {{ tender.project }}
+                                </td>
+
+                                <td class="py-3 px-4">
+                                    {{ tender.reference_number }}
+                                </td>
+
+                                <td class="py-3 px-4">
+                                    {{ tender.opening_date }}
+                                </td>
+
+                                <td class="py-3 px-4">
+                                    {{ tender.closing_date }}
+                                </td>
+
+                                <!-- Status Badge -->
+                                <td class="py-3 px-4 text-center">
+                                    {% if tender.closing_date >= today %}
+                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                                            Open
+                                        </span>
+                                    {% else %}
+                                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
+                                            Closed
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Action Buttons -->
+                                <td class="py-3 px-4">
+                                    <div class="flex justify-center gap-3 text-sm font-medium">
+
+                                        <a href="{% url 'tender_detail' tender.id %}"
+                                           class="text-blue-600 hover:text-blue-800">
+                                            View
+                                        </a>
+
+                                        <a href="{% url 'update_tender' tender.id %}"
+                                           class="text-green-600 hover:text-green-800">
+                                            Edit
+                                        </a>
+
+                                        <a href="{% url 'delete_tender' tender.id %}"
+                                           onclick="return confirm('Are you sure you want to delete this tender?')"
+                                           class="text-red-600 hover:text-red-800">
+                                            Delete
+                                        </a>
+
+                                    </div>
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-10">
+                                    <div class="text-gray-500">
+                                        <p class="text-lg font-semibold">No Tenders Available</p>
+                                        <p class="text-sm mt-2">Click "Add Tender" to create one.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <div class="mt-4">
-        <table class="min-w-full bg-white border border-gray-300">
-            <thead>
-                <tr class="bg-gray-800 text-white">
-                    <th class="py-2 px-4 border">Title</th>
-                    <th class="py-2 px-4 border">project</th>
-                    <th class="py-2 px-4 border">Description</th>
-                    <th class="py-2 px-4 border">Opening Date</th>
-                    <th class="py-2 px-4 border">Closing Date</th>
-                    <th class="py-2 px-4 border">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for tender in tenders %}
-                <tr class="border text-gray-700">
-                    <td class="py-2 px-4 border">{{ tender.title }}</td>
-                    <td class="py-2 px-4 border">{{ tender.project }}</td>
-                    <td class="py-2 px-4 border">{{ tender.description }}</td>
-                    <td class="py-2 px-4 border">{{ tender.opening_date }}</td>
-                    <td class="py-2 px-4 border">{{ tender.closing_date }}</td>
-                    <td class="py-2 px-4 border flex gap-2">
-                        <a href="{% url 'tender_detail' tender.id %}" class="text-blue-500 hover:underline">View</a>
-                        <a href="{% url 'update_tender' tender.id %}" class="text-green-500 hover:underline">Edit</a>
-                        <a href="{% url 'delete_tender' tender.id %}" class="text-red-500 hover:underline">Delete</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-4">No tenders available</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% include "recent_activities.html" %}
     </div>
 </div>
-</div>
-</div>
+
 {% include "footer.html" %}
 {% endblock %}

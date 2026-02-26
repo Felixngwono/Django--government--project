@@ -1,0 +1,130 @@
+{% extends "header.html" %}
+{% block content %}
+{% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
+
+<div class="proj_container">
+    <div >
+
+<div class="max-w-7xl mx-auto space-y-10">
+
+    <!-- ================= HEADER ================= -->
+    <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-200">
+        <h1 class="text-3xl font-bold text-gray-900">
+            Participation Details
+        </h1>
+        <p class="text-gray-500 mt-2">
+            Manage and monitor project participation activity.
+        </p>
+    </div>
+
+    <!-- ================= MESSAGES ================= -->
+    {% if messages %}
+    <div class="space-y-4">
+        {% for message in messages %}
+        <div class="flex justify-between items-center bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl shadow-sm">
+            <span class="font-medium">{{ message }}</span>
+            <button onclick="this.parentElement.remove()" class="hover:text-green-900">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    
+
+    <!-- ================= PARTICIPATION TABLE ================= -->
+    <div class="bg-blue rounded-2xl shadow-md overflow-hidden border">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm bg-blue">
+                <thead class="bg-gray-900 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">User</th>
+                        <th class="px-4 py-3 text-left">Project</th>
+                        <th class="px-4 py-3 text-left">Budget</th>
+                        <th class="px-4 py-3 text-left">Progress</th>
+                        <th class="px-4 py-3 text-left">Status</th>
+                        <th class="px-4 py-3 text-left">Joined</th>
+                        <th class="px-4 py-3 text-left">Active</th>
+                        <th class="px-4 py-3 text-left">Content</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-4 flex items-center gap-3">
+                            <img src="{{ participation.user.profile.url }}"
+                                 class="w-10 h-10 rounded-full object-cover">
+                            {{ participation.user.name }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                          <img src="{{ participation.project.images.url }}" class="w-14 h-14 rounded-lg object-cover border"> <span class="font-medium text-gray-700"> {{ participation.project.project_title }} </span>
+                        </td>
+
+                        <td class="px-4 py-4">
+                            {{ participation.project.project_Budgeting }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-indigo-600 h-2 rounded-full"
+                                     style="width: {{ participation.project.progress_update }}%;">
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-500">
+                                {{ participation.project.progress_update }}%
+                            </span>
+                        </td>
+
+                        <td class="px-4 py-4">
+                            {{ participation.project.project_status }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            {{ participation.joined_at|date:"M d, Y" }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            {{ participation.is_active|yesno:"Active,Inactive" }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <textarea name="content"
+                                          class="w-full border rounded-lg p-2 text-xs"
+                                          rows="2">{{ participation.content }}</textarea>
+                                <button type="submit"
+                                        class="mt-2 bg-indigo-600 text-white px-3 py-1 rounded-md text-xs hover:bg-indigo-700">
+                                    Update
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+   
+
+   
+
+    <!-- ================= BACK BUTTON ================= -->
+    <div class="flex justify-end">
+        <a href="{% url 'project' %}"
+           class="px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition shadow-md">
+            ← Back to Projects
+        </a>
+    </div>
+</div>
+</div >
+{% include "recent_activities.html" %} 
+</div>
+</div>
+
+{% include "footer.html" %}
+{% endblock content %}

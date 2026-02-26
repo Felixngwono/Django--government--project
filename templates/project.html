@@ -2,29 +2,61 @@
 {% block content %}
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
+{% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
 
+<div class='proj_container'>
+<div >
+    
 
-    <!-- Page Title -->
-    <div class="mb-6">
-        <p class="text-lg font-semibold bg-white p-4 rounded-lg shadow border border-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700">
-            List of Projects
-        </p>
-    </div>
-
-    <!-- Status Buttons -->
-    <div class="mb-8">
-        <div class="flex flex-wrap gap-3">
-            <a href="{% url 'ongoing' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Ongoing</a>
-            <a href="{% url 'upcoming' %}" class="bg-gray-800 hover:bg-gray-900 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Upcoming</a>
-            <a href="{% url 'completed' %}" class="bg-purple-700 hover:bg-purple-800 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Completed</a>
-            <a href="{% url 'delayed' %}" class="bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Delayed</a>
-            <a href="{% url 'stalled' %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium text-sm px-5 py-2.5 rounded-full transition">Stalled</a>
+     <!-- Page Header -->
+    <div class="px-8 pt-6">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-xl p-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    Government Project Dashboard
+                </h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Monitor, track, and review all public sector projects in real-time.
+                </p>
+            </div>
+            {% for project in projects %}
+            <div class="text-sm text-gray-500">
+                Last updated: {{ project.end_date|timesince }} ago
+            </div>
+            {% endfor %}
         </div>
     </div>
 
+    <!-- Status Filter Buttons -->
+    <div class="px-8 mt-6">
+        <div class="flex flex-wrap gap-3">
+
+            <a href="{% url 'ongoing' %}"
+               class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-full shadow transition">
+               🔵 Ongoing
+            </a>
+
+            <a href="{% url 'upcoming' %}"
+               class="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium px-5 py-2.5 rounded-full shadow transition">
+               🟡 Upcoming
+            </a>
+
+            <a href="{% url 'completed' %}"
+               class="flex items-center gap-2 bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-5 py-2.5 rounded-full shadow transition">
+               🟣 Completed
+            </a>
+
+            <a href="{% url 'delayed' %}"
+               class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-5 py-2.5 rounded-full shadow transition">
+               🔴 Delayed
+            </a>
+ </div>
+    </div>
+
     <!-- Hero Section -->
-    <section class="relative bg-cover bg-center bg-no-repeat bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/conference.jpg')] bg-gray-700 bg-blend-multiply rounded-lg shadow-lg overflow-hidden">
-        <div class="px-6 py-20 text-center text-white max-w-4xl mx-auto">
+    <section class="relative bg-cover  bg-center bg-no-repeat bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/conference.jpg')] bg-gray-700 bg-blend-multiply rounded-lg shadow-lg overflow-hidden">
+        <div class="px-80 py-80 text-center text-white ">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-6">Government Tracking Records</h1>
             <p class="text-lg md:text-xl text-gray-300">
                 On this platform, we ensure <span class="font-semibold text-white">accountability</span>,
@@ -33,7 +65,8 @@
             </p>
         </div>
     </section>
-
+</div>
+{% include "recent_activities.html" %}
 </div>
 </div>
 

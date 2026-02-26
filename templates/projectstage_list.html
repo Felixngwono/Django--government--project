@@ -2,27 +2,124 @@
 
 {% block content %}
 {% include "sidebar.html" %}
+{% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
 
-    <h2 class="text-2xl font-semibold mb-4">Project Stages</h2>
-    {% if request.user.is_superuser %}
-    <a href="{% url 'projectstage_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg mb-6">Add Stage</a>
-    {% endif %}
-    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
-        <ul class="divide-y divide-gray-300">
-            {% for stage in stages %}
-            <li class="py-3">
-                <a href="{% url 'projectstage_detail' stage.pk %}" class="text-blue-600 hover:underline font-medium">
-                    {{ stage.project.project_title }} - {{ stage.get_stage_name_display }}
-                </a>
-            </li>
-            {% empty %}
-            <li class="py-3 text-gray-500">No project stages available.</li>
-            {% endfor %}
-        </ul>
+<div class="proj_container">
+    <div >
+        <div class="flex-1 p-8 bg-gray-50 min-h-screen">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Project Stages</h2>
+            <p class="text-gray-500 mt-1">Track progress and manage project development stages</p>
+        </div>
+
+        {% if request.user.is_superuser %}
+        <a href="{% url 'projectstage_create' %}" 
+           class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-lg shadow transition duration-200">
+           + Add New Stage
+        </a>
+        {% endif %}
     </div>
+
+    <div class="bg-white shadow-xl rounded-2xl p-8 w-full border border-gray-100">
+
+    {% if stages %}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+
+        {% for stage in stages %}
+        <a href="{% url 'projectstage_detail' stage.pk %}" 
+           class="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+
+            <!-- Project Image -->
+            <div class="relative w-full h-52 overflow-hidden">
+                {% if stage.project.images %}
+                    <img src="{{ stage.project.images.url }}" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                {% else %}
+                    <img src="{% static 'images/default_project.jpg' %}" 
+                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                {% endif %}
+
+                <!-- Project Status Badge -->
+                <div class="absolute top-3 right-3 bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow">
+                    {{ stage.project.project_status }}
+                </div>
+            </div>
+
+            <div class="p-6">
+
+                <!-- Title & Stage Badge -->
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition">
+                        {{ stage.project.project_title }}
+                    </h3>
+
+                    <span class="text-xs font-medium px-3 py-1 rounded-full
+                        {% if stage.progress_percentage == 100 %}
+                            bg-green-100 text-green-700
+                        {% elif stage.progress_percentage > 50 %}
+                            bg-yellow-100 text-yellow-700
+                        {% else %}
+                            bg-red-100 text-red-700
+                        {% endif %}">
+                        {{ stage.get_stage_name_display }}
+                    </span>
+                </div>
+
+                <!-- Description -->
+                <p class="text-gray-500 text-sm leading-relaxed mb-4">
+                    {{ stage.description|truncatewords:20 }}
+                </p>
+
+                <!-- Progress -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Progress</span>
+                        <span class="font-semibold text-gray-700">
+                            {{ stage.progress_percentage }}%
+                        </span>
+                    </div>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                             style="width: {{ stage.progress_percentage }}%">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="flex justify-between text-xs text-gray-400 border-t pt-3">
+                    <span>Start: {{ stage.start_date|date:"M d, Y" }}</span>
+                    <span>End: {{ stage.end_date|date:"M d, Y" }}</span>
+                </div>
+
+            </div>
+        </a>
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+    <div class="text-center py-16">
+        <div class="text-gray-400 text-lg mb-3">
+            📂 No project stages available
+        </div>
+        {% if request.user.is_superuser %}
+        <a href="{% url 'projectstage_create' %}" 
+           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-md transition">
+           Create First Stage
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
 </div>
-
-
+</div>
+{% include "recent_activities.html" %} 
+</div>
+</div>
+</div>
 {% include "footer.html" %}
 {% endblock %}

@@ -4,37 +4,63 @@
 {% load widget_tweaks %}
 
 <link href="{% static 'css/feedback.css' %}">
+<link rel="stylesheet" href="{% static 'css/pro_overview.css' %}">
 <script src="https://cdn.tailwindcss.com"></script>
 {% include "sidebar.html" %}
+<div class='proj_container'>
+    <div>
+  <div class="relative min-h-screen flex items-center justify-center">
 
-  <div class="flex w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden">
-    <!-- Image Section -->
-    <div class="hidden md:block md:w-1/2 bg-cover bg-center" style="background-image: url({% static 'images/feedbaack.jpeg' %});"></div>
-    <!-- Form Section -->
-    <div class="w-full md:w-1/2 p-8 flex flex-col justify-center" style="background-color: #e6ffe6;">
-      <h2 class="mb-6 text-2xl font-bold text-gray-800 text-center">Feedback Form</h2>
-      <form method="POST" action="" class="space-y-5">
-        {% csrf_token %}
-        <div>
-          <label for="full_name" class="block mb-1 text-sm font-medium text-gray-700">Full Name</label>
-          {% render_field form.full_name class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5" placeholder="Enter Full Name" required="" %}
-        </div>
-        <div>
-          <label for="email" class="block mb-1 text-sm font-medium text-gray-700">Email</label>
-          {% render_field form.email class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5" placeholder="Enter Email" required="" %}
-        </div>
-        <div>
-          <label for="phone_number" class="block mb-1 text-sm font-medium text-gray-700">Phone Number</label>
-          {% render_field form.phone_number class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5" placeholder="Enter Phone Number" required="" %}
-        </div>
-        <div>
-          <label for="feedback" class="block mb-1 text-sm font-medium text-gray-700">Feedback</label>
-          {% render_field form.feedback class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5" placeholder="Enter feedback" required="" %}
-        </div>
-        <button type="submit" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-semibold rounded-lg text-base px-5 py-2.5 transition">Submit Feedback</button>
-      </form>
+  <!-- Background Image -->
+  <div class="absolute inset-0 -z-10">
+    <div class="w-full h-full bg-cover bg-center"
+         style="background-image: url('{% static "images/feedback.jpg" %}');">
     </div>
+    <!-- Optional Dark Overlay -->
+    <div class="absolute inset-0 bg-black/50"></div>
   </div>
+
+  <!-- Form Card -->
+  <div class="w-full max-w-xl bg-white/90 backdrop-blur-md rounded-xl shadow-2xl p-10">
+    
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+      Feedback Form
+    </h2>
+
+    <form method="POST" class="space-y-6">
+      {% csrf_token %}
+
+      <div>
+        <label class="block mb-2 text-sm font-medium text-gray-700">Full Name</label>
+        {% render_field form.full_name class="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" %}
+      </div>
+
+      <div>
+        <label class="block mb-2 text-sm font-medium text-gray-700">Email</label>
+        {% render_field form.email class="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" %}
+      </div>
+
+      <div>
+        <label class="block mb-2 text-sm font-medium text-gray-700">Phone Number</label>
+        {% render_field form.phone_number class="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" %}
+      </div>
+
+      <div>
+        <label class="block mb-2 text-sm font-medium text-gray-700">Feedback</label>
+        {% render_field form.feedback class="w-full rounded-lg border border-gray-300 p-3 h-28 resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" %}
+      </div>
+
+      <button type="submit"
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition duration-300">
+        Submit Feedback
+      </button>
+
+    </form>
+  </div>
+
+</div>
+  </div>
+  {% include "recent_activities.html" %}
 </div>
 </div>
 

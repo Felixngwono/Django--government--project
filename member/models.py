@@ -288,16 +288,75 @@ class ProgressReport(models.Model):
         return f"Report: {self.report_title} - {self.project.project_title}"
 
 class Tender(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tenders',null=True)
-    title = models.CharField(max_length=255,null=True)
-    description = models.TextField(null=True)
-    opening_date = models.DateField(null=True)
-    closing_date = models.DateField(null=True)
+
+    PROCUREMENT_METHODS = [
+        ('open', 'Open Tender'),
+        ('restricted', 'Restricted Tender'),
+        ('rfq', 'Request for Quotation'),
+        ('direct', 'Direct Procurement'),
+    ]
+
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+        ('closed', 'Closed'),
+        ('evaluating', 'Evaluating'),
+        ('awarded', 'Awarded'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tenders',null=True, blank=True)
+    reference_number = models.CharField(max_length=100, unique=True, null=True, blank=True, default=None)
+
+    description = models.TextField(null=True, blank=True)
+
+    procurement_method = models.CharField(max_length=20, choices=PROCUREMENT_METHODS, default='open')
+
+    estimated_budget = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+
+    opening_date = models.DateField(default=None, null=True, blank=True)
+    closing_date = models.DateField(default=None, null=True, blank=True)
+
+    eligibility_criteria = models.TextField(null=True, blank=True)
+    evaluation_criteria = models.TextField(null=True, blank=True)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+
     document = models.FileField(upload_to='tenders/', null=True, blank=True)
+
+    created_by = models.ForeignKey(User, null=True, related_name='created_tenders', blank=True,on_delete=models.SET_NULL, default=None)
+
+    is_published = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)
+
     def __str__(self):
-        return f"Tender: {self.title} for {self.project.project_title}"
+        return f"{self.reference_number} - {self.title}"
+    
+class TenderApplication(models.Model):
 
+    STATUS = [
+        ('submitted', 'Submitted'),
+        ('under_review', 'Under Review'),
+        ('qualified', 'Qualified'),
+        ('rejected', 'Rejected'),
+        ('awarded', 'Awarded'),
+    ]
 
+    tender = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name='applications')
+    contractor = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'contractor'})
+
+    technical_proposal = models.FileField(upload_to='tender_applications/technical/')
+    financial_proposal = models.FileField(upload_to='tender_applications/financial/')
+
+    bid_amount = models.DecimalField(max_digits=15, decimal_places=2)
+
+    status = models.CharField(max_length=20, choices=STATUS, default='submitted')
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.contractor.username} - {self.tender.reference_number}"
 
 class ReportIssue(models.Model):
     title = models.CharField(max_length=255, null=True)

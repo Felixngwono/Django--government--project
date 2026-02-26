@@ -4,6 +4,9 @@
     {% include "sidebar.html" %}
 
 {% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
+<div class="proj_container">
+    <div>
 <div class="flex bg-gray-100">
         <section class="bg-white shadow-lg rounded-xl w-full  p-10">
             <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">About Us</h2>
@@ -67,6 +70,9 @@
             </div>
         </section>
 </div>
+</div>
+    {% include "recent_activities.html" %}
+
 </div>
 </div>
 {% include "footer.html" %}

@@ -8,7 +8,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
 
 <div class='proj_container'>
-<div class="w-full bg-gray-100 min-h-screen flex-1">
+  <div>
+<div   style="background-image: url('{% static "images/in.jpg" %}')" class="w-full h-full bg-cover bg-center">
   <!-- Header -->
   <div class="mb-8 p-8 pb-0">
     <h1 class="text-4xl font-bold text-gray-800">Welcome, {{ user.name }}</h1>
@@ -159,7 +160,7 @@
   </section>
 
 </div>
-
+</div>
 <!-- Chart.js Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -224,92 +225,10 @@ new Chart(ctx4, {
 });
 </script>
 <!-- Participants -->
-<section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
-  <h2 class="text-3xl font-semibold text-gray-800 mb-6">
-    👷 {% if request.user.is_superuser %}All Participations{% else %}My Participations{% endif %}
-  </h2>
-
-  <div class="space-y-4">
-    {% for participation in participants %}
-      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 shadow-md hover:shadow-lg transition border-l-4 border-blue-500">
-        
-        <div class="flex items-start justify-between">
-
-          <!-- Left Content -->
-          <div class="flex-1">
-
-            <div class="flex items-center gap-3 mb-2">
-              {% if participation.user.profile %}
-                <img src="{{ participation.user.profile.url }}"
-                     alt="{{ participation.user.username }}"
-                     class="w-12 h-12 rounded-full object-cover">
-              {% else %}
-                <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-white">
-                  {{ participation.user.username|first|upper }}
-                </div>
-              {% endif %}
-
-              <div>
-                <p class="font-semibold text-gray-900">
-                  @{{ participation.user.username }}
-                </p>
-                <p class="text-xs text-gray-500">
-                  <b>Project:</b> {{ participation.project.project_title }}
-                </p>
-              </div>
-            </div>
-
-            <p class="text-sm text-gray-600">
-              <b>Status:</b> {{ participation.project.project_status|title }}
-            </p>
-
-            <p class="text-sm text-gray-600">
-              <b>Role:</b> {{ participation.user.role }}
-            </p>
-
-            {% if participation.content %}
-            <p class="text-sm text-gray-700 mt-2">
-              <b>Feedback:</b> {{ participation.content }}
-            </p>
-            {% endif %}
-
-            <p class="text-xs text-gray-500 mt-2">
-              Joined {{ participation.joined_at|timesince }} ago
-            </p>
-
-          </div>
-
-          <!-- Active Badge -->
-          <div>
-            {% if participation.is_active %}
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                🟢 Active
-              </span>
-            {% else %}
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                🔴 Inactive
-              </span>
-            {% endif %}
-          </div>
-
-        </div>
-      </div>
-
-    {% empty %}
-      <div class="text-center py-12 bg-gray-50 rounded-lg">
-        <p class="text-gray-500">
-          {% if request.user.is_superuser %}
-            No participations found.
-          {% else %}
-            You are not participating in any project yet.
-          {% endif %}
-        </p>
-      </div>
-    {% endfor %}
-  </div>
-</section>
+{% include "recent_activities.html" %}
 
 </div>
 </div>
   {% include "footer.html" %}
 {% endblock content %}
+       

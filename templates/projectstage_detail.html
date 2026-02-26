@@ -2,26 +2,119 @@
 
 {% block content %}
 {% include "sidebar.html" %}
+{% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
 
-    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
-        <h2 class="text-2xl font-semibold mb-4 text-center">{{ stage.project.project_title }} - {{ stage.get_stage_name_display }}</h2>
-        
-        <div class="text-gray-700 space-y-2">
+<div class="proj_container">
+    <div >
+<div class="flex justify-center bg-gray-50 min-h-screen p-6">
+
+    <div class="bg-white shadow-xl rounded-2xl w-full max-w-4xl p-8 space-y-6">
+
+        <!-- Project Title & Stage -->
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">
+                {{ stage.project.project_title }}
+            </h2>
+            <span class="text-sm font-medium px-3 py-1 rounded-full 
+                {% if stage.progress_percentage == 100 %}
+                    bg-green-100 text-green-700
+                {% elif stage.progress_percentage > 50 %}
+                    bg-yellow-100 text-yellow-700
+                {% else %}
+                    bg-red-100 text-red-700
+                {% endif %}">
+                {{ stage.get_stage_name_display }}
+            </span>
+        </div>
+
+        <!-- Project Image -->
+        <div class="w-full h-72 rounded-lg overflow-hidden shadow-md">
+            {% if stage.project.images %}
+                <img src="{{ stage.project.images.url }}" 
+                     alt="{{ stage.project.project_title }}" 
+                     class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+            {% else %}
+                <img src="{% static 'images/default_project.jpg' %}" 
+                     alt="Default Project Image" 
+                     class="w-full h-full object-cover">
+            {% endif %}
+        </div>
+
+        <!-- Project Details -->
+        <div class="space-y-4 text-gray-700">
             <p><strong>Description:</strong> {{ stage.description }}</p>
-            <p><strong>Start Date:</strong> {{ stage.start_date }}</p>
-            <p><strong>End Date:</strong> {{ stage.end_date }}</p>
-            <p><strong>Progress:</strong> <span class="font-bold text-blue-600">{{ stage.progress_percentage }}%</span></p>
+            <p><strong>Start Date:</strong> {{ stage.start_date|date:"M d, Y" }}</p>
+            <p><strong>End Date:</strong> {{ stage.end_date|date:"M d, Y" }}</p>
+
+            <!-- Progress Bar -->
+            <div class="mt-2">
+                <div class="flex justify-between text-sm text-gray-500 mb-1">
+                    <span>Progress</span>
+                    <span class="font-semibold text-gray-700">{{ stage.progress_percentage }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 h-3 rounded-full">
+                    <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" 
+                         style="width: {{ stage.progress_percentage }}%"></div>
+                </div>
+            </div>
+
+            {% if stage.project.project_status %}
+            <p class="mt-2"><strong>Project Status:</strong> 
+                <span class="text-blue-600 font-semibold">{{ stage.project.project_status }}</span>
+            </p>
+            {% endif %}
+
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Team Members:</h3>
+                <ul class="list-disc list-inside text-gray-600">
+                    {% for member in stage.project.team_members.all %}
+                        <li>{{ member.name }} - {{ member.role }}</li>
+                    {% empty %}
+                        <li>No team members assigned.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Milestones:</h3>
+                <ul class="list-disc list-inside text-gray-600">
+                    {% for milestone in stage.milestones.all %}
+                        <li>{{ milestone.title }} - Due: {{ milestone.project.end_date|date:"M d, Y" }}</li>
+                    {% empty %}
+                        <li>No milestones defined.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
         </div>
-        
-        <div class="mt-6 flex justify-between">
-            <a href="{% url 'projectstage_update' stage.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg">Edit</a>
-            <a href="{% url 'projectstage_delete' stage.pk %}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg">Delete</a>
-            <a href="{% url 'projectstage_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg">Back to List</a>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-4 mt-6">
+            <a href="{% url 'projectstage_update' stage.pk %}" 
+               class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-xl shadow transition">
+               Edit
+            </a>
+            <a href="{% url 'projectstage_delete' stage.pk %}" 
+               class="bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-xl shadow transition">
+               Delete
+            </a>
+            <a href="{% url 'projectstage_list' %}" 
+               class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-xl shadow transition">
+               Back to List
+            </a>
         </div>
+
+        <!-- Optional Extra Section -->
+        <div class="mt-6 p-4 bg-gray-50 rounded-xl shadow-inner text-gray-600 text-sm">
+            <p><strong>Note:</strong> This stage represents the current phase of the project. All data is up-to-date as of {{ stage.end_date|date:"M d, Y" }}.</p>
+        </div>
+
     </div>
 </div>
-
 </div>
-
+{% include "recent_activities.html" %}
+</div>
+</div>
 {% include "footer.html" %}
 {% endblock %}

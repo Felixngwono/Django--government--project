@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import  Testimonials, add_team, add_testimonial, adminview, comment, delayedstatus, delete_testimonial, feedback_details, people, reportedissuesdetails,delayed, ProjectStageListView, ProjectStageDetailView,  ProjectStageCreateView, ProjectStageUpdateView, ProjectStageDeleteView,AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, stalledstatus, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, Testimonials, add_team, add_testimonial, adminview, comment, delayedstatus, delete_testimonial, feedback_details, people, projectstage, projectstage_details, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -40,9 +40,10 @@ urlpatterns = [
     path('comment/<str:pk>/', comment, name="comment"),
     path('reportedissuesdetails/<str:pk>/', reportedissuesdetails, name="reportedissuesdetails"),
 
-
+    path('participation_details/<str:pk>/', Participation_details, name="participation_details"),
 
     path('team/', teams, name="team"),
+    path('add_team/', add_team, name="add_team"),
     
     path('testimonials/', Testimonials, name="testimonials"),
     path('add_testimonial/', add_testimonial, name="add_testimonial"),
@@ -104,11 +105,11 @@ urlpatterns = [
     path('audit_details/<str:pk>/', audit_details, name='audit_details'),
 
 
-    path('stages/', ProjectStageListView.as_view(), name='projectstage_list'),
-    path('stages/<int:pk>/', ProjectStageDetailView.as_view(), name='projectstage_detail'),
-    path('stages/new/', ProjectStageCreateView.as_view(), name='projectstage_create'),
-    path('stages/<int:pk>/edit/', ProjectStageUpdateView.as_view(), name='projectstage_update'),
-    path('stages/<int:pk>/delete/', ProjectStageDeleteView.as_view(), name='projectstage_delete'),
+    path('stages/', projectstage, name='projectstage_list'),
+    path('stages/<int:pk>/', projectstage_details, name='projectstage_detail'),
+    path('new/', ProjectStageCreate, name='projectstage_create'),
+    path('updatestages/<int:pk>/', ProjectStageUpdate, name='projectstage_update'),
+    path('stages/<int:pk>//',ProjectStageDelete , name='projectstage_delete'),
 
 
 

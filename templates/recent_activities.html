@@ -1,0 +1,89 @@
+{% load static %}
+<section class="relative w-full rounded-2xl min-h-screen p-8 overflow-hidden top-0">
+  <!-- Background Image -->
+  <div class="absolute inset-0">
+    <img src="{% static 'images/in.jpg' %}"
+         alt="Project Background"
+         class="w-full h-full object-cover">
+    <!-- Dark overlay for readability -->
+    <div class="absolute inset-0 bg-black bg-opacity-60"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="relative z-10 text-white max-w-7xl mx-auto space-y-8">
+    <h2 class="text-3xl font-semibold mb-6">
+      {% if request.user.is_superuser %}
+        All Recent Activities
+      {% else %}
+        My Recent Activities
+      {% endif %}
+    </h2>
+
+    <div class="space-y-4">
+      {% for participation in participants %}
+        <div class="bg-black bg-opacity-60 rounded-4xl p-6 shadow-md hover:shadow-lg transition border-l-4 border-blue-500">
+          <div class="flex flex-col md:flex-row items-start justify-between gap-4">
+
+            <!-- Left Content -->
+            <div class="flex-1">
+              <a href="{% url 'participation_details' participation.id %}" class="text-lg font-semibold text-blue-400 hover:underline">
+                {{ participation.project.project_title }}
+              
+
+              <div class="flex items-center gap-3 mb-2 mt-2">
+                {% if participation.user.profile %}
+                  <img src="{{ participation.user.profile.url }}" alt="{{ participation.user.username }}"
+                       class="w-12 h-12 rounded-full object-cover border-2 border-blue-500">
+                {% else %}
+                  <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                    {{ participation.user.username|first|upper }}
+                  </div>
+                {% endif %}
+
+                <div>
+                  <p class="font-semibold text-white">@{{ participation.user.username }}</p>
+                  <p class="text-xs text-gray-300"><b>Project:</b> {{ participation.project.project_title }}</p>
+                </div>
+              </div>
+
+              <p class="text-sm text-gray-300"><b>Status:</b> {{ participation.project.project_status|title }}</p>
+              <p class="text-sm text-gray-300"><b>Role:</b> {{ participation.user.role }}</p>
+
+              {% if participation.content %}
+              <p class="text-sm text-green-400 mt-2"><b>Feedback:</b> {{ participation.content }}</p>
+              {% endif %}
+
+              <p class="text-xs text-gray-400 mt-2">Joined {{ participation.joined_at|timesince }} ago</p>
+              </a>
+            </div>
+
+            <!-- Active Badge -->
+<div class="flex-shrink-0">
+        {% if participation.user.is_authenticated %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-600 text-white">
+                🟢 Active
+            </span>
+        {% else %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-600 text-white">
+                🔴 Inactive
+            </span>
+        {% endif %}
+      
+</div>
+
+          </div>
+        </div>
+      {% empty %}
+        <div class="text-center py-12 bg-black bg-opacity-60 rounded-lg">
+          <p class="text-gray-400">
+            {% if request.user.is_superuser %}
+              No participations found.
+            {% else %}
+              You are not participating in any project yet.
+            {% endif %}
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

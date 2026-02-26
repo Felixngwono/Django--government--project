@@ -1,3 +1,4 @@
+
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
@@ -5,12 +6,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import Comment,PDF, AuditLog, Participation, ProgramImpact, ProgressUpdate, Project_Division, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderForm, TestimonialForm, participationForm, participationForm
+from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderForm, TestimonialForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
 from django.db.models import Q
 
 def generate_report(request):
@@ -64,7 +63,14 @@ def export_report_pdf(request):
 
 @login_required(login_url='login')
 def AboutUs(request):
-    return render(request, 'about_us.html')
+    
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
+    
+    return render(request, 'about_us.html', context={'participants': participants})
 
 
 def Home(request):
@@ -74,7 +80,32 @@ def Home(request):
     return render(request, 'home.html', context)
 
 @login_required(login_url='login')
+def Participation_details(request,pk):
+    participation=get_object_or_404(Participation,id=pk)
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+        
+    form=participationForm(instance=participation)
+    if request.method=='POST':
+        form=participationForm(request.POST, instance=participation)
+        if form.is_valid():
+            form.save()
+            return redirect('participation_details',pk=pk)
+  
+    context={'participation':participation, 'participants': participants,'form':form}
+    return render(request,'participation_details.html',context)
+
+
+@login_required(login_url='login')
 def ContactusPage(request):
+    
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
     form = ContactUsForm()
     
     if request.method == 'POST':
@@ -84,26 +115,40 @@ def ContactusPage(request):
             
             return redirect('contactus')
         
-    context={'form':form}
+    context={'form':form, 'participants': participants}
     return render(request, 'contact_us.html',context)
 
 @login_required(login_url='login')
 def Testimonials(request):
     testimonials= Testimonial.objects.all()
     
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
+    
     context={
         'testimonials':testimonials,
+        'participants': participants
     }
     return render(request,'testimonials.html',context)
 
 @login_required(login_url='login')
 def testimonial_details(request,pk):
     testimonial=get_object_or_404(Testimonial,id=pk)
-    context={'testimonial':testimonial}
+    
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
+    context={'testimonial':testimonial, 'participants': participants}
     return render(request,'testimonial_details.html',context)
 
 @login_required(login_url='login')
 def add_testimonial(request):
+  
     form=TestimonialForm()
     if request.method=='POST':
         form=TestimonialForm(request.POST, request.FILES)
@@ -143,6 +188,11 @@ def adminview(request):
     risks=ProjectRisk.objects.all()
     stakeholder=Stakeholder.objects.all()
     reportedissues=ReportIssue.objects.all()
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
 
     context={'feedbacks':feedbacks,
              'impacts':impacts,
@@ -151,7 +201,8 @@ def adminview(request):
              'comments':comments,
              'risks':risks,
              'stakeholder':stakeholder,
-             'reportedissues':reportedissues
+             'reportedissues':reportedissues,
+             'participants':participants
              }
     return render(request,'adminview.html',context)
 
@@ -265,7 +316,7 @@ def index(request):
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:5]
     else:
-        participants = Participation.objects.filter(user=request.user)
+        participants = Participation.objects.filter(user=request.user).order_by('-joined_at')[:5]
   
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
@@ -301,6 +352,12 @@ def jobApplication(request):
 
 @login_required(login_url='login')
 def feedback(request):
+     
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
     form= FeedbackForm()
     if request.method=='POST':
         form=FeedbackForm(request.POST)
@@ -308,7 +365,7 @@ def feedback(request):
             form.save()
             return redirect('index')
         
-    context= {'form':form}
+    context= {'form':form, 'participants': participants}
     return render(request,'feedback.html',context)
 
 
@@ -355,24 +412,6 @@ def PerfomanceMetrix(request):
 
 
 @login_required(login_url='login')
-def stalledstatus(request,pk):
-    projects= Project.objects.filter(project_status='stalled', id=pk)
-    form = participationForm()
-
-    if request.method == 'POST':
-        form = participationForm(request.POST)
-        if form.is_valid():
-            participation = form.save(commit=False)
-            participation.user = request.user
-            participation.project = project
-            participation.save()
-            return redirect('stalled')
-        
-    context= {'projects':projects, 'form':form}
-    return render( request,'statuses.html', context)
-
-
-@login_required(login_url='login')
 def completed(request):
     projects= Project.objects.filter(project_status='completed')
     q=request.GET.get('q') if request.GET.get('q') is not None else ''
@@ -412,18 +451,28 @@ def delayedstatus(request,pk):
 @login_required(login_url='login')
 def teams(request):
     tim=Team.objects.all()
-    context={'tim':tim}
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
+    context={'tim':tim, 'participants':participants}
     return render(request,'team.html',context)
 
 @login_required(login_url='login')
 def add_team(request):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
     form=TeamsForm()
     if request.method=='POST':
         form=TeamsForm(request.POST,request.FILES)
         if form.is_valid():
             form.save()
             return redirect('team')
-    return render(request,'add_team.html',context={'form':form})
+    return render(request,'add_team.html',context={'form':form,'participants':participants})
 
 @login_required(login_url='login')
 def update_team(request,pk):
@@ -517,7 +566,13 @@ def upcoming(request):
 @login_required(login_url='login')
 def project(request):
     projects= Project.objects.filter(project_status='project')
-    context= {'projects':projects}
+    projects=Project.objects.all().order_by('-end_date')[:1]
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
+    context= {'projects':projects, 'participants':participants}
     return render(request, "project.html",context)
 
 @login_required(login_url='login')
@@ -592,13 +647,18 @@ def Division_details(request):
 
 @login_required(login_url='login')
 def ptypes(request):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
     form=ProjectTypeForm()
     if request.method=='POST':
         form=ProjectTypeForm(request.POST,request.FILES)
         if form.is_valid():
             form.save()
-            return redirect(request,'division_details')
-    context={'form':form}
+            return redirect('division_details')
+    context={'form':form, 'participants':participants}
     return render(request,'projectTypes.html',context)
 
 @login_required(login_url='login')
@@ -610,10 +670,17 @@ def charts(request):
     }
     return render(request,'chart.html',context)
 
+
+
 @login_required(login_url='login')
 def milestone_list(request):
     milestones = Milestone.objects.all()
-    return render(request, 'milestone_list.html', {'milestones': milestones})
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+    context={'milestones': milestones, 'participants': participants}
+    return render(request, 'milestone_list.html', context)
 
 @login_required(login_url='login')
 def milestone_create(request):
@@ -768,7 +835,12 @@ def issue_detail(request, issue_id):
 @login_required(login_url='login')
 def tender_list(request):
     tenders = Tender.objects.all()
-    return render(request, 'tender_list.html', {'tenders': tenders})
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+      
+    return render(request, 'tender_list.html', {'tenders': tenders, 'participants': participants})
 
 # View tender details
 @login_required(login_url='login')
@@ -860,39 +932,73 @@ def audit_details(request,pk):
             return redirect('AuditLog')
     else:
         form=AuditLogForm(instance=audit_details)
-    context={'audit_details':audit_details}
+    context={'audit_details':audit_details, 'form':form}
     return render(request,'audit_details.html',context)
 
 # 🔹 List All Project Stages
 
-class ProjectStageListView(ListView):
-    model = ProjectStage
-    template_name = 'projectstage_list.html'
-    context_object_name = 'stages'
+def projectstage(request):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
+    stages = ProjectStage.objects.all()
+    return render(request, 'projectstage_list.html', {'stages': stages, 'participants': participants})
 
 # 🔹 View Project Stage Details
-class ProjectStageDetailView(DetailView):
-    model = ProjectStage
-    template_name = 'projectstage_detail.html'
-    context_object_name = 'stage'
+def projectstage_details(request, pk):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+  
+    stage = get_object_or_404(ProjectStage, pk=pk)
+    return render(request, 'projectstage_detail.html', {'stage': stage, 'participants': participants})
 
-# 🔹 Create New Project Stage
-class ProjectStageCreateView(CreateView):
-    model = ProjectStage
-    form_class = ProjectStageForm
-    template_name = 'projectstage_form.html'
-    success_url = reverse_lazy('projectstage_list')
+
+
+def ProjectStageCreate(request):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+    
+    form=ProjectStageForm()
+    if request.method=='POST':
+        form=ProjectStageForm(request.POST,request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('projectstage_list')
+    context={'form':form, 'participants': participants}
+    return render(request,'projectstage_form.html', context)
 
 # 🔹 Update Project Stage
-class ProjectStageUpdateView(UpdateView):
-    model = ProjectStage
-    form_class = ProjectStageForm
-    template_name = 'projectstage_form.html'
-    success_url = reverse_lazy('projectstage_list')
+@login_required(login_url='login')
+def ProjectStageUpdate(request,pk):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+        
+    updatestage=get_object_or_404(ProjectStage,pk=pk)
+    form=ProjectStageForm(instance=updatestage)
+    if request.method=='POST':
+        form=ProjectStageForm(request.POST,instance=updatestage)
+        if form.is_valid():
+            form.save()
+            return redirect('projectstage_list')
+    context={'form':form, 'participants': participants, 'updatestage':updatestage}
+    return render(request,'projectstage_update.html', context)
+
+
+
 
 # 🔹 Delete Project Stage
-class ProjectStageDeleteView(DeleteView):
-    model = ProjectStage
-    template_name = 'projectstage_confirm_delete.html'
-    success_url = reverse_lazy('projectstage_list')
-
+@login_required(login_url='login')
+def ProjectStageDelete(request,pk):
+    deletestage=get_object_or_404(ProjectStage,id=pk)
+    if request.method=='POST':
+        deletestage.delete()
+        return redirect('projectstage_list')
+    return render(request,'projectstage_confirm_delete.html',{'deletestage':deletestage})

@@ -1,6 +1,7 @@
 {% extends "header.html" %}
 {% block content %}
-
+{% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
 <div class="text-center my-4">
     {% for message in messages %}
         <p id="messages" class="font-semibold text-lg text-green-600">{{ message }}</p>
@@ -9,7 +10,12 @@
 
 {% include "Sidebar.html" %}
 
-
+<div class='proj_container'>
+    <div>
+    <div>
+        <h1 class="text-center text-4xl font-extrabold text-gray-800 mb-8">Admin Dashboard</h1>
+        <p class="text-center text-lg text-gray-600 mb-12">Welcome to the admin dashboard! Here you can manage feedback, reported issues, and comments.</p>
+    </div>
     <!-- feedback Information Section -->
     <div>
         <h2 class="text-center text-3xl font-extrabold text-orange-800  mb-6">📞 Feedback Information</h2>
@@ -102,9 +108,12 @@
                 </tbody>
             </table>
         </div>
-    </div>
+        </div>
+ 
 
-</div>
+    </div>
+    {% include "recent_activities.html" %}
+    </div>
 
 </div>
 

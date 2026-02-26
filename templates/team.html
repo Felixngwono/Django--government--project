@@ -2,18 +2,13 @@
 {% block content %}
 {% include 'Sidebar.html' %}
 {% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
 
- <div class="flex flex-col md:flex-row justify-between mb-4">
-        {% if request.user.is_superuser %}
-        <a href="{% url 'add_team' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
-            <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
-            </svg>
-            Add Team Member
-        </a>
-        {% endif %}
-    </div>
-<section class="bg-white dark:bg-gray-900">
+<div class='proj_container'>
+    <div>
+        <div>
+
+<section class="bg-white min-h-screen dark:bg-gray-900">
    
 
   <div class="">
@@ -117,12 +112,23 @@
                   </li> 
               </ul>
           </div>
+          <div class="text-center mt-14">
+            <a href="{% url 'add_team' %}"
+               class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all inline-flex items-center gap-2">
+                ➕ Add Team
+            </a>
+        </div>
          
       </div>  
   </div>
+  
 </section>
+
 <!-- JS link example -->
 <script src='{% static 'js/team.js' %}'></script>
+</div>
+</div>
+{% include "recent_activities.html" %}
 
 </div>
 </div>

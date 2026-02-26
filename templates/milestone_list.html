@@ -3,65 +3,114 @@
 {% load static %}
 {% include "sidebar.html" %}
 <script src="https://cdn.tailwindcss.com"></script>
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
 
-    <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-3xl border border-blue-100">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-3xl font-bold text-blue-800 tracking-tight">Milestones</h2>
+<div class="proj_container">
+    <div >
+    <div class="relative w-full min-h-full rounded-2xl overflow-hidden ">
+
+    <!-- Background Image -->
+    <div class="absolute inset-0 bg-cover bg-center"
+         style="background-image: url('{% static "images/milestone.jpg" %}');">
+    </div>
+
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-600/60 via-blue-700/60 to-blue-600/40"></div>
+
+    <!-- Content -->
+    <div class="relative z-10 p-8 backdrop-blur-sm">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-4xl font-bold text-white tracking-tight">
+                    Project Milestones
+                </h2>
+                <p class="text-blue-100 mt-2 text-sm">
+                    Track major phases and progress of the government project lifecycle.
+                </p>
+            </div>
+
             {% if request.user.is_superuser %}
             <a href="{% url 'milestone_create' %}" 
-               class="bg-blue-700 text-white px-5 py-2 rounded-xl text-base font-semibold shadow hover:bg-blue-800 transition-all duration-200">
+               class="bg-white text-blue-800 px-6 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-blue-100 transition duration-300">
                + Add Milestone
             </a>
             {% endif %}
         </div>
 
-        <div class="mb-8">
-            <p class="text-gray-700 text-base">
-                Project milestones are key events or deliverables that mark significant progress in the government project. 
-                They help track the completion of important phases such as planning, approvals, procurement, implementation, and evaluation.
+        <!-- Info Card -->
+        <div class="bg-white/90 rounded-xl p-6 mb-10 shadow-lg">
+            <p class="text-gray-700 text-sm leading-relaxed">
+                Milestones mark critical achievements such as planning, approvals, procurement,
+                execution, monitoring, and project closure.
             </p>
-            <ul class="list-disc pl-6 mt-3 text-gray-600 text-sm space-y-1">
-                <li>Project Initiation &amp; Stakeholder Engagement</li>
-                <li>Feasibility Study &amp; Approval</li>
-                <li>Budget Allocation &amp; Resource Planning</li>
-                <li>Procurement &amp; Contracting</li>
-                <li>Implementation of Core Activities</li>
-                <li>Monitoring &amp; Progress Reporting</li>
-                <li>Final Evaluation &amp; Project Closure</li>
-            </ul>
         </div>
 
-        <ul class="divide-y divide-blue-100">
+        <!-- Milestones List -->
+        <ul class="space-y-6">
             {% for milestone in milestones %}
-                <li class="py-5 px-4 flex justify-between items-center hover:bg-blue-50 rounded-lg transition">
-                    <div>
-                        <p class="text-xl font-semibold text-gray-900">{{ milestone.title }}</p>
-                        <div class="flex items-center space-x-2 mt-1">
-                            <div class="w-40 bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ milestone.progress_percentage }}%"></div>
+            <li class="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition duration-300">
+
+                <div class="flex justify-between items-start">
+
+                    <!-- Left Content -->
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-800">
+                            {{ milestone.title }}
+                        </h3>
+
+                        <!-- Progress -->
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
+                                <span>Progress</span>
+                                <span>{{ milestone.progress_percentage }}%</span>
                             </div>
-                            <span class="text-xs text-gray-600 font-medium">{{ milestone.progress_percentage }}%</span>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-blue-500 to-blue-700 h-3 rounded-full transition-all duration-500"
+                                     style="width: {{ milestone.progress_percentage }}%">
+                                </div>
+                            </div>
                         </div>
+
                         {% if milestone.description %}
-                        <p class="text-gray-500 text-sm mt-2">{{ milestone.description }}</p>
+                        <p class="text-gray-600 text-sm mt-4">
+                            {{ milestone.description }}
+                        </p>
                         {% endif %}
+
                         {% if milestone.due_date %}
-                        <p class="text-gray-400 text-xs mt-1">Due: {{ milestone.due_date }}</p>
+                        <p class="text-gray-400 text-xs mt-3">
+                            Due Date: {{ milestone.due_date }}
+                        </p>
                         {% endif %}
                     </div>
-                    <div class="flex space-x-4">
+
+                    <!-- Actions -->
+                    <div class="flex items-center space-x-4 ml-6">
                         <a href="{% url 'milestone_update' milestone.pk %}" 
-                           class="text-blue-700 hover:underline text-sm font-medium">Edit</a>
-                        <span class="text-gray-300">|</span>
+                           class="text-blue-600 hover:text-blue-800 text-sm font-medium transition">
+                            Edit
+                        </a>
                         <a href="{% url 'milestone_delete' milestone.pk %}" 
-                           class="text-red-600 hover:underline text-sm font-medium">Delete</a>
+                           class="text-red-500 hover:text-red-700 text-sm font-medium transition">
+                            Delete
+                        </a>
                     </div>
-                </li>
+
+                </div>
+            </li>
             {% empty %}
-                <li class="py-6 text-gray-400 text-center text-lg">No milestones available.</li>
+            <li class="bg-white rounded-xl p-8 text-center text-gray-500 shadow">
+                No milestones available.
+            </li>
             {% endfor %}
         </ul>
+
     </div>
+</div>
+</div>
+{% include "recent_activities.html" %}
 </div>
 </div>
 
