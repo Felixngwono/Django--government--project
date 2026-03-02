@@ -64,12 +64,7 @@ class Project_type(models.Model):
         return self.name
 
 # 🔹 Project Division Model
-class Project_Division(models.Model):
-    name = models.CharField(max_length=100)
-    project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True, related_name="divisions")
 
-    def __str__(self):
-        return self.name
 
     
 
@@ -99,7 +94,6 @@ class Project(models.Model):
     progress = models.TextField(blank=True, null=True)  # Ongoing updates on progress
     project_status= models.CharField(max_length=10,choices=project_status)
     project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True)
-    division = models.ForeignKey(Project_Division, on_delete=models.SET_NULL, null=True, blank=True)
     impact = models.TextField(null=True, blank=True)
     project_manager=models.CharField(max_length=100,null=True, blank=True)
     project_contractor=models.CharField(max_length=100,null=True, blank=True)
@@ -113,6 +107,12 @@ class Project(models.Model):
     def __str__(self):
         return self.project_title
     
+class Project_Division(models.Model):
+    project_name = models.ManyToManyField(Project, related_name="project_list")
+    project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True, related_name="divisions")
+
+    def __str__(self):
+        return self.name.first().project_title if self.name.exists() else "No Project"
 class Participation(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -467,6 +467,16 @@ class Team(models.Model):
     role=models.CharField(max_length=100)
     image=models.ImageField(upload_to='team/', null=True, blank=True)
     created_at=models.DateTimeField(auto_now_add=True,null=True,blank=True)
+    description=models.TextField(null=True, blank=True)
+    
+    # Social media handles
+    facebook = models.URLField(blank=True, null=True)
+    instagram = models.URLField(blank=True, null=True)
+    twitter = models.URLField(blank=True, null=True)
+    linkedin = models.URLField(blank=True, null=True)
+    whatsapp = models.CharField(max_length=20, blank=True, null=True)
+
+    
     class Meta:
         ordering=['-created_at']
 

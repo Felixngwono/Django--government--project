@@ -97,12 +97,7 @@
                 <!-- Divisions -->
                 <li class="text-purple-400 uppercase text-sm font-semibold tracking-widest mb-2">Divisions</li>
                 {% if request.user.is_superuser %}
-                <li>
-                    <a href="{% url 'division' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 sidebar-link">
-                        <i class="fas fa-sitemap text-purple-300 text-lg mr-3"></i>
-                        <span>Project Divisions</span>
-                    </a>
-                </li>
+               
                 <li>
                     <a href="{% url 'ptypes' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 sidebar-link">
                         <i class="fas fa-th-large text-indigo-300 text-lg mr-3"></i>
@@ -121,12 +116,7 @@
 
                 <!-- Workspace -->
                 <li class="text-blue-400 uppercase text-sm font-semibold tracking-widest mb-2">Workspace</li>
-                <li>
-                    <a href="{% url 'projectoverview' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 sidebar-link">
-                        <i class="fas fa-list-alt text-blue-300 text-lg mr-3"></i>
-                        <span>Project List</span>
-                    </a>
-                </li>
+               
                 <li>
                     <a href="{% url 'AuditLog' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 sidebar-link">
                         <i class="fas fa-clipboard-list text-indigo-300 text-lg mr-3"></i>

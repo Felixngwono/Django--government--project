@@ -1,0 +1,10 @@
+
+    
+  .body {
+  font-size: 14px;
+  background-image: url("{% static 'images/wel.jpg' %}");
+  background-size: cover;
+  background-attachment: fixed; 
+  background-repeat: no-repeat;
+}
+ 

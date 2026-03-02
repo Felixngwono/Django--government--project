@@ -1,10 +1,14 @@
 {% load static %}
 {% load widget_tweaks %}
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="{% static 'register.css' %}">
-
-<div class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+<style>
+  body {
+  font-size: 14px;
+  background-image: url("{% static 'images/wel.jpg' %}");
+  background-size: cover;}
+  </style>
+<div class="min-h-screen  w-full flex items-center justify-center ">
+    <div class="max-w-md w-full space-y-8  dark:bg-gray-800 rounded-xl shadow-lg p-12">
         <div>
             <h2 class="mt-2 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
                 Create your account

@@ -1,0 +1,62 @@
+{% extends "header.html" %}
+{% block content %}
+{% include "sidebar.html" %}
+
+<div class="p-6 bg-gray-100 min-h-screen">
+
+  <!-- Header Section -->
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-blue-800">
+      Division Details
+    </h2>
+
+    <a href="{% url 'division' %}"
+       class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow-md transition duration-300">
+       + Add Division
+    </a>
+  </div>
+
+  <!-- Division Details Card -->
+  <div class="bg-white shadow-lg rounded-2xl p-8 max-w-3xl">
+
+    <!-- Division Title -->
+    <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-3">
+      {{ division.project_type.project_type_name }}
+    </h3>
+
+    <!-- Projects Section -->
+    <p class="text-gray-700 font-medium mb-3">
+      Projects in this Division:
+    </p>
+
+    <ul class="space-y-2 mb-6">
+      {% for project in division.project_name.all %}
+        <li class="bg-blue-50 text-blue-800 px-4 py-2 rounded-lg shadow-sm">
+          {{ project.project_title }}
+        </li>
+      {% empty %}
+        <li class="text-gray-400 italic">
+          No projects assigned to this division.
+        </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Action Buttons -->
+    <div class="flex space-x-4">
+      <a href="{% url 'edit_division' division.id %}"
+         class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md shadow transition duration-300">
+         Edit
+      </a>
+
+      <a href="{% url 'delete_division' division.id %}"
+         class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow transition duration-300">
+         Delete
+      </a>
+    </div>
+
+  </div>
+
+</div>
+
+{% include "footer.html" %}
+{% endblock content %}

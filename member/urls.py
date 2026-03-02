@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import  Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, Testimonials, add_team, add_testimonial, adminview, comment, delayedstatus, delete_testimonial, feedback_details, people, projectstage, projectstage_details, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, Testimonials, add_team, add_testimonial, adminview, comment, delayedstatus, delete_division, delete_testimonial, edit_division, feedback_details, people, projectstage, projectstage_details, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -69,6 +69,11 @@ urlpatterns = [
 
     path('division/', divisionform, name="division"),
     path('division_details/', Division_details, name="division_details"),
+    path('division_details/<str:pk>/', Division_view, name="division_view"),
+    path('edit_division/<str:pk>/', edit_division, name="edit_division"),
+    path('delete_division/<str:pk>/', delete_division, name="delete_division"),
+
+    
 
     path('ptypes/', ptypes, name="ptypes"),
 

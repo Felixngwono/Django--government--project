@@ -519,7 +519,6 @@ def project_overview(request):
         Q(project_title__icontains=q) |
         Q(project_description__icontains=q) |
         Q(project_status__icontains=q) |
-        Q(division__name__icontains=q)|
         Q(implementing_agency__icontains=q)
     )
     
@@ -630,20 +629,54 @@ def OngoingStatuses(request,pk):
   
 @login_required(login_url='login')
 def divisionform(request):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+        
     form= ProjectDivisionForm()
     if request.method=='POST':
         form= ProjectDivisionForm(request.POST,request.FILES)
         if form.is_valid():
             form.save()
             return redirect('division_details')
-    context={'form':form}
+    context={'form':form, 'participants':participants}
     return render(request,'division.html', context)
 
 @login_required(login_url='login')
 def Division_details(request):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+        
     divisions=Project_Division.objects.all()
-    context={'divisions':divisions}
+    context={'divisions':divisions, 'participants':participants}
     return render(request,'division_details.html', context)
+
+def Division_view(request,pk):
+    division=get_object_or_404(Project_Division,id=pk)
+    context={'division':division}
+    return render(request,'division_view.html',context)
+
+def edit_division(request,pk):
+    editdivision=get_object_or_404(Project_Division,id=pk)
+    form=ProjectDivisionForm(instance=editdivision)
+    if request.method=='POST':
+        form=ProjectDivisionForm(request.POST,request.FILES,instance=editdivision)
+        if form.is_valid():
+            form.save()
+            return redirect('division_details')
+    context={'form':form,'division':editdivision}
+    return render(request,'division.html',context)
+
+def delete_division(request,pk):
+    division=get_object_or_404(Project_Division,id=pk)
+    if request.method=='POST':
+        division.delete()
+        return redirect('division_details')
+    context={'division':division}
+    return render(request,'delete/delete_division.html',context)
 
 @login_required(login_url='login')
 def ptypes(request):

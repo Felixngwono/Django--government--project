@@ -1,41 +1,97 @@
 {% extends "header.html" %}
 {% block content %}
 {% include "sidebar.html" %}
-<script src="https://cdn.tailwindcss.com"></script>
 
-<div class="slider-item" style="background-color:bright ; background-repeat: no-repeat; background-size:cover;">
-<div class="relative overflow-x-auto">
-    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-                <th scope="col" class="px-6 py-3">
-                    Id
-                </th>
-                <th scope="col" class="px-6 py-3">
-                   Division
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    Project Type
-                </th>
-                <th scope="col" class="px-6 py-3">
-                     Status
-                </th>
-            </tr>
+<div class="p-6 bg-gray-100 min-h-screen">
+
+  <!-- Header Section -->
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-blue-800">
+      Project Divisions
+    </h2>
+
+    <a href="{% url 'division' %}"
+       class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow-md transition duration-300">
+       + Add Division
+    </a>
+  </div>
+
+  <!-- Table Card -->
+  <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-600">
+        
+        <!-- Table Header -->
+        <thead class="text-xs uppercase bg-gray-50 text-gray-700">
+          <tr>
+            <th class="px-6 py-4">ID</th>
+            <th class="px-6 py-4">Project Type</th>
+            <th class="px-6 py-4">Projects</th>
+            <th class="px-6 py-4 text-center">Actions</th>
+          </tr>
         </thead>
+
+        <!-- Table Body -->
         <tbody>
-            {% for division in divisions %}
-            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                <td class="px-6 py-4"> {{division.id}}</td>
-                <td class="px-6 py-4"> {{division.name}}</td>
-                <td class="px-6 py-4">{{division.project_type}}</td>
-                <td class="px-6 py-4">{{division.Project_list}}</td>
-            </tr>
-            {% endfor %}
-           
+          {% for division in divisions %}
+          <tr class="border-b hover:bg-gray-50 transition duration-200">
+            
+            <!-- ID -->
+            <td class="px-6 py-4">{{ division.id }}</td>
+
+            <!-- Project Type -->
+            <td class="px-6 py-4 font-medium">
+              {{ division.project_type }}
+            </td>
+
+            <!-- Projects -->
+            <td class="px-6 py-4">
+              {% for project in division.project_name.all %}
+                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">
+                  {{ project.project_title }}
+                </span>
+              {% empty %}
+                <span class="text-gray-400">No projects assigned</span>
+              {% endfor %}
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4 text-center space-x-2">
+
+              <!-- View -->
+              <a href="{% url "division_view" division.id %}"
+                 class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-md shadow">
+                 View
+              </a>
+
+              <!-- Edit -->
+              <a href="{% url "edit_division" division.id %}"
+                 class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1 rounded-md shadow">
+                 Edit
+              </a>
+
+              <!-- Delete -->
+              <a href="{% url "delete_division" division.id %}"
+                 class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md shadow">
+                 Delete
+              </a>
+
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center py-6 text-gray-400">
+              No divisions available.
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
-</div>
-</div>
+
+      </table>
+    </div>
+  </div>
+
 </div>
 
 </div>

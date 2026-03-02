@@ -73,6 +73,48 @@
                         {{ form.image }}
                     </div>
                 </div>
+                
+                 <!-- Description -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Description
+                    </label>
+                    {% render_field form.description class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Enter a brief description..." %}
+                </div>
+                    <!-- Social Media Handles -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Facebook URL
+                        </label>
+                        {% render_field form.facebook class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://facebook.com/username" %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Instagram URL
+                        </label>
+                        {% render_field form.instagram class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://instagram.com/username" %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Twitter URL
+                        </label>
+                        {% render_field form.twitter class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://twitter.com/username" %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            LinkedIn URL
+                        </label>
+                        {% render_field form.linkedin class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://linkedin.com/in/username" %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            WhatsApp Number
+                        </label>
+                        {% render_field form.whatsapp class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="+1234567890" %}
+                    </div>
+                </div>
+                
 
                 <!-- Buttons -->
                 <div class="flex justify-between items-center pt-6 border-t">
