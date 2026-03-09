@@ -1,0 +1,133 @@
+{% extends 'header.html' %}
+{% block content %}
+{% load widget_tweaks %}
+{% load static %}
+<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
+    {% include "sidebar.html" %}
+
+<div class="proj_container">
+    <div>
+    <!-- Main Content -->
+
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">
+                    {% if form.instance.pk %}Edit{% else %}New{% endif %} Project Type
+                </h2>
+                <p class="text-gray-500 mt-2 text-sm">
+                    Manage your project type details below.
+                </p>
+            </div>
+
+          <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Name -->
+    <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Name
+        </label>
+        {% render_field form.name class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500" %}
+    </div>
+
+    <!-- Description -->
+    <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Description
+        </label>
+        {% render_field form.description class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500" rows="3" %}
+    </div>
+
+    
+
+    <!-- Active -->
+    <div class="flex items-center gap-3">
+        {% render_field form.is_active class="w-4 h-4 text-green-600 border-gray-300 rounded" %}
+        <label class="text-sm font-medium text-gray-700">
+            Active
+        </label>
+    </div>
+
+    <!-- Associated Projects -->
+    <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-4">
+            Associated Projects
+        </label>
+
+        <div class="overflow-x-auto bg-white shadow-md rounded-xl border">
+            <table class="min-w-full text-sm text-left text-gray-600">
+
+                <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3">Select</th>
+                        <th class="px-6 py-3">Project Title</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">Start Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for project in form.fields.project_Types.queryset %}
+                    <tr class="border-t hover:bg-gray-50 transition">
+
+                        <td class="px-6 py-4">
+                            <input type="checkbox"
+                                   name="project_Types"
+                                   value="{{ project.id }}"
+                                   class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                   {% if project in form.instance.project_Types.all %}checked{% endif %}>
+                        </td>
+
+                        <td class="px-6 py-4 font-medium">
+                            {{ project.project_title }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs rounded-full
+                                {% if project.status == 'Active' %}
+                                    bg-green-100 text-green-700
+                                {% else %}
+                                    bg-gray-200 text-gray-600
+                                {% endif %}">
+                                {{ project.status }}
+                            </span>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            {{ project.start_date }}
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-6 text-gray-400">
+                            No projects available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="pt-4">
+        <button type="submit"
+                class="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-md">
+            Save Project Type
+        </button>
+    </div>
+
+</form>
+</div>
+{% include "recent_activities.html" %}
+
+    
+ 
+   
+    </div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

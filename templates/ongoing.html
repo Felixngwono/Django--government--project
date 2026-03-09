@@ -63,20 +63,47 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
-            <div class="flex justify-between items-center p-4 border-t bg-gray-50">
-                <span class="text-sm text-gray-600">
-                    Showing <span class="font-semibold">1-10</span> of <span class="font-semibold">1000</span>
+     <!-- Pagination -->
+<div class="flex justify-between items-center mt-6">
+
+    <span class="text-sm text-gray-600">
+        Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
+    </span>
+
+    <div class="flex space-x-2">
+
+        {% if projects.has_previous %}
+        <a href="?page={{ projects.previous_page_number }}&q={{ request.GET.q }}"
+           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+            Previous
+        </a>
+        {% endif %}
+
+        {% for num in projects.paginator.page_range %}
+
+            {% if projects.number == num %}
+                <span class="px-3 py-1 bg-blue-600 text-white rounded">
+                    {{ num }}
                 </span>
-                <div class="flex space-x-2">
-                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">Previous</a>
-                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">1</a>
-                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">2</a>
-                    <a href="#" class="px-3 py-1 text-white bg-blue-500 border rounded-lg hover:bg-blue-600">3</a>
-                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">...</a>
-                    <a href="#" class="px-3 py-1 text-gray-600 bg-white border rounded-lg hover:bg-gray-200">Next</a>
-                </div>
-            </div>
+            {% else %}
+                <a href="?page={{ num }}&q={{ request.GET.q }}"
+                   class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+                    {{ num }}
+                </a>
+            {% endif %}
+
+        {% endfor %}
+
+        {% if projects.has_next %}
+        <a href="?page={{ projects.next_page_number }}&q={{ request.GET.q }}"
+           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+            Next
+        </a>
+        {% endif %}
+
+    </div>
+
+</div>
 
         </div>
     </div>

@@ -4,13 +4,15 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Comment,PDF, AuditLog, Participation, ProgramImpact, ProgressUpdate, Project_Division, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
+from .models import Comment,PDF, AuditLog, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
 from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderForm, TestimonialForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
 from django.db.models import Q
+from django.core.paginator import Paginator
+
 
 def generate_report(request):
     # Fetch data for reports
@@ -420,13 +422,24 @@ def completed(request):
         Q(project_description__icontains=q) |
         Q(project_status__icontains=q) 
     )
-    context= {'projects':projects, 'project':project}
+    paginator = Paginator(projects, 6)  # number per page
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context= {'projects':page_obj, 'project':project}
     return render( request,'completed.html', context) 
 
 @login_required(login_url='login')
 def delayed(request):
     delaying= Project.objects.filter(project_status='delayed')
-    context= {'delaying':delaying}
+    
+    paginator = Paginator(delaying, 6)  # number per page
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context= {'delaying':delaying,'projects':page_obj}
     return render( request,'delayed.html', context) 
 
 @login_required(login_url='login')
@@ -513,18 +526,27 @@ def teams_details(request,pk):
         
 @login_required(login_url='login')
 def project_overview(request):
-    projects= Project.objects.all()
-    q=request.GET.get('q') if request.GET.get('q') is not None else ''
+
+    q = request.GET.get('q') if request.GET.get('q') is not None else ''
+
     projects = Project.objects.filter(
         Q(project_title__icontains=q) |
         Q(project_description__icontains=q) |
         Q(project_status__icontains=q) |
         Q(implementing_agency__icontains=q)
-    )
-    
-    
-    context= {'projects':projects}
-    return render( request,'overview.html', context)  
+    ).order_by('-id')
+
+    paginator = Paginator(projects, 6)  # number per page
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "projects": page_obj
+    }
+
+    return render(request, "overview.html", context)
+
 
 @login_required(login_url='login')
 def project_details(request,pk):
@@ -547,6 +569,12 @@ def ongoing(request):
         Q(project_description__icontains=q) |
         Q(project_status__icontains=q) 
     )
+    
+    paginator = Paginator(projects, 6)  # 6 per page
+    page_number = request.GET.get('page')
+    projects = paginator.get_page(page_number)
+
+    
     context= {'projects':projects, 'project':project}
     return render( request,'ongoing.html', context) 
 
@@ -559,7 +587,12 @@ def upcoming(request):
         Q(project_description__icontains=q) |
         Q(project_status__icontains=q) 
     )
-    context= {'projects':projects, 'project':project}
+    paginator = Paginator(projects, 6)  # number per page
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context= {'projects':page_obj, 'project':project}
     return render( request,'upcoming.html', context) 
 
 @login_required(login_url='login')
@@ -611,9 +644,11 @@ def CompletedStatuses(request,pk):
 
 
 @login_required(login_url='login')
-def OngoingStatuses(request,pk):
-    projects= Project.objects.filter(project_status='ongoing',id=pk)
-    Participants=Participation.objects.filter(user=request.user)
+def OngoingStatuses(request, pk):
+
+    projects = Project.objects.filter(project_status='ongoing', id=pk)
+
+    Participants = Participation.objects.filter(user=request.user)
     form = participationForm()
 
     if request.method == 'POST':
@@ -621,11 +656,17 @@ def OngoingStatuses(request,pk):
         if form.is_valid():
             participation = form.save(commit=False)
             participation.user = request.user
-            participation.project = projects[0]  # Assuming only one project is returned
+            participation.project = projects[0]
             participation.save()
             return redirect('ongoing')
-    context= {'projects':projects, 'Participants':Participants, 'form':form}
-    return render( request,'statuses.html', context) 
+
+    context = {
+        'projects': projects,
+        'Participants': Participants,
+        'form': form
+    }
+
+    return render(request, 'statuses.html', context)
   
 @login_required(login_url='login')
 def divisionform(request):
@@ -677,6 +718,21 @@ def delete_division(request,pk):
         return redirect('division_details')
     context={'division':division}
     return render(request,'delete/delete_division.html',context)
+
+
+@login_required(login_url='login')
+def ProjectTypes(request):
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+        
+    ptypes=Project_type.objects.all()
+  
+    
+    context={'participants':participants, 'ptypes':ptypes}
+    return render(request,'projectType.html',context)
+
 
 @login_required(login_url='login')
 def ptypes(request):

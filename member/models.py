@@ -56,16 +56,6 @@ class Feedback(models.Model):
     def __str__(self):
         return self.full_name if self.full_name else "Feedback"
 
-# 🔹 Project Type Model
-class Project_type(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
-
-# 🔹 Project Division Model
-
-
     
 
 
@@ -93,12 +83,11 @@ class Project(models.Model):
     impact = models.TextField(blank=True, null=True)
     progress = models.TextField(blank=True, null=True)  # Ongoing updates on progress
     project_status= models.CharField(max_length=10,choices=project_status)
-    project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True)
     impact = models.TextField(null=True, blank=True)
     project_manager=models.CharField(max_length=100,null=True, blank=True)
     project_contractor=models.CharField(max_length=100,null=True, blank=True)
     contact_email=models.EmailField(null=True, blank=True)
-    progress_update=models.CharField(max_length=255,null=True, blank=True)
+    progress_update=models.DateTimeField(auto_now=True,null=True,blank=True)
     remarks=models.TextField(null=True, blank=True)
     
     class Meta:
@@ -107,6 +96,19 @@ class Project(models.Model):
     def __str__(self):
         return self.project_title
     
+class Project_type(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User,on_delete=models.SET_NULL, blank=True, null=True, related_name="project_types_created")
+    created_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True,null=True, blank=True)
+    project_Types=models.ManyToManyField(Project, related_name="project_types", blank=True)
+ 
+    def __str__(self):
+        return self.name
+
+
 class Project_Division(models.Model):
     project_name = models.ManyToManyField(Project, related_name="project_list")
     project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True, related_name="divisions")

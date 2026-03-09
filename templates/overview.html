@@ -33,6 +33,7 @@
         <table class="w-full text-left text-gray-700 border rounded-lg">
             <thead class="bg-gray-200 text-gray-700">
                 <tr>
+                    <th class="px-4 py-3">Image</th>
                     <th class="px-4 py-3">Title</th>
                     <th class="px-4 py-3">Description</th>
                     <th class="px-4 py-3">Location</th>
@@ -41,13 +42,20 @@
                     <th class="px-4 py-3">End Date</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">Budget</th>
-                    <th class="px-4 py-3">Image</th>
+                    
                     <th class="px-4 py-3 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y">
                 {% for project in projects %}
                 <tr>
+                    <td class="px-4 py-3">
+                        {% if project.images %}
+                        <img src="{{ project.images.url }}" alt="Project Image" class="w-20 h-20 object-cover rounded">
+                        {% else %}
+                        <span class="text-gray-500 italic">No Image</span>
+                        {% endif %}
+                    </td>
                     <td class="px-4 py-3 font-medium">{{ project.project_title }}</td>
                     <td class="px-4 py-3">{{ project.project_description }}</td>
                     <td class="px-4 py-3">{{ project.project_location }}</td>
@@ -56,13 +64,7 @@
                     <td class="px-4 py-3">{{ project.end_date }}</td>
                     <td class="px-4 py-3">{{ project.project_status }}</td>
                     <td class="px-4 py-3">{{ project.project_Budgeting }}</td>
-                    <td class="px-4 py-3">
-                        {% if project.images %}
-                        <img src="{{ project.images.url }}" alt="Project Image" class="w-20 h-20 object-cover rounded">
-                        {% else %}
-                        <span class="text-gray-500 italic">No Image</span>
-                        {% endif %}
-                    </td>
+                    
                     
                     <td class="px-4 py-3 text-center">
                         <div class="relative inline-block text-left group">
@@ -121,15 +123,46 @@
     </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4">
-        <span class="text-sm text-gray-600">Showing {{ venues }} of {{ venues }}</span>
-        <div class="flex space-x-2">
-            <a href="#" class="px-3 py-1 bg-gray-300 rounded">Previous</a>
-            <a href="#" class="px-3 py-1 bg-gray-500 text-white rounded">1</a>
-            <a href="#" class="px-3 py-1 bg-gray-300 rounded">2</a>
-            <a href="#" class="px-3 py-1 bg-gray-300 rounded">Next</a>
-        </div>
+<div class="flex justify-between items-center mt-6">
+
+    <span class="text-sm text-gray-600">
+        Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
+    </span>
+
+    <div class="flex space-x-2">
+
+        {% if projects.has_previous %}
+        <a href="?page={{ projects.previous_page_number }}&q={{ request.GET.q }}"
+           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+            Previous
+        </a>
+        {% endif %}
+
+        {% for num in projects.paginator.page_range %}
+
+            {% if projects.number == num %}
+                <span class="px-3 py-1 bg-blue-600 text-white rounded">
+                    {{ num }}
+                </span>
+            {% else %}
+                <a href="?page={{ num }}&q={{ request.GET.q }}"
+                   class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+                    {{ num }}
+                </a>
+            {% endif %}
+
+        {% endfor %}
+
+        {% if projects.has_next %}
+        <a href="?page={{ projects.next_page_number }}&q={{ request.GET.q }}"
+           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+            Next
+        </a>
+        {% endif %}
+
     </div>
+
+</div>
 
 
   </div> <!-- End Main Content -->
