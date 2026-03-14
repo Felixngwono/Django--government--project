@@ -16,11 +16,12 @@
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl font-bold text-gray-800">Available Tenders</h1>
 
-
+{% if request.user.is_superuser %}
                 <a href="{% url 'add_tender' %}"
                    class="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-300">
                     + Add Tender
                 </a>
+                {% endif %}
             </div>
             <div class="mb-6">
                 <p class="text-gray-600">
@@ -69,18 +70,19 @@
                                     {{ tender.closing_date }}
                                 </td>
 
-                                <!-- Status Badge -->
-                                <td class="py-3 px-4 text-center">
-                                    {% if tender.closing_date >= today %}
-                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                            Open
-                                        </span>
-                                    {% else %}
-                                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                            Closed
-                                        </span>
-                                    {% endif %}
-                                </td>
+                                {% now "Y-m-d" as today %}
+
+<td class="py-3 px-4 text-center">
+{% if tender.closing_date|date:"Y-m-d" >= today %}
+    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+        Open
+    </span>
+{% else %}
+    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
+        Closed
+    </span>
+{% endif %}
+</td>
 
                                 <!-- Action Buttons -->
                                 <td class="py-3 px-4">
@@ -90,6 +92,13 @@
                                            class="text-blue-600 hover:text-blue-800">
                                             View
                                         </a>
+                                        <!-- Apply Button -->
+{% if tender.closing_date|date:"Y-m-d" >= today %}
+<a href="{% url 'apply_tender' tender.id %}"
+   class="bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700">
+    Apply
+</a>
+{% endif %}
 
                                         <a href="{% url 'update_tender' tender.id %}"
                                            class="text-green-600 hover:text-green-800">
@@ -128,6 +137,7 @@
 
         {% include "recent_activities.html" %}
     </div>
+</div>
 </div>
 
 {% include "footer.html" %}

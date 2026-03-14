@@ -1,0 +1,82 @@
+{% extends "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<section class="min-h-screen bg-gray-100 p-8">
+
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
+        <i class="fas fa-bell text-yellow-500"></i>
+        Notifications
+      </h1>
+
+      <span class="bg-blue-600 text-white text-sm px-3 py-1 rounded-full">
+        {{ notifications|length }} Total
+      </span>
+    </div>
+
+    <!-- Notification List -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+
+      {% for notification in notifications %}
+        <a href="{{ notification.link|default:'#' }}">
+          <div class="flex items-start gap-4 p-5 border-b hover:bg-gray-50 transition
+                      {% if not notification.is_read %}bg-blue-50{% endif %}">
+            
+            <!-- Icon -->
+            <div class="flex-shrink-0 text-xl text-blue-500">
+              {% if notification.notification_type == "project" %}
+                <i class="fas fa-project-diagram"></i>
+              {% elif notification.notification_type == "participation" %}
+                <i class="fas fa-users"></i>
+              {% elif notification.notification_type == "comment" %}
+                <i class="fas fa-comment-dots"></i>
+              {% elif notification.notification_type == "update" %}
+                <i class="fas fa-sync-alt"></i>
+              {% else %}
+                <i class="fas fa-bell"></i>
+              {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800">
+                {{ notification.title }}
+              </h3>
+              <p class="text-gray-600 text-sm mt-1">
+                {{ notification.message }}
+              </p>
+              <p class="text-xs text-gray-400 mt-1">
+                {{ notification.created_at|timesince }} ago
+              </p>
+            </div>
+
+            <!-- Status -->
+            <div class="text-xs flex-shrink-0">
+              {% if notification.is_read %}
+                <span class="text-gray-400">Read</span>
+              {% else %}
+                <span class="text-blue-600 font-semibold">New</span>
+              {% endif %}
+            </div>
+
+          </div>
+        </a>
+      {% empty %}
+        <div class="text-center p-10 text-gray-500">
+          <i class="fas fa-bell-slash text-4xl mb-3"></i>
+          <p>No notifications yet</p>
+        </div>
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+</section>
+
+{% endblock %}

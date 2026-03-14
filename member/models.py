@@ -95,6 +95,7 @@ class Project(models.Model):
 
     def __str__(self):
         return self.project_title
+
     
 class Project_type(models.Model):
     name = models.CharField(max_length=100)
@@ -128,6 +129,30 @@ class Participation(models.Model):
         return f"{self.user.username} - {self.project.project_title}"
      
 
+
+class Notification(models.Model):
+
+    NOTIFICATION_TYPES = (
+        ('project', 'New Project'),
+        ('participation', 'Project Participation'),
+        ('comment', 'New Comment'),
+        ('update', 'Project Update'),
+        
+    )
+
+    user = models.ForeignKey( User,on_delete=models.CASCADE,related_name="notifications", null=True)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES,null=True)
+    title = models.CharField(max_length=255,null=True)
+    message = models.TextField(null=True)
+    is_read = models.BooleanField(default=False,null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} -> {self.user}"
 
 class ProjectStage(models.Model):
     STAGES = [
@@ -189,15 +214,6 @@ class Milestone(models.Model):
         return f"{self.project.project_title} - {self.title}"
 
 
-# 🔹 Notification Model (Alerts for Users)
-class Notification(models.Model):
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    message = models.TextField()
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Notification for {self.recipient.username}"
 
 # 🔹 Budget Model (For Tracking Expenses)
 class Budget(models.Model):
@@ -335,31 +351,38 @@ class Tender(models.Model):
     def __str__(self):
         return f"{self.reference_number} - {self.title}"
     
+
 class TenderApplication(models.Model):
+    
+    tender = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name="applications")
+    applicant = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
 
-    STATUS = [
-        ('submitted', 'Submitted'),
-        ('under_review', 'Under Review'),
-        ('qualified', 'Qualified'),
-        ('rejected', 'Rejected'),
-        ('awarded', 'Awarded'),
-    ]
+    company_name = models.CharField(max_length=200,null=True)
+    company_email = models.EmailField(null=True)
+    company_phone = models.CharField(max_length=20,null=True)
 
-    tender = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name='applications')
-    contractor = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'contractor'})
+    proposal_document = models.FileField(upload_to="tender_applications/",null=True)
+    bid_amount = models.DecimalField(max_digits=15, decimal_places=2,null=True)
 
-    technical_proposal = models.FileField(upload_to='tender_applications/technical/')
-    financial_proposal = models.FileField(upload_to='tender_applications/financial/')
-
-    bid_amount = models.DecimalField(max_digits=15, decimal_places=2)
-
-    status = models.CharField(max_length=20, choices=STATUS, default='submitted')
+    cover_letter = models.FileField(upload_to='tender_coverLetter', blank=True, null=True)
 
     submitted_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.contractor.username} - {self.tender.reference_number}"
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('submitted', 'Submitted'),
+            ('under_review', 'Under Review'),
+            ('shortlisted', 'Shortlisted'),
+            ('rejected', 'Rejected'),
+            ('awarded', 'Awarded')
+        ],
+        default='submitted'
+    )
 
+    def __str__(self):
+        return f"{self.company_name} - {self.tender.reference_number}"
+    
 class ReportIssue(models.Model):
     title = models.CharField(max_length=255, null=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='issues')

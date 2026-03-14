@@ -14,7 +14,10 @@
   <div class="mb-8 p-8 pb-0">
     <h1 class="text-4xl font-bold text-gray-800">Welcome, {{ user.name }}</h1>
     <p class="text-lg text-gray-600 mt-2">Overseeing Government's work.</p>
+    
   </div>
+  
+
 
   <!-- Analytics Header -->
   <div class="bg-gradient-to-r from-blue-900 to-gray-800 rounded-tl-3xl p-4 shadow mb-6 mx-8 mt-8">
@@ -121,13 +124,6 @@
     </a>
   </div>
 
-  <!-- KPI Section -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 px-8">
-    <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition">
-      <h3 class="text-2xl font-semibold text-gray-800">Total Users</h3>
-      <p class="text-gray-600 mt-4 text-3xl font-bold text-blue-600">{{users}}</p>
-    </div>
-  </div>
 
   <!-- Recent Activity -->
   <section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
@@ -231,4 +227,3 @@ new Chart(ctx4, {
 </div>
   {% include "footer.html" %}
 {% endblock content %}
-       

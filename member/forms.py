@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, ProjectStage, ReportIssue, Team, Tender, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
+from .models import PDF, AuditLog, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -97,6 +97,17 @@ class TenderForm(forms.ModelForm):
     class Meta:
         model = Tender
         fields = ['project','reference_number', 'description', 'document', 'estimated_budget', 'opening_date', 'closing_date', 'eligibility_criteria', 'evaluation_criteria', 'procurement_method']
+
+class TenderApplicationForm(forms.ModelForm):
+    
+    class Meta:
+        model = TenderApplication
+        fields = ['company_name',
+            'company_email',
+            'company_phone',
+            'bid_amount',
+            'proposal_document',
+            'cover_letter',]
 
 class ReportIssueForm(forms.ModelForm):
     class Meta:

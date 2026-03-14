@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, add_team, add_testimonial, adminview, comment, delayedstatus, delete_division, delete_testimonial, edit_division, feedback_details, people, projectstage, projectstage_details, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, add_team, add_testimonial, adminview, apply_tender, comment, delayedstatus, delete_division, delete_testimonial, edit_division, feedback_details, notifications, people, projectstage, projectstage_details, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -85,6 +85,7 @@ urlpatterns = [
 
     path('notifications/', notification_list, name='notification_list'),
     path('notification_create/', notification_create, name='notification_create'),
+    path('notifications/', notifications,name='notifications'),
 
 
     path('media/', media_list, name='media_list'),
@@ -97,6 +98,7 @@ urlpatterns = [
     path('issues/<int:issue_id>/', issue_detail, name='issue_detail'),
     
     path('tenders/', tender_list, name='tender_list'),
+    path('apply_tender/<str:pk>/', apply_tender,name='apply_tender'),
     path('tenders/<int:tender_id>/', tender_detail, name='tender_detail'),
     path('tenders/add/', add_tender, name='add_tender'),
     path('tenders/update/<int:tender_id>/', update_tender, name='update_tender'),
@@ -126,4 +128,3 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-

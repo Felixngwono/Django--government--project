@@ -1,0 +1,101 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+{% include "sidebar.html" %}
+{% load widget_tweaks %}
+
+<div class="proj_container flex">
+    <div class="container mx-auto px-6 py-10">
+
+        <!-- Page Title -->
+        <div class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-800">Apply for Tender</h1>
+            <p class="text-gray-500 mt-2 text-lg">Submit your proposal for the tender below.</p>
+        </div>
+
+        <!-- Tender Info Card -->
+        <div class="bg-gradient-to-r from-blue-50 to-white shadow-lg rounded-2xl p-8 mb-10 border-l-8 border-blue-600">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-gray-700">
+        <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+            <span class="block text-sm font-semibold text-gray-500">Project</span>
+            <span class="block text-gray-800 mt-1">{{ tender.project }}</span>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+            <span class="block text-sm font-semibold text-gray-500">Opening Date</span>
+            <span class="block text-gray-800 mt-1">{{ tender.opening_date }}</span>
+        </div>
+        <div class="bg-red-50 p-4 rounded-lg shadow-sm">
+            <span class="block text-sm font-semibold text-gray-500">Closing Date</span>
+            <span class="block text-gray-800 mt-1">{{ tender.closing_date }}</span>
+        </div>
+
+        <div class="bg-purple-50 p-4 rounded-lg shadow-sm md:col-span-2">
+            <span class="block text-sm font-semibold text-gray-500">Additional Info</span>
+            <span class="block text-gray-800 mt-1">
+                {{ tender.eligibility_criteria|default:"No eligibility info provided." }}
+            </span>
+        </div>
+    </div>
+</div>
+
+        <!-- Application Form -->
+        <div class="bg-white shadow-lg rounded-2xl p-8">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Company Name -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Company Name</label>
+                        {% render_field form.company_name class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Enter your company name" %}
+                    </div>
+
+                    <!-- Company Email -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Company Email</label>
+                        {% render_field form.company_email class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Enter company email" %}
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Phone Number</label>
+                        {% render_field form.company_phone class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Enter phone number" %}
+                    </div>
+
+                    <!-- Bid Amount -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Bid Amount</label>
+                        {% render_field form.bid_amount class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Enter bid amount" %}
+                    </div>
+                </div>
+
+                <!-- Proposal Document -->
+                <div class="mt-6">
+                    <label class="block text-gray-700 font-medium mb-1">Proposal Document</label>
+                    {% render_field form.proposal_document class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" %}
+                </div>
+
+                <!-- Cover Letter -->
+                <div class="mt-6">
+                    <label class="block text-gray-700 font-medium mb-1">Cover Letter</label>
+                    {% render_field form.cover_letter class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Write your cover letter here..." %}
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="mt-8 flex flex-col md:flex-row gap-4 md:gap-6">
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                        Submit Application
+                    </button>
+                    <a href="{% url 'tender_list' %}" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+{% include "footer.html" %}
+{% endblock %}

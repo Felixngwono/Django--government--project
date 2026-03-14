@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import Comment,PDF, AuditLog, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderForm, TestimonialForm, participationForm
+from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
@@ -99,6 +99,46 @@ def Participation_details(request,pk):
     context={'participation':participation, 'participants': participants,'form':form}
     return render(request,'participation_details.html',context)
 
+
+@login_required(login_url='login')
+def Notifications(request):
+
+    # latest projects
+    recent_projects = Project.objects.order_by('-created_at')[:5]
+
+    # latest participations
+    recent_participations = Participation.objects.order_by('-joined_at')[:5]
+
+    # combine notifications
+    notifications = []
+
+    for project in recent_projects:
+        notifications.append({
+            "message": f"New project added: {project.project_title}",
+            "link": f"/project/{project.id}/",
+            "time": project.created_at
+        })
+
+    for p in recent_participations:
+        notifications.append({
+            "message": f"{p.user.username} joined {p.project.project_title}",
+            "link": f"/project/{p.project.id}/",
+            "time": p.joined_at
+        })
+
+    # sort notifications by latest
+    notifications = sorted(
+        notifications,
+        key=lambda x: x["time"],
+        reverse=True
+    )
+
+    context = {
+        "notifications": notifications[:10],
+        "notification_count": len(notifications)
+    }
+
+    return render(request, "notifications.html", context)
 
 @login_required(login_url='login')
 def ContactusPage(request):
@@ -936,6 +976,24 @@ def tender_list(request):
 def tender_detail(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     return render(request, 'tender_detail.html', {'tender': tender})
+
+def apply_tender(request, pk):
+    tender = get_object_or_404(Tender, id=pk)
+    form = TenderApplicationForm(request.POST or None, request.FILES or None)
+
+    if form.is_valid():
+        application = form.save(commit=False)
+        application.tender = tender
+        application.applicant = request.user
+        application.save()
+        messages.success(request, "Your application has been submitted.")
+        return redirect('tender_list')
+
+    context = {
+        'tender': tender,   # <-- pass 'tender', not 'apply'
+        'form': form,
+    }
+    return render(request, 'apply_tender.html', context)
 
 # Add a new tender
 @login_required(login_url='login')
