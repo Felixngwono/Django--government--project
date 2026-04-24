@@ -1,0 +1,165 @@
+    <script src="https://cdn.tailwindcss.com"></script>
+    <aside class="sidebar">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+      <div class="logo-icon">
+        <img src="{{ request.user.profile.url }}?w=40&h=40&fit=crop" class="w-10 h-10 rounded-full border-2 border-blue-500">
+      </div>    <div class="logo-text">
+        <h2>{{ user.name }}</h2>
+        <span>{% if request.user.is_superuser %}
+         Admin Dashboard
+         {% elif request.user.is_enduser %}
+         Citizen Portal
+        {% endif %}</span>
+      </div> 
+      </div>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav">
+      <div class="nav-section-title">MAIN</div>
+
+      <a href="{% url 'dashboard' %}" class="nav-item">
+        <iconify-icon icon="solar:home-2-bold-duotone"></iconify-icon> 
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:note-bold-duotone"></iconify-icon>
+        <span class="nav-text">Government Requests</span>
+      </a>
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:route-bold-duotone"></iconify-icon>
+        <span class="nav-text">Track Applications</span>
+      </a>
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:folder-bold-duotone"></iconify-icon>
+        <span class="nav-text">My Documents</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">PROJECTS</div>
+
+      <a href="{% url 'projectoverview' %}" class="nav-item">
+        <iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon>
+        <span class="nav-text">Overview</span>
+      </a>   
+       <a href="{% url 'ongoing' %}" class="nav-item">
+        <iconify-icon icon="solar:play-bold-duotone"></iconify-icon>
+        <span class="nav-text">Ongoing</span>
+      </a>
+      <a href="{% url 'upcoming' %}" class="nav-item">
+        <iconify-icon icon="solar:calendar-bold-duotone"></iconify-icon>
+        <span class="nav-text">Upcoming</span>
+      </a>
+      <a href="{% url 'delayed' %}" class="nav-item">
+        <iconify-icon icon="solar:alarm-bold-duotone"></iconify-icon>
+        <span class="nav-text">Delayed</span>
+      </a>
+      <a href="{% url 'completed' %}" class="nav-item">
+        <iconify-icon icon="solar:check-circle-bold-duotone"></iconify-icon>
+        <span class="nav-text">Completed</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">STAGES & MILESTONES</div>
+
+      <a href="{% url 'milestone_list' %}" class="nav-item">
+        <iconify-icon icon="solar:flag-bold-duotone"></iconify-icon>
+        <span class="nav-text">Project Milestones</span>
+      </a>
+      <a href="{% url 'projectstage_list' %}" class="nav-item">
+        <iconify-icon icon="solar:layers-bold-duotone"></iconify-icon>
+        <span class="nav-text">Project Stages</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">PROGRESS</div>
+
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:chart-bold-duotone"></iconify-icon>
+        <span class="nav-text">Progress Report</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">DIVISION</div>
+      {% if request.user.is_superuser %}
+
+      <a href="{% url 'ProjectTypes' %}" class="nav-item">
+        <iconify-icon icon="solar:tag-bold-duotone"></iconify-icon>
+        <span class="nav-text">Project Type</span>
+      </a>
+      {% endif %}
+      <a href="{% url 'division_details' %}" class="nav-item">
+        <iconify-icon icon="solar:info-circle-bold-duotone"></iconify-icon>
+        <span class="nav-text">Project Details</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">PROCUREMENT</div>
+
+      <a href="{% url 'tender_list' %}" class="nav-item">
+        <iconify-icon icon="solar:bag-bold-duotone"></iconify-icon>
+        <span class="nav-text">Tenders</span>
+      </a>
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:box-bold-duotone"></iconify-icon>
+        <span class="nav-text">Bids & Proposals</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">SERVICES</div>
+
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:card-bold-duotone"></iconify-icon>
+        <span class="nav-text">Licenses & Permits</span>
+      </a>
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:wallet-bold-duotone"></iconify-icon>
+        <span class="nav-text">Payments</span>
+      </a>
+      <a href="{% url 'notifications' %}" class="nav-item">
+        <iconify-icon icon="solar:bell-bold-duotone"></iconify-icon>
+        <span class="nav-text">Notifications</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">FEEDBACK & ISSUES</div>
+
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:bug-bold-duotone"></iconify-icon>
+        <span class="nav-text">Reported Issues</span>
+      </a>
+      <a href="{% url 'feedback' %}" class="nav-item">
+        <iconify-icon icon="solar:chat-round-bold-duotone"></iconify-icon>
+        <span class="nav-text">Feedback</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">WORKSPACE</div>
+
+      <a href="{% url 'AuditLog' %}" class="nav-item">
+        <iconify-icon icon="solar:shield-check-bold-duotone"></iconify-icon>
+        <span class="nav-text">Auditing</span>
+      </a>
+      <a href="{% url 'media_list' %}" class="nav-item">
+        <iconify-icon icon="solar:gallery-bold-duotone"></iconify-icon>
+        <span class="nav-text">Media</span>
+      </a>
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
+        <span class="nav-text">Reports</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:12px;">ACCOUNT</div>
+
+      <a href="#" class="nav-item">
+        <iconify-icon icon="solar:settings-bold-duotone"></iconify-icon>
+        <span class="nav-text">Settings</span>
+      </a>
+      <a href="{% url 'logout' %}" class="nav-item" style="color:var(--danger);">
+        <iconify-icon icon="solar:logout-2-bold-duotone" style="color:var(--danger)"></iconify-icon>
+        <span class="nav-text">Logout</span>
+      </a>
+      </nav>
+
+      <div class="p-4 border-t border-slate-700">
+      <a href="{{ request.user.profile.url }}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors">
+        <img src="{{ request.user.profile.url }}?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full border-2 border-blue-500">
+        <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-black truncate">{{ user.name }}</p>
+        <p class="text-xs text-slate-400 truncate">{{user.role }}</p>
+        </div>
+      </a>
+      </div>
+    </aside>

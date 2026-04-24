@@ -1,77 +1,150 @@
-{% extends "header.html" %}
-{% block content %}
 {% load static %}
-{% load widget_tweaks %}
-{% include "sidebar.html" %}
-<link rel="stylesheet" href="{% static 'css/pro_overview.css' %}">
-<div class='proj_container'>
-    <div>
-<div class="relative w-full h-screen flex items-center justify-center overflow-hidden">
 
-    <!-- Background Image -->
-    <div class="absolute inset-0">
-        <img src="{% static 'images/wel.jpg' %}" class="w-full h-screen object-cover">
-        <div class="absolute inset-0  from-black/70 via-black/60 to-blue-900/60"></div>
-    </div>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+{% load widget_tweaks %}
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content">
+
+    <!-- ============================
+         PAGE: DASHBOARD
+    ============================= -->
+
+
+
+        
+   
 
     <!-- Contact Card -->
-    <div class="relative z-10 w-full max-w-3xl px-6 py-12">
-        <div class="backdrop-blur-md bg-white border border-white/20 rounded-2xl shadow-2xl p-10 text-black">
+
+        <div class="backdrop-blur-md bg-white/90 border border-white/20 rounded-2xl shadow-2xl p-8">
 
             <!-- Header -->
-            <div class="text-center mb-10">
-                <h2 class="text-4xl font-bold mb-3 tracking-wide">
-                    Contact Us
-                </h2>
-                <p class="text-gray-700 text-sm max-w-md mx-auto">
-                    Have a question, suggestion, or need support?  
-                    We’re here to help. Send us a message and we’ll respond as soon as possible.
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-3">Contact Us</h2>
+                <p class="text-gray-600 text-sm max-w-md mx-auto">
+                    Have a question, suggestion, or need support? We’re here to help.
                 </p>
             </div>
 
-            <!-- Form -->
-            <form action="" method="POST" class="space-y-6">
-                {% csrf_token %}
+            <!-- ✅ MAP (KENYA) -->
+            <div class="mb-8 rounded-xl overflow-hidden shadow">
+                <iframe
+                    src="https://www.google.com/maps?q=Nairobi,Kenya&output=embed"
+                    class="w-full h-[300px] border-0"
+                    loading="lazy">
+                </iframe>
+            </div>
 
-                <!-- Name -->
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-gray-700">
-                        Your Name
-                    </label>
-                    {% render_field form.name class="w-full bg-white/90 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-md" placeholder="Enter Full Name" %}
+            <!-- CONTENT -->
+            <div class="flex flex-wrap gap-8">
+
+                <!-- ✅ FORM -->
+                <div class="w-full lg:w-5/12">
+                    <form method="POST" class="space-y-5">
+                        {% csrf_token %}
+
+                        <div>
+                            <label class="text-sm font-semibold text-gray-700">Name</label>
+                            {% render_field form.name class="w-full mt-1 rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" %}
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-semibold text-gray-700">Email</label>
+                            {% render_field form.email class="w-full mt-1 rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" %}
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-semibold text-gray-700">Message</label>
+                            {% render_field form.message class="w-full mt-1 rounded-lg border px-3 py-2 h-32 focus:ring-2 focus:ring-blue-500 outline-none" %}
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="copy">
+                            <label for="copy" class="text-sm text-gray-600">
+                                Send me a copy
+                            </label>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+                            Send Message
+                        </button>
+                    </form>
                 </div>
 
-                <!-- Email -->
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-gray-700">
-                        Your Email
-                    </label>
-                    {% render_field form.email class="w-full bg-white/90 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-md" placeholder="Enter Email Address" %}
+                <!-- ✅ CONTACT INFO -->
+                <div class="w-full lg:w-6/12">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <div class="flex items-start gap-3">
+                            <div class="bg-blue-100 p-3 rounded-lg">📧</div>
+                            <div>
+                                <p class="font-bold">Support</p>
+                                <p class="text-sm text-gray-500">support@govtracker.co.ke</p>
+                                <p class="text-sm text-gray-500">+254 700 000 000</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="bg-blue-100 p-3 rounded-lg">📍</div>
+                            <div>
+                                <p class="font-bold">Address</p>
+                                <p class="text-sm text-gray-500">Nairobi, Kenya</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="bg-blue-100 p-3 rounded-lg">☎️</div>
+                            <div>
+                                <p class="font-bold">Landline</p>
+                                <p class="text-gray-500">020 123 4567</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="bg-blue-100 p-3 rounded-lg">📱</div>
+                            <div>
+                                <p class="font-bold">Mobile</p>
+                                <p class="text-gray-500">+254 712 345 678</p>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
 
-                <!-- Message -->
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-gray-700">
-                        Your Message
-                    </label>
-                    {% render_field form.message class="w-full bg-white/90 text-gray-900 rounded-xl px-4 py-3 h-40 resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-md" placeholder="Write your message here..." %}
-                </div>
-
-                <!-- Button -->
-                <button type="submit"
-                        class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg shadow-lg hover:from-blue-700 hover:to-indigo-700 transform hover:scale-[1.02] transition duration-300">
-                    Send Message
-                </button>
-            </form>
+            </div>
 
         </div>
+
     </div>
 </div>
-</div>
-{% include "recent_activities.html" %}
 
 </div>
-</div>
-
+</main>
 {% include "footer.html" %}
-{% endblock content %}

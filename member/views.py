@@ -12,7 +12,9 @@ from django.db.models import Sum
 import pdfkit
 from django.db.models import Q
 from django.core.paginator import Paginator
-
+from django.db.models.functions import ExtractMonth
+from datetime import datetime, timedelta
+from django.db.models.functions import TruncMonth
 
 def generate_report(request):
     # Fetch data for reports
@@ -103,42 +105,121 @@ def Participation_details(request,pk):
 @login_required(login_url='login')
 def Notifications(request):
 
-    # latest projects
-    recent_projects = Project.objects.order_by('-created_at')[:5]
+    new_projects = Project.objects.order_by('-start_date')[:4]
+    new_participants = Participation.objects.order_by('-joined_at')[:4]
 
-    # latest participations
-    recent_participations = Participation.objects.order_by('-joined_at')[:5]
-
-    # combine notifications
     notifications = []
 
-    for project in recent_projects:
+    # build notifications list
+    for project in new_projects:
         notifications.append({
-            "message": f"New project added: {project.project_title}",
+            "message": f"New project: {project.project_title}",
             "link": f"/project/{project.id}/",
-            "time": project.created_at
+            "time": project.start_date
         })
 
-    for p in recent_participations:
+    for p in new_participants:
         notifications.append({
             "message": f"{p.user.username} joined {p.project.project_title}",
             "link": f"/project/{p.project.id}/",
             "time": p.joined_at
         })
 
-    # sort notifications by latest
-    notifications = sorted(
-        notifications,
-        key=lambda x: x["time"],
-        reverse=True
-    )
+    # sort
+    notifications = sorted(notifications, key=lambda x: x["time"], reverse=True)
 
     context = {
-        "notifications": notifications[:10],
-        "notification_count": len(notifications)
+        "notifications": notifications,
+        "notification_count": len(notifications)  
     }
 
     return render(request, "notifications.html", context)
+
+def dashboard(request):
+    ongoingcount=Project.objects.filter(project_status='ongoing').count()
+    upcomingcount=Project.objects.filter(project_status='upcoming').count()
+    completedcount=Project.objects.filter(project_status='completed').count()
+    delayedcount=Project.objects.filter(project_status='delayed').count()
+    stalledcount=Project.objects.filter(project_status='stalled').count()
+    allproject=Project.objects.all().count()
+    users=User.objects.all().count()
+    people=User.objects.all()
+    agencies=Project_Division.objects.all().count()
+    projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
+     # Initialize month list
+    project_counts = [0] * 12  # Jan to Dec
+# Aggregate budget per month
+    data = (
+        Project.objects
+        .annotate(month=ExtractMonth('start_date'))
+        .values('month')
+        .annotate(
+            total_budget=Sum('budget'),
+            used_budget=Sum('amount_spent')
+        )
+        .order_by('month')
+    )
+
+    # Prepare arrays for all 12 months
+    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    allocated = [0]*12
+    used = [0]*12
+
+    # Fill data
+    for item in data:
+        index = item['month'] - 1  # month is 1–12
+        allocated[index] = item['total_budget'] or 0
+        used[index] = item['used_budget'] or 0
+        
+     # Prepare last 12 months
+    today = datetime.today()
+    months = []
+    month_labels = []
+    for i in range(11, -1, -1):  # 11 → 0
+        month_date = today - timedelta(days=i*30)  # approximate month
+        months.append(month_date.month)
+        month_labels.append(month_date.strftime('%b'))
+
+    # Count users per month
+    users_by_month = User.objects.filter(
+        date_joined__year__gte=today.year-1
+    ).annotate(
+        month=TruncMonth('date_joined')
+    ).values('month').annotate(count=Count('id'))
+
+    # Build data array for Chart.js
+    data = []
+    users_dict = {x['month'].month: x['count'] for x in users_by_month}
+    for m in months:
+        data.append(users_dict.get(m, 0))
+
+
+    
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:5]
+    else:
+        participants = Participation.objects.filter(user=request.user).order_by('-joined_at')[:5]
+  
+    context={'ongoingcount':ongoingcount,
+             'upcomingcount':upcomingcount,
+             'completedcount':completedcount,
+             'delayedcount':delayedcount,
+            'stalledcount':stalledcount,
+             'allproject':allproject,
+             'users':users,
+             'project':projects,
+             'agencies':agencies,
+             'projects':projects,
+             'people':people,
+             'participants':participants,
+             'projects_per_month': project_counts,
+             'months': months,
+             'allocated': allocated,
+             'used': used,
+             'month_labels': month_labels,
+              'user_counts': data,
+             }
+    return render(request, 'dashboard.html',context)
 
 @login_required(login_url='login')
 def ContactusPage(request):

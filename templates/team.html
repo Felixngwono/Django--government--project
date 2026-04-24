@@ -1,23 +1,46 @@
-{% extends "header.html" %}
-{% block content %}
-{% include 'Sidebar.html' %}
 {% load static %}
 
-<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 
-<style>
-body {
-    font-size: 14px;
-    background-image: url("{% static 'images/wel.jpg' %}");
-    background-size: cover;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-}
-</style>
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
-<div class="proj_container">
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content">
+
+    <!-- ============================
+         PAGE: DASHBOARD
+    ============================= -->
+
+
+
+
+
     <div>
-    <section style="background-image: url('{% static "images/wel.jpg" %}'); background-size: cover; background-attachment: fixed; background-repeat: no-repeat;">
+    <section class="bg-white dark:bg-gray-900">
         <div class="mx-auto mb-8 max-w-screen-sm lg:mb-16 text-center">
             <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">Our team</h2>
             <p class="font-light text-gray-500 sm:text-xl dark:text-gray-400">
@@ -96,11 +119,10 @@ body {
         </div>
     </section>
 </div>
-{% include "recent_activities.html" %}
 </div>
 <script src="{% static 'js/team.js' %}"></script>
 
 
 </div>
+</main>
 {% include 'footer.html' %}
-{% endblock %}

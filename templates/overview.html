@@ -1,196 +1,166 @@
-{% extends "header.html" %}
+{% extends "heading.html" %}
 {% block content %}
 {% load static %}
 
-<!-- Wrapper for Sidebar + Main Content -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Sidebar (1/6 width) -->
-    {% include "sidebar.html" %}
+<!DOCTYPE html>
+<html lang="id" x-data="member()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
+</head>
+<body x-data="member()" :class="{ 'dark': darkMode }">
 
-    <!-- Header Actions -->
-    <div class="flex flex-col md:flex-row justify-between ">
-        <h2 class=" font-bold text-center">Project List</h2>
-        <form method="GET" class="flex items-center mb-4 md:mb-0">
-            <input type="text" name="q" placeholder="Search projects..." value="{{ request.GET.q }}" class="border rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-r-lg px-4 py-2">
-                Search
-            </button>
-        </form>
-        
-        {% if request.user.is_superuser %}
-        <a href="{% url 'createproject' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
-            <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
-            </svg>
-            Add Project
-        </a>
-        {% endif %}
-    </div>
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-gray-700 border rounded-lg">
-            <thead class="bg-gray-200 text-gray-700">
-                <tr>
-                    <th class="px-4 py-3">Image</th>
-                    <th class="px-4 py-3">Title</th>
-                    <th class="px-4 py-3">Description</th>
-                    <th class="px-4 py-3">Location</th>
-                    <th class="px-4 py-3">Agency</th>
-                    <th class="px-4 py-3">Start Date</th>
-                    <th class="px-4 py-3">End Date</th>
-                    <th class="px-4 py-3">Status</th>
-                    <th class="px-4 py-3">Budget</th>
-                    
-                    <th class="px-4 py-3 text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y">
-                {% for project in projects %}
-                <tr>
-                    <td class="px-4 py-3">
-                        {% if project.images %}
-                        <img src="{{ project.images.url }}" alt="Project Image" class="w-20 h-20 object-cover rounded">
-                        {% else %}
-                        <span class="text-gray-500 italic">No Image</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-4 py-3 font-medium">{{ project.project_title }}</td>
-                    <td class="px-4 py-3">{{ project.project_description }}</td>
-                    <td class="px-4 py-3">{{ project.project_location }}</td>
-                    <td class="px-4 py-3">{{ project.implementing_agency }}</td>
-                    <td class="px-4 py-3">{{ project.start_date }}</td>
-                    <td class="px-4 py-3">{{ project.end_date }}</td>
-                    <td class="px-4 py-3">{{ project.project_status }}</td>
-                    <td class="px-4 py-3">{{ project.project_Budgeting }}</td>
-                    
-                    
-                    <td class="px-4 py-3 text-center">
-                        <div class="relative inline-block text-left group">
-                            <button type="button" class="dropdown-toggle text-black bg-blue-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center">
-                                View
-                                <svg class="fill-current h-4 w-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"/>
-                                </svg>
-                            </button>
-                            <ul class="dropdown-menu absolute hidden group-hover:block group-focus-within:block bg-white text-gray-700 mt-2 right-0 shadow-lg rounded-md w-32 z-10">
-                                {% if request.user.is_superuser %}
-                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'update' project.id %}">Update</a></li>
-                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delete' project.id %}">Delete</a></li>
-                                    {% endif %}
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
 
-                                {% if project.project_status == 'ongoing' %}
-                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Ongoingstatuses' project.id %}">details</a></li>
-                                {% elif project.project_status == 'upcoming' %}
-                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Upcomingstatus' project.id %}">details</a></li>
-                                {% elif project.project_status == 'Delayed' %}
-                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delayedstatus' project.id %}">details</a></li>
-                                {% elif project.project_status == 'stalled' %}
-                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'stalledstatus' project.id %}">details</a></li>
-                                {% else %}
-                                    <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'CompletedStatuses' project.id %}">details</a></li>
-                                {% endif %}
-                            </ul>
-                        </div>
-                        <script>
-                            // Show dropdown on click or hover
-                            document.querySelectorAll('.dropdown-toggle').forEach(function(btn) {
-                                const menu = btn.parentElement.querySelector('.dropdown-menu');
-                                btn.addEventListener('click', function(e) {
-                                    e.stopPropagation();
-                                    menu.classList.toggle('hidden');
-                                });
-                                btn.parentElement.addEventListener('mouseenter', function() {
-                                    menu.classList.remove('hidden');
-                                });
-                                btn.parentElement.addEventListener('mouseleave', function() {
-                                    menu.classList.add('hidden');
-                                });
-                            });
-                            document.addEventListener('click', function() {
-                                document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
-                                    menu.classList.add('hidden');
-                                });
-                            });
-                        </script>
-                    </td>
-                  
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<!-- ===== HEADER ===== -->
 
-    <!-- Pagination -->
-<div class="flex justify-between items-center mt-6">
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content">
 
-    <span class="text-sm text-gray-600">
-        Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
-    </span>
+    <!-- ============================
+         PAGE: DASHBOARD
+    ============================= -->
 
-    <div class="flex space-x-2">
-
-        {% if projects.has_previous %}
-        <a href="?page={{ projects.previous_page_number }}&q={{ request.GET.q }}"
-           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-            Previous
-        </a>
-        {% endif %}
-
-        {% for num in projects.paginator.page_range %}
-
-            {% if projects.number == num %}
-                <span class="px-3 py-1 bg-blue-600 text-white rounded">
-                    {{ num }}
-                </span>
-            {% else %}
-                <a href="?page={{ num }}&q={{ request.GET.q }}"
-                   class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-                    {{ num }}
+    <div class="flex-1">
+        <!-- Header Actions -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                <h2 class="font-bold text-center">Project List</h2>
+                <form method="GET" class="flex items-center">
+                        <input type="text" name="q" placeholder="Search projects..." value="{{ request.GET.q }}" class="border rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-r-lg px-4 py-2">
+                                Search
+                        </button>
+                </form>
+                
+                {% if request.user.is_superuser %}
+                <a href="{% url 'createproject' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
+                        <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                        </svg>
+                        Add Project
                 </a>
-            {% endif %}
+                {% endif %}
+        </div>
+        
+ 
+        <!-- Table -->
+        <div class="overflow-x-auto">
+                <table class="w-full text-left text-gray-700 border rounded-lg">
+                        <thead class="bg-gray-200 text-gray-700">
+                                <tr>
+                                        <th class="px-4 py-3">Image</th>
+                                        <th class="px-4 py-3">Title</th>
+                                        <th class="px-4 py-3">Description</th>
+                                        <th class="px-4 py-3">Location</th>
+                                        <th class="px-4 py-3">Agency</th>
+                                        <th class="px-4 py-3">Start Date</th>
+                                        <th class="px-4 py-3">End Date</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Budget</th>
+                                        <th class="px-4 py-3 text-center">Actions</th>
+                                </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y">
+                                {% for project in projects %}
+                                <tr>
+                                        <td class="px-4 py-3">
+                                                {% if project.images %}
+                                                <img src="{{ project.images.url }}" alt="Project Image" class="w-20 h-20 object-cover rounded">
+                                                {% else %}
+                                                <span class="text-gray-500 italic">No Image</span>
+                                                {% endif %}
+                                        </td>
+                                        <td class="px-4 py-3 font-medium">{{ project.project_title }}</td>
+                                        <td class="px-4 py-3">{{ project.project_description }}</td>
+                                        <td class="px-4 py-3">{{ project.project_location }}</td>
+                                        <td class="px-4 py-3">{{ project.implementing_agency }}</td>
+                                        <td class="px-4 py-3">{{ project.start_date }}</td>
+                                        <td class="px-4 py-3">{{ project.end_date }}</td>
+                                        <td class="px-4 py-3">{{ project.project_status }}</td>
+                                        <td class="px-4 py-3">{{ project.project_Budgeting }}</td>
+                                        
+                                        <td class="px-4 py-3 text-center">
+                                                <div class="relative inline-block text-left group">
+                                                        <button type="button" class="dropdown-toggle text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center">
+                                                                View
+                                                                <svg class="fill-current h-4 w-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                                        <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"/>
+                                                                </svg>
+                                                        </button>
+                                                        <ul class="dropdown-menu absolute hidden group-hover:block bg-white text-gray-700 mt-2 right-0 shadow-lg rounded-md w-32 z-10">
+                                                                {% if request.user.is_superuser %}
+                                                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'update' project.id %}">Update</a></li>
+                                                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delete' project.id %}">Delete</a></li>
+                                                                {% endif %}
 
-        {% endfor %}
+                                                                {% if project.project_status == 'ongoing' %}
+                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Ongoingstatuses' project.id %}">Details</a></li>
+                                                                {% elif project.project_status == 'upcoming' %}
+                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Upcomingstatus' project.id %}">Details</a></li>
+                                                                {% elif project.project_status == 'Delayed' %}
+                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delayedstatus' project.id %}">Details</a></li>
+                                                                {% elif project.project_status == 'stalled' %}
+                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'stalledstatus' project.id %}">Details</a></li>
+                                                                {% else %}
+                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'CompletedStatuses' project.id %}">Details</a></li>
+                                                                {% endif %}
+                                                        </ul>
+                                                </div>
+                                        </td>
+                                </tr>
+                                {% endfor %}
+                        </tbody>
+                </table>
+        </div>
 
-        {% if projects.has_next %}
-        <a href="?page={{ projects.next_page_number }}&q={{ request.GET.q }}"
-           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-            Next
-        </a>
-        {% endif %}
+        <!-- Pagination -->
+        <div class="flex justify-between items-center mt-6">
+                <span class="text-sm text-gray-600">
+                        Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
+                </span>
 
-    </div>
+                <div class="flex space-x-2">
+                        {% if projects.has_previous %}
+                        <a href="?page={{ projects.previous_page_number }}&q={{ request.GET.q }}" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+                                Previous
+                        </a>
+                        {% endif %}
 
-</div>
+                        {% for num in projects.paginator.page_range %}
+                                {% if projects.number == num %}
+                                        <span class="px-3 py-1 bg-blue-600 text-white rounded">{{ num }}</span>
+                                {% else %}
+                                        <a href="?page={{ num }}&q={{ request.GET.q }}" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">{{ num }}</a>
+                                {% endif %}
+                        {% endfor %}
 
+                        {% if projects.has_next %}
+                        <a href="?page={{ projects.next_page_number }}&q={{ request.GET.q }}" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+                                Next
+                        </a>
+                        {% endif %}
+                </div>
+        </div>
 
-  </div> <!-- End Main Content -->
+    </div> <!-- End Main Content -->
 </div> <!-- End Wrapper -->
 
-<!-- Scripts -->
-<script>
-    // Dropdown toggle
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
-            const menu = button.nextElementSibling;
-
-            button.addEventListener('click', function (e) {
-                e.stopPropagation();
-                menu.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', function (e) {
-                if (!button.contains(e.target) && !menu.contains(e.target)) {
-                    menu.classList.add('hidden');
-                }
-            });
-        });
-    });
-</script>
-
+</main>
 <script src="{% static 'js/projectforms.js' %}"></script>
-</div>
-    {% include "footer.html" %}
-
+{% include "footer.html" %}
 {% endblock content %}

@@ -74,7 +74,8 @@ class Project(models.Model):
     project_description = models.TextField(null=True)
     project_location = models.CharField(max_length=100,null=True)
     implementing_agency = models.CharField(max_length=100,null=True)
-    project_Budgeting = models.CharField(max_length=15,null=True)  # Improved data type
+    project_Budgeting = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    amount_spent = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True) 
     images = models.ImageField(null=True, blank=True, upload_to='projects/')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)

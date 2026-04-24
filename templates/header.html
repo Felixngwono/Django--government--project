@@ -3,204 +3,156 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GovTracker</title>
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Alpine.js for dropdown -->
+    <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
-<body class="bg-gray-100">
 
-    <!-- Navbar -->
-    <nav class=" fixed bg-gray-700  text-white z-40 relative size-cover w-full   "> <!-- Added ml-64 to move it right after the sidebar -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                
-                <!-- Logo -->
-                <a href="#" class="flex items-center">
-                    <img src="{% static 'images/GOK.png' %}" class="h-8 w-auto" alt="GovTracker Logo">
-                    <span class="ml-2 text-xl font-bold">GovTracker</span>
-                </a>
+<!-- Navbar -->
+<nav x-data="{ mobileMenu: false }" class="fixed bg-gray-700 text-white z-40 w-full">
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="flex justify-between h-16 items-center">
+            
+            <!-- Logo -->
+            <a href="#" class="flex items-center">
+                <img src="{% static 'images/GOK.png' %}" class="h-8 w-auto" alt="GovTracker Logo">
+                <span class="ml-2 text-xl font-bold">GovTracker</span>
+            </a>
 
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-6">
-                    <a href="{% url 'index' %}" class="hover:text-green-400">
-                        <i class="fas fa-home"></i> Home
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-6">
+                <a href="{% url 'index' %}" class="hover:text-green-400"><i class="fas fa-home"></i> Home</a>
+                <a href="{% url 'AboutUs' %}" class="hover:text-green-400"><i class="fas fa-info-circle"></i> About Us</a>
+                <a href="{% url 'testimonials' %}" class="hover:text-green-400"><i class="fas fa-comments"></i> Testimonials</a>
+                <a href="{% url 'team' %}" class="hover:text-green-400"><i class="fas fa-users"></i> Team</a>
+                <a href="{% url 'contactus' %}" class="hover:text-green-400"><i class="fas fa-envelope"></i> Contact Us</a>
+                <a href="{% url 'feedback' %}" class="hover:text-green-400"><i class="fas fa-comment-dots"></i> Feedback</a>
+                <a href="{% url 'project' %}" class="hover:text-green-400"><i class="fas fa-project-diagram"></i> Projects</a>
+
+                {% if request.user.is_superuser %}
+                    <a href="{% url 'adminview' %}" class="font-bold text-blue-400">
+                        <i class="fas fa-user-shield"></i> Admin Dashboard
                     </a>
-                    <a href="{% url 'AboutUs' %}" class="hover:text-green-400">
-                        <i class="fas fa-info-circle"></i> About Us
+                {% elif request.user.is_enduser %}
+                    <a href="#" class="font-bold text-green-400">
+                        <i class="fas fa-user"></i> User Dashboard
                     </a>
-                    <a href='{% url "testimonials" %}' class="hover:text-green-400">
-                        <i class="fas fa-comments"></i> Testimonials
-                    </a>
-                    <a href="{% url 'team' %}" class="hover:text-green-400">
-                        <i class="fas fa-users"></i> Team
-                    </a>
-                    <a href="{% url 'contactus' %}" class="hover:text-green-400">
-                        <i class="fas fa-envelope"></i> Contact Us
-                    </a>
-                    <a href="{% url 'feedback' %}" class="hover:text-green-400">
-                        <i class="fas fa-comment-dots"></i> Feedback
-                    </a>
+                {% endif %}
+            </div>
 
-                        <a href="{% url 'project' %}" class="hover:text-green-400">
-                            <i class="fas fa-project-diagram"></i> Projects
-                        </a>
+            <!-- Right Section -->
+            <div class="flex items-center space-x-4">
 
-                   
-                    
-                    {% if request.user.is_superuser %}
-                        <a href='{% url "adminview" %}' class="font-bold text-blue-400">
-                            <i class="fas fa-user-shield"></i> Admin Dashboard
-                        </a>
-                    {% elif request.user.is_enduser %}
-                        <a href="#" class="font-bold text-green-400">
-                            <i class="fas fa-user"></i> User Dashboard
-                        </a>
-                    {% endif %}
-                </div>
+                <!-- Notifications -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" class="relative text-gray-300 hover:text-white">
+                        <i class="fas fa-bell text-xl"></i>
 
-                <!-- Profile & Mobile Menu Button -->
-                <div class="flex items-center space-x-4">
-                    
-                    <!-- Notifications Icon -->
-                    <!-- Notifications -->
+<div class="px-1 py-0.5 bg-red-500 min-w-5 rounded-full text-center text-white text-xs absolute -top-2 -end-1 translate-x-1/4 text-nowrap">
+        <div class="absolute top-0 start-0 rounded-full -z-10 animate-ping bg-teal-200 w-full h-full"></div>
+        3
+    </div>
+                    </button>
 
-<div x-data="{ open: false }" class="relative">
+                    <div x-show="open"
+                         x-transition
+                         @click.away="open = false"
+                         class="absolute right-0 mt-3 w-80 bg-white text-gray-700 rounded-lg shadow-xl z-50">
 
-<div x-data="{ open: false }" class="relative">
+                        <div class="px-4 py-3 border-b font-semibold flex justify-between">
+                            Notifications
+                            <a href="{% url 'notifications' %}" class="text-xs text-blue-500 hover:underline">
+                                View all
+                            </a>
+                        </div>
 
-<button @click="open = !open" class="relative text-gray-300 hover:text-white">
-
-<i class="fas fa-bell text-xl"></i>
-
-{% if notification_count > 0 %}
-<span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2 py-0.5">
-{{ notification_count }}
-</span>
-{% endif %}
-
-</button>
-
-<div x-show="open"
-     @click.away="open = false"
-     class="absolute right-0 mt-3 w-80 bg-white text-gray-700 rounded-lg shadow-xl z-50">
-
-<div class="px-4 py-3 border-b font-semibold flex justify-between">
-
-Notifications
-
-<a href="{% url 'notifications' %}" class="text-xs text-blue-500 hover:underline">
-View all
-</a>
-
-</div>
-
-<div class="max-h-80 overflow-y-auto">
-
-{% for n in notifications %}
-
-<a href="{{ n.link }}" class="block px-4 py-3 hover:bg-gray-100 border-b">
-
-<p class="text-sm">
-{{ n.message }}
-</p>
-
-<p class="text-xs text-gray-400">
-{{ n.time|timesince }} ago
-</p>
-
-</a>
-
-{% empty %}
-
-<div class="px-4 py-6 text-center text-gray-500 text-sm">
-No new notifications
-</div>
-
-{% endfor %}
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-
-                    <!-- Profile Dropdown -->
-                    <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open" class="flex items-center focus:outline-none">
-                            <img src="{{ request.user.profile.url }}" alt="Profile" class="w-14 h-14 rounded-full">
-                        </button>
-                        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-md shadow-lg py-2">
-                            
-                            {% if request.user.profile %}<a href="{% url 'profile' user.id %}" class="block px-4 py-2 hover:bg-gray-100">Update Profile</a>
-                            {% endif %}
-                            <a href="{% url 'deleteprofile' user.id %}" class="block px-4 py-2 hover:bg-gray-100">Delete Profile</a>
-                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">Logout</a>
+                        <div class="max-h-80 overflow-y-auto">
+                           {% if notification_count > 0 %}
+                           <span class="absolute bg-red-600 text-white px-1 py-1 text-xs font-bold rounded-full -top-3 -right-3">
+                           {% if notification_count > 99 %}
+                               99+
+                           {% else %}
+                               {{ notification_count }}
+                           {% endif %}
+                           </span>
+                           {% endif %}
                         </div>
                     </div>
-                   
-                    <!-- Mobile Menu Button -->
-                    <button @click="mobileMenu = !mobileMenu" class="md:hidden text-white">
-                        <i class="fas fa-bars text-2xl"></i>
-                    </button>
                 </div>
-                 
-            </div>
+
+                <!-- Profile -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" class="flex items-center focus:outline-none">
+                        <img src="{{ request.user.profile.url }}" class="w-10 h-10 rounded-full">
+                    </button>
+
+                    <div x-show="open"
+                         x-transition
+                         @click.away="open = false"
+                         class="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-md shadow-lg py-2">
+
+                        {% if request.user.profile %}
+                        <a href="{% url 'profile' user.id %}" class="block px-4 py-2 hover:bg-gray-100">
+                            Update Profile
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'deleteprofile' user.id %}" class="block px-4 py-2 hover:bg-gray-100">
+                            Delete Profile
+                        </a>
+
+                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button @click="mobileMenu = !mobileMenu" class="md:hidden text-white">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+
             </div>
         </div>
+    </div>
 
-        <!-- Mobile Menu -->
-        <div x-data="{ mobileMenu: false }" x-show="mobileMenu" class="md:hidden bg-gray-900 p-4">
-            <a href="{% url 'index' %}" class="block py-2 hover:text-green-400">
-                <i class="fas fa-home"></i> Home
-            </a>
-            <a href="{% url 'AboutUs' %}" class="block py-2 hover:text-green-400">
-                <i class="fas fa-info-circle"></i> About Us
-            </a>
-            <a href="#" class="block py-2 hover:text-green-400">
-                <i class="fas fa-comments"></i> Testimonials
-            </a>
-            <a href="{% url 'team' %}" class="block py-2 hover:text-green-400">
-                <i class="fas fa-users"></i> Team
-            </a>
-            <a href="{% url 'contactus' %}" class="block py-2 hover:text-green-400">
-                <i class="fas fa-envelope"></i> Contact Us
-            </a>
-            <a href="{% url 'feedback' %}" class="block py-2 hover:text-green-400">
-                <i class="fas fa-comment-dots"></i> Feedback
-            </a>
+    <!-- Mobile Menu -->
+    <div x-show="mobileMenu" x-transition class="md:hidden bg-gray-900 p-4">
+        <a href="{% url 'index' %}" class="block py-2 hover:text-green-400"><i class="fas fa-home"></i> Home</a>
+        <a href="{% url 'AboutUs' %}" class="block py-2 hover:text-green-400"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="{% url 'testimonials' %}" class="block py-2 hover:text-green-400"><i class="fas fa-comments"></i> Testimonials</a>
+        <a href="{% url 'team' %}" class="block py-2 hover:text-green-400"><i class="fas fa-users"></i> Team</a>
+        <a href="{% url 'contactus' %}" class="block py-2 hover:text-green-400"><i class="fas fa-envelope"></i> Contact Us</a>
+        <a href="{% url 'feedback' %}" class="block py-2 hover:text-green-400"><i class="fas fa-comment-dots"></i> Feedback</a>
 
-            {% if request.user.is_enduser %}
-                <a href="{% url 'project' %}" class="block py-2 hover:text-green-400">
-                    <i class="fas fa-project-diagram"></i> Projects
-                </a>
-            {% endif %}
+        {% if request.user.is_enduser %}
+        <a href="{% url 'project' %}" class="block py-2 hover:text-green-400">
+            <i class="fas fa-project-diagram"></i> Projects
+        </a>
+        {% endif %}
 
-            
+        {% if request.user.is_superuser %}
+        <a href="{% url 'adminview' %}" class="block py-2 text-blue-400">
+            <i class="fas fa-user-shield"></i> Admin Dashboard
+        </a>
+        {% elif request.user.is_enduser %}
+        <a href="#" class="block py-2 text-green-400">
+            <i class="fas fa-user"></i> User Dashboard
+        </a>
+        {% endif %}
+    </div>
 
-            {% if request.user.is_superuser %}
-                <a href='{% url "adminview" %}' class="block py-2 text-blue-400">
-                    <i class="fas fa-user-shield"></i> Admin Dashboard
-                </a>
-            {% elif request.user.is_enduser %}
-                <a href="#" class="block py-2 text-green-400">
-                    <i class="fas fa-user"></i> User Dashboard
-                </a>
-            {% endif %}
-           
-        </div>
-       
+</nav>
 
-    </nav>
-        {% block content %}
-        {% endblock content %}
-   
+{% block content %}
+{% endblock content %}
+

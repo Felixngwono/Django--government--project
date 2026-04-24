@@ -1,16 +1,44 @@
-{% extends "header.html" %}
-{% block content %}
 {% load static %}
 
-{% include "sidebar.html" %}
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content">
+
+    <!-- ============================
+         PAGE: DASHBOARD
+    ============================= -->
+
+
 
 <style>
-body{
-    background-image: url("{% static 'images/wel.jpg' %}");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-}
+
 .overlay{
     background: rgba(255,255,255,0.95);
 }
@@ -162,7 +190,7 @@ No completed projects found
 <div class="flex justify-between items-center mt-8 flex-wrap gap-4">
 
 <div class="text-sm text-gray-600">
-Page {{ projects.number }} of {{ projects.paginator.num_pages }}
+ Showing Page {{ projects.number }} of {{ projects.paginator.num_pages }}
 </div>
 
 <div class="flex items-center gap-2">
@@ -214,7 +242,6 @@ Next
 
 </div>
 </div>
-
+</main>
 {% include "footer.html" %}
 
-{% endblock %}
