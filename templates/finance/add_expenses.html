@@ -1,0 +1,112 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<main class="main">
+
+<div class="max-w-xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
+
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+        Add Expense
+    </h2>
+
+    <form method="POST" class="space-y-4">
+        {% csrf_token %}
+
+        <!-- PROJECT -->
+        <div>
+            <label class="block text-sm font-medium text-gray-600">
+                Project
+            </label>
+            {{ form.project }}
+        </div>
+
+        <!-- BUDGET -->
+        <div>
+            <label class="block text-sm font-medium text-gray-600">
+                Budget
+            </label>
+            {{ form.budget }}
+        </div>
+
+        <!-- TITLE -->
+        <div>
+            <label class="block text-sm font-medium text-gray-600">
+                Title
+            </label>
+            {{ form.title }}
+        </div>
+
+        <!-- AMOUNT -->
+        <div>
+            <label class="block text-sm font-medium text-gray-600">
+                Amount (KES)
+            </label>
+            {{ form.amount }}
+        </div>
+
+        <!-- CATEGORY -->
+        <div>
+            <label class="block text-sm font-medium text-gray-600">
+                Category
+            </label>
+            {{ form.category }}
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div>
+            <label class="block text-sm font-medium text-gray-600">
+                Description
+            </label>
+            {{ form.description }}
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="flex justify-between items-center pt-4">
+            <a href="{% url 'dashboard' %}"
+               class="text-gray-500 hover:underline">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">
+                Save Expense
+            </button>
+        </div>
+
+    </form>
+</div>
+</main>
+{% include "footer.html" %}
+{% endblock content %}

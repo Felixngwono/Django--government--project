@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+from FelloMarley import settings
+
 # 🔹 User Model (Custom User with Roles)
 class User(AbstractUser):
     ROLE_CHOICES = [
@@ -229,6 +231,16 @@ class Budget(models.Model):
     def __str__(self):
         return f"Budget for {self.project.project_title}"
 
+   
+class ProjectExpense(models.Model):
+    budget= models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='expenses', null=True, blank=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='expenses')
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    description = models.TextField(null=True)
+    expense_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Expense for {self.project.project_title} - {self.amount}"
 
 
 # 🔹 Media & Documents Model (Stores PDFs, Images, Videos)
@@ -455,30 +467,10 @@ class ProjectReport(models.Model):
 
     def __str__(self):
         return f"Report: {self.report_title} for {self.project.project_title}"
-    
-class ProjectBudget(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='budgets')
-    allocated_budget = models.DecimalField(max_digits=15, decimal_places=2)
-    spent_budget = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    budget_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Budget for {self.project.project_title}"
-    def remaining_budget(self):
-        return self.allocated_budget - self.spent_budget
-   
-class ProjectExpense(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='expenses')
-    amount = models.DecimalField(max_digits=15, decimal_places=2)
-    description = models.TextField()
-    expense_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Expense for {self.project.project_title} - {self.amount}"
-
+ 
 class ProjectRisk(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='risks')
-    risk_description = models.TextField()
+    risk_description = models.TextField(null=True)
     risk_level = models.CharField(max_length=20, choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High')])
     mitigation_plan = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -517,3 +509,110 @@ class Activity(models.Model):
 
     def __str__(self):
         return f"Activity: {self.title} for {self.project.project_title}"
+    
+    
+
+class Announcement(models.Model):
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    level = models.CharField(max_length=20, choices=[
+        ('info', 'Info'),
+        ('warning', 'Warning'),
+        ('critical', 'Critical'),
+    ])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+    
+    
+
+class CitizenSubmission(models.Model):
+    CATEGORY_CHOICES = [
+        ('suggestion', 'Suggestion'),
+        ('complaint', 'Complaint'),
+        ('report', 'Report Issue'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('reviewed', 'Reviewed'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255,null=False, blank=False)
+    message = models.TextField(null=False, blank=False)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+    
+
+
+class Contractor(models.Model):
+    name = models.CharField(max_length=255)
+    company = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20)
+    email = models.EmailField(blank=True, null=True)
+    location = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+class StageReport(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE)
+
+    contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE)
+
+    description = models.TextField()
+    progress_percentage = models.IntegerField(default=0)
+
+    location = models.CharField(max_length=255)
+    photo = models.ImageField(upload_to='stage_reports/', blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.project.name} - {self.stage.name}"
+
+
+class ContractorRating(models.Model):
+    contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    quality_score = models.IntegerField(default=0)
+    speed_score = models.IntegerField(default=0)
+    compliance_score = models.IntegerField(default=0)
+
+    comment = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def average_score(self):
+        return (self.quality_score + self.speed_score + self.compliance_score) / 3
+    
+
+class CitizenEvidence(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE)
+
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+
+    location = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='citizen_evidence/', blank=True, null=True)
+
+    is_verified = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title

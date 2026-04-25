@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, add_team, add_testimonial, adminview, apply_tender, comment, dashboard, delayedstatus, delete_division, delete_testimonial, edit_division, feedback_details, notifications, people, projectstage, projectstage_details, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, add_budget, add_expense, add_team, add_testimonial, adminview, announcements, apply_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_portal, comment, contractor_dashboard, dashboard, delayedstatus, delete_division, delete_testimonial, edit_division, feedback_details, notifications, people, projectstage, projectstage_details, regional_analysis, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -121,6 +121,29 @@ urlpatterns = [
     path('new/', ProjectStageCreate, name='projectstage_create'),
     path('updatestages/<int:pk>/', ProjectStageUpdate, name='projectstage_update'),
     path('stages/<int:pk>//',ProjectStageDelete , name='projectstage_delete'),
+    
+    
+    path('sms/', sms_dashboard, name='sms_dashboard'),
+    path('send-sms/', send_sms_report, name='send_sms_report'),
+    path('check-project/', check_project_status, name='check_project_status'),
+    
+    path('regional-comparison/', regional_analysis, name='regional_comparison'),
+    
+    path('announcements/', announcements, name='announcements'),
+    
+    path('citizen/', citizen_portal, name='citizen_portal'),
+    path('submit/', submit_issue, name='submit_issue'),
+    
+    path('contractor_performance/', contractor_dashboard, name='contractor_performance'),
+    path('submit-stage-report/', submit_stage_report, name='submit_stage_report'),
+    
+    path('citizen_evidence/', citizen_evidence, name='citizen_evidence'),
+    path('citizen/evidence/submit/', submit_evidence, name='submit_evidence'),
+    
+    path('budget/', budget_dashboard, name='budget_dashboard'),
+    path('budget/add/', add_budget, name='add_budget'),
+    path('expense/add/', add_expense, name='add_expense'),
+
 
 
 

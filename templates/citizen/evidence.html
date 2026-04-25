@@ -1,0 +1,160 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+
+<div class="max-w-6xl mx-auto space-y-6 p-4">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center">
+
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">
+                Citizen Evidence Portal
+            </h1>
+            <p class="text-sm text-gray-500">
+                Report project issues, upload photos, verify progress
+            </p>
+        </div>
+
+        <button @click="openForm = true"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            + Submit Evidence
+        </button>
+
+    </div>
+
+    <!-- ================= EVIDENCE LIST ================= -->
+    <div class="grid md:grid-cols-2 gap-4">
+
+        {% for e in evidence %}
+        <div class="bg-white p-4 rounded-xl shadow">
+
+            <h2 class="font-semibold text-gray-800">{{ e.title }}</h2>
+
+            <p class="text-sm text-gray-600 mt-1">
+                {{ e.description }}
+            </p>
+
+            <p class="text-xs text-gray-400 mt-2">
+                📍 {{ e.location }}
+            </p>
+
+            <p class="text-xs text-gray-400">
+                🏗 {{ e.project.name }} | Stage: {{ e.stage.name }}
+            </p>
+
+            {% if e.image %}
+            <img src="{{ e.image.url }}" class="mt-2 rounded-lg w-full h-48 object-cover">
+            {% endif %}
+
+            <p class="text-xs mt-2">
+                {% if e.is_verified %}
+                <span class="text-green-600 font-semibold">Verified</span>
+                {% else %}
+                <span class="text-yellow-600 font-semibold">Pending Verification</span>
+                {% endif %}
+            </p>
+
+        </div>
+        {% empty %}
+        <p class="text-gray-500">No evidence submitted yet.</p>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<!-- ================= MODAL FORM ================= -->
+<div x-show="openForm"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     style="display:none;">
+
+    <div class="bg-white w-full max-w-2xl p-6 rounded-xl shadow-lg">
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Submit Evidence</h2>
+            <button @click="openForm = false" class="text-red-500 text-xl">✖</button>
+        </div>
+
+        <form method="POST" action="{% url 'submit_evidence' %}" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- PROJECT -->
+            <select name="project" class="w-full border p-2 rounded" required>
+                <option value="">Select Project</option>
+                {% for p in projects %}
+                <option value="{{ p.id }}">{{ p.project_title }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- STAGE -->
+            <select name="stage" class="w-full border p-2 rounded" required>
+                <option value="">Select Stage</option>
+                {% for s in stages %}
+                <option value="{{ s.id }}">{{ s.stage_name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- TITLE -->
+            <input type="text" name="title"
+                   placeholder="Evidence Title"
+                   class="w-full border p-2 rounded"
+                   required>
+
+            <!-- DESCRIPTION -->
+            <textarea name="description"
+                      placeholder="Describe issue or observation..."
+                      class="w-full border p-2 rounded"
+                      required></textarea>
+
+            <!-- LOCATION -->
+            <input type="text" name="location"
+                   placeholder="Location"
+                   class="w-full border p-2 rounded"
+                   required>
+
+            <!-- IMAGE -->
+            <input type="file" name="image"
+                   class="w-full border p-2 rounded">
+
+            <!-- SUBMIT -->
+            <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                Submit Evidence
+            </button>
+
+        </form>
+
+    </div>
+</div>
+</main>
+{% include "footer.html" %}
+{% endblock content %}

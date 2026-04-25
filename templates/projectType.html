@@ -25,23 +25,13 @@
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
+{% load widget_tweaks %}
 
 <!-- ===== HEADER ===== -->
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
-
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-{% load widget_tweaks %}
-<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
-    {% include "sidebar.html" %}
-
-<div class="proj_container">
-    <div>
+ 
     <!-- Main Content -->
 
             <!-- Header -->
@@ -156,9 +146,7 @@
 
 </form>
 </div>
-{% include "recent_activities.html" %}
-
-    
+  
  
    
     </div>

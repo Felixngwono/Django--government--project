@@ -1,0 +1,168 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  
+<div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- PAGE HEADER -->
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">SMS & USSD Integration</h1>
+        <p class="text-gray-500 text-sm">Report issues and track projects without internet</p>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- SMS REPORT FORM -->
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h2 class="text-lg font-semibold mb-4">📩 Send SMS Report</h2>
+
+            <form method="POST" action="{% url 'send_sms_report' %}" class="space-y-4">
+                {% csrf_token %}
+
+                <input type="text" name="phone" placeholder="Phone Number"
+                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+
+                <textarea name="message" rows="4"
+                          placeholder="Example: Road project in Kisumu stalled for 3 months"
+                          class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+
+                <button type="submit"
+                        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                    Send SMS
+                </button>
+            </form>
+        </div>
+
+        <!-- USSD SIMULATOR -->
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h2 class="text-lg font-semibold mb-4">📱 USSD Simulator</h2>
+
+            <div class="bg-black text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto"
+                 id="ussd-screen">
+                Dial *123# to start...
+            </div>
+
+            <div class="flex mt-4">
+                <input type="text" id="ussd-input"
+                       class="flex-1 border p-2 rounded-l-lg"
+                       placeholder="Enter option...">
+
+                <button onclick="sendUSSD()"
+                        class="bg-green-600 text-white px-4 rounded-r-lg">
+                    Send
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-lg font-semibold mb-4">⚡ Quick Actions</h2>
+
+        <div class="grid md:grid-cols-3 gap-4">
+
+            <a href="#" class="p-4 bg-blue-50 rounded-lg hover:bg-blue-100">
+                📍 Check Project Status
+            </a>
+
+            <a href="#" class="p-4 bg-red-50 rounded-lg hover:bg-red-100">
+                🚨 Report Corruption
+            </a>
+
+            <a href="#" class="p-4 bg-green-50 rounded-lg hover:bg-green-100">
+                💰 Check Budget Usage
+            </a>
+
+        </div>
+    </div>
+
+    <!-- STATUS CHECK -->
+    <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-lg font-semibold mb-4">🔍 Check Project via SMS Code</h2>
+
+        <form method="GET" action="{% url 'check_project_status' %}" class="flex gap-4">
+            <input type="text" name="code"
+                   placeholder="Enter Project Code (e.g. PRJ123)"
+                   class="flex-1 p-3 border rounded-lg">
+
+            <button class="bg-blue-600 text-white px-6 rounded-lg">
+                Check
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- USSD SCRIPT -->
+<script>
+let step = 0;
+
+function sendUSSD() {
+    const input = document.getElementById('ussd-input').value;
+    const screen = document.getElementById('ussd-screen');
+
+    if (step === 0) {
+        screen.innerHTML = `
+Welcome to GovTracker
+1. Report Issue
+2. Check Project
+3. Budget Info
+        `;
+        step = 1;
+    }
+    else if (step === 1) {
+        if (input == "1") {
+            screen.innerHTML = "Enter issue description:";
+            step = 2;
+        } else if (input == "2") {
+            screen.innerHTML = "Enter project code:";
+            step = 3;
+        } else {
+            screen.innerHTML = "Invalid option. Try again.";
+        }
+    }
+    else if (step === 2) {
+        screen.innerHTML = "✅ Issue reported successfully!";
+        step = 0;
+    }
+    else if (step === 3) {
+        screen.innerHTML = "📊 Project is 65% complete.";
+        step = 0;
+    }
+
+    document.getElementById('ussd-input').value = "";
+}
+</script>
+</main>
+{% include "footer.html" %}
+{% endblock content %}

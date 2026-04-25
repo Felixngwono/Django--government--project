@@ -1,3 +1,5 @@
+{% extends "heading.html" %}
+{% block content %}
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -24,18 +26,11 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   
 
-{% load static %}
-<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
-<main>
-<div class="proj_container">
-    <div>
 <div class="flex bg-gray-100">
         <section class="bg-white shadow-lg rounded-xl w-full  p-10">
             <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">About Us</h2>
@@ -100,10 +95,10 @@
         </section>
 </div>
 </div>
-    {% include "recent_activities.html" %}
 
 </div>
 </div>
-</main>
 </div>
-<{% include "footer.html" %}
+</main>
+{% include "footer.html" %}
+{% endblock content %}

@@ -29,11 +29,11 @@
       
                 {% if request.user.is_superuser %}
                     <a href="{% url 'adminview' %}" class="font-bold text-blue-400">
-                        <i class="fas fa-user-shield"></i> Admin Dashboard
+                        <i class="fas fa-user-shield"></i> Admin 
                     </a>
                 {% elif request.user.is_enduser %}
                     <a href="#" class="font-bold text-green-400">
-                        <i class="fas fa-user"></i> User Dashboard
+                        <i class="fas fa-user"></i> User 
                     </a>
                 {% endif %}
     </nav>
@@ -50,21 +50,39 @@
           <div class="badge">4</div>
         </button>
 
-        <button class="header-btn" @click="darkMode=!darkMode" style="border:none;">
-          <iconify-icon :icon="darkMode ? 'solar:sun-bold' : 'solar:moon-bold'" style="font-size:20px;"></iconify-icon>
-        </button>
+      
 
-        <div class="avatar">
-          <button @click="open = !open" class="flex items-center focus:outline-none">
-            <img src="{{ request.user.profile.url }}?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full border-2 border-gray-300 p-0.5">
-          </button>
-        </div>
       </div>
+       <!-- Profile -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" class="flex items-center focus:outline-none">
+                        <img src="{{ request.user.profile.url }}" class="w-10 h-10 rounded-full">
+                        <span class="hidden md:inline text-sm font-medium text-slate-700">{{ request.user.username }}</span>
 
-      <div class="datetime text-right">
-        <div x-text="currentDate" class="text-sm font-medium"></div>
-        <div x-text="currentTime" class="text-xs font-semibold" style="font-family:'JetBrains Mono';"></div>
-      </div>
+                    </button>
+
+                    <div x-show="open"
+                         x-transition
+                         @click.away="open = false"
+                         class="absolute right-0 mt-2 w-48 bg-white text-gray-700 rounded-md shadow-lg py-2">
+
+                        {% if request.user.profile %}
+                        <a href="{% url 'profile' user.id %}" class="block px-4 py-2 hover:bg-gray-100">
+                            Update Profile
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'deleteprofile' user.id %}" class="block px-4 py-2 hover:bg-gray-100">
+                            Delete Profile
+                        </a>
+
+                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+
+      
     </div>
   </header>
 

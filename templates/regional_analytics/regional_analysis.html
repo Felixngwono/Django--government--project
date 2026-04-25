@@ -1,0 +1,159 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+ 
+<div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- HEADER -->
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">Regional Comparison</h1>
+        <p class="text-gray-500 text-sm">Compare development across regions/counties</p>
+    </div>
+
+    <!-- FILTER FORM -->
+    <div class="bg-white p-6 rounded-xl shadow">
+        <form method="GET" class="grid md:grid-cols-3 gap-4">
+
+            <select name="region1" class="p-3 border rounded-lg">
+                <option value="">Select Region 1</option>
+                {% for r in regions %}
+                <option value="{{ r }}" {% if r == region1 %}selected{% endif %}>{{ r }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="region2" class="p-3 border rounded-lg">
+                <option value="">Select Region 2</option>
+                {% for r in regions %}
+                <option value="{{ r }}" {% if r == region2 %}selected{% endif %}>{{ r }}</option>
+                {% endfor %}
+            </select>
+
+            <button class="bg-blue-600 text-white rounded-lg px-4">
+                Compare
+            </button>
+
+        </form>
+    </div>
+
+    {% if data1 and data2 %}
+
+    <!-- COMPARISON CARDS -->
+    <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- REGION 1 -->
+        <div class="bg-white p-6 rounded-xl shadow space-y-4">
+            <h2 class="text-lg font-bold text-blue-600">{{ region1 }}</h2>
+
+            <div class="space-y-2">
+                <p>Total Projects: <b>{{ data1.total }}</b></p>
+                <p>Completed: <b>{{ data1.completed }}</b></p>
+                <p>Ongoing: <b>{{ data1.ongoing }}</b></p>
+                <p>Delayed: <b>{{ data1.delayed }}</b></p>
+            </div>
+
+            <!-- PROGRESS -->
+            <div>
+                <p class="text-sm text-gray-500">Completion Rate</p>
+                <div class="w-full bg-gray-200 h-3 rounded-full">
+                    <div class="bg-blue-600 h-3 rounded-full"
+                         style="width: {{ data1.completion_rate }}%">
+                    </div>
+                </div>
+                <p class="text-sm mt-1">{{ data1.completion_rate }}%</p>
+            </div>
+        </div>
+
+        <!-- REGION 2 -->
+        <div class="bg-white p-6 rounded-xl shadow space-y-4">
+            <h2 class="text-lg font-bold text-green-600">{{ region2 }}</h2>
+
+            <div class="space-y-2">
+                <p>Total Projects: <b>{{ data2.total }}</b></p>
+                <p>Completed: <b>{{ data2.completed }}</b></p>
+                <p>Ongoing: <b>{{ data2.ongoing }}</b></p>
+                <p>Delayed: <b>{{ data2.delayed }}</b></p>
+            </div>
+
+            <!-- PROGRESS -->
+            <div>
+                <p class="text-sm text-gray-500">Completion Rate</p>
+                <div class="w-full bg-gray-200 h-3 rounded-full">
+                    <div class="bg-green-600 h-3 rounded-full"
+                         style="width: {{ data2.completion_rate }}%">
+                    </div>
+                </div>
+                <p class="text-sm mt-1">{{ data2.completion_rate }}%</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SIMPLE BAR CHART -->
+    <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-lg font-semibold mb-4">Comparison Chart</h2>
+
+        <canvas id="comparisonChart" height="100"></canvas>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<!-- CHART SCRIPT -->
+<script>
+const ctx = document.getElementById('comparisonChart');
+
+if (ctx) {
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Completed', 'Ongoing', 'Delayed'],
+            datasets: [
+                {
+                    label: "{{ region1 }}",
+                    data: [{{ data1.completed|default:0 }}, {{ data1.ongoing|default:0 }}, {{ data1.delayed|default:0 }}]
+                },
+                {
+                    label: "{{ region2 }}",
+                    data: [{{ data2.completed|default:0 }}, {{ data2.ongoing|default:0 }}, {{ data2.delayed|default:0 }}]
+                }
+            ]
+        }
+    });
+}
+</script>
+
+<!-- CHART CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</main>
+{% include "footer.html" %}
+{% endblock content %}

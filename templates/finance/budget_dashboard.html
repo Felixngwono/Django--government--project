@@ -1,0 +1,205 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<main class="main">
+
+<div class="max-w-7xl mx-auto space-y-6 p-4">
+
+    <!-- ================= HEADER ================= -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">
+                Government Budget & Spending Transparency
+            </h1>
+            <p class="text-sm text-gray-500">
+                Track how public funds are allocated and spent
+            </p>
+        </div>
+
+        <div class="space-x-2">
+            <a href="{% url 'add_budget' %}"
+               class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
+                + Budget
+            </a>
+
+            <a href="{% url 'add_expense' %}"
+               class="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700">
+                + Expense
+            </a>
+        </div>
+    </div>
+
+
+    <!-- ================= SUMMARY ================= -->
+    <div class="grid md:grid-cols-3 gap-4">
+
+        <div class="bg-white p-4 rounded-xl shadow">
+            <p class="text-sm text-gray-500">Total Budget</p>
+            <p class="text-xl font-bold">
+                KES {{ total_budget|floatformat:2 }}
+            </p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow">
+            <p class="text-sm text-gray-500">Total Spent</p>
+            <p class="text-xl font-bold text-red-600">
+                KES {{ total_spent|floatformat:2 }}
+            </p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow">
+            <p class="text-sm text-gray-500">Remaining</p>
+            <p class="text-xl font-bold text-green-600">
+                KES {{ remaining|floatformat:2 }}
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ================= FILTER ================= -->
+    <div class="bg-white p-4 rounded-xl shadow">
+        <form method="GET" class="flex flex-wrap gap-3">
+
+            <input type="text" name="q" placeholder="Search spending..."
+                   value="{{ request.GET.q }}"
+                   class="border p-2 rounded-lg flex-1">
+
+            <input type="date" name="start_date"
+                   value="{{ request.GET.start_date }}"
+                   class="border p-2 rounded-lg">
+
+            <input type="date" name="end_date"
+                   value="{{ request.GET.end_date }}"
+                   class="border p-2 rounded-lg">
+
+            <button class="bg-gray-800 text-white px-4 py-2 rounded-lg">
+                Filter
+            </button>
+
+        </form>
+    </div>
+
+
+    <!-- ================= BUDGET OVERVIEW ================= -->
+    <div class="grid md:grid-cols-3 gap-4">
+
+        {% for b in budgets %}
+        <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition">
+
+            <h2 class="font-semibold text-gray-800">
+                {{ b.project.name }}
+            </h2>
+
+            <p class="text-sm text-gray-600">
+                Total: <b>KES {{ b.total_budget|floatformat:2 }}</b>
+            </p>
+
+            <p class="text-sm text-green-600">
+                Spent: KES {{ b.allocated_budget|floatformat:2 }}
+            </p>
+
+            <p class="text-sm {% if b.remaining_budget < 0 %}text-red-700{% else %}text-blue-600{% endif %}">
+                Remaining: KES {{ b.remaining_budget|floatformat:2 }}
+            </p>
+
+            <!-- PROGRESS BAR -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div class="bg-green-500 h-2 rounded-full"
+                     style="width: {{ b.percentage_used }}%">
+                </div>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center text-gray-500">
+            No budgets available.
+            <br>
+            <a href="{% url 'add_budget' %}" class="text-blue-600 underline">
+                Add your first budget
+            </a>
+        </div>
+        {% endfor %}
+
+    </div>
+
+
+    <!-- ================= SPENDING LOG ================= -->
+    <div class="bg-white p-6 rounded-xl shadow">
+
+        <h2 class="text-lg font-semibold mb-4">
+            Recent Spending
+        </h2>
+
+        {% for s in spendings %}
+        <div class="border-b py-3 hover:bg-gray-50 rounded">
+
+            <div class="flex justify-between">
+                <p class="font-semibold">
+                    {{ s.title }}
+                </p>
+
+                <p class="text-sm font-bold text-red-600">
+                    KES {{ s.amount|floatformat:2 }}
+                </p>
+            </div>
+
+            <p class="text-sm text-gray-600">
+                {{ s.description }}
+            </p>
+
+            <p class="text-xs text-gray-400 mt-1">
+                {{ s.project.name }} |
+                {{ s.category }} |
+                {{ s.date|date:"M d, Y" }}
+            </p>
+
+        </div>
+        {% empty %}
+        <p class="text-gray-500">
+            No spending records found.
+            <a href="#" class="text-green-600 underline">
+                Add expense
+            </a>
+        </p>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+</main>
+{% include "footer.html" %}
+{% endblock content %}

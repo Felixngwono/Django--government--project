@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
+from .models import PDF, AuditLog, Budget, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument, ProjectExpense, ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -151,4 +151,16 @@ class ProjectDocumentForm(forms.ModelForm):
 class TeamsForm(forms.ModelForm):
     class Meta:
         model = Team
+        fields = '__all__'
+        
+
+class BudgetForm(forms.ModelForm):
+    class Meta:
+        model = Budget
+        fields = '__all__'
+
+
+class ExpenseForm(forms.ModelForm):
+    class Meta:
+        model = ProjectExpense
         fields = '__all__'

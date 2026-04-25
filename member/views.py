@@ -1,19 +1,19 @@
-
+from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Comment,PDF, AuditLog, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectRisk, ProjectStage, ReportIssue, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
+from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type,  ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, CommentForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, participationForm
+from .forms import AuditLogForm, BudgetForm, CommentForm, ExpenseForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.db.models.functions import ExtractMonth
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.db.models.functions import TruncMonth
 
 def generate_report(request):
@@ -146,6 +146,7 @@ def dashboard(request):
     people=User.objects.all()
     agencies=Project_Division.objects.all().count()
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
+    pro=Project.objects.all().order_by('-start_date')[:5]
      # Initialize month list
     project_counts = [0] * 12  # Jan to Dec
 # Aggregate budget per month
@@ -218,6 +219,7 @@ def dashboard(request):
              'used': used,
              'month_labels': month_labels,
               'user_counts': data,
+                'pro':pro
              }
     return render(request, 'dashboard.html',context)
 
@@ -1230,3 +1232,256 @@ def ProjectStageDelete(request,pk):
         deletestage.delete()
         return redirect('projectstage_list')
     return render(request,'projectstage_confirm_delete.html',{'deletestage':deletestage})
+
+def sms_dashboard(request):
+    return render(request, 'sms/intergration.html')
+
+
+def send_sms_report(request):
+    if request.method == "POST":
+        phone = request.POST.get('phone')
+        message = request.POST.get('message')
+
+        # TODO: Integrate SMS API here
+        print(phone, message)
+
+        messages.success(request, "SMS sent successfully!")
+        return redirect('sms_dashboard')
+
+
+def check_project_status(request):
+    code = request.GET.get('code')
+
+    # Dummy response
+    context = {
+        "code": code,
+        "status": "65% Complete"
+    }
+    return render(request, 'sms/status.html', context)
+
+def regional_analysis(request):
+    regions = ["Nairobi", "Kisumu", "Siaya", "Mombasa"]
+
+    region1 = request.GET.get('region1')
+    region2 = request.GET.get('region2')
+
+    def get_data(region):
+        # Replace with real DB queries
+        return {
+            "total": 50,
+            "completed": 20,
+            "ongoing": 20,
+            "delayed": 10,
+            "completion_rate": 40
+        }
+
+    context = {
+        "regions": regions,
+        "region1": region1,
+        "region2": region2,
+        "data1": get_data(region1) if region1 else None,
+        "data2": get_data(region2) if region2 else None,
+    }
+
+    return render(request, "regional_analytics/regional_analysis.html", context)
+
+def generate_announcements():
+    
+    projects = Project.objects.all()
+
+    # 1. Delayed Projects
+    delayed = projects.filter(status='delayed')
+    if delayed.count() > 0:
+        Announcement.objects.create(
+            title="Delayed Projects Alert",
+            message=f"{delayed.count()} projects are currently delayed. Immediate attention required.",
+            level="warning"
+        )
+
+    # 2. Completed Projects
+    completed = projects.filter(status='completed')
+    if completed.count() > 0:
+        Announcement.objects.create(
+            title="Project Completion Update",
+            message=f"{completed.count()} projects have been successfully completed.",
+            level="info"
+        )
+
+    # 3. Budget Anomalies
+    for p in projects:
+        if p.actual_budget and p.estimated_budget:
+            if p.actual_budget > p.estimated_budget * 1.5:
+                Announcement.objects.create(
+                    title=f"Budget Overrun: {p.name}",
+                    message="Project exceeded budget by more than 50%.",
+                    level="critical"
+                )
+
+    # 4. Stalled Projects (no update in 30 days)
+    for p in projects:
+        if p.updated_at:
+            days = (timezone.now() - p.updated_at).days
+            if days > 30:
+                Announcement.objects.create(
+                    title=f"Stalled Project: {p.name}",
+                    message=f"No updates for {days} days.",
+                    level="warning"
+                )
+                
+                
+
+def announcements(request):
+    announcements = Announcement.objects.all().order_by('-created_at')
+    return render(request, 'announcements/list.html', {
+        'announcements': announcements
+    })
+    
+   
+def citizen_portal(request):
+    submissions = CitizenSubmission.objects.filter(user=request.user).order_by('-created_at')
+    proje=Project.objects.all()
+
+    return render(request, 'public_participation/citizen.html', {
+        'submissions': submissions,
+        'proje': proje
+    })
+
+def submit_issue(request):
+    if request.method == "POST":
+
+        title = request.POST.get('title')
+        message = request.POST.get('message')
+        category = request.POST.get('category')
+
+        if not title or not message:
+            return redirect('citizen_portal')
+
+        CitizenSubmission.objects.create(
+            user=request.user,
+            title=title,
+            message=message,
+            category=category
+        )
+        messages.success(request, "Your submission has been received successfully!")
+
+        return redirect('citizen_portal')
+    
+
+
+def contractor_dashboard(request):
+    con=Project.objects.all()
+    contractors = Contractor.objects.all()
+    reports = StageReport.objects.all().order_by('-created_at')
+    
+    stages = ProjectStage.objects.all()
+
+    return render(request, 'contractors/dashboard.html', {
+        'contractors': contractors,
+        'reports': reports,
+        'con':con,
+        'stages': stages
+    })
+    
+
+def submit_stage_report(request):
+    projects = Project.objects.all()
+    stages = ProjectStage.objects.all()
+    contractors = Contractor.objects.all()
+
+    if request.method == "POST":
+        StageReport.objects.create(
+            project_id=request.POST.get('project'),
+            stage_id=request.POST.get('stage'),
+            contractor_id=request.POST.get('contractor'),
+            description=request.POST.get('description'),
+            progress_percentage=request.POST.get('progress'),
+            location=request.POST.get('location')
+        )
+        return redirect('contractor_dashboard')
+
+    return render(request, 'contractors/report_form.html', {
+        'projects': projects,
+        'stages': stages,
+        'contractors': contractors
+    })
+    
+
+@login_required
+def citizen_evidence(request):
+
+    projects = Project.objects.all()
+    stages = ProjectStage.objects.all()
+
+    evidence = CitizenEvidence.objects.filter(user=request.user).order_by('-created_at')
+
+    return render(request, 'citizen/evidence.html', {
+        'projects': projects,
+        'stages': stages,
+        'evidence': evidence
+    })
+
+
+@login_required
+def submit_evidence(request):
+
+    if request.method == "POST":
+
+        CitizenEvidence.objects.create(
+            user=request.user,
+            project_id=request.POST.get('project'),
+            stage_id=request.POST.get('stage'),
+            title=request.POST.get('title'),
+            description=request.POST.get('description'),
+            location=request.POST.get('location'),
+            image=request.FILES.get('image')
+        )
+
+        return redirect('citizen_evidence')
+    
+    
+def budget_dashboard(request):
+
+    budgets = Budget.objects.all()
+    spendings = ProjectExpense.objects.all().order_by('-expense_date')
+
+    return render(request, 'finance/budget_dashboard.html', {
+        'budgets': budgets,
+        'spendings': spendings
+    })
+    
+
+def add_budget(request):
+    form = BudgetForm(request.POST or None)
+
+    if request.method == "POST":
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+
+    return render(request, 'finance/add_budget.html', {'form': form})
+
+@transaction.atomic
+def add_expense(request):
+    form = ExpenseForm(request.POST or None)
+
+    if request.method == "POST":
+        if form.is_valid():
+            expense = form.save(commit=False)
+
+            # Get related budget
+            budget = expense.budget
+
+            # Prevent overspending (extra safety beyond form validation)
+            if expense.amount > budget.remaining_budget:
+                form.add_error('amount', 'Amount exceeds remaining budget')
+            else:
+                # Save expense
+                expense.save()
+
+                # Update allocated/spent amount
+                budget.allocated_budget += expense.amount
+                budget.save()
+
+                return redirect('dashboard')
+
+    return render(request, 'finance/add_expense.html', {'form': form})

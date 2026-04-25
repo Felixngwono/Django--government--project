@@ -1,0 +1,223 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+
+<div class="max-w-6xl mx-auto space-y-6 p-4">
+
+    <!-- ================= HEADER ================= -->
+    <div class="flex justify-between items-center">
+
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">
+                Contractor Performance Dashboard
+            </h1>
+            <p class="text-sm text-gray-500">
+                Monitor contractors and submit verified stage reports
+            </p>
+        </div>
+
+        <div class="flex gap-2">
+            <button @click="openContractorForm = true"
+                class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                + Add Contractor
+            </button>
+
+            <button @click="openForm = true"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                + Submit Stage Report
+            </button>
+        </div>
+
+    </div>
+
+    <!-- ================= CONTRACTORS ================= -->
+    <div class="grid md:grid-cols-3 gap-4">
+
+        {% for c in contractors %}
+        <div class="bg-white p-4 rounded-xl shadow">
+
+            <h2 class="font-semibold text-gray-800">{{ c.name }}</h2>
+            <p class="text-sm text-gray-500">{{ c.company }}</p>
+            <p class="text-xs text-gray-400">📍 {{ c.location }}</p>
+
+        </div>
+        {% empty %}
+        <p class="text-gray-500">No contractors found.</p>
+        {% endfor %}
+
+    </div>
+
+    <!-- ================= REPORTS ================= -->
+    <div class="bg-white p-6 rounded-xl shadow">
+
+        <h2 class="text-lg font-semibold mb-4">Latest Stage Reports</h2>
+
+        {% for r in reports %}
+        <div class="border-b py-3">
+
+            <p class="font-semibold text-gray-800">
+                {{ r.project.project_title }} → {{ r.stage.name }}
+            </p>
+
+            <p class="text-sm text-gray-600">
+                {{ r.description }}
+            </p>
+
+            <p class="text-xs text-gray-400">
+                👷 {{ r.contractor.name }}
+                | 📍 {{ r.location }}
+                | 📊 {{ r.progress_percentage }}%
+            </p>
+
+        </div>
+        {% empty %}
+        <p class="text-gray-500">No reports available.</p>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<!-- ================= MODAL ================= -->
+<div x-show="openForm"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     x-transition
+     style="display: none;">
+
+    <div class="bg-white w-full max-w-2xl p-6 rounded-xl shadow-lg">
+
+        <!-- MODAL HEADER -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Submit Stage Report</h2>
+            <button @click="openForm = false"
+                class="text-red-500 text-xl">✖</button>
+        </div>
+
+        <!-- FORM -->
+        <form method="POST" action="{% url 'submit_stage_report' %}" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- PROJECT -->
+            <select name="project" class="w-full border p-2 rounded" required>
+                <option value="">Select Project</option>
+                {% for p in con %}
+                <option value="{{ p.id }}">{{ p.project_title }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- STAGE -->
+            <select name="stage" class="w-full border p-2 rounded" required>
+                <option value="">Select Stage</option>
+                {% for st in stages %}
+                <option value="{{ st.id }}">{{ st.stage_name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- CONTRACTOR -->
+            <select name="contractor" class="w-full border p-2 rounded" required>
+                <option value="">Select Contractor</option>
+                {% for c in contractors %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- LOCATION -->
+            <input type="text" name="location"
+                   placeholder="Location (required)"
+                   class="w-full border p-2 rounded"
+                   required>
+
+            <!-- PROGRESS -->
+            <input type="number" name="progress_percentage"
+                   placeholder="Progress %"
+                   class="w-full border p-2 rounded"
+                   required>
+
+            <!-- DESCRIPTION -->
+            <textarea name="description"
+                      placeholder="Stage report details..."
+                      class="w-full border p-2 rounded"
+                      required></textarea>
+
+            <!-- SUBMIT -->
+            <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                Submit Report
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- ================= CONTRACTOR FORM MODAL ================= -->
+<div x-show="openContractorForm"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     x-transition
+     style="display: none;">
+
+    <div class="bg-white w-full max-w-2xl p-6 rounded-xl shadow-lg">
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Fill Contractor</h2>
+            <button @click="openContractorForm = false"
+                class="text-red-500 text-xl">✖</button>
+        </div>
+
+        <form method="POST" action="" class="space-y-4">
+            {% csrf_token %}
+
+            <input type="text" name="name"
+                   placeholder="Contractor Name"
+                   class="w-full border p-2 rounded"
+                   required>
+
+            <input type="text" name="company"
+                   placeholder="Company"
+                   class="w-full border p-2 rounded"
+                   required>
+
+            <input type="text" name="location"
+                   placeholder="Location"
+                   class="w-full border p-2 rounded"
+                   required>
+
+            <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                Save Contractor
+            </button>
+        </form>
+
+    </div>
+</div>
+
+</main>
+
+{% endblock content %}
