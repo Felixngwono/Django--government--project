@@ -1,12 +1,11 @@
-from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type,  ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
+from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, BudgetForm, CommentForm, ExpenseForm, MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, participationForm
+from .forms import AuditLogForm, BudgetForm, CommentForm,  MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
@@ -1442,11 +1441,11 @@ def submit_evidence(request):
 def budget_dashboard(request):
 
     budgets = Budget.objects.all()
-    spendings = ProjectExpense.objects.all().order_by('-expense_date')
+    spending=ProjectExpense.objects.all()
 
     return render(request, 'finance/budget_dashboard.html', {
         'budgets': budgets,
-        'spendings': spendings
+        'spending': spending
     })
     
 
@@ -1460,28 +1459,3 @@ def add_budget(request):
 
     return render(request, 'finance/add_budget.html', {'form': form})
 
-@transaction.atomic
-def add_expense(request):
-    form = ExpenseForm(request.POST or None)
-
-    if request.method == "POST":
-        if form.is_valid():
-            expense = form.save(commit=False)
-
-            # Get related budget
-            budget = expense.budget
-
-            # Prevent overspending (extra safety beyond form validation)
-            if expense.amount > budget.remaining_budget:
-                form.add_error('amount', 'Amount exceeds remaining budget')
-            else:
-                # Save expense
-                expense.save()
-
-                # Update allocated/spent amount
-                budget.allocated_budget += expense.amount
-                budget.save()
-
-                return redirect('dashboard')
-
-    return render(request, 'finance/add_expense.html', {'form': form})

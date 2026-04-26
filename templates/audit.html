@@ -1,3 +1,5 @@
+{% extends "heading.html" %}
+{% block content %}
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -24,11 +26,10 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  
   <div class="content">
 
     <!-- ============================
@@ -84,3 +85,4 @@
 </div>
 </main>
 {% include "footer.html" %}
+{% endblock content %}

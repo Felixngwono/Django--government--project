@@ -230,19 +230,19 @@ class Budget(models.Model):
     
     def __str__(self):
         return f"Budget for {self.project.project_title}"
+    
 
-   
 class ProjectExpense(models.Model):
-    budget= models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='expenses', null=True, blank=True)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='expenses')
-    amount = models.DecimalField(max_digits=15, decimal_places=2)
-    description = models.TextField(null=True)
-    expense_date = models.DateTimeField(auto_now_add=True)
+
+    title = models.CharField(max_length=255,null=True)
+    category = models.CharField(max_length=100,null=True)
+    amount = models.DecimalField(max_digits=15, decimal_places=2,null=True)
+
+    description = models.TextField(blank=True, null=True)
+    date = models.DateField(auto_now_add=True,null=True)
 
     def __str__(self):
-        return f"Expense for {self.project.project_title} - {self.amount}"
-
-
+        return self.title
 # 🔹 Media & Documents Model (Stores PDFs, Images, Videos)
 class Media(models.Model):
     MEDIA_TYPES = [
@@ -554,11 +554,14 @@ class CitizenSubmission(models.Model):
 
 
 class Contractor(models.Model):
-    name = models.CharField(max_length=255)
-    company = models.CharField(max_length=255)
-    phone = models.CharField(max_length=20)
+    name = models.CharField(max_length=255, null=True)
+    company = models.CharField(max_length=255, null=True)
+    phone = models.CharField(max_length=20, null=True)
     email = models.EmailField(blank=True, null=True)
-    location = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, null=True)
+    profile = models.ImageField(upload_to='contractors/', null=True, blank=True)
+    projects = models.ManyToManyField(Project, related_name='contractors', blank=True,null=True)
+    
 
     def __str__(self):
         return self.name
@@ -592,7 +595,6 @@ class ContractorRating(models.Model):
 
     comment = models.TextField(blank=True, null=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def average_score(self):
         return (self.quality_score + self.speed_score + self.compliance_score) / 3
