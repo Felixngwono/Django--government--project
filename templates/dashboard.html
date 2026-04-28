@@ -76,6 +76,24 @@
 </div>
 {% endif %}
 
+<div class="stat-card bg-green-800 text-white">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div>
+      <a href="{% url 'user' %}" class="block">
+      <div class="stat-label">Total Users</div>
+      <div class="stat-value">{{ users }}</div>
+    </div>
+    <div class="text-green-300">
+      <iconify-icon icon="solar:users-group-rounded-bold-duotone" style="font-size:28px;"></iconify-icon>
+    </div>
+  </div>
+  <div class="flex items-center gap-2 mt-2 text-green-400 text-sm font-semibold">
+    <iconify-icon icon="solar:arrow-up-bold"></iconify-icon>
+    {{ user.name }}
+  </div>
+</a>
+</div>
+
         <div class="stat-card bg-blue-800 text-white ">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>

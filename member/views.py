@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, BudgetForm, CommentForm,  MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, participationForm
+from .forms import AuditLogForm, BudgetForm, CommentForm,  MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
@@ -165,12 +165,6 @@ def dashboard(request):
     allocated = [0]*12
     used = [0]*12
 
-    # Fill data
-    for item in data:
-        index = item['month'] - 1  # month is 1–12
-        allocated[index] = item['total_budget'] or 0
-        used[index] = item['used_budget'] or 0
-        
      # Prepare last 12 months
     today = datetime.today()
     months = []
@@ -1080,6 +1074,7 @@ def apply_tender(request, pk):
 # Add a new tender
 @login_required(login_url='login')
 def add_tender(request):
+    pr=Project.objects.all()
     form = TenderForm()
 
     if request.method == "POST":
@@ -1087,7 +1082,7 @@ def add_tender(request):
         if form.is_valid():
             form.save()
             return redirect('tender_list')
-    return render(request, 'tender_form.html', {'form': form})
+    return render(request, 'tender_form.html', {'form': form, 'pr': pr})
 
 # Update an existing tender
 @login_required(login_url='login')
@@ -1373,15 +1368,22 @@ def contractor_dashboard(request):
     reports = StageReport.objects.all().order_by('-created_at')
     
     stages = ProjectStage.objects.all()
+    form = contractorForm(request.POST or None)
+
+    if request.method == "POST":
+        if form.is_valid():
+            form.save()
+            return redirect('contractor_dashboard')
+
 
     return render(request, 'contractors/dashboard.html', {
         'contractors': contractors,
         'reports': reports,
         'con':con,
-        'stages': stages
+        'stages': stages,
+        'form': form
     })
-    
-
+ 
 def submit_stage_report(request):
     projects = Project.objects.all()
     stages = ProjectStage.objects.all()

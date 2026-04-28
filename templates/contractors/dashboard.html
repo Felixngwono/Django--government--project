@@ -201,15 +201,29 @@
         <form method="POST" action="" class="space-y-4">
             {% csrf_token %}
 
-           
-             {% render_field form.name class="w-full border p-2 " }
+           <!-- NAME -->
+           <label class="block text-sm font-medium text-gray-700">Name</label>
+             {% render_field form.company class="w-full border p-2 " %}
+
+              <!-- COMPANY -->
+                <label class="block text-sm font-medium text-gray-700">Company</label>
 
             {% render_field form.company class="w-full border p-2 " %}
+                <!-- LOCATION -->
+                <label class="block text-sm font-medium text-gray-700">Location</label>
 
            {% render_field form.location class="w-full border p-2 "  %}
+                <!-- PHONE -->
+                <label class="block text-sm font-medium text-gray-700">Phone</label>
           {% render_field form.phone class="w-full border p-2 "  %}
+                <!-- EMAIL -->
+                <label class="block text-sm font-medium text-gray-700">Email</label>
           {% render_field form.email class="w-full border p-2 "  %}
+                <!-- PROJECTS -->
+                <label class="block text-sm font-medium text-gray-700">Projects</label>
           {% render_field form.projects class="w-full border p-2 "  %}
+                <!-- PROFILE -->
+                <label class="block text-sm font-medium text-gray-700">Profile</label>
           {% render_field form.profile class="w-full border p-2 "  %}
           
                    
