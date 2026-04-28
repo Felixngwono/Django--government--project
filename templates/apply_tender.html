@@ -1,3 +1,5 @@
+{% extends "heading.html" %}
+{% block content %}
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -25,11 +27,10 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
-{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
+ 
 {% load widget_tweaks %}
 
 <div class="proj_container flex">
@@ -153,7 +154,6 @@
 <!-- ===== HEADER ===== -->
 {% include "heading.html" %}
 
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
+</main>
 {% include "footer.html" %}
+{% endblock %}

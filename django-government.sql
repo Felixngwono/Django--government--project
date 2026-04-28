@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 23, 2026 at 10:15 AM
+-- Generation Time: Apr 28, 2026 at 08:03 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -86,142 +86,150 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 (22, 'Can change user', 6, 'change_user'),
 (23, 'Can delete user', 6, 'delete_user'),
 (24, 'Can view user', 6, 'view_user'),
-(25, 'Can add contact', 7, 'add_contact'),
-(26, 'Can change contact', 7, 'change_contact'),
-(27, 'Can delete contact', 7, 'delete_contact'),
-(28, 'Can view contact', 7, 'view_contact'),
-(29, 'Can add feedback', 8, 'add_feedback'),
-(30, 'Can change feedback', 8, 'change_feedback'),
-(31, 'Can delete feedback', 8, 'delete_feedback'),
-(32, 'Can view feedback', 8, 'view_feedback'),
-(33, 'Can add project', 9, 'add_project'),
-(34, 'Can change project', 9, 'change_project'),
-(35, 'Can delete project', 9, 'delete_project'),
-(36, 'Can view project', 9, 'view_project'),
-(37, 'Can add division', 10, 'add_division'),
-(38, 'Can change division', 10, 'change_division'),
-(39, 'Can delete division', 10, 'delete_division'),
-(40, 'Can view division', 10, 'view_division'),
-(41, 'Can add project_type', 11, 'add_project_type'),
-(42, 'Can change project_type', 11, 'change_project_type'),
-(43, 'Can delete project_type', 11, 'delete_project_type'),
-(44, 'Can view project_type', 11, 'view_project_type'),
-(45, 'Can add project_ division', 10, 'add_project_division'),
-(46, 'Can change project_ division', 10, 'change_project_division'),
-(47, 'Can delete project_ division', 10, 'delete_project_division'),
-(48, 'Can view project_ division', 10, 'view_project_division'),
-(49, 'Can add pdf', 12, 'add_pdf'),
-(50, 'Can change pdf', 12, 'change_pdf'),
-(51, 'Can delete pdf', 12, 'delete_pdf'),
-(52, 'Can view pdf', 12, 'view_pdf'),
-(53, 'Can add notification', 13, 'add_notification'),
-(54, 'Can change notification', 13, 'change_notification'),
-(55, 'Can delete notification', 13, 'delete_notification'),
-(56, 'Can view notification', 13, 'view_notification'),
-(57, 'Can add milestone', 14, 'add_milestone'),
-(58, 'Can change milestone', 14, 'change_milestone'),
-(59, 'Can delete milestone', 14, 'delete_milestone'),
-(60, 'Can view milestone', 14, 'view_milestone'),
-(61, 'Can add media', 15, 'add_media'),
-(62, 'Can change media', 15, 'change_media'),
-(63, 'Can delete media', 15, 'delete_media'),
-(64, 'Can view media', 15, 'view_media'),
-(65, 'Can add budget', 16, 'add_budget'),
-(66, 'Can change budget', 16, 'change_budget'),
-(67, 'Can delete budget', 16, 'delete_budget'),
-(68, 'Can view budget', 16, 'view_budget'),
-(69, 'Can add audit log', 17, 'add_auditlog'),
-(70, 'Can change audit log', 17, 'change_auditlog'),
-(71, 'Can delete audit log', 17, 'delete_auditlog'),
-(72, 'Can view audit log', 17, 'view_auditlog'),
-(73, 'Can add project location', 18, 'add_projectlocation'),
-(74, 'Can change project location', 18, 'change_projectlocation'),
-(75, 'Can delete project location', 18, 'delete_projectlocation'),
-(76, 'Can view project location', 18, 'view_projectlocation'),
-(77, 'Can add report issue', 19, 'add_reportissue'),
-(78, 'Can change report issue', 19, 'change_reportissue'),
-(79, 'Can delete report issue', 19, 'delete_reportissue'),
-(80, 'Can view report issue', 19, 'view_reportissue'),
-(81, 'Can add comment', 20, 'add_comment'),
-(82, 'Can change comment', 20, 'change_comment'),
-(83, 'Can delete comment', 20, 'delete_comment'),
-(84, 'Can view comment', 20, 'view_comment'),
-(85, 'Can add tender', 21, 'add_tender'),
-(86, 'Can change tender', 21, 'change_tender'),
-(87, 'Can delete tender', 21, 'delete_tender'),
-(88, 'Can view tender', 21, 'view_tender'),
-(89, 'Can add progress report', 22, 'add_progressreport'),
-(90, 'Can change progress report', 22, 'change_progressreport'),
-(91, 'Can delete progress report', 22, 'delete_progressreport'),
-(92, 'Can view progress report', 22, 'view_progressreport'),
-(93, 'Can add stakeholder', 23, 'add_stakeholder'),
-(94, 'Can change stakeholder', 23, 'change_stakeholder'),
-(95, 'Can delete stakeholder', 23, 'delete_stakeholder'),
-(96, 'Can view stakeholder', 23, 'view_stakeholder'),
-(97, 'Can add program impact', 24, 'add_programimpact'),
-(98, 'Can change program impact', 24, 'change_programimpact'),
-(99, 'Can delete program impact', 24, 'delete_programimpact'),
-(100, 'Can view program impact', 24, 'view_programimpact'),
-(101, 'Can add program funding', 25, 'add_programfunding'),
-(102, 'Can change program funding', 25, 'change_programfunding'),
-(103, 'Can delete program funding', 25, 'delete_programfunding'),
-(104, 'Can view program funding', 25, 'view_programfunding'),
-(105, 'Can add project stage', 26, 'add_projectstage'),
-(106, 'Can change project stage', 26, 'change_projectstage'),
-(107, 'Can delete project stage', 26, 'delete_projectstage'),
-(108, 'Can view project stage', 26, 'view_projectstage'),
-(109, 'Can add progress update', 27, 'add_progressupdate'),
-(110, 'Can change progress update', 27, 'change_progressupdate'),
-(111, 'Can delete progress update', 27, 'delete_progressupdate'),
-(112, 'Can view progress update', 27, 'view_progressupdate'),
-(113, 'Can add sponsors', 28, 'add_sponsors'),
-(114, 'Can change sponsors', 28, 'change_sponsors'),
-(115, 'Can delete sponsors', 28, 'delete_sponsors'),
-(116, 'Can view sponsors', 28, 'view_sponsors'),
-(117, 'Can add testimonial', 29, 'add_testimonial'),
-(118, 'Can change testimonial', 29, 'change_testimonial'),
-(119, 'Can delete testimonial', 29, 'delete_testimonial'),
-(120, 'Can view testimonial', 29, 'view_testimonial'),
-(121, 'Can add project update', 30, 'add_projectupdate'),
-(122, 'Can change project update', 30, 'change_projectupdate'),
-(123, 'Can delete project update', 30, 'delete_projectupdate'),
-(124, 'Can view project update', 30, 'view_projectupdate'),
-(125, 'Can add project risk', 31, 'add_projectrisk'),
-(126, 'Can change project risk', 31, 'change_projectrisk'),
-(127, 'Can delete project risk', 31, 'delete_projectrisk'),
-(128, 'Can view project risk', 31, 'view_projectrisk'),
-(129, 'Can add project report', 32, 'add_projectreport'),
-(130, 'Can change project report', 32, 'change_projectreport'),
-(131, 'Can delete project report', 32, 'delete_projectreport'),
-(132, 'Can view project report', 32, 'view_projectreport'),
-(133, 'Can add project expense', 33, 'add_projectexpense'),
-(134, 'Can change project expense', 33, 'change_projectexpense'),
-(135, 'Can delete project expense', 33, 'delete_projectexpense'),
-(136, 'Can view project expense', 33, 'view_projectexpense'),
-(137, 'Can add project document', 34, 'add_projectdocument'),
-(138, 'Can change project document', 34, 'change_projectdocument'),
-(139, 'Can delete project document', 34, 'delete_projectdocument'),
-(140, 'Can view project document', 34, 'view_projectdocument'),
-(141, 'Can add project budget', 35, 'add_projectbudget'),
-(142, 'Can change project budget', 35, 'change_projectbudget'),
-(143, 'Can delete project budget', 35, 'delete_projectbudget'),
-(144, 'Can view project budget', 35, 'view_projectbudget'),
-(145, 'Can add team', 36, 'add_team'),
-(146, 'Can change team', 36, 'change_team'),
-(147, 'Can delete team', 36, 'delete_team'),
-(148, 'Can view team', 36, 'view_team'),
-(149, 'Can add messages', 37, 'add_messages'),
-(150, 'Can change messages', 37, 'change_messages'),
-(151, 'Can delete messages', 37, 'delete_messages'),
-(152, 'Can view messages', 37, 'view_messages'),
-(153, 'Can add activity', 38, 'add_activity'),
-(154, 'Can change activity', 38, 'change_activity'),
-(155, 'Can delete activity', 38, 'delete_activity'),
-(156, 'Can view activity', 38, 'view_activity'),
-(157, 'Can add participation', 39, 'add_participation'),
-(158, 'Can change participation', 39, 'change_participation'),
-(159, 'Can delete participation', 39, 'delete_participation'),
-(160, 'Can view participation', 39, 'view_participation');
+(25, 'Can add announcement', 7, 'add_announcement'),
+(26, 'Can change announcement', 7, 'change_announcement'),
+(27, 'Can delete announcement', 7, 'delete_announcement'),
+(28, 'Can view announcement', 7, 'view_announcement'),
+(29, 'Can add contact', 8, 'add_contact'),
+(30, 'Can change contact', 8, 'change_contact'),
+(31, 'Can delete contact', 8, 'delete_contact'),
+(32, 'Can view contact', 8, 'view_contact'),
+(33, 'Can add contractor', 9, 'add_contractor'),
+(34, 'Can change contractor', 9, 'change_contractor'),
+(35, 'Can delete contractor', 9, 'delete_contractor'),
+(36, 'Can view contractor', 9, 'view_contractor'),
+(37, 'Can add feedback', 10, 'add_feedback'),
+(38, 'Can change feedback', 10, 'change_feedback'),
+(39, 'Can delete feedback', 10, 'delete_feedback'),
+(40, 'Can view feedback', 10, 'view_feedback'),
+(41, 'Can add project', 11, 'add_project'),
+(42, 'Can change project', 11, 'change_project'),
+(43, 'Can delete project', 11, 'delete_project'),
+(44, 'Can view project', 11, 'view_project'),
+(45, 'Can add project expense', 12, 'add_projectexpense'),
+(46, 'Can change project expense', 12, 'change_projectexpense'),
+(47, 'Can delete project expense', 12, 'delete_projectexpense'),
+(48, 'Can view project expense', 12, 'view_projectexpense'),
+(49, 'Can add project stage', 13, 'add_projectstage'),
+(50, 'Can change project stage', 13, 'change_projectstage'),
+(51, 'Can delete project stage', 13, 'delete_projectstage'),
+(52, 'Can view project stage', 13, 'view_projectstage'),
+(53, 'Can add team', 14, 'add_team'),
+(54, 'Can change team', 14, 'change_team'),
+(55, 'Can delete team', 14, 'delete_team'),
+(56, 'Can view team', 14, 'view_team'),
+(57, 'Can add tender', 15, 'add_tender'),
+(58, 'Can change tender', 15, 'change_tender'),
+(59, 'Can delete tender', 15, 'delete_tender'),
+(60, 'Can view tender', 15, 'view_tender'),
+(61, 'Can add testimonial', 16, 'add_testimonial'),
+(62, 'Can change testimonial', 16, 'change_testimonial'),
+(63, 'Can delete testimonial', 16, 'delete_testimonial'),
+(64, 'Can view testimonial', 16, 'view_testimonial'),
+(65, 'Can add tender application', 17, 'add_tenderapplication'),
+(66, 'Can change tender application', 17, 'change_tenderapplication'),
+(67, 'Can delete tender application', 17, 'delete_tenderapplication'),
+(68, 'Can view tender application', 17, 'view_tenderapplication'),
+(69, 'Can add stakeholder', 18, 'add_stakeholder'),
+(70, 'Can change stakeholder', 18, 'change_stakeholder'),
+(71, 'Can delete stakeholder', 18, 'delete_stakeholder'),
+(72, 'Can view stakeholder', 18, 'view_stakeholder'),
+(73, 'Can add stage report', 19, 'add_stagereport'),
+(74, 'Can change stage report', 19, 'change_stagereport'),
+(75, 'Can delete stage report', 19, 'delete_stagereport'),
+(76, 'Can view stage report', 19, 'view_stagereport'),
+(77, 'Can add report issue', 20, 'add_reportissue'),
+(78, 'Can change report issue', 20, 'change_reportissue'),
+(79, 'Can delete report issue', 20, 'delete_reportissue'),
+(80, 'Can view report issue', 20, 'view_reportissue'),
+(81, 'Can add project update', 21, 'add_projectupdate'),
+(82, 'Can change project update', 21, 'change_projectupdate'),
+(83, 'Can delete project update', 21, 'delete_projectupdate'),
+(84, 'Can view project update', 21, 'view_projectupdate'),
+(85, 'Can add project risk', 22, 'add_projectrisk'),
+(86, 'Can change project risk', 22, 'change_projectrisk'),
+(87, 'Can delete project risk', 22, 'delete_projectrisk'),
+(88, 'Can view project risk', 22, 'view_projectrisk'),
+(89, 'Can add project report', 23, 'add_projectreport'),
+(90, 'Can change project report', 23, 'change_projectreport'),
+(91, 'Can delete project report', 23, 'delete_projectreport'),
+(92, 'Can view project report', 23, 'view_projectreport'),
+(93, 'Can add project document', 24, 'add_projectdocument'),
+(94, 'Can change project document', 24, 'change_projectdocument'),
+(95, 'Can delete project document', 24, 'delete_projectdocument'),
+(96, 'Can view project document', 24, 'view_projectdocument'),
+(97, 'Can add project_type', 25, 'add_project_type'),
+(98, 'Can change project_type', 25, 'change_project_type'),
+(99, 'Can delete project_type', 25, 'delete_project_type'),
+(100, 'Can view project_type', 25, 'view_project_type'),
+(101, 'Can add project_ division', 26, 'add_project_division'),
+(102, 'Can change project_ division', 26, 'change_project_division'),
+(103, 'Can delete project_ division', 26, 'delete_project_division'),
+(104, 'Can view project_ division', 26, 'view_project_division'),
+(105, 'Can add progress update', 27, 'add_progressupdate'),
+(106, 'Can change progress update', 27, 'change_progressupdate'),
+(107, 'Can delete progress update', 27, 'delete_progressupdate'),
+(108, 'Can view progress update', 27, 'view_progressupdate'),
+(109, 'Can add progress report', 28, 'add_progressreport'),
+(110, 'Can change progress report', 28, 'change_progressreport'),
+(111, 'Can delete progress report', 28, 'delete_progressreport'),
+(112, 'Can view progress report', 28, 'view_progressreport'),
+(113, 'Can add program impact', 29, 'add_programimpact'),
+(114, 'Can change program impact', 29, 'change_programimpact'),
+(115, 'Can delete program impact', 29, 'delete_programimpact'),
+(116, 'Can view program impact', 29, 'view_programimpact'),
+(117, 'Can add program funding', 30, 'add_programfunding'),
+(118, 'Can change program funding', 30, 'change_programfunding'),
+(119, 'Can delete program funding', 30, 'delete_programfunding'),
+(120, 'Can view program funding', 30, 'view_programfunding'),
+(121, 'Can add pdf', 31, 'add_pdf'),
+(122, 'Can change pdf', 31, 'change_pdf'),
+(123, 'Can delete pdf', 31, 'delete_pdf'),
+(124, 'Can view pdf', 31, 'view_pdf'),
+(125, 'Can add participation', 32, 'add_participation'),
+(126, 'Can change participation', 32, 'change_participation'),
+(127, 'Can delete participation', 32, 'delete_participation'),
+(128, 'Can view participation', 32, 'view_participation'),
+(129, 'Can add notification', 33, 'add_notification'),
+(130, 'Can change notification', 33, 'change_notification'),
+(131, 'Can delete notification', 33, 'delete_notification'),
+(132, 'Can view notification', 33, 'view_notification'),
+(133, 'Can add milestone', 34, 'add_milestone'),
+(134, 'Can change milestone', 34, 'change_milestone'),
+(135, 'Can delete milestone', 34, 'delete_milestone'),
+(136, 'Can view milestone', 34, 'view_milestone'),
+(137, 'Can add media', 35, 'add_media'),
+(138, 'Can change media', 35, 'change_media'),
+(139, 'Can delete media', 35, 'delete_media'),
+(140, 'Can view media', 35, 'view_media'),
+(141, 'Can add contractor rating', 36, 'add_contractorrating'),
+(142, 'Can change contractor rating', 36, 'change_contractorrating'),
+(143, 'Can delete contractor rating', 36, 'delete_contractorrating'),
+(144, 'Can view contractor rating', 36, 'view_contractorrating'),
+(145, 'Can add comment', 37, 'add_comment'),
+(146, 'Can change comment', 37, 'change_comment'),
+(147, 'Can delete comment', 37, 'delete_comment'),
+(148, 'Can view comment', 37, 'view_comment'),
+(149, 'Can add citizen submission', 38, 'add_citizensubmission'),
+(150, 'Can change citizen submission', 38, 'change_citizensubmission'),
+(151, 'Can delete citizen submission', 38, 'delete_citizensubmission'),
+(152, 'Can view citizen submission', 38, 'view_citizensubmission'),
+(153, 'Can add citizen evidence', 39, 'add_citizenevidence'),
+(154, 'Can change citizen evidence', 39, 'change_citizenevidence'),
+(155, 'Can delete citizen evidence', 39, 'delete_citizenevidence'),
+(156, 'Can view citizen evidence', 39, 'view_citizenevidence'),
+(157, 'Can add budget', 40, 'add_budget'),
+(158, 'Can change budget', 40, 'change_budget'),
+(159, 'Can delete budget', 40, 'delete_budget'),
+(160, 'Can view budget', 40, 'view_budget'),
+(161, 'Can add audit log', 41, 'add_auditlog'),
+(162, 'Can change audit log', 41, 'change_auditlog'),
+(163, 'Can delete audit log', 41, 'delete_auditlog'),
+(164, 'Can view audit log', 41, 'view_auditlog'),
+(165, 'Can add activity', 42, 'add_activity'),
+(166, 'Can change activity', 42, 'change_activity'),
+(167, 'Can delete activity', 42, 'delete_activity'),
+(168, 'Can view activity', 42, 'view_activity');
 
 -- --------------------------------------------------------
 
@@ -261,39 +269,42 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (3, 'auth', 'group'),
 (2, 'auth', 'permission'),
 (4, 'contenttypes', 'contenttype'),
-(38, 'member', 'activity'),
-(17, 'member', 'auditlog'),
-(16, 'member', 'budget'),
-(20, 'member', 'comment'),
-(7, 'member', 'contact'),
-(8, 'member', 'feedback'),
-(15, 'member', 'media'),
-(37, 'member', 'messages'),
-(14, 'member', 'milestone'),
-(13, 'member', 'notification'),
-(39, 'member', 'participation'),
-(12, 'member', 'pdf'),
-(25, 'member', 'programfunding'),
-(24, 'member', 'programimpact'),
-(22, 'member', 'progressreport'),
+(42, 'member', 'activity'),
+(7, 'member', 'announcement'),
+(41, 'member', 'auditlog'),
+(40, 'member', 'budget'),
+(39, 'member', 'citizenevidence'),
+(38, 'member', 'citizensubmission'),
+(37, 'member', 'comment'),
+(8, 'member', 'contact'),
+(9, 'member', 'contractor'),
+(36, 'member', 'contractorrating'),
+(10, 'member', 'feedback'),
+(35, 'member', 'media'),
+(34, 'member', 'milestone'),
+(33, 'member', 'notification'),
+(32, 'member', 'participation'),
+(31, 'member', 'pdf'),
+(30, 'member', 'programfunding'),
+(29, 'member', 'programimpact'),
+(28, 'member', 'progressreport'),
 (27, 'member', 'progressupdate'),
-(9, 'member', 'project'),
-(35, 'member', 'projectbudget'),
-(34, 'member', 'projectdocument'),
-(33, 'member', 'projectexpense'),
-(18, 'member', 'projectlocation'),
-(32, 'member', 'projectreport'),
-(31, 'member', 'projectrisk'),
-(26, 'member', 'projectstage'),
-(30, 'member', 'projectupdate'),
-(10, 'member', 'project_division'),
-(11, 'member', 'project_type'),
-(19, 'member', 'reportissue'),
-(28, 'member', 'sponsors'),
-(23, 'member', 'stakeholder'),
-(36, 'member', 'team'),
-(21, 'member', 'tender'),
-(29, 'member', 'testimonial'),
+(11, 'member', 'project'),
+(24, 'member', 'projectdocument'),
+(12, 'member', 'projectexpense'),
+(23, 'member', 'projectreport'),
+(22, 'member', 'projectrisk'),
+(13, 'member', 'projectstage'),
+(21, 'member', 'projectupdate'),
+(26, 'member', 'project_division'),
+(25, 'member', 'project_type'),
+(20, 'member', 'reportissue'),
+(19, 'member', 'stagereport'),
+(18, 'member', 'stakeholder'),
+(14, 'member', 'team'),
+(15, 'member', 'tender'),
+(17, 'member', 'tenderapplication'),
+(16, 'member', 'testimonial'),
 (6, 'member', 'user'),
 (5, 'sessions', 'session');
 
@@ -315,97 +326,25 @@ CREATE TABLE `django_migrations` (
 --
 
 INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
-(1, 'contenttypes', '0001_initial', '2024-02-23 10:14:12.710125'),
-(2, 'contenttypes', '0002_remove_content_type_name', '2024-02-23 10:14:13.076350'),
-(3, 'auth', '0001_initial', '2024-02-23 10:14:16.470648'),
-(4, 'auth', '0002_alter_permission_name_max_length', '2024-02-23 10:14:17.013899'),
-(5, 'auth', '0003_alter_user_email_max_length', '2024-02-23 10:14:17.036166'),
-(6, 'auth', '0004_alter_user_username_opts', '2024-02-23 10:14:17.059354'),
-(7, 'auth', '0005_alter_user_last_login_null', '2024-02-23 10:14:17.089517'),
-(8, 'auth', '0006_require_contenttypes_0002', '2024-02-23 10:14:17.104872'),
-(9, 'auth', '0007_alter_validators_add_error_messages', '2024-02-23 10:14:17.133324'),
-(10, 'auth', '0008_alter_user_username_max_length', '2024-02-23 10:14:17.152211'),
-(11, 'auth', '0009_alter_user_last_name_max_length', '2024-02-23 10:14:17.176585'),
-(12, 'auth', '0010_alter_group_name_max_length', '2024-02-23 10:14:17.239535'),
-(13, 'auth', '0011_update_proxy_permissions', '2024-02-23 10:14:17.294186'),
-(14, 'auth', '0012_alter_user_first_name_max_length', '2024-02-23 10:14:17.319746'),
-(15, 'member', '0001_initial', '2024-02-23 10:14:20.029561'),
-(16, 'admin', '0001_initial', '2024-02-23 10:14:21.813824'),
-(17, 'admin', '0002_logentry_remove_auto_add', '2024-02-23 10:14:21.880805'),
-(18, 'admin', '0003_logentry_add_action_flag_choices', '2024-02-23 10:14:22.061037'),
-(19, 'sessions', '0001_initial', '2024-02-23 10:14:22.424106'),
-(20, 'member', '0002_user_avatar_user_bio_user_name_alter_user_email', '2024-02-23 10:20:40.853754'),
-(21, 'member', '0003_alter_user_username', '2024-02-23 10:53:34.343461'),
-(22, 'member', '0004_alter_user_username', '2024-02-23 11:19:51.606299'),
-(23, 'member', '0005_contact', '2024-02-25 20:05:02.321604'),
-(24, 'member', '0006_feedback', '2024-02-25 21:49:07.760282'),
-(25, 'member', '0007_alter_feedback_full_name_alter_feedback_phone_number', '2024-02-25 21:55:49.426333'),
-(26, 'member', '0008_project', '2024-02-26 14:18:52.860918'),
-(27, 'member', '0009_alter_project_end_date', '2024-02-26 15:03:28.239391'),
-(28, 'member', '0010_project_project_images_alter_project_end_date_and_more', '2024-02-29 15:17:38.564028'),
-(29, 'member', '0011_alter_project_end_date_alter_project_project_images_and_more', '2024-02-29 15:31:48.613206'),
-(30, 'member', '0012_alter_project_project_images', '2024-02-29 15:45:18.571650'),
-(31, 'member', '0013_alter_project_project_images', '2024-02-29 15:55:47.554859'),
-(32, 'member', '0014_alter_project_project_images', '2024-02-29 15:58:09.552141'),
-(33, 'member', '0015_alter_project_project_images', '2024-02-29 15:59:30.801454'),
-(34, 'member', '0016_alter_project_project_images', '2024-02-29 16:11:24.748076'),
-(35, 'member', '0017_alter_project_project_images', '2024-02-29 16:13:10.271676'),
-(36, 'member', '0018_alter_project_project_images', '2024-03-01 09:12:25.203551'),
-(37, 'member', '0019_alter_project_options_alter_project_project_images', '2024-03-06 08:30:30.731169'),
-(38, 'member', '0020_alter_project_project_images', '2024-03-06 09:02:45.066382'),
-(39, 'member', '0021_alter_project_project_images', '2024-03-06 10:29:42.413853'),
-(40, 'member', '0022_alter_project_project_images', '2024-03-06 10:31:24.289299'),
-(41, 'member', '0023_alter_project_project_images', '2024-03-06 10:35:52.686205'),
-(42, 'member', '0024_project_type_division', '2024-03-06 18:03:08.477682'),
-(43, 'member', '0025_alter_division_options', '2024-03-07 14:49:58.677190'),
-(44, 'member', '0025_alter_project_project_images', '2024-03-07 17:59:02.919658'),
-(45, 'member', '0026_alter_project_project_images', '2024-03-08 07:56:12.966148'),
-(46, 'member', '0027_alter_project_project_images', '2024-03-08 08:02:32.603854'),
-(47, 'member', '0009_alter_project_project_images', '2024-03-08 20:21:00.869128'),
-(48, 'member', '0010_project_type_alter_project_project_images_division', '2024-03-10 08:02:53.133711'),
-(49, 'member', '0011_rename_division_project_division', '2024-03-10 08:10:45.831884'),
-(50, 'member', '0002_user_is_enduser_alter_user_is_superuser', '2024-03-12 21:03:58.265588'),
-(51, 'member', '0003_alter_user_is_enduser_alter_user_is_superuser', '2024-03-12 21:08:13.004874'),
-(52, 'member', '0004_project_division_project_division', '2024-03-14 09:22:05.183523'),
-(53, 'member', '0005_rename_project_division_project_division_status', '2024-03-14 09:38:24.450238'),
-(54, 'member', '0006_remove_project_division_project_type_and_more', '2024-03-14 09:49:34.676048'),
-(55, 'member', '0007_rename_status_project_division_project_list', '2024-03-14 16:14:34.632288'),
-(56, 'member', '0008_user_profile', '2024-03-16 20:44:04.191540'),
-(57, 'member', '0009_alter_user_profile', '2024-03-19 21:10:28.226833'),
-(58, 'member', '0010_pdf', '2024-03-26 08:08:21.702589'),
-(59, 'member', '0011_alter_pdf_options_remove_pdf_end_date_and_more', '2024-08-25 09:16:31.843648'),
-(60, 'member', '0012_auto_20250306_1022', '2025-03-06 07:22:53.841583'),
-(61, 'member', '0013_rename_status_project_project_status', '2025-03-06 07:58:33.526420'),
-(62, 'member', '0014_alter_project_project_status', '2025-03-06 08:41:24.865898'),
-(63, 'member', '0015_remove_media_project', '2025-03-06 12:05:23.840433'),
-(64, 'member', '0016_media_project', '2025-03-06 12:24:54.102620'),
-(65, 'member', '0017_auto_20250306_1758', '2025-03-06 14:59:07.240020'),
-(66, 'member', '0018_alter_user_is_superuser', '2025-03-06 15:00:45.579414'),
-(67, 'member', '0019_auditlog_comment_progressreport_projectlocation_reportissue_tender', '2025-03-07 09:04:11.384233'),
-(68, 'member', '0020_auto_20250307_1249', '2025-03-07 09:49:12.447613'),
-(69, 'member', '0021_auto_20250311_1729', '2025-03-11 14:29:57.233969'),
-(70, 'member', '0022_auto_20250311_1731', '2025-03-11 14:31:22.539515'),
-(71, 'member', '0023_auto_20250311_2040', '2025-03-11 17:40:46.376555'),
-(72, 'member', '0024_auto_20250312_1147', '2025-03-12 08:47:55.261684'),
-(73, 'member', '0025_auto_20250312_1254', '2025-03-12 09:55:00.198665'),
-(74, 'member', '0026_auto_20250312_1718', '2025-03-12 14:18:54.434961'),
-(75, 'member', '0027_auto_20250312_1733', '2025-03-12 14:33:07.594690'),
-(76, 'member', '0002_project_contact_email_project_progress_update_and_more', '2026-02-15 06:18:22.763594'),
-(77, 'member', '0003_remove_testimonial_testimonial_text', '2026-02-15 07:33:03.807433'),
-(78, 'member', '0004_alter_testimonial_options_remove_testimonial_image', '2026-02-15 09:09:14.199509'),
-(79, 'member', '0005_testimonial_image', '2026-02-15 09:10:07.702415'),
-(80, 'member', '0006_team', '2026-02-15 11:24:30.196341'),
-(81, 'member', '0007_alter_team_options_team_created_at', '2026-02-15 12:31:29.833638'),
-(82, 'member', '0008_project_participants_messages', '2026-02-22 12:36:05.280509'),
-(83, 'member', '0009_user_updated', '2026-02-22 13:21:42.508793'),
-(84, 'member', '0010_alter_project_participants', '2026-02-22 18:38:46.068274'),
-(85, 'member', '0011_activity', '2026-02-22 18:41:12.867692'),
-(86, 'member', '0012_messages_participants', '2026-02-22 18:43:40.506206'),
-(87, 'member', '0013_remove_project_participants_participation', '2026-02-22 18:52:47.852355'),
-(88, 'member', '0014_participation_content', '2026-02-22 19:31:06.110265'),
-(89, 'member', '0015_remove_messages_participants', '2026-02-23 06:18:10.098430'),
-(90, 'member', '0016_alter_participation_unique_together_and_more', '2026-02-23 07:11:29.451697'),
-(91, 'member', '0017_remove_messages_projects_remove_messages_user_and_more', '2026-02-23 09:00:30.055651');
+(1, 'contenttypes', '0001_initial', '2026-04-26 11:08:47.116280'),
+(2, 'contenttypes', '0002_remove_content_type_name', '2026-04-26 11:08:47.226368'),
+(3, 'auth', '0001_initial', '2026-04-26 11:08:47.583345'),
+(4, 'auth', '0002_alter_permission_name_max_length', '2026-04-26 11:08:47.656046'),
+(5, 'auth', '0003_alter_user_email_max_length', '2026-04-26 11:08:47.665929'),
+(6, 'auth', '0004_alter_user_username_opts', '2026-04-26 11:08:47.678199'),
+(7, 'auth', '0005_alter_user_last_login_null', '2026-04-26 11:08:47.687627'),
+(8, 'auth', '0006_require_contenttypes_0002', '2026-04-26 11:08:47.692026'),
+(9, 'auth', '0007_alter_validators_add_error_messages', '2026-04-26 11:08:47.704496'),
+(10, 'auth', '0008_alter_user_username_max_length', '2026-04-26 11:08:47.714449'),
+(11, 'auth', '0009_alter_user_last_name_max_length', '2026-04-26 11:08:47.724513'),
+(12, 'auth', '0010_alter_group_name_max_length', '2026-04-26 11:08:47.753278'),
+(13, 'auth', '0011_update_proxy_permissions', '2026-04-26 11:08:47.761785'),
+(14, 'auth', '0012_alter_user_first_name_max_length', '2026-04-26 11:08:47.770333'),
+(15, 'member', '0001_initial', '2026-04-26 11:08:51.704112'),
+(16, 'admin', '0001_initial', '2026-04-26 11:08:51.854912'),
+(17, 'admin', '0002_logentry_remove_auto_add', '2026-04-26 11:08:51.891407'),
+(18, 'admin', '0003_logentry_add_action_flag_choices', '2026-04-26 11:08:51.936864'),
+(19, 'sessions', '0001_initial', '2026-04-26 11:08:51.982623');
 
 -- --------------------------------------------------------
 
@@ -424,35 +363,9 @@ CREATE TABLE `django_session` (
 --
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
-('0w2a0facvq76m7n09oimmx65jggvhlit', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tqykT:5RMTbPQ06T1pzLx1NmVBKM_H9GgBkofEDrQ-dkk_NEI', '2025-03-22 18:18:09.023173'),
-('1j7cdcx4ufyn6vp5rkn1hjs4xydgj6ai', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tuU6L:dc8iwGgKCRSCRTZH1ASYEaho7zHmUIwK6sYgJPtuM0w', '2025-04-01 10:23:13.352163'),
-('20e7lz7iio3wv6xl8vi7919rk67gif46', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tZPmw:4AjRMNU_C_UVitNYlem2JAAQZIfq1jfFLlkCLnwx3XE', '2025-02-02 07:32:06.345176'),
-('2vt089yzk93g1jpe57uy09avc6k2uh3w', '.eJxVjMsOwiAURP-FtSGXt7h07zeQy4VK1UBS2pXx36VJF5rZnTkzbxZwW0vYel7CnNiFWXb6ZRHpmetepAfWe-PU6rrMke8KP9rOby3l1_Vw_w4K9jLW4MhokybplCNQWigCi96YLO10ttIJiOhU1NGDlJhADe7NiCBrPbDPF7SFNlM:1rhcPt:u0nI9VTPScEu_f0KIt3qoA0NruBXJG7sQAHQti-AwAo', '2024-03-19 21:33:41.747387'),
-('38ite4aao6v0ts85eaub72eb877gkcl7', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tvGxo:qRgtrHJVMzCxAYPzp6hxoMTWmDbzf-dd5H4fsY0YO0I', '2025-04-03 14:33:40.112129'),
-('44or4nmv3ixv7puvu1la3zpa5g7ozh8x', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tkoDm:Y0Au_Or_uIR4iqr2QVUlMZWGZnyPTEN-gsD4IHdJBpI', '2025-03-05 17:50:54.908126'),
-('4chhsa9uotlsh1msgdf27gadn7kjsdnf', '.eJxVjMsOwiAUBf-FtSE8SqEu3fcbyOVykKqhSR8r47-bJl3odmYybxFp32rcVyxxyuIqtBOXX5iIn2iHyQ9q91ny3LZlSvJI5GlXOc4Zr9vZ_g0qrfX4mk4BHl1C0cUrgoE1xQZNSKkvnp3tXWBwYR1oYDjFFtYxVFY8iM8XLw85TA:1tBAr1:nFPqPljNhFQiJQqrDZIVtYzGeK_MzfAwEnq5WWZ3zlk', '2024-11-27 10:44:07.995680'),
-('7cqcb4uyhxobtlq22seeqtfjt1p34tfu', '.eJxVjDEOwjAQBP_iGlm5I9gxJT1viHzeMw6gRIqTCvF3iJQC2p2ZfZk-rkvp16pzP8CcDZM5_I4S00PHjeAex9tk0zQu8yB2U-xOq71O0Odld_8OSqzlW7vMXloCeWRuHWmCo4aVQ-dDOMJnEsonkEPsRAlQp4kaoPPCic37AwhYOJM:1rqffS:ek80ZJ_IDnypSHsUAnP_WfJllTJZRdWPyIuTFXl3Ly0', '2024-04-13 20:51:10.482297'),
-('7g0ocx6hjrseq24753q4nxqohkiyr81s', '.eJxVjMsOgjAQAP9lz6aBvpZy9O43NNvdIqhpEwon478bEg56nZnMGyLt2xz3lte4CIygHVx-YSJ-5nIYeVC5V8W1bOuS1JGo0zZ1q5Jf17P9G8zUZhhh0Dwgdn6aCDU7Z7FL2to-GE-cDWIygX3XD30SsmK9DtkhivWBjRGCzxfnVTdV:1vsFRO:oK_XQCrjq3yBkNgWX5gZOJUCo50-z54MxP3pLQouFes', '2026-03-03 07:24:14.365614'),
-('ac1iqdnc9itb6edmyqjgyvtrkke6h6hk', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1s6usV:WBMXVtjVwkpH_ur4IuY9o4vXMteQEezmYN5Qske4K_Q', '2024-05-28 16:19:47.141825'),
-('bez41nkz8t4mrr0f73q7sumv192z8dsi', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1sFJWI:6KNEbzRCEKY64WkpAfMlfuqHKvf1trqC2xjrq5XkUX8', '2024-06-20 20:15:34.466513'),
-('bhr5zwl65707lgrv0jihhdhe9ndhb3gy', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tsMvz:O4NYZwQzfpO1h_7V-VgfZCuBs4-VgWJWR98ns_bu0M8', '2025-03-26 14:19:47.333607'),
-('ejbsep4cmtyygxbrjqoakxyei26x9nsg', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tqzEE:FLXpmalKJETrDqWtrxLEJxBFIgxwx6Ee0oKDikkQ2n4', '2025-03-22 18:48:54.540699'),
-('mjnnzpzonp4v3apw8cwo1lnl07h5ujmi', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tg05O:XqeOUj8mp89cYrAfcmCX4LsSY37h8jCKlIIsO98hQFI', '2025-02-20 11:30:22.700353'),
-('nciqfgqr78fx9emb357tw63yt4dnnj96', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1shkMn:vUqKrLfh7O5JyFTTk1RDk05Eb4RvST7DlxzdBuWtn4E', '2024-09-07 06:35:17.662831'),
-('osp0rcjfu925gu390k70vrbry9xohckx', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tdt4N:njJwSKKySCAID27oOJXjdm3ijNeaHwyDy4E02YmxKUY', '2025-02-14 15:36:35.327760'),
-('pjvadvja7jynx5mgp9098rfuivn7uvn6', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tg0N4:eYsJf1GUNUuuNrXCESOukXNLgUQO0m69DkZZ0t6PBlo', '2025-02-20 11:48:38.401943'),
-('qbjr8gfmpegyad9vfnb8c6n4gcght0sr', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1tJ2J3:Ik0Ip84zxApLJfvWFaFm0dJ2rWX7yXP_oEYjFLVe1bU', '2024-12-19 03:13:33.221493'),
-('qqxsg3wqhixcwxbh5xxafjs7e8oblg3w', '.eJxVjDEOgzAMAP_iuYoSQxLK2J03INtxGtoKJAJT1b9XSAztene6N4y0b2Xcq67jlKAHjHD5hUzy1Pkw6UHzfTGyzNs6sTkSc9pqhiXp63a2f4NCtUAPGQVTUKWslJ3znfi2Yc0swtz4qzbOi43c-WiZQiKMKNYharDakoXPF0fROQU:1vuS0D:DnHUgq_9UGjacJB5MBcyDok8hzrM0cec4KoZ-TMz6zg', '2026-03-09 09:13:17.525417'),
-('qrmofx88zu92r43gn3b1nc4jqebv7aqe', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tqykS:6IgrEMD_uX-dk515ADeCUPxDOXWc15IJSpCcYNybObs', '2025-03-22 18:18:08.805637'),
-('qzbxhc6l1yx27yefgplrqdzu29gtlc5u', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1teABV:XtErjKHyUDzvPLt9TfQImZ0Z6zw57kDaKbomE0fqaSc', '2025-02-15 09:53:05.618967'),
-('v249filfksnkujac1a8qaiffqknfnag3', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1tBtey:VKrjxw3n2uG9EB3hGIgcn5BhIN8MksVhxq70EDtivs0', '2024-11-29 10:34:40.157844'),
-('v5fpx7u57jjnlhoeenh7nvwsa1en5ali', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tkp8F:v6rI3uD0vCCTwRXsJBh7Bt-bumWr7wMNuVXo_hjgiTs', '2025-03-05 18:49:15.726292'),
-('vq8jx9u6g3jv0rkhvs7p2xrpruyetmaa', '.eJxVjDEOwjAQBP_iGlm5I9gxJT1viHzeMw6gRIqTCvF3iJQC2p2ZfZk-rkvp16pzP8CcDZM5_I4S00PHjeAex9tk0zQu8yB2U-xOq71O0Odld_8OSqzlW7vMXloCeWRuHWmCo4aVQ-dDOMJnEsonkEPsRAlQp4kaoPPCic37AwhYOJM:1rnaJD:lJfsWCpGXA3wipO1J-a77bDDCZKbaWWdVksZqSrTLmc', '2024-04-05 08:31:27.730193'),
-('wffr3mdoi8zxvx8qt7925dbl2y84jm8i', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1te9Ju:Rsy8kkEgaju64NPajcpbWDIEwX2Os3gjGQdbADOHj24', '2025-02-15 08:57:42.264613'),
-('x0rnllj5mr2z8xvz02zlcwtijoup9j89', '.eJxVjEEOwiAQRe_C2pABSgWX7nsGAsyMVA0kpV0Z765NutDtf-_9lwhxW0vYOi1hRnERWonT75hiflDdCd5jvTWZW12XOcldkQftcmpIz-vh_h2U2Mu3JrCEPEIC1KxIKQdkwbDzNBg1WmLHmjnBGdFZr_yQADBbSz4PYFC8PxC3ODM:1tqCMM:c5_Ry-eWkuyIMlCGX1KHtnYs0_86X9xsPDZ7Ud0UjqU', '2025-03-20 14:38:02.417957'),
-('xex6sofii4qd1zdd62adh0rmw5p344nq', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1sQiCI:lHpcSjwW2hr43r0OYgqsl55tSyhA1v-ko7bSQyM8VR0', '2024-07-22 06:50:02.662253'),
-('yuhw4u40yp7imkfmp1hjsmefrumsjy3k', '.eJxVjDsOwjAQBe_iGlk268-akj5nsNY_HEC2FCcV4u4QKQW0b2bei3na1uq3kRc_J3Zhip1-t0DxkdsO0p3arfPY27rMge8KP-jgU0_5eT3cv4NKo35rGUSRELGgLUUWI43TUWR0VljtSKsIINGBJaBkCBFUQE0SDbpAZ8XeH81wNv8:1reMYv:hpkdkwmRKxdr2tVLRqN6L_QOEpHjcL5ACviepinIcoQ', '2024-03-10 22:01:33.454716'),
-('z6cgpk5lwu28infm4bhd4hdurbjg6jeh', '.eJxVjMEOwiAQRP-FsyFAoVs8eu83kIVdpGpoUtqT8d9tkx40c5v3Zt4i4LaWsDVewkTiKowWl98yYnpyPQg9sN5nmea6LlOUhyJP2uQ4E79up_t3ULCVfW1Be93ZnBMQqOyIBqTM2CkED-jY594plYy2CqDnCHs4IVFMfjAgPl8XdTjQ:1si9NS:QZXcK2OgxgqKVl2PCyXg7LUBl95AVRyKMjLevJhgVYA', '2024-09-08 09:17:38.636187');
+('13rc1o2gyneg0mtf4gugknw1yoxa7y5o', '.eJxVjLsOwjAMAP_FM4rywCHpyM43VI7jkgJKpKadEP-OKnWA9e50bxhpW8u4dVnGOcMA1sPpFybip9Td5AfVe1Pc6rrMSe2JOmxXt5bldT3av0GhXmCAIFpHsZgceeNs5IzZWBGL7uxCnAwRo0t60j5qRgmEEiJfDDJh4gSfL_vUOCw:1wHbRO:LGNacgZMl7vjw_49bEdGhZ8Oa5c6e-iojCNxm55ELmU', '2026-05-12 05:57:02.230908'),
+('5q6p769hrbhyh7esawk3q9d82v3b68g3', '.eJxVjMsOwiAQAP9lz4aUp2yP3vsNBNitVA0kpT0Z_9006UGvM5N5Q4j7VsLeeQ0LwQgKLr8sxfzkegh6xHpvIre6rUsSRyJO28XUiF-3s_0blNgLjIDJESnLzFKyZVYojUNpaZhTQjc7Y7y23qLiPHhil686Zp1QkTcaI3y-7OE37g:1wH5cP:Qw_bs23tzMx--7FMW7or8ZXZTIVFrmMeCNJRrKxhoCo', '2026-05-10 19:58:17.264025'),
+('ojnovp86l18dr3ghiygi4s7bx2r0wj83', '.eJxVjEEOwiAQAP-yZ0MKZYH26N03kIUFqRpISnsy_t006UGvM5N5g6d9K37vafULwwwSLr8sUHymegh-UL03EVvd1iWIIxGn7eLWOL2uZ_s3KNQLzGApWKmsy8rlacyDSWhGxahJG7ZDnDBozCqhZIvZIikpQ2AdnaZREsLnC84hN3I:1wGxWF:1uXwrAfLoeLh_dUFDU61Qr_uLhtqWslXqp3weNnNdro', '2026-05-10 11:19:23.081924');
 
 -- --------------------------------------------------------
 
@@ -471,6 +384,20 @@ CREATE TABLE `member_activity` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_announcement`
+--
+
+CREATE TABLE `member_announcement` (
+  `id` bigint(20) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` longtext NOT NULL,
+  `level` varchar(20) NOT NULL,
+  `created_at` datetime(6) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_auditlog`
 --
 
@@ -481,15 +408,6 @@ CREATE TABLE `member_auditlog` (
   `project_id` bigint(20) DEFAULT NULL,
   `user_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `member_auditlog`
---
-
-INSERT INTO `member_auditlog` (`id`, `action`, `timestamp`, `project_id`, `user_id`) VALUES
-(1, 'needed', '2025-03-11 16:23:00.600672', 24, 21),
-(2, 'resolved', '2025-03-11 16:24:49.664766', 12, 21),
-(3, 'accountability', '2025-03-11 16:38:39.653715', 29, 22);
 
 -- --------------------------------------------------------
 
@@ -508,25 +426,52 @@ CREATE TABLE `member_budget` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_citizenevidence`
+--
+
+CREATE TABLE `member_citizenevidence` (
+  `id` bigint(20) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `image` varchar(100) DEFAULT NULL,
+  `is_verified` tinyint(1) NOT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `project_id` bigint(20) NOT NULL,
+  `stage_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_citizensubmission`
+--
+
+CREATE TABLE `member_citizensubmission` (
+  `id` bigint(20) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` longtext NOT NULL,
+  `category` varchar(20) NOT NULL,
+  `status` varchar(20) NOT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `user_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_comment`
 --
 
 CREATE TABLE `member_comment` (
   `id` bigint(20) NOT NULL,
+  `name` varchar(1000) DEFAULT NULL,
   `content` longtext NOT NULL,
   `created_at` datetime(6) NOT NULL,
   `project_id` bigint(20) NOT NULL,
-  `user_id` bigint(20) NOT NULL,
-  `name` varchar(1000) DEFAULT NULL
+  `user_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `member_comment`
---
-
-INSERT INTO `member_comment` (`id`, `content`, `created_at`, `project_id`, `user_id`, `name`) VALUES
-(1, 'nmbcfdtryujhnm', '2025-03-11 14:07:19.206947', 30, 21, 'Felix Odhiambo'),
-(2, 'bncvgfhjm,', '2025-03-11 14:07:43.718312', 12, 23, 'Assiello Nomar');
 
 -- --------------------------------------------------------
 
@@ -556,24 +501,68 @@ INSERT INTO `member_contact` (`id`, `name`, `email`, `message`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_contractor`
+--
+
+CREATE TABLE `member_contractor` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `company` varchar(255) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(254) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `profile` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_contractorrating`
+--
+
+CREATE TABLE `member_contractorrating` (
+  `id` bigint(20) NOT NULL,
+  `quality_score` int(11) NOT NULL,
+  `speed_score` int(11) NOT NULL,
+  `compliance_score` int(11) NOT NULL,
+  `comment` longtext DEFAULT NULL,
+  `contractor_id` bigint(20) NOT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_contractor_projects`
+--
+
+CREATE TABLE `member_contractor_projects` (
+  `id` bigint(20) NOT NULL,
+  `contractor_id` bigint(20) NOT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_feedback`
 --
 
 CREATE TABLE `member_feedback` (
   `id` bigint(20) NOT NULL,
+  `full_name` varchar(50) DEFAULT NULL,
   `email` varchar(254) NOT NULL,
   `phone_number` varchar(15) DEFAULT NULL,
-  `feedback` longtext DEFAULT NULL,
-  `full_name` varchar(50) DEFAULT NULL
+  `feedback` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_feedback`
 --
 
-INSERT INTO `member_feedback` (`id`, `email`, `phone_number`, `feedback`, `full_name`) VALUES
-(5, 'amanda@gmail.com', '798643789', 'Amanda Nyar Usonga penjo', NULL),
-(6, 'young@gmail.com', '798564321', 'thanks for the service', NULL);
+INSERT INTO `member_feedback` (`id`, `full_name`, `email`, `phone_number`, `feedback`) VALUES
+(5, NULL, 'amanda@gmail.com', '798643789', 'Amanda Nyar Usonga penjo'),
+(6, NULL, 'young@gmail.com', '798564321', 'thanks for the service');
 
 -- --------------------------------------------------------
 
@@ -629,19 +618,21 @@ INSERT INTO `member_milestone` (`id`, `title`, `description`, `completion_date`,
 
 CREATE TABLE `member_notification` (
   `id` bigint(20) NOT NULL,
-  `message` longtext NOT NULL,
-  `is_read` tinyint(1) NOT NULL,
+  `notification_type` varchar(20) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `message` longtext DEFAULT NULL,
+  `is_read` tinyint(1) DEFAULT NULL,
   `created_at` datetime(6) NOT NULL,
-  `recipient_id` bigint(20) NOT NULL
+  `user_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_notification`
 --
 
-INSERT INTO `member_notification` (`id`, `message`, `is_read`, `created_at`, `recipient_id`) VALUES
-(1, 'Welcome anytime Ajumbutule', 0, '2025-03-06 12:17:36.241868', 15),
-(2, 'wecome', 1, '2025-03-06 12:17:56.611611', 22);
+INSERT INTO `member_notification` (`id`, `notification_type`, `title`, `message`, `is_read`, `created_at`, `user_id`) VALUES
+(1, NULL, NULL, 'Welcome anytime Ajumbutule', 0, '2025-03-06 12:17:36.241868', NULL),
+(2, NULL, NULL, 'wecome', 1, '2025-03-06 12:17:56.611611', NULL);
 
 -- --------------------------------------------------------
 
@@ -651,21 +642,21 @@ INSERT INTO `member_notification` (`id`, `message`, `is_read`, `created_at`, `re
 
 CREATE TABLE `member_participation` (
   `id` bigint(20) NOT NULL,
+  `content` longtext DEFAULT NULL,
   `joined_at` datetime(6) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   `project_id` bigint(20) NOT NULL,
-  `user_id` bigint(20) NOT NULL,
-  `content` longtext DEFAULT NULL
+  `user_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_participation`
 --
 
-INSERT INTO `member_participation` (`id`, `joined_at`, `is_active`, `project_id`, `user_id`, `content`) VALUES
-(1, '2026-02-23 07:08:43.825185', 1, 38, 27, 'good'),
-(5, '2026-02-23 07:38:01.415471', 1, 34, 27, 'The project is not clerly showing the milstones, im curious'),
-(6, '2026-02-23 08:03:52.925874', 1, 37, 25, 'certisfied');
+INSERT INTO `member_participation` (`id`, `content`, `joined_at`, `is_active`, `project_id`, `user_id`) VALUES
+(1, 'good', '2026-02-23 07:08:43.825185', 1, 38, 27),
+(5, 'The project is not clerly showing the milstones, im curious', '2026-02-23 07:38:01.415471', 1, 34, 27),
+(6, 'certisfied', '2026-02-23 08:03:52.925874', 1, 37, 25);
 
 -- --------------------------------------------------------
 
@@ -675,23 +666,23 @@ INSERT INTO `member_participation` (`id`, `joined_at`, `is_active`, `project_id`
 
 CREATE TABLE `member_pdf` (
   `id` bigint(20) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `document` varchar(100) DEFAULT NULL,
+  `uploaded_at` datetime(6) DEFAULT NULL,
   `project_title` varchar(255) DEFAULT NULL,
+  `project_status` varchar(100) DEFAULT NULL,
   `implementing_agency` varchar(255) DEFAULT NULL,
   `pdf_file` varchar(100) DEFAULT NULL,
-  `project_status` varchar(100) DEFAULT NULL,
-  `document` varchar(100) DEFAULT NULL,
-  `project_id` bigint(20) DEFAULT NULL,
-  `title` varchar(255) DEFAULT NULL,
-  `uploaded_at` datetime(6) DEFAULT NULL
+  `project_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_pdf`
 --
 
-INSERT INTO `member_pdf` (`id`, `project_title`, `implementing_agency`, `pdf_file`, `project_status`, `document`, `project_id`, `title`, `uploaded_at`) VALUES
-(1, 'blas', 'iokl', NULL, NULL, NULL, NULL, NULL, '2025-03-06 07:22:37.888189'),
-(2, 'Express way', 'national government', 'pdfs/expressway.jpg', 'completed', NULL, NULL, NULL, '2025-03-06 07:22:37.888189');
+INSERT INTO `member_pdf` (`id`, `title`, `document`, `uploaded_at`, `project_title`, `project_status`, `implementing_agency`, `pdf_file`, `project_id`) VALUES
+(1, NULL, NULL, '2025-03-06 07:22:37.888189', 'blas', NULL, 'iokl', NULL, NULL),
+(2, NULL, NULL, '2025-03-06 07:22:37.888189', 'Express way', 'completed', 'national government', 'pdfs/expressway.jpg', NULL);
 
 -- --------------------------------------------------------
 
@@ -718,7 +709,7 @@ CREATE TABLE `member_programimpact` (
   `metric_name` varchar(255) NOT NULL,
   `metric_value` double NOT NULL,
   `measurement_date` date NOT NULL,
-  `program_id` bigint(20) NOT NULL
+  `project_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -763,21 +754,20 @@ CREATE TABLE `member_project` (
   `project_description` longtext DEFAULT NULL,
   `project_location` varchar(100) DEFAULT NULL,
   `implementing_agency` varchar(100) DEFAULT NULL,
+  `project_Budgeting` decimal(12,2) DEFAULT NULL,
+  `amount_spent` decimal(12,2) DEFAULT NULL,
+  `images` varchar(100) DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
-  `division_id` bigint(20) DEFAULT NULL,
-  `images` varchar(100) DEFAULT NULL,
-  `project_Budgeting` varchar(15) DEFAULT NULL,
-  `project_type_id` bigint(20) DEFAULT NULL,
-  `project_status` varchar(10) NOT NULL,
   `beneficiaries` longtext DEFAULT NULL,
-  `impact` longtext DEFAULT NULL,
-  `progress` longtext DEFAULT NULL,
   `stakeholders` longtext DEFAULT NULL,
-  `contact_email` varchar(254) DEFAULT NULL,
-  `progress_update` varchar(255) DEFAULT NULL,
-  `project_contractor` varchar(100) DEFAULT NULL,
+  `progress` longtext DEFAULT NULL,
+  `project_status` varchar(10) NOT NULL,
+  `impact` longtext DEFAULT NULL,
   `project_manager` varchar(100) DEFAULT NULL,
+  `project_contractor` varchar(100) DEFAULT NULL,
+  `contact_email` varchar(254) DEFAULT NULL,
+  `progress_update` datetime(6) DEFAULT NULL,
   `remarks` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -785,24 +775,40 @@ CREATE TABLE `member_project` (
 -- Dumping data for table `member_project`
 --
 
-INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `project_location`, `implementing_agency`, `start_date`, `end_date`, `division_id`, `images`, `project_Budgeting`, `project_type_id`, `project_status`, `beneficiaries`, `impact`, `progress`, `stakeholders`, `contact_email`, `progress_update`, `project_contractor`, `project_manager`, `remarks`) VALUES
-(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', '2024-03-01', '2024-03-09', 4, 'projects/thika.jpg', '87654323456.00', 1, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', '2024-03-02', '2024-03-09', 4, 'projects/login.PNG', '147345646.00', 2, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', '2024-03-06', '2024-03-09', 3, 'projects/mau_mau.jpg', '34567890.00', 7, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', '2024-03-07', '2024-03-09', 4, 'projects/dandora_9E3A1mg.jpg', '1654879.00', 27, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', '2024-03-12', '2024-03-09', 4, 'projects/pacho_7f3AtUZ.jpg', '30000000.00', 2, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', '2024-03-08', '2024-03-09', 1, 'projects/expressway_SwK9e6V.jpg', '34500000.00', 1, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', '2024-03-08', '2024-03-09', 7, 'projects/tana_river.jpg', '4579867.00', 29, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', '2024-03-08', '2024-03-09', 4, 'projects/dala.jpg', '25895642.00', 2, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', '2024-03-12', '2024-03-12', 4, 'projects/thika_Ua6mF2X.jpg', '23000000.00', 27, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', '2024-03-12', '2024-03-12', 4, 'projects/sgr.png', '34000000.00', 1, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', '2024-03-12', '2027-03-12', 5, 'projects/expressway.jpg', '2121000000.00', 1, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', '2025-02-19', '2025-03-06', 1, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '20000000.00', 28, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(35, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', '2025-12-06', '2027-12-06', 4, 'projects/im.jpg', '10000000.00', 5, 'upcoming', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', '2024-03-07', '2025-03-12', 5, 'projects/tana_river_Laq2K1W.jpg', '23456789876.00', 6, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', '2025-03-13', '2028-02-12', 4, 'projects/sgr_C3xUDYT.png', 'ksh.50 billion', 1, 'upcoming', 'Railway users', 'speeding the rate of transportation and reducing the trafficking in public roads', 'upcoming', 'multi billionares', NULL, NULL, NULL, NULL, NULL),
-(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', '2026-02-27', '2031-05-16', 1, 'projects/house.jpg', 'ksh. 100billion', 2, 'Delayed', '-common mwananchi\r\n- government', 'reduction of overcrowding in the country', '', '-Government tycoons\r\n- president William Ruto', 'felixngwono@gmail.com', 'upcoming, yet to be scheduled for the start', 'George Mbola', NULL, '-this will impact on the reduction of slums in the country\r\n-clean environment'),
-(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', '2024-06-04', '2026-02-21', 7, 'projects/house_wMsNgUd.jpg', 'ksh. 100billion', 1, 'completed', 'citizens', '- Ease of access of clean and free energy', '', 'county government', 'felixngwono@gmail.com', 'completed', 'George Mbola', NULL, 'free and favourable energy');
+INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `project_location`, `implementing_agency`, `project_Budgeting`, `amount_spent`, `images`, `start_date`, `end_date`, `beneficiaries`, `stakeholders`, `progress`, `project_status`, `impact`, `project_manager`, `project_contractor`, `contact_email`, `progress_update`, `remarks`) VALUES
+(1, 'Kisumu Highway', 'A perfect highway joining most counties promoting business opportunities', 'Kisumu', 'Governmental Agencies', 23000000.00, NULL, 'projects/dlock.jpg', '2026-04-22', '2026-06-11', 'citizens', 'agencies', '67', 'ongoing', 'good economic network', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-04-26 11:25:50.760102', '- fostering good economy'),
+(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', 9999999999.99, NULL, 'projects/thika.jpg', '2024-03-01', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', 147345646.00, NULL, 'projects/login.PNG', '2024-03-02', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', 34567890.00, NULL, 'projects/mau_mau.jpg', '2024-03-06', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(20, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', 10000000.00, NULL, 'projects/im.jpg', '2025-12-06', '2027-12-06', NULL, NULL, NULL, 'upcoming', NULL, NULL, NULL, NULL, NULL, NULL),
+(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', 1654879.00, NULL, 'projects/dandora_9E3A1mg.jpg', '2024-03-07', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', 30000000.00, NULL, 'projects/pacho_7f3AtUZ.jpg', '2024-03-12', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', 34500000.00, NULL, 'projects/expressway_SwK9e6V.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', 4579867.00, NULL, 'projects/tana_river.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', 25895642.00, NULL, 'projects/dala.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', 23000000.00, NULL, 'projects/thika_Ua6mF2X.jpg', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', 34000000.00, NULL, 'projects/sgr.png', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', 2121000000.00, NULL, 'projects/expressway.jpg', '2024-03-12', '2027-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', 20000000.00, NULL, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '2025-02-19', '2025-03-06', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL),
+(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', 9999999999.99, NULL, 'projects/tana_river_Laq2K1W.jpg', '2024-03-07', '2025-03-12', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, NULL),
+(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', 0.00, NULL, 'projects/sgr_C3xUDYT.png', '2025-03-13', '2028-02-12', 'Railway users', 'multi billionares', 'upcoming', 'upcoming', 'speeding the rate of transportation and reducing the trafficking in public roads', NULL, NULL, NULL, NULL, NULL),
+(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', 0.00, NULL, 'projects/house.jpg', '2026-02-27', '2031-05-16', '-common mwananchi\r\n- government', '-Government tycoons\r\n- president William Ruto', '', 'Delayed', 'reduction of overcrowding in the country', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', '-this will impact on the reduction of slums in the country\r\n-clean environment'),
+(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', 0.00, NULL, 'projects/house_wMsNgUd.jpg', '2024-06-04', '2026-02-21', 'citizens', 'county government', '', 'completed', '- Ease of access of clean and free energy', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', 'free and favourable energy');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_projectdocument`
+--
+
+CREATE TABLE `member_projectdocument` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(200) NOT NULL,
+  `file` varchar(100) NOT NULL,
+  `uploaded_at` datetime(6) NOT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -811,33 +817,13 @@ INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `pro
 --
 
 CREATE TABLE `member_projectexpense` (
-  `id` int(11) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `date_incured` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `member_projectlocation`
---
-
-CREATE TABLE `member_projectlocation` (
   `id` bigint(20) NOT NULL,
-  `latitude` decimal(9,1) DEFAULT NULL,
-  `longitude` decimal(9,1) DEFAULT NULL,
-  `project_id` bigint(20) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `amount` decimal(15,2) DEFAULT NULL,
   `description` longtext DEFAULT NULL,
-  `name` varchar(255) DEFAULT NULL
+  `date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `member_projectlocation`
---
-
-INSERT INTO `member_projectlocation` (`id`, `latitude`, `longitude`, `project_id`, `description`, `name`) VALUES
-(1, 56.0, 56.0, 35, 'wertfgyuhjk', 'Felix Odhiambo');
 
 -- --------------------------------------------------------
 
@@ -846,10 +832,11 @@ INSERT INTO `member_projectlocation` (`id`, `latitude`, `longitude`, `project_id
 --
 
 CREATE TABLE `member_projectreport` (
-  `id` int(11) NOT NULL,
+  `id` bigint(20) NOT NULL,
   `report_file` varchar(100) NOT NULL,
-  `report_date` datetime NOT NULL DEFAULT current_timestamp(),
-  `report_title` varchar(255) NOT NULL
+  `report_date` datetime(6) NOT NULL,
+  `report_title` varchar(255) NOT NULL,
+  `project_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -859,12 +846,12 @@ CREATE TABLE `member_projectreport` (
 --
 
 CREATE TABLE `member_projectrisk` (
-  `id` int(11) NOT NULL,
-  `project_id` int(11) NOT NULL,
-  `risk_description` text NOT NULL,
+  `id` bigint(20) NOT NULL,
+  `risk_description` longtext DEFAULT NULL,
   `risk_level` varchar(20) NOT NULL,
-  `mitigation_plan` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+  `mitigation_plan` longtext DEFAULT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `project_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -893,12 +880,27 @@ INSERT INTO `member_projectstage` (`id`, `stage_name`, `description`, `start_dat
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_projectupdate`
+--
+
+CREATE TABLE `member_projectupdate` (
+  `id` bigint(20) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext NOT NULL,
+  `update_date` datetime(6) NOT NULL,
+  `image` varchar(100) DEFAULT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_project_division`
 --
 
 CREATE TABLE `member_project_division` (
   `id` bigint(20) NOT NULL,
-  `name` varchar(100) NOT NULL,
+  `project_name` varchar(1000) NOT NULL,
   `project_type_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -906,7 +908,7 @@ CREATE TABLE `member_project_division` (
 -- Dumping data for table `member_project_division`
 --
 
-INSERT INTO `member_project_division` (`id`, `name`, `project_type_id`) VALUES
+INSERT INTO `member_project_division` (`id`, `project_name`, `project_type_id`) VALUES
 (1, 'Ground Breaking', NULL),
 (2, 'Tile Fittings', NULL),
 (3, 'Land clearence', NULL),
@@ -917,30 +919,70 @@ INSERT INTO `member_project_division` (`id`, `name`, `project_type_id`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_project_division_project_name`
+--
+
+CREATE TABLE `member_project_division_project_name` (
+  `id` bigint(20) NOT NULL,
+  `project_division_id` bigint(20) NOT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_project_type`
 --
 
 CREATE TABLE `member_project_type` (
   `id` bigint(20) NOT NULL,
-  `name` varchar(100) NOT NULL
+  `name` varchar(100) NOT NULL,
+  `description` longtext NOT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
+  `updated_at` datetime(6) DEFAULT NULL,
+  `created_by_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_project_type`
 --
 
-INSERT INTO `member_project_type` (`id`, `name`) VALUES
-(5, 'Agency Projects'),
-(4, 'Agile Projects'),
-(2, 'Building/construction'),
-(27, 'environmental factors'),
-(29, 'Farming'),
-(1, 'Highways'),
-(30, 'music'),
-(28, 'ongoing'),
-(6, 'Remote Projects'),
-(7, 'research project'),
-(3, 'Traditional projects');
+INSERT INTO `member_project_type` (`id`, `name`, `description`, `is_active`, `created_at`, `updated_at`, `created_by_id`) VALUES
+(1, 'Highways', '', 0, NULL, NULL, NULL),
+(2, 'Building/construction', '', 0, NULL, NULL, NULL),
+(3, 'Traditional projects', '', 0, NULL, NULL, NULL),
+(4, 'Agile Projects', '', 0, NULL, NULL, NULL),
+(5, 'Agency Projects', '', 0, NULL, NULL, NULL),
+(6, 'Remote Projects', '', 0, NULL, NULL, NULL),
+(7, 'research project', '', 0, NULL, NULL, NULL),
+(19, 'Agency Projects', '', 0, NULL, NULL, NULL),
+(23, 'environmental factors', '', 0, NULL, NULL, NULL),
+(27, 'environmental factors', '', 0, NULL, NULL, NULL),
+(28, 'ongoing', '', 0, NULL, NULL, NULL),
+(29, 'Farming', '', 0, NULL, NULL, NULL),
+(30, 'music', '', 0, NULL, NULL, NULL),
+(32, 'Agile Projects', '', 0, NULL, NULL, NULL),
+(35, 'Traditional projects', '', 0, NULL, NULL, NULL),
+(40, 'Building/construction', '', 0, NULL, NULL, NULL),
+(67, 'music', '', 0, NULL, NULL, NULL),
+(76, 'Farming', '', 0, NULL, NULL, NULL),
+(77, 'research project', '', 0, NULL, NULL, NULL),
+(89, 'ongoing', '', 0, NULL, NULL, NULL),
+(90, 'Highways', '', 0, NULL, NULL, NULL),
+(98, 'Remote Projects', '', 0, NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_project_type_project_types`
+--
+
+CREATE TABLE `member_project_type_project_types` (
+  `id` bigint(20) NOT NULL,
+  `project_type_id` bigint(20) NOT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -950,23 +992,41 @@ INSERT INTO `member_project_type` (`id`, `name`) VALUES
 
 CREATE TABLE `member_reportissue` (
   `id` bigint(20) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
   `issue_description` longtext NOT NULL,
   `evidence` varchar(100) DEFAULT NULL,
   `created_at` datetime(6) NOT NULL,
   `resolved` tinyint(1) NOT NULL,
-  `project_id` bigint(20) NOT NULL,
-  `user_id` bigint(20) DEFAULT NULL,
   `status` varchar(20) NOT NULL,
-  `title` varchar(255) DEFAULT NULL
+  `project_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_reportissue`
 --
 
-INSERT INTO `member_reportissue` (`id`, `issue_description`, `evidence`, `created_at`, `resolved`, `project_id`, `user_id`, `status`, `title`) VALUES
-(2, 'jghfdsfghj', 'issue_evidence/house.jpg', '2025-03-11 14:06:32.155449', 0, 24, 21, 'Pending', 'jytre'),
-(3, 'asdfg', 'issue_evidence/sgr.png', '2025-03-11 14:37:45.210463', 1, 31, 22, 'Resolved', 'wqedf');
+INSERT INTO `member_reportissue` (`id`, `title`, `issue_description`, `evidence`, `created_at`, `resolved`, `status`, `project_id`, `user_id`) VALUES
+(2, 'jytre', 'jghfdsfghj', 'issue_evidence/house.jpg', '2025-03-11 14:06:32.155449', 0, 'Pending', 24, 21),
+(3, 'wqedf', 'asdfg', 'issue_evidence/sgr.png', '2025-03-11 14:37:45.210463', 1, 'Resolved', 31, 22);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_stagereport`
+--
+
+CREATE TABLE `member_stagereport` (
+  `id` bigint(20) NOT NULL,
+  `description` longtext NOT NULL,
+  `progress_percentage` int(11) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `photo` varchar(100) DEFAULT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `contractor_id` bigint(20) NOT NULL,
+  `project_id` bigint(20) NOT NULL,
+  `stage_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -993,16 +1053,22 @@ CREATE TABLE `member_team` (
   `name` varchar(100) NOT NULL,
   `role` varchar(100) NOT NULL,
   `image` varchar(100) DEFAULT NULL,
-  `created_at` datetime(6) DEFAULT NULL
+  `created_at` datetime(6) DEFAULT NULL,
+  `description` longtext DEFAULT NULL,
+  `facebook` varchar(200) DEFAULT NULL,
+  `instagram` varchar(200) DEFAULT NULL,
+  `twitter` varchar(200) DEFAULT NULL,
+  `linkedin` varchar(200) DEFAULT NULL,
+  `whatsapp` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_team`
 --
 
-INSERT INTO `member_team` (`id`, `name`, `role`, `image`, `created_at`) VALUES
-(1, 'Shanty Page', 'web designer', 'team/dandora_9E3A1mg.jpg', '2026-02-15 12:31:29.817313'),
-(3, 'Felix Odhiambo', 'Project Analyst', 'team/login.PNG', '2026-02-16 07:39:45.848005');
+INSERT INTO `member_team` (`id`, `name`, `role`, `image`, `created_at`, `description`, `facebook`, `instagram`, `twitter`, `linkedin`, `whatsapp`) VALUES
+(1, 'Shanty Page', 'web designer', 'team/dandora_9E3A1mg.jpg', '2026-02-15 12:31:29.817313', NULL, NULL, NULL, NULL, NULL, NULL),
+(3, 'Felix Odhiambo', 'Project Analyst', 'team/login.PNG', '2026-02-16 07:39:45.848005', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1012,11 +1078,19 @@ INSERT INTO `member_team` (`id`, `name`, `role`, `image`, `created_at`) VALUES
 
 CREATE TABLE `member_tender` (
   `id` bigint(20) NOT NULL,
-  `title` varchar(255) DEFAULT NULL,
+  `reference_number` varchar(100) DEFAULT NULL,
   `description` longtext DEFAULT NULL,
+  `procurement_method` varchar(20) NOT NULL,
+  `estimated_budget` decimal(15,2) DEFAULT NULL,
   `opening_date` date DEFAULT NULL,
   `closing_date` date DEFAULT NULL,
+  `eligibility_criteria` longtext DEFAULT NULL,
+  `evaluation_criteria` longtext DEFAULT NULL,
+  `status` varchar(20) NOT NULL,
   `document` varchar(100) DEFAULT NULL,
+  `is_published` tinyint(1) NOT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
+  `created_by_id` bigint(20) DEFAULT NULL,
   `project_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -1024,8 +1098,28 @@ CREATE TABLE `member_tender` (
 -- Dumping data for table `member_tender`
 --
 
-INSERT INTO `member_tender` (`id`, `title`, `description`, `opening_date`, `closing_date`, `document`, `project_id`) VALUES
-(1, 'ddfgh', 'cxdfghj', '2025-02-27', '2025-04-04', 'tenders/house_wMsNgUd.jpg', 35);
+INSERT INTO `member_tender` (`id`, `reference_number`, `description`, `procurement_method`, `estimated_budget`, `opening_date`, `closing_date`, `eligibility_criteria`, `evaluation_criteria`, `status`, `document`, `is_published`, `created_at`, `created_by_id`, `project_id`) VALUES
+(1, 'Ref123we', 'Affordable housing around Manyatta Gonda', 'restricted', 56789765.00, '2026-04-22', '2029-06-28', 'edfghjkl', 'hsaertfg', 'draft', 'tenders/dlock.jpg', 0, '2026-04-28 05:41:12.276887', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_tenderapplication`
+--
+
+CREATE TABLE `member_tenderapplication` (
+  `id` bigint(20) NOT NULL,
+  `company_name` varchar(200) DEFAULT NULL,
+  `company_email` varchar(254) DEFAULT NULL,
+  `company_phone` varchar(20) DEFAULT NULL,
+  `proposal_document` varchar(100) DEFAULT NULL,
+  `bid_amount` decimal(15,2) DEFAULT NULL,
+  `cover_letter` varchar(100) DEFAULT NULL,
+  `submitted_at` datetime(6) NOT NULL,
+  `status` varchar(20) NOT NULL,
+  `applicant_id` bigint(20) DEFAULT NULL,
+  `tender_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1034,25 +1128,26 @@ INSERT INTO `member_tender` (`id`, `title`, `description`, `opening_date`, `clos
 --
 
 CREATE TABLE `member_testimonial` (
-  `id` int(11) NOT NULL,
+  `id` bigint(20) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
-  `content` text DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
+  `content` longtext DEFAULT NULL,
   `phone_number` varchar(15) DEFAULT NULL,
-  `project_id` int(11) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `image` varchar(100) DEFAULT NULL
+  `image` varchar(100) DEFAULT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `project_id` bigint(20) DEFAULT NULL,
+  `user_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `member_testimonial`
 --
 
-INSERT INTO `member_testimonial` (`id`, `name`, `content`, `user_id`, `phone_number`, `project_id`, `created_at`, `image`) VALUES
-(1, 'Nicole Atieno', '“This is a good platform where citizens can track government oversight.”', NULL, NULL, 12, '2026-02-15 07:44:44', 'testimonials/solar.jpg'),
-(2, 'Shanty Page', 'since the launching of this platform, im able to track on the farming processes in Perkerra', NULL, NULL, 28, '2026-02-15 08:33:41', 'testimonials/Fel16.jpg'),
-(3, 'Angela Valdes', 'im happy with this project, the phases are clearly shown. Thanks Project Manager, programmer and designer', NULL, NULL, 24, '2026-02-15 09:00:48', 'testimonials/Fel14.jpg'),
-(4, 'Betty Amanda', 'Amanda Mor', NULL, NULL, 31, '2026-02-15 09:11:41', 'testimonials/logo.png');
+INSERT INTO `member_testimonial` (`id`, `name`, `content`, `phone_number`, `image`, `created_at`, `project_id`, `user_id`) VALUES
+(1, 'Nicole Atieno', 'my mentor my role model', NULL, 'testimonials/02c92d479a634167955278c0bef5d671.jpg', '2026-04-26 11:27:07.890437', 1, NULL),
+(2, 'Shanty Page', 'since the launching of this platform, im able to track on the farming processes in Perkerra', NULL, 'testimonials/Fel16.jpg', '2026-02-15 08:33:41.000000', 28, NULL),
+(3, 'Angela Valdes', 'im happy with this project, the phases are clearly shown. Thanks Project Manager, programmer and designer', NULL, 'testimonials/Fel14.jpg', '2026-02-15 09:00:48.000000', 24, NULL),
+(4, 'Betty Amanda', 'Amanda Mor', NULL, 'testimonials/logo.png', '2026-02-15 09:11:41.000000', 31, NULL),
+(5, 'Nicole Atieno', '“This is a good platform where citizens can track government oversight.”', NULL, 'testimonials/solar.jpg', '2026-02-15 07:44:44.000000', 12, NULL);
 
 -- --------------------------------------------------------
 
@@ -1065,19 +1160,19 @@ CREATE TABLE `member_user` (
   `password` varchar(128) NOT NULL,
   `last_login` datetime(6) DEFAULT NULL,
   `is_superuser` tinyint(1) NOT NULL,
-  `username` varchar(20) NOT NULL,
   `first_name` varchar(150) NOT NULL,
   `last_name` varchar(150) NOT NULL,
-  `email` varchar(254) DEFAULT NULL,
   `is_staff` tinyint(1) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   `date_joined` datetime(6) NOT NULL,
-  `avatar` varchar(100) DEFAULT NULL,
-  `bio` longtext DEFAULT NULL,
+  `email` varchar(254) DEFAULT NULL,
+  `username` varchar(20) NOT NULL,
   `name` varchar(50) DEFAULT NULL,
-  `is_enduser` tinyint(1) NOT NULL,
-  `profile` varchar(100) DEFAULT NULL,
   `role` varchar(20) NOT NULL,
+  `bio` longtext DEFAULT NULL,
+  `is_enduser` tinyint(1) NOT NULL,
+  `avatar` varchar(100) DEFAULT NULL,
+  `profile` varchar(100) DEFAULT NULL,
   `updated` datetime(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -1085,14 +1180,16 @@ CREATE TABLE `member_user` (
 -- Dumping data for table `member_user`
 --
 
-INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `username`, `first_name`, `last_name`, `email`, `is_staff`, `is_active`, `date_joined`, `avatar`, `bio`, `name`, `is_enduser`, `profile`, `role`, `updated`) VALUES
-(15, 'pbkdf2_sha256$600000$sdZXg14tgnO7xa9BZMRudV$15CmOFaWIpD5svoHyNtsQKA70oqKwIhFRoihCTrZTBo=', '2024-11-13 10:44:07.903587', 0, 'Ajumbutule', '', '', 'omondi@gamil.com', 0, 1, '2024-03-17 08:35:44.262524', 'avatar.png', 'Im Ajumbutule', 'Frank Omondi', 1, 'images/3006.webp', 'citizen', '2026-02-22 13:21:42.485592'),
-(21, 'pbkdf2_sha256$390000$L3rjadbchaO0SpN9HBxF3S$7IwkCJCvSjH+A153Y3J+8W2hT03K8drd0wkQGjzV7iI=', '2026-02-15 09:24:48.995603', 1, 'FelloMarley', '', '', 'fellomarley@gmail.com', 0, 1, '2024-03-18 21:04:19.576787', 'avatar.png', 'Im Marley', 'Felix Odhiambo', 0, 'images/chief_J9TcRuW.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
-(22, 'felixodhiambo@kabarak.ac.ke', NULL, 1, 'StoryTeller', '', '', NULL, 1, 0, '2024-03-07 12:52:01.000000', '10', 'im Marley', 'Felix Odhiambo', 0, 'avartor.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
-(23, 'pbkdf2_sha256$390000$WQOqv9km54x7scaodebVCd$HYGL9+bFmqvTtlw+RAE5YgIwulygM1B9Egut5CAJry0=', '2026-02-23 08:19:46.449107', 0, 'Vanessah', '', '', 'vanessa@gmail.com', 0, 1, '2024-03-20 19:38:48.673003', 'avatar.png', 'Im Vanessah. The only Titan from the lake in the family of akina Fellix The StoryTeller', 'Toto Vanessah', 1, 'profiles/tree.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
-(25, 'pbkdf2_sha256$390000$QCtLfFIyYQvtD9z4whkpmK$QSWeErI3jRNzVRw1BnuRCRDR23Sy3FCsF5Z74v2OLXo=', '2026-02-23 09:07:24.976027', 0, 'assiello', '', '', 'assielo@gmail.com', 0, 1, '2025-03-12 10:02:37.372369', 'avatar.png', 'Assiello Norma', 'Assiello Nomar', 1, 'profiles/solar.jpg', 'citizen', '2026-02-22 13:21:42.485592'),
-(26, 'pbkdf2_sha256$390000$rvjkDxGKNzDBpOphsu5Rss$fBQTcWntdNp131fgkCqBTyd69P8/xm3kYdLvNG81S1Y=', '2026-02-17 04:59:35.298470', 0, 'Amanda', '', '', 'betty@gmail.com', 0, 1, '2026-02-15 09:22:02.825205', 'avatar.png', 'im betty amanda', 'Betty Amanda', 0, 'profiles/038e478f9c094c01be86505e030c974d_DC7y9U9.jpg', 'developer', '2026-02-22 13:21:42.485592'),
-(27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-23 09:13:17.518974', 1, 'Odinga', '', '', 'felixngwono@gmail.com', 1, 1, '2026-02-16 13:56:00.197953', 'avatar.png', 'im felix odhiamo', 'Felix Odhiambo', 0, 'profiles/Fel14.jpg', 'developer', '2026-02-22 13:21:42.485592');
+INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `first_name`, `last_name`, `is_staff`, `is_active`, `date_joined`, `email`, `username`, `name`, `role`, `bio`, `is_enduser`, `avatar`, `profile`, `updated`) VALUES
+(1, 'pbkdf2_sha256$390000$2S93EXm8OrOx1hPBM91Db2$XvXM4EMZaGrt0PFMLjA+sLH4124H6VaHMXYFSxWhR/c=', '2026-04-27 08:12:00.153162', 1, '', '', 1, 1, '2026-04-26 11:11:12.503469', 'felixngwono@gmail.com', 'FelloMarley', 'Felix Odhiambo', 'developer', 'I\'m FelloMarley, the mastermind behind the government tracker website', 0, 'avatar.png', 'profiles/Fel14_9bkNTiv.jpg', '2026-04-26 11:19:11.324442'),
+(2, 'pbkdf2_sha256$390000$TDORiaVNPtEXR4OUPLDiTC$LwK7MIK1UWZ52hhBoZcJ3fER0UWBAZ6bbpIYJ1fhfVE=', '2026-04-26 19:58:17.256715', 0, '', '', 0, 1, '2026-04-26 19:50:51.247921', 'nicole@gmail.com', 'Atieno NyarChula', 'Nicole Atieno', 'engineer', 'Im Nyachula, born to be a winner', 0, 'avatar.png', 'profiles/02c92d479a634167955278c0bef5d671_R0mYTV3.jpg', '2026-04-26 19:50:52.868190'),
+(15, 'pbkdf2_sha256$600000$sdZXg14tgnO7xa9BZMRudV$15CmOFaWIpD5svoHyNtsQKA70oqKwIhFRoihCTrZTBo=', '2024-11-13 10:44:07.903587', 0, '', '', 0, 1, '2024-03-17 08:35:44.262524', 'omondi@gmail.com', 'Ajumbutule', 'Frank Omondi', 'citizen', 'Im Ajumbutule', 1, 'avatar.png', 'images/3006.webp', '2026-02-22 13:21:42.485592'),
+(21, 'pbkdf2_sha256$390000$L3rjadbchaO0SpN9HBxF3S$7IwkCJCvSjH+A153Y3J+8W2hT03K8drd0wkQGjzV7iI=', '2026-02-15 09:24:48.995603', 1, '', '', 0, 1, '2024-03-18 21:04:19.576787', 'fellomarley@gmail.com', 'Fello', 'Felix Odhiambo', 'citizen', 'Im Marley', 0, 'avatar.png', 'images/chief_J9TcRuW.jpg', '2026-02-22 13:21:42.485592'),
+(22, 'felixodhiambo@kabarak.ac.ke', NULL, 1, '', '', 1, 0, '2024-03-07 12:52:01.000000', NULL, 'StoryTeller', 'Felix Odhiambo', 'citizen', 'im Marley', 0, '10', 'avartor.jpg', '2026-02-22 13:21:42.485592'),
+(23, 'pbkdf2_sha256$390000$WQOqv9km54x7scaodebVCd$HYGL9+bFmqvTtlw+RAE5YgIwulygM1B9Egut5CAJry0=', '2026-02-23 08:19:46.449107', 0, '', '', 0, 1, '2024-03-20 19:38:48.673003', 'vanessa@gmail.com', 'Vanessah', 'Toto Vanessah', 'citizen', 'Im Vanessah. The only Titan from the lake in the family of akina Fellix The StoryTeller', 1, 'avatar.png', 'profiles/tree.jpg', '2026-02-22 13:21:42.485592'),
+(25, 'pbkdf2_sha256$390000$QCtLfFIyYQvtD9z4whkpmK$QSWeErI3jRNzVRw1BnuRCRDR23Sy3FCsF5Z74v2OLXo=', '2026-02-23 09:07:24.976027', 0, '', '', 0, 1, '2025-03-12 10:02:37.372369', 'assielo@gmail.com', 'assiello', 'Assiello Nomar', 'citizen', 'Assiello Norma', 1, 'avatar.png', 'profiles/solar.jpg', '2026-02-22 13:21:42.485592'),
+(26, 'pbkdf2_sha256$390000$rvjkDxGKNzDBpOphsu5Rss$fBQTcWntdNp131fgkCqBTyd69P8/xm3kYdLvNG81S1Y=', '2026-04-28 05:57:02.225708', 0, '', '', 0, 1, '2026-02-15 09:22:02.825205', 'betty@gmail.com', 'Amanda', 'Betty Amanda', 'developer', 'im betty amanda', 0, 'avatar.png', 'profiles/038e478f9c094c01be86505e030c974d_DC7y9U9.jpg', '2026-02-22 13:21:42.485592'),
+(27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-23 09:13:17.518974', 1, '', '', 1, 1, '2026-02-16 13:56:00.197953', 'felix@gmail.com', 'Odinga', 'Felix Odhiambo', 'developer', 'im felix odhiamo', 0, 'avatar.png', 'profiles/Fel14.jpg', '2026-02-22 13:21:42.485592');
 
 -- --------------------------------------------------------
 
@@ -1180,6 +1277,12 @@ ALTER TABLE `member_activity`
   ADD KEY `member_activity_project_id_67a37100_fk_member_project_id` (`project_id`);
 
 --
+-- Indexes for table `member_announcement`
+--
+ALTER TABLE `member_announcement`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `member_auditlog`
 --
 ALTER TABLE `member_auditlog`
@@ -1195,6 +1298,22 @@ ALTER TABLE `member_budget`
   ADD KEY `member_budget_project_id_b627c00d_fk_member_project_id` (`project_id`);
 
 --
+-- Indexes for table `member_citizenevidence`
+--
+ALTER TABLE `member_citizenevidence`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_citizenevidence_project_id_113de4c6_fk_member_project_id` (`project_id`),
+  ADD KEY `member_citizeneviden_stage_id_4239d11e_fk_member_pr` (`stage_id`),
+  ADD KEY `member_citizenevidence_user_id_afa2e230_fk_member_user_id` (`user_id`);
+
+--
+-- Indexes for table `member_citizensubmission`
+--
+ALTER TABLE `member_citizensubmission`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_citizensubmission_user_id_abd57c8e_fk_member_user_id` (`user_id`);
+
+--
 -- Indexes for table `member_comment`
 --
 ALTER TABLE `member_comment`
@@ -1207,6 +1326,28 @@ ALTER TABLE `member_comment`
 --
 ALTER TABLE `member_contact`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `member_contractor`
+--
+ALTER TABLE `member_contractor`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `member_contractorrating`
+--
+ALTER TABLE `member_contractorrating`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_contractorrat_contractor_id_178933fa_fk_member_co` (`contractor_id`),
+  ADD KEY `member_contractorrating_project_id_30a25827_fk_member_project_id` (`project_id`);
+
+--
+-- Indexes for table `member_contractor_projects`
+--
+ALTER TABLE `member_contractor_projects`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `member_contractor_projec_contractor_id_project_id_bc2bbd08_uniq` (`contractor_id`,`project_id`),
+  ADD KEY `member_contractor_pr_project_id_d495a68e_fk_member_pr` (`project_id`);
 
 --
 -- Indexes for table `member_feedback`
@@ -1234,7 +1375,7 @@ ALTER TABLE `member_milestone`
 --
 ALTER TABLE `member_notification`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `member_notification_recipient_id_6a3177d9_fk_member_user_id` (`recipient_id`);
+  ADD KEY `member_notification_user_id_fc0e3f26_fk_member_user_id` (`user_id`);
 
 --
 -- Indexes for table `member_participation`
@@ -1242,7 +1383,7 @@ ALTER TABLE `member_notification`
 ALTER TABLE `member_participation`
   ADD PRIMARY KEY (`id`),
   ADD KEY `member_participation_project_id_654a0392_fk_member_project_id` (`project_id`),
-  ADD KEY `member_participation_user_id_87e6bb26` (`user_id`);
+  ADD KEY `member_participation_user_id_87e6bb26_fk_member_user_id` (`user_id`);
 
 --
 -- Indexes for table `member_pdf`
@@ -1263,7 +1404,7 @@ ALTER TABLE `member_programfunding`
 --
 ALTER TABLE `member_programimpact`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `member_programimpact_program_id_ce4f8540_fk_member_project_id` (`program_id`);
+  ADD KEY `member_programimpact_project_id_233982f5_fk_member_project_id` (`project_id`);
 
 --
 -- Indexes for table `member_progressreport`
@@ -1284,9 +1425,14 @@ ALTER TABLE `member_progressupdate`
 -- Indexes for table `member_project`
 --
 ALTER TABLE `member_project`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `member_projectdocument`
+--
+ALTER TABLE `member_projectdocument`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `member_project_division_id_ee0bd361_fk_member_pr` (`division_id`),
-  ADD KEY `member_project_project_type_id_eea550f2_fk_member_pr` (`project_type_id`);
+  ADD KEY `member_projectdocument_project_id_5926d0a7_fk_member_project_id` (`project_id`);
 
 --
 -- Indexes for table `member_projectexpense`
@@ -1295,23 +1441,18 @@ ALTER TABLE `member_projectexpense`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `member_projectlocation`
---
-ALTER TABLE `member_projectlocation`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `project_id` (`project_id`);
-
---
 -- Indexes for table `member_projectreport`
 --
 ALTER TABLE `member_projectreport`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_projectreport_project_id_bad07590_fk_member_project_id` (`project_id`);
 
 --
 -- Indexes for table `member_projectrisk`
 --
 ALTER TABLE `member_projectrisk`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_projectrisk_project_id_7970b704_fk_member_project_id` (`project_id`);
 
 --
 -- Indexes for table `member_projectstage`
@@ -1321,6 +1462,13 @@ ALTER TABLE `member_projectstage`
   ADD KEY `member_projectstage_project_id_cb598c4c_fk_member_project_id` (`project_id`);
 
 --
+-- Indexes for table `member_projectupdate`
+--
+ALTER TABLE `member_projectupdate`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_projectupdate_project_id_acfbfe5f_fk_member_project_id` (`project_id`);
+
+--
 -- Indexes for table `member_project_division`
 --
 ALTER TABLE `member_project_division`
@@ -1328,11 +1476,27 @@ ALTER TABLE `member_project_division`
   ADD KEY `member_project_divis_project_type_id_68de0c34_fk_member_pr` (`project_type_id`);
 
 --
+-- Indexes for table `member_project_division_project_name`
+--
+ALTER TABLE `member_project_division_project_name`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `member_project_division__project_division_id_proj_a1bb18a0_uniq` (`project_division_id`,`project_id`),
+  ADD KEY `member_project_divis_project_id_f42ddc82_fk_member_pr` (`project_id`);
+
+--
 -- Indexes for table `member_project_type`
 --
 ALTER TABLE `member_project_type`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `member_project_type_name_ea352ba0_uniq` (`name`);
+  ADD KEY `member_project_type_created_by_id_4778b93e_fk_member_user_id` (`created_by_id`);
+
+--
+-- Indexes for table `member_project_type_project_types`
+--
+ALTER TABLE `member_project_type_project_types`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `member_project_type_proj_project_type_id_project__1f3749b1_uniq` (`project_type_id`,`project_id`),
+  ADD KEY `member_project_type__project_id_e539db4a_fk_member_pr` (`project_id`);
 
 --
 -- Indexes for table `member_reportissue`
@@ -1341,6 +1505,15 @@ ALTER TABLE `member_reportissue`
   ADD PRIMARY KEY (`id`),
   ADD KEY `member_reportissue_project_id_f4f92cf2_fk_member_project_id` (`project_id`),
   ADD KEY `member_reportissue_user_id_8428b576_fk_member_user_id` (`user_id`);
+
+--
+-- Indexes for table `member_stagereport`
+--
+ALTER TABLE `member_stagereport`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_stagereport_contractor_id_f03a035e_fk_member_co` (`contractor_id`),
+  ADD KEY `member_stagereport_project_id_2f86d019_fk_member_project_id` (`project_id`),
+  ADD KEY `member_stagereport_stage_id_d929cb5b_fk_member_projectstage_id` (`stage_id`);
 
 --
 -- Indexes for table `member_stakeholder`
@@ -1360,21 +1533,33 @@ ALTER TABLE `member_team`
 --
 ALTER TABLE `member_tender`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `reference_number` (`reference_number`),
+  ADD KEY `member_tender_created_by_id_e96f1036_fk_member_user_id` (`created_by_id`),
   ADD KEY `member_tender_project_id_eec6df9c_fk_member_project_id` (`project_id`);
+
+--
+-- Indexes for table `member_tenderapplication`
+--
+ALTER TABLE `member_tenderapplication`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_tenderapplication_applicant_id_3915db1a_fk_member_user_id` (`applicant_id`),
+  ADD KEY `member_tenderapplication_tender_id_b6b30ec7_fk_member_tender_id` (`tender_id`);
 
 --
 -- Indexes for table `member_testimonial`
 --
 ALTER TABLE `member_testimonial`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_testimonial_project_id_92842831_fk_member_project_id` (`project_id`),
+  ADD KEY `member_testimonial_user_id_65fb1b25_fk_member_user_id` (`user_id`);
 
 --
 -- Indexes for table `member_user`
 --
 ALTER TABLE `member_user`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `member_user_username_6f2d3f39_uniq` (`username`),
-  ADD UNIQUE KEY `member_user_email_2c519eb8_uniq` (`email`);
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- Indexes for table `member_user_groups`
@@ -1412,7 +1597,7 @@ ALTER TABLE `auth_group_permissions`
 -- AUTO_INCREMENT for table `auth_permission`
 --
 ALTER TABLE `auth_permission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=161;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=169;
 
 --
 -- AUTO_INCREMENT for table `django_admin_log`
@@ -1424,13 +1609,13 @@ ALTER TABLE `django_admin_log`
 -- AUTO_INCREMENT for table `django_content_type`
 --
 ALTER TABLE `django_content_type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=92;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `member_activity`
@@ -1439,10 +1624,16 @@ ALTER TABLE `member_activity`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `member_announcement`
+--
+ALTER TABLE `member_announcement`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `member_auditlog`
 --
 ALTER TABLE `member_auditlog`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_budget`
@@ -1451,16 +1642,46 @@ ALTER TABLE `member_budget`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `member_citizenevidence`
+--
+ALTER TABLE `member_citizenevidence`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `member_citizensubmission`
+--
+ALTER TABLE `member_citizensubmission`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `member_comment`
 --
 ALTER TABLE `member_comment`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_contact`
 --
 ALTER TABLE `member_contact`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `member_contractor`
+--
+ALTER TABLE `member_contractor`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `member_contractorrating`
+--
+ALTER TABLE `member_contractorrating`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `member_contractor_projects`
+--
+ALTER TABLE `member_contractor_projects`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_feedback`
@@ -1529,28 +1750,28 @@ ALTER TABLE `member_project`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
+-- AUTO_INCREMENT for table `member_projectdocument`
+--
+ALTER TABLE `member_projectdocument`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `member_projectexpense`
 --
 ALTER TABLE `member_projectexpense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `member_projectlocation`
---
-ALTER TABLE `member_projectlocation`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_projectreport`
 --
 ALTER TABLE `member_projectreport`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_projectrisk`
 --
 ALTER TABLE `member_projectrisk`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_projectstage`
@@ -1559,22 +1780,46 @@ ALTER TABLE `member_projectstage`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `member_projectupdate`
+--
+ALTER TABLE `member_projectupdate`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `member_project_division`
 --
 ALTER TABLE `member_project_division`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `member_project_division_project_name`
+--
+ALTER TABLE `member_project_division_project_name`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `member_project_type`
 --
 ALTER TABLE `member_project_type`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
+
+--
+-- AUTO_INCREMENT for table `member_project_type_project_types`
+--
+ALTER TABLE `member_project_type_project_types`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_reportissue`
 --
 ALTER TABLE `member_reportissue`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `member_stagereport`
+--
+ALTER TABLE `member_stagereport`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_stakeholder`
@@ -1595,10 +1840,16 @@ ALTER TABLE `member_tender`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `member_tenderapplication`
+--
+ALTER TABLE `member_tenderapplication`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `member_testimonial`
 --
 ALTER TABLE `member_testimonial`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `member_user`
@@ -1662,11 +1913,39 @@ ALTER TABLE `member_budget`
   ADD CONSTRAINT `member_budget_project_id_b627c00d_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
+-- Constraints for table `member_citizenevidence`
+--
+ALTER TABLE `member_citizenevidence`
+  ADD CONSTRAINT `member_citizeneviden_stage_id_4239d11e_fk_member_pr` FOREIGN KEY (`stage_id`) REFERENCES `member_projectstage` (`id`),
+  ADD CONSTRAINT `member_citizenevidence_project_id_113de4c6_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_citizenevidence_user_id_afa2e230_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
+
+--
+-- Constraints for table `member_citizensubmission`
+--
+ALTER TABLE `member_citizensubmission`
+  ADD CONSTRAINT `member_citizensubmission_user_id_abd57c8e_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
+
+--
 -- Constraints for table `member_comment`
 --
 ALTER TABLE `member_comment`
   ADD CONSTRAINT `member_comment_project_id_3fa8114d_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
   ADD CONSTRAINT `member_comment_user_id_51d0677f_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
+
+--
+-- Constraints for table `member_contractorrating`
+--
+ALTER TABLE `member_contractorrating`
+  ADD CONSTRAINT `member_contractorrat_contractor_id_178933fa_fk_member_co` FOREIGN KEY (`contractor_id`) REFERENCES `member_contractor` (`id`),
+  ADD CONSTRAINT `member_contractorrating_project_id_30a25827_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+
+--
+-- Constraints for table `member_contractor_projects`
+--
+ALTER TABLE `member_contractor_projects`
+  ADD CONSTRAINT `member_contractor_pr_contractor_id_3a48a997_fk_member_co` FOREIGN KEY (`contractor_id`) REFERENCES `member_contractor` (`id`),
+  ADD CONSTRAINT `member_contractor_pr_project_id_d495a68e_fk_member_pr` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
 -- Constraints for table `member_media`
@@ -1685,7 +1964,7 @@ ALTER TABLE `member_milestone`
 -- Constraints for table `member_notification`
 --
 ALTER TABLE `member_notification`
-  ADD CONSTRAINT `member_notification_recipient_id_6a3177d9_fk_member_user_id` FOREIGN KEY (`recipient_id`) REFERENCES `member_user` (`id`);
+  ADD CONSTRAINT `member_notification_user_id_fc0e3f26_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
 
 --
 -- Constraints for table `member_participation`
@@ -1710,7 +1989,7 @@ ALTER TABLE `member_programfunding`
 -- Constraints for table `member_programimpact`
 --
 ALTER TABLE `member_programimpact`
-  ADD CONSTRAINT `member_programimpact_program_id_ce4f8540_fk_member_project_id` FOREIGN KEY (`program_id`) REFERENCES `member_project` (`id`);
+  ADD CONSTRAINT `member_programimpact_project_id_233982f5_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
 -- Constraints for table `member_progressreport`
@@ -1726,17 +2005,22 @@ ALTER TABLE `member_progressupdate`
   ADD CONSTRAINT `member_progressupdate_project_id_881833b1_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
--- Constraints for table `member_project`
+-- Constraints for table `member_projectdocument`
 --
-ALTER TABLE `member_project`
-  ADD CONSTRAINT `member_project_division_id_ee0bd361_fk_member_pr` FOREIGN KEY (`division_id`) REFERENCES `member_project_division` (`id`),
-  ADD CONSTRAINT `member_project_project_type_id_eea550f2_fk_member_pr` FOREIGN KEY (`project_type_id`) REFERENCES `member_project_type` (`id`);
+ALTER TABLE `member_projectdocument`
+  ADD CONSTRAINT `member_projectdocument_project_id_5926d0a7_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
--- Constraints for table `member_projectlocation`
+-- Constraints for table `member_projectreport`
 --
-ALTER TABLE `member_projectlocation`
-  ADD CONSTRAINT `member_projectlocation_project_id_b55d0611_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+ALTER TABLE `member_projectreport`
+  ADD CONSTRAINT `member_projectreport_project_id_bad07590_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+
+--
+-- Constraints for table `member_projectrisk`
+--
+ALTER TABLE `member_projectrisk`
+  ADD CONSTRAINT `member_projectrisk_project_id_7970b704_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
 -- Constraints for table `member_projectstage`
@@ -1745,10 +2029,36 @@ ALTER TABLE `member_projectstage`
   ADD CONSTRAINT `member_projectstage_project_id_cb598c4c_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
+-- Constraints for table `member_projectupdate`
+--
+ALTER TABLE `member_projectupdate`
+  ADD CONSTRAINT `member_projectupdate_project_id_acfbfe5f_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+
+--
 -- Constraints for table `member_project_division`
 --
 ALTER TABLE `member_project_division`
   ADD CONSTRAINT `member_project_divis_project_type_id_68de0c34_fk_member_pr` FOREIGN KEY (`project_type_id`) REFERENCES `member_project_type` (`id`);
+
+--
+-- Constraints for table `member_project_division_project_name`
+--
+ALTER TABLE `member_project_division_project_name`
+  ADD CONSTRAINT `member_project_divis_project_division_id_bc956edc_fk_member_pr` FOREIGN KEY (`project_division_id`) REFERENCES `member_project_division` (`id`),
+  ADD CONSTRAINT `member_project_divis_project_id_f42ddc82_fk_member_pr` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+
+--
+-- Constraints for table `member_project_type`
+--
+ALTER TABLE `member_project_type`
+  ADD CONSTRAINT `member_project_type_created_by_id_4778b93e_fk_member_user_id` FOREIGN KEY (`created_by_id`) REFERENCES `member_user` (`id`);
+
+--
+-- Constraints for table `member_project_type_project_types`
+--
+ALTER TABLE `member_project_type_project_types`
+  ADD CONSTRAINT `member_project_type__project_id_e539db4a_fk_member_pr` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_project_type__project_type_id_4abcf524_fk_member_pr` FOREIGN KEY (`project_type_id`) REFERENCES `member_project_type` (`id`);
 
 --
 -- Constraints for table `member_reportissue`
@@ -1756,6 +2066,14 @@ ALTER TABLE `member_project_division`
 ALTER TABLE `member_reportissue`
   ADD CONSTRAINT `member_reportissue_project_id_f4f92cf2_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
   ADD CONSTRAINT `member_reportissue_user_id_8428b576_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
+
+--
+-- Constraints for table `member_stagereport`
+--
+ALTER TABLE `member_stagereport`
+  ADD CONSTRAINT `member_stagereport_contractor_id_f03a035e_fk_member_co` FOREIGN KEY (`contractor_id`) REFERENCES `member_contractor` (`id`),
+  ADD CONSTRAINT `member_stagereport_project_id_2f86d019_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_stagereport_stage_id_d929cb5b_fk_member_projectstage_id` FOREIGN KEY (`stage_id`) REFERENCES `member_projectstage` (`id`);
 
 --
 -- Constraints for table `member_stakeholder`
@@ -1767,7 +2085,22 @@ ALTER TABLE `member_stakeholder`
 -- Constraints for table `member_tender`
 --
 ALTER TABLE `member_tender`
+  ADD CONSTRAINT `member_tender_created_by_id_e96f1036_fk_member_user_id` FOREIGN KEY (`created_by_id`) REFERENCES `member_user` (`id`),
   ADD CONSTRAINT `member_tender_project_id_eec6df9c_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+
+--
+-- Constraints for table `member_tenderapplication`
+--
+ALTER TABLE `member_tenderapplication`
+  ADD CONSTRAINT `member_tenderapplication_applicant_id_3915db1a_fk_member_user_id` FOREIGN KEY (`applicant_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_tenderapplication_tender_id_b6b30ec7_fk_member_tender_id` FOREIGN KEY (`tender_id`) REFERENCES `member_tender` (`id`);
+
+--
+-- Constraints for table `member_testimonial`
+--
+ALTER TABLE `member_testimonial`
+  ADD CONSTRAINT `member_testimonial_project_id_92842831_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_testimonial_user_id_65fb1b25_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
 
 --
 -- Constraints for table `member_user_groups`
