@@ -1,5 +1,5 @@
 {% load static %}
-
+{% load widget_tweaks %}
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
@@ -29,30 +29,120 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+ <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-2xl p-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+<h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+📤 Upload Media
+</h2>
 
+<form method="POST" enctype="multipart/form-data" class="space-y-6" id="uploadForm">
+{% csrf_token %}
 
+<!-- PROJECT -->
+<div>
+<label class="block text-sm font-semibold mb-2">Project</label>
+{% render_field form.project class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500" %}
+</div>
 
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- DRAG & DROP FILE -->
+<div>
+<label class="block text-sm font-semibold mb-2">Upload File</label>
 
-    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-lg">
-        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-4">Upload Media</h2>
-        <form method="POST" class="space-y-4" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="space-y-2">
-                {{ form.as_p }}
-            </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-                Upload Media
-            </button>
-        </form>
-    </div>
+<div id="dropArea"
+     class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition">
+
+    <p class="text-gray-500">Drag & Drop file here or click to select</p>
+    {% render_field form.file class="hidden" id="fileInput" %}
 
 </div>
+
+<!-- PREVIEW -->
+<div id="preview" class="mt-4 hidden"></div>
+
+</div>
+
+<!-- MEDIA TYPE -->
+<div>
+<label class="block text-sm font-semibold mb-2">Media Type</label>
+{% render_field form.media_type class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500" %}
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="hidden" id="progressContainer">
+<div class="w-full bg-gray-200 rounded-full h-2">
+<div id="progressBar" class="bg-blue-600 h-2 rounded-full w-0"></div>
+</div>
+</div>
+
+<!-- SUBMIT -->
+<button type="submit"
+class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">
+Upload Media
+</button>
+
+</form>
+
 </div>
 </main>
+<script>
+const dropArea = document.getElementById("dropArea");
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("preview");
+const form = document.getElementById("uploadForm");
+const progressBar = document.getElementById("progressBar");
+const progressContainer = document.getElementById("progressContainer");
+
+// CLICK → OPEN FILE
+dropArea.addEventListener("click", () => fileInput.click());
+
+// DRAG EVENTS
+dropArea.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropArea.classList.add("border-blue-500");
+});
+
+dropArea.addEventListener("dragleave", () => {
+    dropArea.classList.remove("border-blue-500");
+});
+
+dropArea.addEventListener("drop", e => {
+    e.preventDefault();
+    fileInput.files = e.dataTransfer.files;
+    showPreview(fileInput.files[0]);
+});
+
+// FILE CHANGE
+fileInput.addEventListener("change", () => {
+    showPreview(fileInput.files[0]);
+});
+
+// PREVIEW FUNCTION
+function showPreview(file) {
+    preview.classList.remove("hidden");
+
+    if (file.type.startsWith("image")) {
+        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full rounded-lg">`;
+    } else if (file.type.startsWith("video")) {
+        preview.innerHTML = `<video controls class="w-full rounded-lg">
+                                <source src="${URL.createObjectURL(file)}">
+                             </video>`;
+    } else {
+        preview.innerHTML = `<p class="text-gray-600">${file.name}</p>`;
+    }
+}
+
+// PROGRESS (FAKE but UI ready)
+form.addEventListener("submit", function () {
+    progressContainer.classList.remove("hidden");
+
+    let width = 0;
+    let interval = setInterval(() => {
+        if (width >= 100) clearInterval(interval);
+        else {
+            width += 10;
+            progressBar.style.width = width + "%";
+        }
+    }, 200);
+});
+</script>
 {% include "footer.html" %}

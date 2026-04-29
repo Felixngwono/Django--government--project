@@ -64,15 +64,22 @@
 
         {% for c in contractors %}
         <div class="bg-white p-4 rounded-xl shadow">
+         
 
             <h2 class="font-semibold text-gray-800">{{ c.name }}</h2>
             <p class="text-sm text-gray-500">{{ c.company }}</p>
             <p class="text-xs text-gray-400">📍 {{ c.location }}</p>
             <p class="text-sm text-gray-600 mt-2">
                 <span class="font-semibold">Projects:</span>
-                {{ c.projects.count }} total
+                {% for project in c.projects.all %}
+                    {{ project.project_title }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    No project selected
+                {% endfor %}
             </p>
+
             
+
            
 
         </div>
@@ -174,6 +181,8 @@
                       class="w-full border p-2 rounded"
                       required></textarea>
 
+            
+
             <!-- SUBMIT -->
             <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
                 Submit Report
@@ -203,34 +212,61 @@
 
            <!-- NAME -->
            <label class="block text-sm font-medium text-gray-700">Name</label>
-             {% render_field form.company class="w-full border p-2 " %}
+             {% render_field form.name class="w-full border p-2 " %}
+             {% if form.name.errors %}
+             <div class="text-red-500 text-sm">{{ form.name.errors }}</div>
+             {% endif %}
 
               <!-- COMPANY -->
-                <label class="block text-sm font-medium text-gray-700">Company</label>
+            <label class="block text-sm font-medium text-gray-700">Company</label>
 
             {% render_field form.company class="w-full border p-2 " %}
-                <!-- LOCATION -->
-                <label class="block text-sm font-medium text-gray-700">Location</label>
+            {% if form.company.errors %}
+            <div class="text-red-500 text-sm">{{ form.company.errors }}</div>
+            {% endif %}
+            <!-- LOCATION -->
+            <label class="block text-sm font-medium text-gray-700">Location</label>
 
            {% render_field form.location class="w-full border p-2 "  %}
-                <!-- PHONE -->
-                <label class="block text-sm font-medium text-gray-700">Phone</label>
+           {% if form.location.errors %}
+               <div class="text-red-500 text-sm">{{ form.location.errors }}</div>
+           {% endif %}
+            <!-- PHONE -->
+            <label class="block text-sm font-medium text-gray-700">Phone</label>
           {% render_field form.phone class="w-full border p-2 "  %}
-                <!-- EMAIL -->
-                <label class="block text-sm font-medium text-gray-700">Email</label>
+          {% if form.phone.errors %}
+              <div class="text-red-500 text-sm">{{ form.phone.errors }}</div>
+          {% endif %}
+            <!-- EMAIL -->
+            <label class="block text-sm font-medium text-gray-700">Email</label>
           {% render_field form.email class="w-full border p-2 "  %}
-                <!-- PROJECTS -->
-                <label class="block text-sm font-medium text-gray-700">Projects</label>
-          {% render_field form.projects class="w-full border p-2 "  %}
-                <!-- PROFILE -->
-                <label class="block text-sm font-medium text-gray-700">Profile</label>
-          {% render_field form.profile class="w-full border p-2 "  %}
-          
-                   
+          {% if form.email.errors %}
+              <div class="text-red-500 text-sm">{{ form.email.errors }}</div>
+          {% endif %}
+            <!-- PROJECTS -->
+            <label class="block text-sm font-medium text-gray-700">Projects</label>
             
+            <select name="projects" class="w-full border p-2 rounded" multiple>
+            {% for p in con %}
+            <option value="{{ p.id }}">{{ p.project_title }}</option>
+            {% endfor %}
+            </select>
+          
+            <!-- PROFILE -->
+            <label class="block text-sm font-medium text-gray-700">Profile</label>
+          {% render_field form.profile class="w-full border p-2 "  %}
+          {% if form.profile.errors %}
+              <div class="text-red-500 text-sm">{{ form.profile.errors }}</div>
+          {% endif %}
+          
+               
+            
+            {% if form.non_field_errors %}
+            <div class="text-red-500 text-sm">{{ form.non_field_errors }}</div>
+            {% endif %}
 
             <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-                Save Contractor
+            Save Contractor
             </button>
         </form>
         <script>

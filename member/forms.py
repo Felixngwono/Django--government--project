@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Budget, Contractor, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
+from .models import PDF, AuditLog, Budget, Contractor, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type,contact,Feedback,Project,Project_Division
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -161,3 +161,9 @@ class contractorForm(forms.ModelForm):
     class Meta:
         model = Contractor
         fields = '__all__'
+        
+
+class GovernmentRequestForm(forms.ModelForm):
+    class Meta:
+        model = GovernmentRequest
+        fields = ['title', 'description', 'category', 'location', 'image']

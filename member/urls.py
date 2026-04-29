@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, add_budget, add_team, add_testimonial, adminview, announcements, apply_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_portal, comment, contractor_dashboard, dashboard, delayedstatus, delete_division, delete_testimonial, edit_division, feedback_details, notifications, people, projectstage, projectstage_details, regional_analysis, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, teams_details, tender_detail, tender_list, testimonial_details, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
+from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_portal, comment, contractor_dashboard, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_testimonial, edit_division, export_excel, export_pdf, feedback_details, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, regional_analysis, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -93,6 +93,7 @@ urlpatterns = [
 
     path('media/', media_list, name='media_list'),
     path('media/upload/', media_upload, name='media_upload'),
+    path('media/delete/<int:id>/', delete_media, name='delete_media'),
      
     
     path('project/<int:project_id>/upload-progress/', upload_progress_report, name='upload_progress_report'),
@@ -106,6 +107,9 @@ urlpatterns = [
     path('tenders/add/', add_tender, name='add_tender'),
     path('tenders/update/<int:tender_id>/', update_tender, name='update_tender'),
     path('tenders/delete/<int:tender_id>/', delete_tender, name='delete_tender'),
+    path('award_tender/', award_tender, name='award_tender'),
+    
+    path('track_application/', track_application, name='track_application'),
 
    
     path('add-comment/<str:pk>/', add_comment, name='add_comment'),
@@ -143,7 +147,21 @@ urlpatterns = [
     path('budget/', budget_dashboard, name='budget_dashboard'),
     path('budget/add/', add_budget, name='add_budget'),
     
-
+    path('my-documents/', my_documents, name='my_documents'),
+    path('my-bids/', my_bids, name='my_bids'),
+    
+    path('government-requests/',my_requests, name='my_requests'),
+    path('government-requests/create/',create_request, name='create_request'),
+    path('government-requests/all/',all_requests, name='all_requests'),
+    path('add_request/', create_request, name='add_request'),
+    
+    path('progress-report/', progress_report, name='progress_report'),
+    
+    path('settings/', account_settings, name='account_settings'),
+    
+    path('system_reports/', system_reports, name='system_reports'),
+    path('reports/pdf/', export_pdf, name='export_pdf'),
+    path('reports/excel/', export_excel, name='export_excel'),
 
 
 

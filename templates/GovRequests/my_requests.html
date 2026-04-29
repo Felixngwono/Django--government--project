@@ -1,0 +1,57 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+<div class="max-w-xl mx-auto p-6 bg-white shadow rounded-xl">
+<h2 class="text-xl font-bold mb-4">Submit Government Request</h2>
+<div class="mb-4">
+    <a href="{% url 'add_request' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded inline-block">
+        Create Request
+    </a>
+</div>
+<div x-show="openForm" x-cloak class="mb-6 text-sm text-gray-600">
+    Fill out the form below to submit a new government request.
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    {{ form.as_p }}
+
+    <button class="bg-blue-600 text-white px-4 py-2 rounded">
+        Submit Request
+    </button>
+</form>
+
+</div>
+</main>
+{% include "footer.html" %}
+{% endblock %}

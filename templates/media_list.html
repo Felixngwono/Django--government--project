@@ -29,64 +29,174 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-    <div class="content">
+<div class="content p-6">
 
-        <!-- ============================
-                 PAGE: DASHBOARD
-        ============================= -->
+<!-- ================= STATS ================= -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 
-        <div class="bg-white  p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Media Files</h2>
-                <a href="{% url 'media_upload' %}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Upload Media</a>
-                
-                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {% for media in media_files %}
-                                <div class="bg-gray-50 shadow-md rounded-lg p-4">
+<div class="bg-white p-4 rounded-xl shadow">
+<p class="text-gray-500 text-sm">Total Files</p>
+<h2 class="text-2xl font-bold">{{ total_media }}</h2>
+</div>
 
-                                        {% if media.media_type == 'image' %}
-                                             <a href='{{ media.file.url}}' ><img src="{{ media.file.url }}" class="w-full h-48 object-cover rounded-lg" alt="Media Image"></a>
-                                        {% elif media.media_type == 'video' %}
-                                                <video class="w-full h-48 rounded-lg" controls>
-                                                        <source src="{{ media.file.url }}" type="video/mp4">
-                                                </video>
-                                        {% else %}
-                                                <a href="{{ media.file.url }}" class="text-blue-600 hover:underline">{{ media.file.name }}</a>
-                                        {% endif %}
-                                </div>
-                        {% empty %}
-                                <p class="text-gray-500 col-span-full">No media files uploaded yet.</p>
-                        {% endfor %}
-                </div>
-        </div>
-       
+<div class="bg-blue-100 p-4 rounded-xl">
+<p>Images</p>
+<h2 class="text-xl font-bold text-blue-600">{{ total_images }}</h2>
+</div>
+
+<div class="bg-purple-100 p-4 rounded-xl">
+<p>Videos</p>
+<h2 class="text-xl font-bold text-purple-600">{{ total_videos }}</h2>
+</div>
+
+<div class="bg-green-100 p-4 rounded-xl">
+<p>Documents</p>
+<h2 class="text-xl font-bold text-green-600">{{ total_docs }}</h2>
+</div>
+
+</div>
+
+<!-- ================= HEADER ================= -->
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+
+<h2 class="text-2xl font-bold text-gray-800">📁 Media Files</h2>
+
+<div class="flex gap-3">
+<input id="media-search" type="text" placeholder="Search media..."
+class="px-4 py-2 border rounded-lg">
+
+<a href="{% url 'media_upload' %}"
+class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
++ Upload
+</a>
+</div>
+
+</div>
+
+<!-- ================= FILTERS ================= -->
+<div class="flex gap-3 mb-6">
+<button onclick="filterMedia('all')" class="px-3 py-1 bg-gray-200 rounded">All</button>
+<button onclick="filterMedia('image')" class="px-3 py-1 bg-blue-100 rounded">Images</button>
+<button onclick="filterMedia('video')" class="px-3 py-1 bg-purple-100 rounded">Videos</button>
+<button onclick="filterMedia('document')" class="px-3 py-1 bg-green-100 rounded">Docs</button>
+</div>
+
+<!-- ================= MEDIA GRID ================= -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+{% for media in media_files %}
+<div class="media-item bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden"
+     data-type="{{ media.media_type }}">
+
+<!-- PREVIEW -->
+<div class="cursor-pointer" onclick="openPreview('{{ media.file.url }}', '{{ media.media_type }}')">
+
+{% if media.media_type == 'image' %}
+<img src="{{ media.file.url }}" class="w-full h-48 object-cover">
+
+{% elif media.media_type == 'video' %}
+<video class="w-full h-48 object-cover">
+<source src="{{ media.file.url }}">
+</video>
+
+{% elif media.media_type == 'pdf' %}
+<iframe src="{{ media.file.url }}" class="w-full h-48"></iframe>
 
 
-<!-- Add pagination if media_files is paginated -->
-{% if is_paginated %}
-    <div class="mt-6 flex justify-center">
-    <div class="flex space-x-2">
-        {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Previous</a>
-        {% endif %}
-        <span class="px-3 py-2 bg-gray-200 text-gray-700 rounded">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Next</a>
-        {% endif %}
-    </div>
-    </div>
 {% endif %}
 
-<!-- Add JavaScript for search functionality -->
-<script>
-    document.getElementById('media-search').addEventListener('input', function() {
-    const query = this.value.toLowerCase();
-    const mediaItems = document.querySelectorAll('.bg-gray-50');
-    mediaItems.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(query) ? '' : 'none';
-    });
-    });
-</script>
+</div>
+
+<!-- INFO -->
+<div class="p-4">
+<p class="text-sm font-semibold truncate">{{ media.file.name }}</p>
+
+<p class="text-xs text-gray-400">
+{{ media.created_at|date:"M d, Y" }}
+</p>
+
+<p class="text-xs text-gray-400">
+{{ media.file.size|filesizeformat }}
+</p>
+
+<!-- ACTIONS -->
+<div class="flex justify-between mt-3 text-sm">
+
+<a href="{{ media.file.url }}" download class="text-blue-600">
+Download
+</a>
+
+<a href="{% url 'delete_media' media.id %}" class="text-red-500">
+Delete
+</a>
+
+</div>
+
+</div>
+
+</div>
+{% empty %}
+<p class="col-span-full text-center text-gray-500">
+No media files available.
+</p>
+{% endfor %}
+
+</div>
+
+</div>
+<div id="previewModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+    <div class="bg-white p-4 rounded-lg max-w-2xl w-full relative">
+        <button onclick="closePreview()" class="absolute top-2 right-2 text-red-500">✖</button>
+        <div id="previewContent"></div>
+    </div>
+</div>
 </main>
+<<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const search = document.getElementById('media-search');
+
+    if (search) {
+        search.addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+
+            document.querySelectorAll('.media-item').forEach(item => {
+                item.style.display =
+                    item.textContent.toLowerCase().includes(query) ? '' : 'none';
+            });
+        });
+    }
+
+});
+
+// FILTER
+function filterMedia(type) {
+    document.querySelectorAll('.media-item').forEach(item => {
+        item.style.display =
+            (type === 'all' || item.dataset.type === type) ? '' : 'none';
+    });
+}
+
+// PREVIEW
+function openPreview(url, type) {
+    const modal = document.getElementById('previewModal');
+    const content = document.getElementById('previewContent');
+
+    if (type === 'image') {
+        content.innerHTML = `<img src="${url}" class="w-full">`;
+    } else if (type === 'video') {
+        content.innerHTML = `<video controls class="w-full"><source src="${url}"></video>`;
+    } else {
+        content.innerHTML = `<iframe src="${url}" class="w-full h-96"></iframe>`;
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closePreview() {
+    document.getElementById('previewModal').classList.add('hidden');
+}
+</script>
 
 {% include "footer.html" %}

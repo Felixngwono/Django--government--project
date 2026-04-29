@@ -30,34 +30,95 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="container mx-auto px-4 py-6 bg-white rounded-lg shadow">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">
+        {{ tender.title|default:"Tender Details" }}
+    </h1>
 
+    <div class="space-y-3 text-gray-700">
 
-<div class="container mx-auto px-4 py-6">
-    <h1 class="text-2xl font-semibold text-gray-800">{{ tender.title }}</h1>
-    
-    <p class="mt-2 text-gray-700">{{ tender.description }}</p>
-    <p class="mt-2"><strong>Opening Date:</strong> {{ tender.opening_date }}</p>
-    <p class="mt-2"><strong>Closing Date:</strong> {{ tender.closing_date }}</p>
+        <p><strong>Project:</strong> {{ tender.project }}</p>
 
-    {% if tender.document %}
-        <p class="mt-2">
-            <a href="{{ tender.document.url }}" class="text-blue-500 hover:underline" download>Download Document</a>
+        <p><strong>Reference Number:</strong> {{ tender.reference_number }}</p>
+
+        <p><strong>Description:</strong> {{ tender.description }}</p>
+
+        <p><strong>Procurement Method:</strong> {{ tender.get_procurement_method_display }}</p>
+
+        <p><strong>Estimated Budget:</strong> 
+            {% if tender.estimated_budget %}
+                KES {{ tender.estimated_budget }}
+            {% else %}
+                Not specified
+            {% endif %}
         </p>
+
+        <p><strong>Opening Date:</strong> {{ tender.opening_date }}</p>
+
+        <p><strong>Closing Date:</strong> {{ tender.closing_date }}</p>
+
+        <p><strong>Status:</strong> 
+            <span class="px-2 py-1 rounded bg-blue-100 text-blue-700">
+                {{ tender.get_status_display }}
+            </span>
+        </p>
+
+        <p><strong>Eligibility Criteria:</strong><br>
+            {{ tender.eligibility_criteria|linebreaks }}
+        </p>
+
+        <p><strong>Evaluation Criteria:</strong><br>
+            {{ tender.evaluation_criteria|linebreaks }}
+        </p>
+
+        <p><strong>Created By:</strong> {{ tender.created_by }}</p>
+
+        <p><strong>Published:</strong> 
+            {{ tender.is_published|yesno:"Yes,No" }}
+        </p>
+
+        <p><strong>Created At:</strong> {{ tender.created_at }}</p>
+
+        {% if tender.document %}
+        <p>
+            <strong>Document:</strong>
+            <a href="{{ tender.document.url }}" 
+               class="text-blue-600 hover:underline" download>
+               Download Tender Document
+            </a>
+        </p>
+        {% endif %}
+
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    {% if request.user.is_superuser %}
+    <div class="mt-6 flex gap-4">
+        <a href="{% url 'update_tender' tender.id %}" 
+           class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+           Edit
+        </a>
+
+        <a href="{% url 'delete_tender' tender.id %}" 
+           class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+           Delete
+        </a>
+    </div>
     {% endif %}
 
-    <div class="mt-4">
-        <a href="{% url 'update_tender' tender.id %}" class="text-green-500 hover:underline">Edit</a> |
-        <a href="{% url 'delete_tender' tender.id %}" class="text-red-500 hover:underline">Delete</a>
-    </div>
-</div>
-</div>
-</div>
+    {%if request.user.is_authenticated and not request.user.is_superuser %}
+    <div class="mt-6">
 
+        <a href="{% url 'apply_tender' tender.id %}"
+           class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+            Apply for Tender
+        </a>
+    </div>
+    {% endif %}
+
+
+</div>
 </main>
 {% include "footer.html" %}
 {% endblock %}

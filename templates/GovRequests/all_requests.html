@@ -1,0 +1,143 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+<div class="p-6">
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold">My Requests</h2>
+
+    <!-- Add Request Button -->
+    <button @click="openForm = true"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+        + Add Request
+    </button>
+</div>
+<!-- Modal Overlay -->
+<div x-show="openForm" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     x-transition>
+
+    <!-- Modal -->
+    <div @click.away="openForm = false"
+         class="bg-white w-full max-w-lg p-6 rounded-xl shadow-xl">
+
+        <h2 class="text-xl font-bold mb-4">Submit Request</h2>
+
+        <form method="POST" action="{% url 'create_request' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+           
+
+            <!-- Title -->
+            <input type="text" name="title" placeholder="Request Title"
+                class="w-full mb-3 px-3 py-2 border rounded" required>
+
+            <!-- Category -->
+            <select name="category" class="w-full mb-3 px-3 py-2 border rounded">
+                <option value="">Select Category</option>
+                <option value="infrastructure">Infrastructure</option>
+                <option value="water">Water & Sanitation</option>
+                <option value="health">Health</option>
+                <option value="education">Education</option>
+                <option value="security">Security</option>
+                <option value="corruption">Corruption</option>
+                <option value="other">Other</option>
+            </select>
+
+            <!-- Location -->
+            <input type="text" name="location" placeholder="Location"
+                class="w-full mb-3 px-3 py-2 border rounded">
+
+            <!-- Description -->
+            <textarea name="description" placeholder="Describe issue..."
+                class="w-full mb-3 px-3 py-2 border rounded"></textarea>
+
+            <!-- Image -->
+            <input type="file" name="image"
+                class="w-full mb-3">
+
+            <!-- Buttons -->
+            <div class="flex justify-between">
+                <button type="button" @click="openForm = false"
+                    class="px-4 py-2 bg-gray-300 rounded">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded">
+                    Submit
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<div class="grid gap-4">
+{% for req in requests %}
+<div class="bg-white p-4 rounded shadow">
+,<!-- image -->
+{% if req.image %}
+    <div class="overflow-hidden rounded-2xl mb-4 border border-gray-200 shadow-sm">
+        <img src="{{ req.image.url }}"
+             alt="{{ req.title }} image"
+             class="w-full h-64 object-cover transition duration-300 ease-in-out hover:scale-105">
+    </div>
+{% endif %}
+<h3 class="font-bold">{{ req.title }}</h3>
+<p class="text-sm text-gray-500">{{ req.category }}</p>
+<p class="mt-2">{{ req.description }}</p>
+
+<p class="mt-2 text-sm">📍 {{ req.location }}</p>
+
+<p class="mt-2">
+Status:
+<span class="
+{% if req.status == 'resolved' %} text-green-600
+{% elif req.status == 'rejected' %} text-red-600
+{% elif req.status == 'in_progress' %} text-yellow-600
+{% else %} text-blue-600 {% endif %}
+">
+{{ req.get_status_display }}
+</span>
+</p>
+
+
+</div>
+{% empty %}
+<p>No requests submitted yet.</p>
+{% endfor %}
+</div>
+
+</div>
+
+</main>
+{% include "footer.html" %}
+{% endblock %}

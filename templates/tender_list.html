@@ -133,6 +133,8 @@
 </a>
 {% endif %}
 
+{% if request.user.is_superuser %}
+
                                         <a href="{% url 'update_tender' tender.id %}"
                                            class="text-green-600 hover:text-green-800">
                                             Edit
@@ -143,7 +145,7 @@
                                            class="text-red-600 hover:text-red-800">
                                             Delete
                                         </a>
-
+{% endif %}
                                     </div>
                                 </td>
 

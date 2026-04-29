@@ -366,8 +366,7 @@ class Tender(models.Model):
     
 
 class TenderApplication(models.Model):
-    
-    tender = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name="applications")
+    tender = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name="applications",null=True)
     applicant = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
 
     company_name = models.CharField(max_length=200,null=True)
@@ -376,6 +375,11 @@ class TenderApplication(models.Model):
 
     proposal_document = models.FileField(upload_to="tender_applications/",null=True)
     bid_amount = models.DecimalField(max_digits=15, decimal_places=2,null=True)
+    
+    # 🔥 Evaluation Scores
+    technical_score = models.FloatField(default=0)
+    financial_score = models.FloatField(default=0)
+    total_score = models.FloatField(default=0)
 
     cover_letter = models.FileField(upload_to='tender_coverLetter', blank=True, null=True)
 
@@ -554,13 +558,14 @@ class CitizenSubmission(models.Model):
 
 
 class Contractor(models.Model):
-    name = models.CharField(max_length=255, null=True)
+    name = models.CharField(max_length=255, null=True) 
     company = models.CharField(max_length=255, null=True)
     phone = models.CharField(max_length=20, null=True)
     email = models.EmailField(blank=True, null=True)
     location = models.CharField(max_length=255, null=True)
     profile = models.ImageField(upload_to='contractors/', null=True, blank=True)
     projects = models.ManyToManyField(Project, related_name='contractors', blank=True,null=True)
+    created_at=models.DateTimeField(auto_now_add=True,null=True)
     
 
     def __str__(self):
@@ -615,6 +620,42 @@ class CitizenEvidence(models.Model):
     is_verified = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+    
+
+class GovernmentRequest(models.Model):
+    CATEGORY_CHOICES = [
+        ('infrastructure', 'Infrastructure'),
+        ('water', 'Water & Sanitation'),
+        ('health', 'Health Services'),
+        ('education', 'Education'),
+        ('security', 'Security'),
+        ('corruption', 'Corruption Report'),
+        ('other', 'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    citizen = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    location = models.CharField(max_length=255)
+
+    image = models.ImageField(upload_to='requests/', blank=True, null=True)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title

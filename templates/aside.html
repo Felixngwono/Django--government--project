@@ -23,15 +23,15 @@
       <iconify-icon icon="solar:home-2-bold-duotone"></iconify-icon> 
       <span class="nav-text">Dashboard</span>
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'all_requests' %}" class="nav-item">
       <iconify-icon icon="solar:note-bold-duotone"></iconify-icon>
       <span class="nav-text">Government Requests</span>
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'track_application' %}" class="nav-item">
       <iconify-icon icon="solar:route-bold-duotone"></iconify-icon>
       <span class="nav-text">Track Applications</span>
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'my_documents' %}" class="nav-item">
       <iconify-icon icon="solar:folder-bold-duotone"></iconify-icon>
       <span class="nav-text">My Documents</span>
       </a>
@@ -72,7 +72,7 @@
 
       <div class="nav-section-title" style="margin-top:12px;">PROGRESS</div>
 
-      <a href="#" class="nav-item">
+      <a href="{% url 'progress_report' %}" class="nav-item">
       <iconify-icon icon="solar:chart-bold-duotone"></iconify-icon>
       <span class="nav-text">Progress Report</span>
       </a>
@@ -96,7 +96,7 @@
       <iconify-icon icon="solar:bag-bold-duotone"></iconify-icon>
       <span class="nav-text">Tenders</span>
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'my_bids' %}" class="nav-item">
       <iconify-icon icon="solar:box-bold-duotone"></iconify-icon>
       <span class="nav-text">Bids & Proposals</span>
       </a>
@@ -173,14 +173,14 @@
       <iconify-icon icon="solar:gallery-bold-duotone"></iconify-icon>
       <span class="nav-text">Media</span>
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'system_reports' %}" class="nav-item">
       <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
       <span class="nav-text">Reports</span>
       </a>
 
       <div class="nav-section-title" style="margin-top:12px;">ACCOUNT</div>
 
-      <a href="#" class="nav-item">
+      <a href="{% url 'account_settings' %}" class="nav-item">
       <iconify-icon icon="solar:settings-bold-duotone"></iconify-icon>
       <span class="nav-text">Settings</span>
       </a>

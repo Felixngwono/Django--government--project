@@ -3,9 +3,9 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
+from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, GovernmentRequest, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, TenderApplication, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
 from django.contrib import messages
-from .forms import AuditLogForm, BudgetForm, CommentForm,  MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm
+from .forms import AuditLogForm, BudgetForm, CommentForm, GovernmentRequestForm,  MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm
 from django.template.loader import get_template
 from django.db.models import Sum
 import pdfkit
@@ -14,6 +14,12 @@ from django.core.paginator import Paginator
 from django.db.models.functions import ExtractMonth
 from datetime import datetime, timedelta, timezone
 from django.db.models.functions import TruncMonth
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from openpyxl import Workbook
+from reportlab.platypus import  Spacer
+
+
 
 def generate_report(request):
     # Fetch data for reports
@@ -367,7 +373,7 @@ def loginpage(request):
             messages.info(request, 'Login successful')
             if next_url:
                 return redirect(next_url)
-            return redirect('index')
+            return redirect('dashboard')
         else:
             messages.warning(request, 'Wrong username or password')
     return render(request, 'login.html', {'next': next_url})
@@ -937,10 +943,18 @@ def notification_create(request):
     return render(request, 'notification_create.html',{'form':form})
 
 
-@login_required(login_url='login')
 def media_list(request):
-    media_files = Media.objects.all()
-    return render(request, 'media_list.html', {'media_files': media_files})
+    media_files = Media.objects.all().order_by('-id')
+
+    context = {
+        "media_files": media_files,
+        "total_media": media_files.count(),
+        "total_images": media_files.filter(media_type='image').count(),
+        "total_videos": media_files.filter(media_type='video').count(),
+        "total_docs": media_files.filter(media_type='document').count(),
+    }
+
+    return render(request, "media_list.html", context)
 
 @login_required(login_url='login')
 def media_upload(request):
@@ -954,6 +968,10 @@ def media_upload(request):
     return render(request, 'media_upload.html', {'form': form})
 
 
+def delete_media(request, id):
+    media = get_object_or_404(Media, id=id)
+    media.delete()
+    return redirect('media_list')
 
 @login_required(login_url='login')
 def milestone(request):
@@ -1051,6 +1069,7 @@ def tender_list(request):
 @login_required(login_url='login')
 def tender_detail(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
+    
     return render(request, 'tender_detail.html', {'tender': tender})
 
 def apply_tender(request, pk):
@@ -1070,6 +1089,56 @@ def apply_tender(request, pk):
         'form': form,
     }
     return render(request, 'apply_tender.html', context)
+
+def calculate_financial_scores(tender):
+    applications = tender.applications.all()
+
+    if not applications.exists():
+        return
+
+    lowest_bid = min(app.bid_amount for app in applications)
+
+    for app in applications:
+        if app.bid_amount > 0:
+            app.financial_score = (lowest_bid / app.bid_amount) * 100
+        else:
+            app.financial_score = 0
+
+        app.total_score = (app.technical_score * 0.7) + (app.financial_score * 0.3)
+        app.save()
+        
+@login_required(login_url='login')
+def evaluate_tender(request, tender_id):
+    tender = get_object_or_404(Tender, id=tender_id)
+    applications = tender.applications.all()
+
+    if request.method == "POST":
+        for app in applications:
+            score = request.POST.get(f"tech_{app.id}")
+            if score:
+                app.technical_score = float(score)
+                app.save()
+
+        # 🔥 Auto calculate financial + total
+        calculate_financial_scores(tender)
+
+        return redirect('evaluate_tender', tender_id=tender.id)
+
+    return render(request, 'evaluate_tender.html', {
+        'tender': tender,
+        'applications': applications
+    })
+    
+def award_tender(tender):
+    best = tender.applications.order_by('-total_score').first()
+
+    if best:
+        best.status = 'awarded'
+        best.save()
+
+        tender.contractor = best.applicant
+        tender.status = 'awarded'
+        tender.save()
 
 # Add a new tender
 @login_required(login_url='login')
@@ -1364,7 +1433,7 @@ def submit_issue(request):
 
 def contractor_dashboard(request):
     con=Project.objects.all()
-    contractors = Contractor.objects.all()
+    contractors = Contractor.objects.all().order_by('-created_at')
     reports = StageReport.objects.all().order_by('-created_at')
     
     stages = ProjectStage.objects.all()
@@ -1373,7 +1442,7 @@ def contractor_dashboard(request):
     if request.method == "POST":
         if form.is_valid():
             form.save()
-            return redirect('contractor_dashboard')
+            return redirect('contractor_performance')
 
 
     return render(request, 'contractors/dashboard.html', {
@@ -1461,3 +1530,200 @@ def add_budget(request):
 
     return render(request, 'finance/add_budget.html', {'form': form})
 
+def track_application(request):
+    applications = TenderApplication.objects.filter(applicant=request.user)
+    return render(request, 'Track_application/tracking_application.html', {'applications': applications})
+
+
+@login_required
+def my_documents(request):
+    applications = TenderApplication.objects.filter(applicant=request.user)
+    return render(request, 'My_doc/my_documents.html', {
+        'applications': applications
+    })
+    
+@login_required
+def my_bids(request):
+    applications = TenderApplication.objects.filter(applicant=request.user).select_related('tender')
+    
+    return render(request, 'My_bids/bids.html', {
+        'applications': applications
+    })
+    
+
+@login_required
+def create_request(request):
+    if request.method == 'POST':
+        form = GovernmentRequestForm(request.POST, request.FILES)
+        if form.is_valid():
+            req = form.save(commit=False)
+            req.citizen = request.user
+            req.save()
+            return redirect('all_requests')
+    else:
+        form = GovernmentRequestForm()
+
+    return render(request, 'GovRequests/create_request.html', {'form': form})
+
+@login_required
+def my_requests(request):
+    requests = GovernmentRequest.objects.filter(citizen=request.user)
+    return render(request, 'GovRequests/my_requests.html', {'requests': requests})
+
+
+@login_required(login_url='login')
+def all_requests(request):
+    requests = GovernmentRequest.objects.all().order_by('-created_at')
+    return render(request, 'GovRequests/all_requests.html', {'requests': requests})
+
+@login_required(login_url='login')
+def request_detail(request, pk):
+    req = get_object_or_404(GovernmentRequest, pk=pk)
+    return render(request, 'GovRequests/request_detail.html', {'request': req})
+
+@login_required(login_url='login')
+def respond_request(request, pk):
+    req = get_object_or_404(GovernmentRequest, pk=pk)
+
+    if request.method == 'POST':
+        response = request.POST.get('response')
+        req.response = response
+        req.status = 'responded'
+        req.save()
+        return redirect('all_requests')
+
+    return render(request, 'GovRequests/respond_request.html', {'request': req})
+
+@login_required(login_url='login')
+def close_request(request, pk):
+    req = get_object_or_404(GovernmentRequest, pk=pk)
+    req.status = 'closed'
+    req.save()
+    return redirect('all_requests')
+
+def progress_report(request):
+    projects = Project.objects.all()
+
+    total_projects = projects.count()
+    completed = projects.filter(project_status='completed').count()
+    ongoing = projects.filter(project_status='ongoing').count()
+    delayed = projects.filter(project_status='delayed').count()
+    upcoming = projects.filter(project_status='upcoming').count()
+
+    # Progress % (basic logic)
+    progress_percentage = 0
+    if total_projects > 0:
+        progress_percentage = int((completed / total_projects) * 100)
+
+    context = {
+        'total_projects': total_projects,
+        'completed': completed,
+        'ongoing': ongoing,
+        'delayed': delayed,
+        'upcoming': upcoming,
+        'progress_percentage': progress_percentage,
+        'projects': projects
+    }
+
+    return render(request, 'Reports/progress_report.html', context)
+
+@login_required
+def account_settings(request):
+    user = request.user
+
+    if request.method == 'POST':
+        user.name = request.POST.get('name')
+        user.email = request.POST.get('email')
+
+        # Profile Image
+        if request.FILES.get('profile'):
+            user.profile = request.FILES.get('profile')
+
+        user.save()
+        messages.success(request, "Settings updated successfully")
+
+        return redirect('account_settings')
+
+    return render(request, 'account_settings.html', {'user': user})
+
+
+def system_reports(request):
+    projects = Project.objects.all()
+    tenders = TenderApplication.objects.all()
+    requests = GovernmentRequest.objects.all()
+
+    context = {
+        'total_projects': projects.count(),
+        'completed_projects': projects.filter(project_status='completed').count(),
+        'ongoing_projects': projects.filter(project_status='ongoing').count(),
+
+        'total_tenders': tenders.count(),
+        'awarded_tenders': tenders.filter(status='awarded').count(),
+
+        'total_requests': requests.count(),
+        'resolved_requests': requests.filter(status='resolved').count(),
+    }
+
+    return render(request, 'Reports/system_reports.html', context)
+
+
+def export_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="system_report.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    styles = getSampleStyleSheet()
+
+    # ✅ Build context DIRECTLY (not from another view)
+    total_projects = Project.objects.count()
+    completed_projects = Project.objects.filter(project_status='completed').count()
+    ongoing_projects = Project.objects.filter(project_status='ongoing').count()
+
+    total_tenders = TenderApplication.objects.count()
+    awarded_tenders = TenderApplication.objects.filter(status='awarded').count()
+
+    total_requests = GovernmentRequest.objects.count()
+    resolved_requests = GovernmentRequest.objects.filter(status='resolved').count()
+
+    # 📄 Content
+    content = []
+
+    content.append(Paragraph("GovTracker System Report", styles['Title']))
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph(f"Total Projects: {total_projects}", styles['Normal']))
+    content.append(Paragraph(f"Completed Projects: {completed_projects}", styles['Normal']))
+    content.append(Paragraph(f"Ongoing Projects: {ongoing_projects}", styles['Normal']))
+
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph(f"Total Tenders: {total_tenders}", styles['Normal']))
+    content.append(Paragraph(f"Awarded Tenders: {awarded_tenders}", styles['Normal']))
+
+    content.append(Spacer(1, 10))
+
+    content.append(Paragraph(f"Total Requests: {total_requests}", styles['Normal']))
+    content.append(Paragraph(f"Resolved Requests: {resolved_requests}", styles['Normal']))
+
+    doc.build(content)
+
+    return response
+
+
+def export_excel(request):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Report"
+
+    ws.append(["Category", "Value"])
+    ws.append(["Total Projects", Project.objects.count()])
+    ws.append(["Completed Projects", Project.objects.filter(project_status='completed').count()])
+    ws.append(["Total Requests", GovernmentRequest.objects.count()])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=report.xlsx'
+
+    wb.save(response)
+    return response

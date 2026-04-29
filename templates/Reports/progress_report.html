@@ -1,0 +1,146 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+
+<div class="p-6">
+
+<h2 class="text-2xl font-bold mb-6">📊 Project Progress Report</h2>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+
+<div class="bg-white p-4 rounded shadow text-center">
+<h3 class="text-gray-500">Total</h3>
+<p class="text-2xl font-bold">{{ total_projects }}</p>
+</div>
+
+<div class="bg-green-100 p-4 rounded shadow text-center">
+<h3>Completed</h3>
+<p class="text-2xl font-bold text-green-600">{{ completed }}</p>
+</div>
+
+<div class="bg-blue-100 p-4 rounded shadow text-center">
+<h3>Ongoing</h3>
+<p class="text-2xl font-bold text-blue-600">{{ ongoing }}</p>
+</div>
+
+<div class="bg-yellow-100 p-4 rounded shadow text-center">
+<h3>Delayed</h3>
+<p class="text-2xl font-bold text-yellow-600">{{ delayed }}</p>
+</div>
+
+<div class="bg-purple-100 p-4 rounded shadow text-center">
+<h3>Upcoming</h3>
+<p class="text-2xl font-bold text-purple-600">{{ upcoming }}</p>
+</div>
+
+</div>
+
+<!-- Overall Progress -->
+<div class="bg-white p-6 rounded shadow mb-6">
+<h3 class="font-semibold mb-2">Overall Completion</h3>
+
+<div class="w-full bg-gray-200 h-4 rounded">
+<div class="bg-green-500 h-4 rounded"
+     style="width: {{ progress_percentage }}%;">
+</div>
+</div>
+
+<p class="mt-2 text-sm text-gray-600">
+{{ progress_percentage }}% Completed
+</p>
+</div>
+<!-- Chart -->
+<div class="bg-white p-6 rounded shadow mb-6">
+    <div class="w-full h-96 flex justify-center">
+        <canvas id="projectChart"></canvas>
+    </div>
+</div>
+
+<!-- Project Table -->
+<div class="bg-white p-6 rounded shadow">
+<h3 class="font-semibold mb-4">Project Details</h3>
+
+<table class="w-full text-left">
+<thead>
+<tr class="border-b">
+<th>Name</th>
+<th>Status</th>
+<th>Progress</th>
+</tr>
+</thead>
+
+<tbody>
+{% for project in projects %}
+<tr class="border-b">
+<td>{{ project.project_title }}</td>
+<td>{{ project.project_status }}</td>
+<td>
+<div class="w-full bg-gray-200 h-2 rounded">
+<div class="bg-blue-500 h-2 rounded"
+     style="width: {{ project.progress }}%;">
+</div>
+</div>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<!-- Chart Script -->
+<script>
+const ctx = document.getElementById('projectChart');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Completed', 'Ongoing', 'Delayed', 'Upcoming'],
+        datasets: [{
+            data: [
+                {{ completed }},
+                {{ ongoing }},
+                {{ delayed }},
+                {{ upcoming }}
+            ]
+        }]
+    }
+});
+</script>
+
+</main>
+{% include "footer.html" %}
+{% endblock %}
