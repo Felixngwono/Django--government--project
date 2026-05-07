@@ -1,5 +1,7 @@
+{% extends "heading.html" %}
+{% block content %}
 {% load static %}
-
+{% load  widget_tweaks %}
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
@@ -24,12 +26,10 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+   <div class="content">
 
     <!-- ============================
          PAGE: DASHBOARD
@@ -56,3 +56,4 @@
 </div>
 </main>
 {% include "footer.html" %}
+{% endblock content %}

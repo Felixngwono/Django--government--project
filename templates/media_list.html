@@ -99,10 +99,10 @@ class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
 <source src="{{ media.file.url }}">
 </video>
 
-{% elif media.media_type == 'pdf' %}
-<iframe src="{{ media.file.url }}" class="w-full h-48"></iframe>
-
-
+{% else %}
+<div class="w-full h-48 flex items-center justify-center bg-gray-100">
+<iconify-icon icon="mdi:file-document" class="text-gray-400 text-6xl"></iconify-icon>
+</div>
 {% endif %}
 
 </div>
