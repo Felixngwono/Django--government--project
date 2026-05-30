@@ -61,48 +61,313 @@
             {% endif %}
         </div>
 
-        <div class="bg-white shadow-md rounded-lg overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-yellow-600 text-white text-sm uppercase tracking-wider">
-                    <tr>
-                        <th class="px-6 py-3 text-left">Title</th>
-                        <th class="px-6 py-3 text-left">Description</th>
-                        <th class="px-6 py-3 text-left">Status</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for project in delaying %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 font-medium text-gray-900">{{ project.project_title }}</td>
-                        <td class="px-6 py-4 text-gray-700">
-                            {{ project.project_description|truncatewords:20 }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-block px-4 py-1 text-xs font-semibold rounded bg-red-100 text-red-800">
-                                {{ project.project_status }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <a href="{% url 'delayedstatus' project.id %}"
-                                class="inline-block bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                                🔍 View
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center py-6 text-gray-500">No delayed projects found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <!-- =========================
+     FILTERS + STATS SECTION
+========================= -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+
+    <!-- Total Delayed -->
+    <div class="bg-red-100 border-l-4 border-red-600 p-5 rounded-xl shadow">
+        <h3 class="text-sm font-semibold text-gray-600 uppercase">Total Delayed</h3>
+        <p class="text-3xl font-bold text-red-700 mt-2">{{ delaying|length }}</p>
+    </div>
+
+    <!-- In Progress -->
+    <div class="bg-yellow-100 border-l-4 border-yellow-600 p-5 rounded-xl shadow">
+        <h3 class="text-sm font-semibold text-gray-600 uppercase">In Progress</h3>
+        <p class="text-3xl font-bold text-yellow-700 mt-2">{{ progress_count }}</p>
+    </div>
+
+  
+{% for x in delaying %}
+    <!-- Budget -->
+    <div class="bg-blue-100 border-l-4 border-blue-600 p-5 rounded-xl shadow">
+        <h3 class="text-sm font-semibold text-gray-600 uppercase">Budget Impact</h3>
+        <p class="text-xl font-bold text-blue-700 mt-2">
+            KES {{ x.project_Budgeting}}
+        </p>
+    </div>
+
+</div>
+{% endfor %}
+
+<!-- =========================
+     SEARCH + FILTERS
+========================= -->
+<div class="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6">
+
+    
+
+    <!-- Filter -->
+    <div class="flex gap-3 w-full lg:w-auto">
+
+        <select id="statusFilter"
+                class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500">
+            <option value="">All Status</option>
+            <option value="Delayed">Delayed</option>
+            <option value="Pending">Pending</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Completed">Completed</option>
+        </select>
+
+        <select id="countyFilter"
+                class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500">
+            <option value="">All Counties</option>
+
+            {% for county in counties %}
+            <option value="{{ county.name }}">{{ county.name }}</option>
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     PROJECT TABLE
+========================= -->
+<div class="overflow-x-auto bg-white rounded-2xl shadow-lg">
+
+    <table class="min-w-full divide-y divide-gray-200">
+
+        <thead class="bg-gradient-to-r from-yellow-600 to-yellow-500 text-white">
+            <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase">Project</th>
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase">County</th>
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase">Budget</th>
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase">Progress</th>
+                <th class="px-6 py-4 text-left text-xs font-bold uppercase">Deadline</th>
+                <th class="px-6 py-4 text-center text-xs font-bold uppercase">Status</th>
+                <th class="px-6 py-4 text-right text-xs font-bold uppercase">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="projectTable" class="divide-y divide-gray-100">
+
+            {% for project in delaying %}
+            <tr class="hover:bg-gray-50 transition duration-200">
+
+                <!-- Project -->
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+
+                        {% if project.project_image %}
+                        <img src="{{ project.project_image.url }}"
+                             class="w-12 h-12 rounded-lg object-cover shadow">
+                        {% endif %}
+
+                        <div>
+                            <h4 class="font-bold text-gray-800">
+                                {{ project.project_title }}
+                            </h4>
+
+                            <p class="text-sm text-gray-500">
+                                {{ project.project_description|truncatewords:10 }}
+                            </p>
+                        </div>
+
+                    </div>
+                </td>
+
+                <!-- County -->
+                <td class="px-6 py-4 text-gray-700">
+                    {{ project.county }}
+                </td>
+
+                <!-- Budget -->
+                <td class="px-6 py-4 font-semibold text-blue-700">
+                    KES {{ project.project_Budgeting }}
+                </td>
+
+                <!-- Progress -->
+                <td class="px-6 py-4 w-56">
+
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-yellow-500 h-3 rounded-full"
+                             style="width: {{ project.progress }}%">
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ project.progress }}% Completed
+                    </p>
+
+                </td>
+
+                <!-- Deadline -->
+                <td class="px-6 py-4 text-gray-600">
+                    {{ project.deadline }}
+                </td>
+
+                <!-- Status -->
+                <td class="px-6 py-4 text-center">
+
+                    {% if project.project_status == "Delayed" %}
+                    <span class="px-4 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                        Delayed
+                    </span>
+
+                    {% elif project.project_status == "Completed" %}
+                    <span class="px-4 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                        Completed
+                    </span>
+
+                    {% else %}
+                    <span class="px-4 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+                        {{ project.project_status }}
+                    </span>
+                    {% endif %}
+
+                </td>
+
+                <!-- Actions -->
+                <td class="px-6 py-4 text-right">
+
+                    <div class="flex justify-end gap-2">
+
+                        <a href="{% url 'delayedstatus' project.id %}"
+                           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm shadow">
+                            View
+                        </a>
+
+                        {% if request.user.is_superuser %}
+                        <a href="#"
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm shadow">
+                            Edit
+                        </a>
+
+                        <a href="#"
+                           class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm shadow">
+                            Delete
+                        </a>
+                        {% endif %}
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center py-10 text-gray-500">
+                    No delayed projects found.
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<!-- =========================
+     CHART SECTION
+========================= -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+
+    <!-- Pie Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-lg">
+        <h3 class="text-lg font-bold mb-4 text-gray-700">
+            Project Status Overview
+        </h3>
+
+        <canvas id="statusChart"></canvas>
+    </div>
+
+    <!-- Line Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-lg">
+        <h3 class="text-lg font-bold mb-4 text-gray-700">
+            Delayed Trends
+        </h3>
+
+        <canvas id="delayChart"></canvas>
+    </div>
+
+</div>
+
+
+<!-- =========================
+     CHART JS
+========================= -->
+<script>
+
+const statusCtx = document.getElementById('statusChart');
+
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Delayed', 'Completed', 'Pending'],
+        datasets: [{
+            data: [
+                {{ delayed_count }},
+                {{ completed_count }},
+                {{ pending_count }}
+            ],
+            backgroundColor: [
+                '#dc2626',
+                '#16a34a',
+                '#ca8a04'
+            ]
+        }]
+    }
+});
+
+
+const delayCtx = document.getElementById('delayChart');
+
+new Chart(delayCtx, {
+    type: 'line',
+    data: {
+        labels: {{ months|safe }},
+        datasets: [{
+            label: 'Delayed Projects',
+            data: {{ delayed_projects_data|safe }},
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245,158,11,0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    }
+});
+
+</script>
+
+
+<!-- =========================
+     SEARCH FILTER SCRIPT
+========================= -->
+<script>
+
+const searchInput = document.getElementById("projectSearch");
+const tableRows = document.querySelectorAll("#projectTable tr");
+
+searchInput.addEventListener("keyup", function () {
+
+    const value = this.value.toLowerCase();
+
+    tableRows.forEach(row => {
+
+        row.style.display = row.innerText.toLowerCase().includes(value)
+            ? ""
+            : "none";
+
+    });
+
+});
+
+</script>
 
             <div class="flex justify-between items-center mt-6">
 
     <span class="text-sm text-gray-600">
         Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
     </span>
+    
 
     <div class="flex space-x-2">
 

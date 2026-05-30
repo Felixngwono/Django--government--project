@@ -23,7 +23,7 @@
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
-
+{% load widget_tweaks %}
 <!-- ===== HEADER ===== -->
 {% include "heading.html" %}
 
@@ -44,7 +44,28 @@
         
         <form method="POST" class="space-y-4">
             {% csrf_token %}
-            {{ form.as_p }}
+            <div>
+                <label for="project" class="block text-gray-700 font-medium mb-1">Project</label>
+                {% render_field form.project class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
+            </div>
+            <div>
+                <label for="stage" class="block text-gray-700 font-medium mb-1">Stage</label>
+                {% render_field form.stage class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
+            </div>
+            <div>
+                <label for="title" class="block text-gray-700 font-medium mb-1">Title</label>
+                {% render_field form.title class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
+            </div>
+
+            <div>
+                <label for="description" class="block text-gray-700 font-medium mb-1">Description</label>
+                {% render_field form.description class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
+            </div>
+             <div>
+                <label for="progress_percentage" class="block text-gray-700 font-medium mb-1">Progress percentage</label>
+                {% render_field form.progress_percentage class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
+            </div>
+
 
             <div class="flex justify-between">
                 <a href="{% url 'milestone_list' %}" class="text-gray-600 hover:text-gray-800 text-sm underline">

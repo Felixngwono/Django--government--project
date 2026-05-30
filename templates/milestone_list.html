@@ -1,3 +1,5 @@
+{% extends "heading.html" %}
+{% block content %}
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -16,135 +18,708 @@
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
 </head>
+
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #020617 !important;
+    }
+
+    .dashboard-bg {
+        background:
+            radial-gradient(circle at top right, rgba(59,130,246,0.18), transparent 25%),
+            radial-gradient(circle at bottom left, rgba(99,102,241,0.18), transparent 30%),
+            #020617;
+        min-height: 100vh;
+    }
+
+    .glass {
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .hero-overlay {
+        background: linear-gradient(
+            135deg,
+            rgba(2,6,23,0.92),
+            rgba(15,23,42,0.88),
+            rgba(37,99,235,0.55)
+        );
+    }
+
+    .milestone-card {
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .milestone-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(37,99,235,0.25);
+    }
+
+    .milestone-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            120deg,
+            transparent,
+            rgba(255,255,255,0.04),
+            transparent
+        );
+        transform: translateX(-100%);
+        transition: 0.8s;
+    }
+
+    .milestone-card:hover::before {
+        transform: translateX(100%);
+    }
+
+    .timeline-line {
+        position: absolute;
+        left: 18px;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        border-radius: 999px;
+        background: linear-gradient(to bottom, #2563eb, #60a5fa);
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background: #3b82f6;
+        border-radius: 20px;
+    }
+
+    .progress-glow {
+        box-shadow: 0 0 18px rgba(59,130,246,0.5);
+    }
+
+    .animate-float {
+        animation: float 5s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%,100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .gradient-text {
+        background: linear-gradient(to right, #60a5fa, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 320px;
+    }
+</style>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
-
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
 
 
 
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-10">
 
-<div class="proj_container">
-    <div >
-    <div class="relative w-full min-h-full rounded-2xl overflow-hidden ">
+            <!-- LEFT -->
+            <div class="max-w-3xl">
 
-    <!-- Background Image -->
-    <div class="absolute inset-0 bg-cover bg-center"
-         style="background-image: url('{% static "images/wel.jpg" %}');">
-    </div>
+                <div class="flex items-center gap-4 mb-6">
 
+                    <div class="w-16 h-16 rounded-3xl bg-blue-500/20 border border-white/10 flex items-center justify-center animate-float">
 
-    <!-- Content -->
-    <div class="relative z-12 p-10 backdrop-blur-sm">
+                        <iconify-icon icon="mdi:timeline-check"
+                                      class="text-white text-4xl">
+                        </iconify-icon>
 
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-10">
-            <div>
-                <h2 class="text-4xl font-bold text-white tracking-tight">
-                    Project Milestones
-                </h2>
-                <p class="text-blue-100 mt-2 text-sm">
-                    Track major phases and progress of the government project lifecycle.
-                </p>
-            </div>
-
-            {% if request.user.is_superuser %}
-            <a href="{% url 'milestone_create' %}" 
-               class="bg-white text-blue-800 px-6 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-blue-100 transition duration-300">
-               + Add Milestone
-            </a>
-            {% endif %}
-        </div>
-
-        <!-- Info Card -->
-        <div class="bg-white/90 rounded-xl p-6 mb-10 shadow-lg">
-            <p class="text-gray-700 text-sm leading-relaxed">
-                Milestones mark critical achievements such as planning, approvals, procurement,
-                execution, monitoring, and project closure.
-            </p>
-        </div>
-
-        <!-- Milestones List -->
-        <ul class="space-y-6">
-            {% for milestone in milestones %}
-            <li class="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition duration-300">
-
-                <div class="flex justify-between items-start">
-
-                    <!-- Left Content -->
-                    <div class="flex-1">
-                        <h3 class="text-lg font-semibold text-gray-800">
-                            {{ milestone.title }}
-                        </h3>
-
-                        <!-- Progress -->
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
-                                <span>Progress</span>
-                                <span>{{ milestone.progress_percentage }}%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-3">
-                                <div class="bg-gradient-to-r from-blue-500 to-blue-700 h-3 rounded-full transition-all duration-500"
-                                     style="width: {{ milestone.progress_percentage }}%">
-                                </div>
-                            </div>
-                        </div>
-
-                        {% if milestone.description %}
-                        <p class="text-gray-600 text-sm mt-4">
-                            {{ milestone.description }}
-                        </p>
-                        {% endif %}
-
-                        {% if milestone.due_date %}
-                        <p class="text-gray-400 text-xs mt-3">
-                            Due Date: {{ milestone.due_date }}
-                        </p>
-                        {% endif %}
                     </div>
 
-                    <!-- Actions -->
-                    <div class="flex items-center space-x-4 ml-6">
-                        <a href="{% url 'milestone_update' milestone.pk %}" 
-                           class="text-blue-600 hover:text-blue-800 text-sm font-medium transition">
-                            Edit
-                        </a>
-                        <a href="{% url 'milestone_delete' milestone.pk %}" 
-                           class="text-red-500 hover:text-red-700 text-sm font-medium transition">
-                            Delete
-                        </a>
+                    <div>
+
+                        <h1 class="text-5xl lg:text-6xl font-extrabold leading-tight">
+                            Project
+                            <span class="gradient-text">
+                                Milestones
+                            </span>
+                        </h1>
+
+                        <p class="text-blue-100 mt-3 text-lg">
+                            Monitor project execution, implementation phases,
+                            milestone completion, and national development impact.
+                        </p>
+
                     </div>
 
                 </div>
-            </li>
-            {% empty %}
-            <li class="bg-white rounded-xl p-8 text-center text-gray-500 shadow">
-                No milestones available.
-            </li>
-            {% endfor %}
-        </ul>
+
+                <!-- STATS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10">
+
+                    <!-- CARD -->
+                    <div class="glass rounded-3xl p-6">
+
+                        <div class="flex justify-between items-center">
+
+                            <div>
+                                <p class="text-sm text-blue-100">
+                                    Total Milestones
+                                </p>
+
+                                <h2 class="text-4xl font-extrabold mt-2">
+                                    {{ milestones|length }}
+                                </h2>
+                            </div>
+
+                            <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+
+                                <iconify-icon icon="mdi:flag-checkered"
+                                              class="text-4xl text-blue-300">
+                                </iconify-icon>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- CARD -->
+                    <div class="glass rounded-3xl p-6">
+
+                        <div class="flex justify-between items-center">
+
+                            <div>
+                                <p class="text-sm text-green-100">
+                                    Completed
+                                </p>
+
+                                <h2 class="text-4xl font-extrabold mt-2">
+                                    {{ completed_count }}
+                                </h2>
+                            </div>
+
+                            <div class="w-14 h-14 rounded-2xl bg-green-500/20 flex items-center justify-center">
+
+                                <iconify-icon icon="mdi:check-decagram"
+                                              class="text-4xl text-green-300">
+                                </iconify-icon>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- CARD -->
+                    <div class="glass rounded-3xl p-6">
+
+                        <div class="flex justify-between items-center">
+
+                            <div>
+                                <p class="text-sm text-yellow-100">
+                                    In Progress
+                                </p>
+
+                                <h2 class="text-4xl font-extrabold mt-2">
+                                    {{ progress_count }}
+                                </h2>
+                            </div>
+
+                            <div class="w-14 h-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
+
+                                <iconify-icon icon="mdi:progress-clock"
+                                              class="text-4xl text-yellow-300">
+                                </iconify-icon>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="flex flex-col gap-5">
+
+                {% if request.user.is_superuser %}
+
+                <a href="{% url 'milestone_create' %}"
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold shadow-2xl transition hover:scale-105 flex items-center gap-3">
+
+                    <iconify-icon icon="mdi:plus-circle"></iconify-icon>
+
+                    Add Milestone
+
+                </a>
+
+                {% endif %}
+
+                <button @click="darkMode = !darkMode"
+                        class="glass text-white px-8 py-4 rounded-2xl font-semibold hover:scale-105 transition">
+
+                    Toggle Theme
+
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
+
+</div>
+
+<!-- ================================================= -->
+<!-- ANALYTICS -->
+<!-- ================================================= -->
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-10">
+
+    <!-- CHART -->
+    <div class="xl:col-span-2 glass rounded-3xl p-8">
+
+        <div class="flex justify-between items-center mb-8">
+
+            <div>
+                <h2 class="text-2xl font-bold">
+                    Milestone Analytics
+                </h2>
+
+                <p class="text-gray-400 mt-2">
+                    Progress overview of all project milestones
+                </p>
+            </div>
+
+            <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+
+                <iconify-icon icon="mdi:chart-line"
+                              class="text-3xl text-blue-300">
+                </iconify-icon>
+
+            </div>
+
+        </div>
+
+        <div class="chart-container">
+            <canvas id="milestoneChart"></canvas>
+        </div>
+
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="glass rounded-3xl p-8">
+
+        <h2 class="text-2xl font-bold mb-8">
+            Progress Overview
+        </h2>
+
+        <div class="space-y-8">
+
+            <!-- CIRCLE -->
+            <div class="flex justify-center">
+
+                <div class="relative w-44 h-44">
+
+                    <svg class="w-44 h-44 transform -rotate-90">
+
+                        <circle cx="88"
+                                cy="88"
+                                r="70"
+                                stroke="#1e293b"
+                                stroke-width="15"
+                                fill="none">
+                        </circle>
+
+                        <circle cx="88"
+                                cy="88"
+                                r="70"
+                                stroke="#3b82f6"
+                                stroke-width="15"
+                                fill="none"
+                                stroke-linecap="round"
+                                stroke-dasharray="440"
+                                stroke-dashoffset="110">
+                        </circle>
+
+                    </svg>
+
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+
+                        <h2 class="text-4xl font-extrabold">
+                            75%
+                        </h2>
+
+                        <p class="text-gray-400 text-sm">
+                            Completion
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- MINI STATS -->
+            <div class="space-y-4">
+
+                <div class="flex justify-between">
+                    <span class="text-gray-400">
+                        Ongoing Projects
+                    </span>
+
+                    <span class="font-bold">
+                        {{ progress_count }}
+                    </span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-gray-400">
+                        Completed Milestones
+                    </span>
+
+                    <span class="font-bold">
+                        {{ completed_count }}
+                    </span>
+                </div>
+
+                <div class="flex justify-between">
+                    <span class="text-gray-400">
+                        Delayed Activities
+                    </span>
+
+                    <span class="font-bold text-red-400">
+                        2
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================================= -->
+<!-- SEARCH -->
+<!-- ================================================= -->
+
+<div class="glass rounded-3xl p-6 mb-10">
+
+    <div class="flex flex-col lg:flex-row gap-5 justify-between">
+
+        <!-- SEARCH -->
+        <form method="GET"
+              class="flex w-full lg:w-1/2">
+
+            <input type="text"
+                   name="q"
+                   placeholder="Search milestones..."
+                   value="{{ request.GET.q }}"
+                   class="w-full px-5 py-4 rounded-l-2xl border border-slate-700 bg-slate-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-r-2xl font-bold">
+                Search
+            </button>
+
+        </form>
+
+        <!-- FILTERS -->
+        <div class="flex flex-wrap gap-4">
+
+            <select class="px-5 py-4 rounded-2xl border border-slate-700 bg-slate-900 text-white">
+                <option>All Progress</option>
+                <option>Completed</option>
+                <option>In Progress</option>
+                <option>Pending</option>
+            </select>
+
+            <select class="px-5 py-4 rounded-2xl border border-slate-700 bg-slate-900 text-white">
+                <option>Sort By</option>
+                <option>Latest</option>
+                <option>Highest Progress</option>
+                <option>Completion Date</option>
+            </select>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================================= -->
+<!-- TIMELINE -->
+<!-- ================================================= -->
+
+<div class="relative pl-12">
+
+<div class="timeline-line"></div>
+
+<div class="space-y-10">
+
+{% for milestone in milestones %}
+
+<div class="relative">
+
+    <!-- DOT -->
+    <div class="absolute -left-[42px] top-6 w-10 h-10 rounded-full bg-blue-600 border-4 border-slate-900 shadow-lg flex items-center justify-center z-20">
+
+        <iconify-icon icon="mdi:check"
+                      class="text-white text-lg">
+        </iconify-icon>
+
+    </div>
+
+    <!-- CARD -->
+    <div class="milestone-card glass rounded-[2rem] shadow-2xl overflow-hidden">
+
+        {% if milestone.project.images %}
+        <img src="{{ milestone.project.images.url }}"
+             class="w-full h-64 object-cover">
+        {% endif %}
+
+        <div class="p-8">
+
+            <div class="flex flex-col xl:flex-row xl:justify-between gap-8">
+
+                <!-- LEFT -->
+                <div class="flex-1">
+
+                    <!-- BADGES -->
+                    <div class="flex flex-wrap gap-3 mb-5">
+
+                        {% if milestone.progress_percentage == 100 %}
+
+                        <span class="bg-green-500/20 text-green-300 px-4 py-2 rounded-full text-xs font-bold">
+                            COMPLETED
+                        </span>
+
+                        {% elif milestone.progress_percentage >= 50 %}
+
+                        <span class="bg-yellow-500/20 text-yellow-300 px-4 py-2 rounded-full text-xs font-bold">
+                            IN PROGRESS
+                        </span>
+
+                        {% else %}
+
+                        <span class="bg-red-500/20 text-red-300 px-4 py-2 rounded-full text-xs font-bold">
+                            STARTING
+                        </span>
+
+                        {% endif %}
+
+                        {% if milestone.stage %}
+                        <span class="bg-blue-500/20 text-blue-300 px-4 py-2 rounded-full text-xs font-bold">
+                            {{ milestone.stage }}
+                        </span>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- TITLE -->
+                    <h2 class="text-3xl font-extrabold">
+                        {{ milestone.title }}
+                    </h2>
+
+                    <!-- DESCRIPTION -->
+                    <p class="text-gray-300 mt-5 leading-relaxed text-lg">
+                        {{ milestone.description }}
+                    </p>
+
+                </div>
+
+                <!-- SIDE -->
+                <div class="flex flex-col gap-5 min-w-[240px]">
+
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+
+                        <p class="text-xs text-gray-400 uppercase">
+                            Completion Date
+                        </p>
+
+                        <h3 class="font-bold text-lg mt-2">
+                            {{ milestone.completion_date }}
+                        </h3>
+
+                    </div>
+
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+
+                        <p class="text-xs text-gray-400 uppercase">
+                            Linked Project
+                        </p>
+
+                        <h3 class="font-bold text-lg mt-2">
+                            {{ milestone.project.project_title }}
+                        </h3>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- PROGRESS -->
+            <div class="mt-10">
+
+                <div class="flex justify-between mb-3">
+
+                    <span class="font-semibold text-gray-300">
+                        Progress
+                    </span>
+
+                    <span class="font-bold text-blue-400">
+                        {{ milestone.progress_percentage }}%
+                    </span>
+
+                </div>
+
+                <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden">
+
+                    <div class="h-4 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-700 progress-glow transition-all duration-1000"
+                         style="width: {{ milestone.progress_percentage }}%">
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="flex flex-wrap justify-end gap-4 mt-10">
+
+                <a href="{% url 'milestone_update' milestone.pk %}"
+                   class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-2xl font-bold transition flex items-center gap-2">
+
+                    <iconify-icon icon="mdi:pencil"></iconify-icon>
+
+                    Edit
+
+                </a>
+
+                <a href="{% url 'milestone_delete' milestone.pk %}"
+                   class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-2xl font-bold transition flex items-center gap-2">
+
+                    <iconify-icon icon="mdi:delete"></iconify-icon>
+
+                    Delete
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<div class="glass rounded-3xl p-16 text-center">
+
+    <div class="flex justify-center mb-6">
+
+        <div class="w-24 h-24 rounded-full bg-blue-500/20 flex items-center justify-center">
+
+            <iconify-icon icon="mdi:timeline-alert"
+                          class="text-5xl text-blue-400">
+            </iconify-icon>
+
+        </div>
+
+    </div>
+
+    <h2 class="text-3xl font-bold">
+        No Milestones Available
+    </h2>
+
+    <p class="text-gray-400 mt-4">
+        No milestones have been added yet.
+    </p>
+
+</div>
+
+{% endfor %}
+
 </div>
 </div>
-{% include "recent_activities.html" %}
-</div>
+
 </div>
 </main>
+
+<!-- ================================================= -->
+<!-- CHART SCRIPT -->
+<!-- ================================================= -->
+
+<script>
+const ctx = document.getElementById('milestoneChart');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+        datasets: [{
+            label: 'Milestone Progress',
+            data: [10, 25, 40, 55, 75, 95],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#fff'
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: '#94a3b8'
+                },
+                grid: {
+                    color: 'rgba(255,255,255,0.05)'
+                }
+            },
+            y: {
+                ticks: {
+                    color: '#94a3b8'
+                },
+                grid: {
+                    color: 'rgba(255,255,255,0.05)'
+                }
+            }
+        }
+    }
+});
+</script>
+
 {% include "footer.html" %}
+
+{% endblock %}
