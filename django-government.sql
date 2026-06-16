@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.1.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 28, 2026 at 08:03 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- Generation Time: Jun 16, 2026 at 07:36 PM
+-- Server version: 10.4.20-MariaDB
+-- PHP Version: 8.0.8
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -30,7 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `auth_group` (
   `id` int(11) NOT NULL,
   `name` varchar(150) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -42,7 +42,7 @@ CREATE TABLE `auth_group_permissions` (
   `id` bigint(20) NOT NULL,
   `group_id` int(11) NOT NULL,
   `permission_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -55,7 +55,7 @@ CREATE TABLE `auth_permission` (
   `name` varchar(255) NOT NULL,
   `content_type_id` int(11) NOT NULL,
   `codename` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `auth_permission`
@@ -229,7 +229,15 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 (165, 'Can add activity', 42, 'add_activity'),
 (166, 'Can change activity', 42, 'change_activity'),
 (167, 'Can delete activity', 42, 'delete_activity'),
-(168, 'Can view activity', 42, 'view_activity');
+(168, 'Can view activity', 42, 'view_activity'),
+(169, 'Can add government request', 43, 'add_governmentrequest'),
+(170, 'Can change government request', 43, 'change_governmentrequest'),
+(171, 'Can delete government request', 43, 'delete_governmentrequest'),
+(172, 'Can view government request', 43, 'view_governmentrequest'),
+(173, 'Can add new model', 44, 'add_newmodel'),
+(174, 'Can change new model', 44, 'change_newmodel'),
+(175, 'Can delete new model', 44, 'delete_newmodel'),
+(176, 'Can view new model', 44, 'view_newmodel');
 
 -- --------------------------------------------------------
 
@@ -246,7 +254,7 @@ CREATE TABLE `django_admin_log` (
   `change_message` longtext NOT NULL,
   `content_type_id` int(11) DEFAULT NULL,
   `user_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -258,7 +266,7 @@ CREATE TABLE `django_content_type` (
   `id` int(11) NOT NULL,
   `app_label` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `django_content_type`
@@ -280,8 +288,10 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (9, 'member', 'contractor'),
 (36, 'member', 'contractorrating'),
 (10, 'member', 'feedback'),
+(43, 'member', 'governmentrequest'),
 (35, 'member', 'media'),
 (34, 'member', 'milestone'),
+(44, 'member', 'newmodel'),
 (33, 'member', 'notification'),
 (32, 'member', 'participation'),
 (31, 'member', 'pdf'),
@@ -319,7 +329,7 @@ CREATE TABLE `django_migrations` (
   `app` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
   `applied` datetime(6) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `django_migrations`
@@ -341,10 +351,31 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (13, 'auth', '0011_update_proxy_permissions', '2026-04-26 11:08:47.761785'),
 (14, 'auth', '0012_alter_user_first_name_max_length', '2026-04-26 11:08:47.770333'),
 (15, 'member', '0001_initial', '2026-04-26 11:08:51.704112'),
-(16, 'admin', '0001_initial', '2026-04-26 11:08:51.854912'),
-(17, 'admin', '0002_logentry_remove_auto_add', '2026-04-26 11:08:51.891407'),
-(18, 'admin', '0003_logentry_add_action_flag_choices', '2026-04-26 11:08:51.936864'),
-(19, 'sessions', '0001_initial', '2026-04-26 11:08:51.982623');
+(19, 'sessions', '0001_initial', '2026-04-26 11:08:51.982623'),
+(23, 'member', '0002_rename_user_notification_recipient_and_more', '2026-06-09 08:08:39.463404'),
+(24, 'member', '0002_auto_20260609_0351', '2026-06-09 10:52:05.024736'),
+(28, 'admin', '0001_initial', '2026-06-10 13:26:49.529549'),
+(29, 'admin', '0002_logentry_remove_auto_add', '2026-06-10 13:26:49.581501'),
+(30, 'admin', '0003_logentry_add_action_flag_choices', '2026-06-10 13:26:49.638609'),
+(31, 'member', '0002_newmodel', '2026-06-11 05:18:12.149265'),
+(32, 'member', '0003_alter_contractor_projects', '2026-06-11 05:47:45.172546'),
+(33, 'member', '0004_delete_newmodel', '2026-06-11 05:48:05.737046'),
+(34, 'member', '0005_delete_comment', '2026-06-11 06:26:37.556565'),
+(35, 'member', '0006_alter_contractor_projects_comment', '2026-06-11 06:26:37.800189'),
+(36, 'member', '0007_delete_citizensubmission', '2026-06-11 06:44:30.459091'),
+(37, 'member', '0008_alter_contractor_projects_citizensubmission', '2026-06-11 06:46:19.129982'),
+(38, 'member', '0009_delete_citizenevidence', '2026-06-11 06:53:17.109074'),
+(39, 'member', '0010_citizenevidence', '2026-06-11 06:54:09.561831'),
+(40, 'member', '0011_delete_comment', '2026-06-11 07:05:14.182734'),
+(41, 'member', '0012_comment', '2026-06-11 07:06:21.032229'),
+(42, 'member', '0002_delete_governmentrequest', '2026-06-11 07:15:24.138461'),
+(43, 'member', '0003_governmentrequest', '2026-06-11 07:16:15.185090'),
+(44, 'member', '0004_delete_auditlog', '2026-06-11 07:26:05.622462'),
+(45, 'member', '0005_auditlog', '2026-06-11 07:26:36.073182'),
+(46, 'member', '0006_alter_auditlog_user', '2026-06-11 07:42:22.546046'),
+(47, 'member', '0002_budget', '2026-06-16 06:28:17.103745'),
+(48, 'member', '0003_remove_contractorrating_contractor_and_more', '2026-06-16 07:03:29.013601'),
+(49, 'member', '0004_contractor_contractorrating_contractor_and_more', '2026-06-16 07:03:29.021251');
 
 -- --------------------------------------------------------
 
@@ -356,7 +387,7 @@ CREATE TABLE `django_session` (
   `session_key` varchar(40) NOT NULL,
   `session_data` longtext NOT NULL,
   `expire_date` datetime(6) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `django_session`
@@ -365,21 +396,10 @@ CREATE TABLE `django_session` (
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
 ('13rc1o2gyneg0mtf4gugknw1yoxa7y5o', '.eJxVjLsOwjAMAP_FM4rywCHpyM43VI7jkgJKpKadEP-OKnWA9e50bxhpW8u4dVnGOcMA1sPpFybip9Td5AfVe1Pc6rrMSe2JOmxXt5bldT3av0GhXmCAIFpHsZgceeNs5IzZWBGL7uxCnAwRo0t60j5qRgmEEiJfDDJh4gSfL_vUOCw:1wHbRO:LGNacgZMl7vjw_49bEdGhZ8Oa5c6e-iojCNxm55ELmU', '2026-05-12 05:57:02.230908'),
 ('5q6p769hrbhyh7esawk3q9d82v3b68g3', '.eJxVjMsOwiAQAP9lz4aUp2yP3vsNBNitVA0kpT0Z_9006UGvM5N5Q4j7VsLeeQ0LwQgKLr8sxfzkegh6xHpvIre6rUsSRyJO28XUiF-3s_0blNgLjIDJESnLzFKyZVYojUNpaZhTQjc7Y7y23qLiPHhil686Zp1QkTcaI3y-7OE37g:1wH5cP:Qw_bs23tzMx--7FMW7or8ZXZTIVFrmMeCNJRrKxhoCo', '2026-05-10 19:58:17.264025'),
-('ojnovp86l18dr3ghiygi4s7bx2r0wj83', '.eJxVjEEOwiAQAP-yZ0MKZYH26N03kIUFqRpISnsy_t006UGvM5N5g6d9K37vafULwwwSLr8sUHymegh-UL03EVvd1iWIIxGn7eLWOL2uZ_s3KNQLzGApWKmsy8rlacyDSWhGxahJG7ZDnDBozCqhZIvZIikpQ2AdnaZREsLnC84hN3I:1wGxWF:1uXwrAfLoeLh_dUFDU61Qr_uLhtqWslXqp3weNnNdro', '2026-05-10 11:19:23.081924');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `member_activity`
---
-
-CREATE TABLE `member_activity` (
-  `id` bigint(20) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` longtext NOT NULL,
-  `activity_date` datetime(6) NOT NULL,
-  `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+('lj4x0otrlw2jsatfnzyhwaliwp6vaatn', '.eJxVjMsOgjAQAP9lz6bpY9siR-98A9lttxY1kFA4Gf_dkHDQ68xk3jDSvtVxb7KOU4YeDFx-GVN6ynyI_KD5vqi0zNs6sToSddqmhiXL63a2f4NKrUIP4WqZUQoJYihRe7FCni266Axpg9EmS4TRidjOaWRvUgiCnNEV08HnC9-oN4o:1wWVjy:F1Q_e2DpAIoXRbbyq1kwQnBa0A4Zoxpd6oySv3tlmyY', '2026-06-22 08:53:50.029226'),
+('ojnovp86l18dr3ghiygi4s7bx2r0wj83', '.eJxVjEEOwiAQAP-yZ0MKZYH26N03kIUFqRpISnsy_t006UGvM5N5g6d9K37vafULwwwSLr8sUHymegh-UL03EVvd1iWIIxGn7eLWOL2uZ_s3KNQLzGApWKmsy8rlacyDSWhGxahJG7ZDnDBozCqhZIvZIikpQ2AdnaZREsLnC84hN3I:1wGxWF:1uXwrAfLoeLh_dUFDU61Qr_uLhtqWslXqp3weNnNdro', '2026-05-10 11:19:23.081924'),
+('oteepgwgeknhs5ymdtgp5sccevtdu4dy', '.eJxVjMsOgjAQAP9lz6bpY9siR-98A9lttxY1kFA4Gf_dkHDQ68xk3jDSvtVxb7KOU4YeDFx-GVN6ynyI_KD5vqi0zNs6sToSddqmhiXL63a2f4NKrUIP4WqZUQoJYihRe7FCni266Axpg9EmS4TRidjOaWRvUgiCnNEV08HnC9-oN4o:1wWsFm:dTpaW2sNHwAtoX3Z_VVwxrl-_ulcTZozkYPqg4dWPUs', '2026-06-23 08:56:10.831602'),
+('qclz3l0agn7x7cvre48wracmrnz9uw1g', '.eJxVjMsOgjAQAP9lz6bpY9siR-98A9lttxY1kFA4Gf_dkHDQ68xk3jDSvtVxb7KOU4YeDFx-GVN6ynyI_KD5vqi0zNs6sToSddqmhiXL63a2f4NKrUIP4WqZUQoJYihRe7FCni266Axpg9EmS4TRidjOaWRvUgiCnNEV08HnC9-oN4o:1wWvcg:nmDSvfzeoLXxRAE-ovOecU1jEgogjWUx6J0tUvYmyqs', '2026-06-23 12:32:02.873818');
 
 -- --------------------------------------------------------
 
@@ -393,7 +413,7 @@ CREATE TABLE `member_announcement` (
   `message` longtext NOT NULL,
   `level` varchar(20) NOT NULL,
   `created_at` datetime(6) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -407,7 +427,7 @@ CREATE TABLE `member_auditlog` (
   `timestamp` datetime(6) NOT NULL,
   `project_id` bigint(20) DEFAULT NULL,
   `user_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -421,7 +441,7 @@ CREATE TABLE `member_budget` (
   `spent_amount` decimal(15,2) NOT NULL,
   `last_updated` datetime(6) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -440,7 +460,14 @@ CREATE TABLE `member_citizenevidence` (
   `project_id` bigint(20) NOT NULL,
   `stage_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_citizenevidence`
+--
+
+INSERT INTO `member_citizenevidence` (`id`, `title`, `description`, `location`, `image`, `is_verified`, `created_at`, `project_id`, `stage_id`, `user_id`) VALUES
+(1, 'fdgn', 'cvdxfg', ' cv', '', 0, '2026-06-11 06:54:43.125873', 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -456,7 +483,7 @@ CREATE TABLE `member_citizensubmission` (
   `status` varchar(20) NOT NULL,
   `created_at` datetime(6) NOT NULL,
   `user_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -471,7 +498,7 @@ CREATE TABLE `member_comment` (
   `created_at` datetime(6) NOT NULL,
   `project_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -484,7 +511,7 @@ CREATE TABLE `member_contact` (
   `name` varchar(100) NOT NULL,
   `email` varchar(254) NOT NULL,
   `message` longtext NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_contact`
@@ -507,12 +534,13 @@ INSERT INTO `member_contact` (`id`, `name`, `email`, `message`) VALUES
 CREATE TABLE `member_contractor` (
   `id` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
+  `contractor_id` int(10) NOT NULL,
   `company` varchar(255) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `email` varchar(254) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
   `profile` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -521,26 +549,13 @@ CREATE TABLE `member_contractor` (
 --
 
 CREATE TABLE `member_contractorrating` (
-  `id` bigint(20) NOT NULL,
-  `quality_score` int(11) NOT NULL,
-  `speed_score` int(11) NOT NULL,
-  `compliance_score` int(11) NOT NULL,
-  `comment` longtext DEFAULT NULL,
-  `contractor_id` bigint(20) NOT NULL,
-  `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `member_contractor_projects`
---
-
-CREATE TABLE `member_contractor_projects` (
-  `id` bigint(20) NOT NULL,
-  `contractor_id` bigint(20) NOT NULL,
-  `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `id` int(11) NOT NULL,
+  `project_id` int(11) NOT NULL,
+  `quality_score` int(11) NOT NULL DEFAULT 0,
+  `speed_score` int(11) NOT NULL DEFAULT 0,
+  `compliance_score` int(11) NOT NULL DEFAULT 0,
+  `comment` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -554,7 +569,7 @@ CREATE TABLE `member_feedback` (
   `email` varchar(254) NOT NULL,
   `phone_number` varchar(15) DEFAULT NULL,
   `feedback` longtext DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_feedback`
@@ -563,6 +578,32 @@ CREATE TABLE `member_feedback` (
 INSERT INTO `member_feedback` (`id`, `full_name`, `email`, `phone_number`, `feedback`) VALUES
 (5, NULL, 'amanda@gmail.com', '798643789', 'Amanda Nyar Usonga penjo'),
 (6, NULL, 'young@gmail.com', '798564321', 'thanks for the service');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_governmentrequest`
+--
+
+CREATE TABLE `member_governmentrequest` (
+  `id` bigint(20) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `image` varchar(100) DEFAULT NULL,
+  `status` varchar(20) NOT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `updated_at` datetime(6) NOT NULL,
+  `citizen_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_governmentrequest`
+--
+
+INSERT INTO `member_governmentrequest` (`id`, `title`, `description`, `category`, `location`, `image`, `status`, `created_at`, `updated_at`, `citizen_id`) VALUES
+(1, 'qewr', 'qwer', 'infrastructure', 'qewr', '', 'pending', '2026-06-11 07:17:01.434909', '2026-06-11 07:17:01.434957', 1);
 
 -- --------------------------------------------------------
 
@@ -576,7 +617,7 @@ CREATE TABLE `member_media` (
   `media_type` varchar(10) NOT NULL,
   `uploaded_at` datetime(6) NOT NULL,
   `project_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_media`
@@ -600,7 +641,7 @@ CREATE TABLE `member_milestone` (
   `progress_percentage` int(11) NOT NULL,
   `project_id` bigint(20) NOT NULL,
   `stage_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_milestone`
@@ -618,21 +659,22 @@ INSERT INTO `member_milestone` (`id`, `title`, `description`, `completion_date`,
 
 CREATE TABLE `member_notification` (
   `id` bigint(20) NOT NULL,
-  `notification_type` varchar(20) DEFAULT NULL,
+  `notification_type` varchar(30) DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
   `message` longtext DEFAULT NULL,
-  `is_read` tinyint(1) DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL,
   `created_at` datetime(6) NOT NULL,
-  `user_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `recipient_id` bigint(20) DEFAULT NULL,
+  `project_id` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_notification`
 --
 
-INSERT INTO `member_notification` (`id`, `notification_type`, `title`, `message`, `is_read`, `created_at`, `user_id`) VALUES
-(1, NULL, NULL, 'Welcome anytime Ajumbutule', 0, '2025-03-06 12:17:36.241868', NULL),
-(2, NULL, NULL, 'wecome', 1, '2025-03-06 12:17:56.611611', NULL);
+INSERT INTO `member_notification` (`id`, `notification_type`, `title`, `message`, `is_read`, `created_at`, `recipient_id`, `project_id`) VALUES
+(1, NULL, NULL, 'Welcome anytime Ajumbutule', 0, '2025-03-06 12:17:36.241868', NULL, NULL),
+(2, NULL, NULL, 'wecome', 1, '2025-03-06 12:17:56.611611', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -647,7 +689,7 @@ CREATE TABLE `member_participation` (
   `is_active` tinyint(1) NOT NULL,
   `project_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_participation`
@@ -674,7 +716,7 @@ CREATE TABLE `member_pdf` (
   `implementing_agency` varchar(255) DEFAULT NULL,
   `pdf_file` varchar(100) DEFAULT NULL,
   `project_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_pdf`
@@ -696,7 +738,7 @@ CREATE TABLE `member_programfunding` (
   `funding_source` varchar(255) NOT NULL,
   `date_funded` datetime(6) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -710,7 +752,7 @@ CREATE TABLE `member_programimpact` (
   `metric_value` double NOT NULL,
   `measurement_date` date NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -725,7 +767,7 @@ CREATE TABLE `member_progressreport` (
   `report_file` varchar(100) NOT NULL,
   `created_at` datetime(6) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -740,7 +782,7 @@ CREATE TABLE `member_progressupdate` (
   `progress_percentage` int(11) NOT NULL,
   `project_id` bigint(20) NOT NULL,
   `stage_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -769,32 +811,32 @@ CREATE TABLE `member_project` (
   `contact_email` varchar(254) DEFAULT NULL,
   `progress_update` datetime(6) DEFAULT NULL,
   `remarks` longtext DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_project`
 --
 
 INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `project_location`, `implementing_agency`, `project_Budgeting`, `amount_spent`, `images`, `start_date`, `end_date`, `beneficiaries`, `stakeholders`, `progress`, `project_status`, `impact`, `project_manager`, `project_contractor`, `contact_email`, `progress_update`, `remarks`) VALUES
-(1, 'Kisumu Highway', 'A perfect highway joining most counties promoting business opportunities', 'Kisumu', 'Governmental Agencies', 23000000.00, NULL, 'projects/dlock.jpg', '2026-04-22', '2026-06-11', 'citizens', 'agencies', '67', 'ongoing', 'good economic network', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-04-26 11:25:50.760102', '- fostering good economy'),
-(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', 9999999999.99, NULL, 'projects/thika.jpg', '2024-03-01', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', 147345646.00, NULL, 'projects/login.PNG', '2024-03-02', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', 34567890.00, NULL, 'projects/mau_mau.jpg', '2024-03-06', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(20, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', 10000000.00, NULL, 'projects/im.jpg', '2025-12-06', '2027-12-06', NULL, NULL, NULL, 'upcoming', NULL, NULL, NULL, NULL, NULL, NULL),
-(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', 1654879.00, NULL, 'projects/dandora_9E3A1mg.jpg', '2024-03-07', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', 30000000.00, NULL, 'projects/pacho_7f3AtUZ.jpg', '2024-03-12', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', 34500000.00, NULL, 'projects/expressway_SwK9e6V.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', 4579867.00, NULL, 'projects/tana_river.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', 25895642.00, NULL, 'projects/dala.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', 23000000.00, NULL, 'projects/thika_Ua6mF2X.jpg', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', 34000000.00, NULL, 'projects/sgr.png', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', 2121000000.00, NULL, 'projects/expressway.jpg', '2024-03-12', '2027-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
-(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', 20000000.00, NULL, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '2025-02-19', '2025-03-06', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(1, 'Kisumu Highway', 'A perfect highway joining most counties promoting business opportunities', 'Kisumu', 'Governmental Agencies', '23000000.00', NULL, 'projects/dlock.jpg', '2026-04-22', '2026-06-11', 'citizens', 'agencies', '67', 'ongoing', 'good economic network', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-04-26 11:25:50.760102', '- fostering good economy'),
+(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', '9999999999.99', NULL, 'projects/thika.jpg', '2024-03-01', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', '147345646.00', NULL, 'projects/login.PNG', '2024-03-02', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', '34567890.00', NULL, 'projects/mau_mau.jpg', '2024-03-06', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(20, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', '10000000.00', NULL, 'projects/im.jpg', '2025-12-06', '2027-12-06', NULL, NULL, NULL, 'upcoming', NULL, NULL, NULL, NULL, NULL, NULL),
+(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', '1654879.00', NULL, 'projects/dandora_9E3A1mg.jpg', '2024-03-07', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', '30000000.00', NULL, 'projects/pacho_7f3AtUZ.jpg', '2024-03-12', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', '34500000.00', NULL, 'projects/expressway_SwK9e6V.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', '4579867.00', NULL, 'projects/tana_river.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', '25895642.00', NULL, 'projects/dala.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', '23000000.00', NULL, 'projects/thika_Ua6mF2X.jpg', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', '34000000.00', NULL, 'projects/sgr.png', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', '2121000000.00', NULL, 'projects/expressway.jpg', '2024-03-12', '2027-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
+(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', '20000000.00', NULL, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '2025-02-19', '2025-03-06', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL),
 (35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL),
-(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', 9999999999.99, NULL, 'projects/tana_river_Laq2K1W.jpg', '2024-03-07', '2025-03-12', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, NULL),
-(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', 0.00, NULL, 'projects/sgr_C3xUDYT.png', '2025-03-13', '2028-02-12', 'Railway users', 'multi billionares', 'upcoming', 'upcoming', 'speeding the rate of transportation and reducing the trafficking in public roads', NULL, NULL, NULL, NULL, NULL),
-(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', 0.00, NULL, 'projects/house.jpg', '2026-02-27', '2031-05-16', '-common mwananchi\r\n- government', '-Government tycoons\r\n- president William Ruto', '', 'Delayed', 'reduction of overcrowding in the country', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', '-this will impact on the reduction of slums in the country\r\n-clean environment'),
-(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', 0.00, NULL, 'projects/house_wMsNgUd.jpg', '2024-06-04', '2026-02-21', 'citizens', 'county government', '', 'completed', '- Ease of access of clean and free energy', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', 'free and favourable energy');
+(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', '9999999999.99', NULL, 'projects/tana_river_Laq2K1W.jpg', '2024-03-07', '2025-03-12', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, NULL),
+(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', '0.00', NULL, 'projects/sgr_saMexVe.png', '2025-03-13', '2028-02-12', 'Railway users', 'multi billionares', 'upcoming', 'upcoming', 'speeding the rate of transportation and reducing the trafficking in public roads', NULL, 'George Mbola', 'info@lapsset.go.ke', '2026-06-10 13:48:50.457266', 'poornproject management'),
+(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', '0.00', NULL, 'projects/house.jpg', '2026-02-27', '2031-05-16', '-common mwananchi\r\n- government', '-Government tycoons\r\n- president William Ruto', '', 'Delayed', 'reduction of overcrowding in the country', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', '-this will impact on the reduction of slums in the country\r\n-clean environment'),
+(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', '0.00', NULL, 'projects/house_wMsNgUd.jpg', '2024-06-04', '2026-02-21', 'citizens', 'county government', '', 'completed', '- Ease of access of clean and free energy', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', 'free and favourable energy');
 
 -- --------------------------------------------------------
 
@@ -808,7 +850,7 @@ CREATE TABLE `member_projectdocument` (
   `file` varchar(100) NOT NULL,
   `uploaded_at` datetime(6) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -823,7 +865,7 @@ CREATE TABLE `member_projectexpense` (
   `amount` decimal(15,2) DEFAULT NULL,
   `description` longtext DEFAULT NULL,
   `date` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -837,7 +879,7 @@ CREATE TABLE `member_projectreport` (
   `report_date` datetime(6) NOT NULL,
   `report_title` varchar(255) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -852,7 +894,7 @@ CREATE TABLE `member_projectrisk` (
   `mitigation_plan` longtext DEFAULT NULL,
   `created_at` datetime(6) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -868,14 +910,14 @@ CREATE TABLE `member_projectstage` (
   `end_date` date DEFAULT NULL,
   `progress_percentage` decimal(5,2) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_projectstage`
 --
 
 INSERT INTO `member_projectstage` (`id`, `stage_name`, `description`, `start_date`, `end_date`, `progress_percentage`, `project_id`) VALUES
-(1, 'construction', 'nghfdtygh', '2024-03-12', '2024-03-09', 60.00, 30);
+(1, 'construction', 'nghfdtygh', '2024-03-12', '2024-03-09', '60.00', 30);
 
 -- --------------------------------------------------------
 
@@ -890,7 +932,7 @@ CREATE TABLE `member_projectupdate` (
   `update_date` datetime(6) NOT NULL,
   `image` varchar(100) DEFAULT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -902,7 +944,7 @@ CREATE TABLE `member_project_division` (
   `id` bigint(20) NOT NULL,
   `project_name` varchar(1000) NOT NULL,
   `project_type_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_project_division`
@@ -926,7 +968,7 @@ CREATE TABLE `member_project_division_project_name` (
   `id` bigint(20) NOT NULL,
   `project_division_id` bigint(20) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -942,7 +984,7 @@ CREATE TABLE `member_project_type` (
   `created_at` datetime(6) DEFAULT NULL,
   `updated_at` datetime(6) DEFAULT NULL,
   `created_by_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_project_type`
@@ -982,7 +1024,7 @@ CREATE TABLE `member_project_type_project_types` (
   `id` bigint(20) NOT NULL,
   `project_type_id` bigint(20) NOT NULL,
   `project_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -1000,7 +1042,7 @@ CREATE TABLE `member_reportissue` (
   `status` varchar(20) NOT NULL,
   `project_id` bigint(20) NOT NULL,
   `user_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_reportissue`
@@ -1023,10 +1065,9 @@ CREATE TABLE `member_stagereport` (
   `location` varchar(255) NOT NULL,
   `photo` varchar(100) DEFAULT NULL,
   `created_at` datetime(6) NOT NULL,
-  `contractor_id` bigint(20) NOT NULL,
   `project_id` bigint(20) NOT NULL,
   `stage_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -1040,7 +1081,7 @@ CREATE TABLE `member_stakeholder` (
   `contact_details` longtext NOT NULL,
   `role_in_program` longtext NOT NULL,
   `program_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -1060,7 +1101,7 @@ CREATE TABLE `member_team` (
   `twitter` varchar(200) DEFAULT NULL,
   `linkedin` varchar(200) DEFAULT NULL,
   `whatsapp` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_team`
@@ -1092,14 +1133,14 @@ CREATE TABLE `member_tender` (
   `created_at` datetime(6) DEFAULT NULL,
   `created_by_id` bigint(20) DEFAULT NULL,
   `project_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_tender`
 --
 
 INSERT INTO `member_tender` (`id`, `reference_number`, `description`, `procurement_method`, `estimated_budget`, `opening_date`, `closing_date`, `eligibility_criteria`, `evaluation_criteria`, `status`, `document`, `is_published`, `created_at`, `created_by_id`, `project_id`) VALUES
-(1, 'Ref123we', 'Affordable housing around Manyatta Gonda', 'restricted', 56789765.00, '2026-04-22', '2029-06-28', 'edfghjkl', 'hsaertfg', 'draft', 'tenders/dlock.jpg', 0, '2026-04-28 05:41:12.276887', NULL, NULL);
+(1, 'Ref123we', 'Affordable housing around Manyatta Gonda', 'restricted', '56789765.00', '2026-04-22', '2029-06-28', 'edfghjkl', 'hsaertfg', 'draft', 'tenders/dlock.jpg', 0, '2026-04-28 05:41:12.276887', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1118,8 +1159,11 @@ CREATE TABLE `member_tenderapplication` (
   `submitted_at` datetime(6) NOT NULL,
   `status` varchar(20) NOT NULL,
   `applicant_id` bigint(20) DEFAULT NULL,
-  `tender_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `tender_id` bigint(20) NOT NULL,
+  `technical_score` float NOT NULL DEFAULT 0,
+  `financial_score` float NOT NULL DEFAULT 0,
+  `total_score` float NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -1136,7 +1180,7 @@ CREATE TABLE `member_testimonial` (
   `created_at` datetime(6) NOT NULL,
   `project_id` bigint(20) DEFAULT NULL,
   `user_id` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_testimonial`
@@ -1174,14 +1218,14 @@ CREATE TABLE `member_user` (
   `avatar` varchar(100) DEFAULT NULL,
   `profile` varchar(100) DEFAULT NULL,
   `updated` datetime(6) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_user`
 --
 
 INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `first_name`, `last_name`, `is_staff`, `is_active`, `date_joined`, `email`, `username`, `name`, `role`, `bio`, `is_enduser`, `avatar`, `profile`, `updated`) VALUES
-(1, 'pbkdf2_sha256$390000$2S93EXm8OrOx1hPBM91Db2$XvXM4EMZaGrt0PFMLjA+sLH4124H6VaHMXYFSxWhR/c=', '2026-04-27 08:12:00.153162', 1, '', '', 1, 1, '2026-04-26 11:11:12.503469', 'felixngwono@gmail.com', 'FelloMarley', 'Felix Odhiambo', 'developer', 'I\'m FelloMarley, the mastermind behind the government tracker website', 0, 'avatar.png', 'profiles/Fel14_9bkNTiv.jpg', '2026-04-26 11:19:11.324442'),
+(1, 'pbkdf2_sha256$600000$eK4cX1QJxbLYev4itN2MFq$F0E87XnzWK5poO68PKyJ64MWukjctSF4HWmx4aML8yE=', '2026-06-09 12:32:02.866866', 1, '', '', 1, 1, '2026-04-26 11:11:12.503469', 'felixngwono@gmail.com', 'FelloMarley', 'Felix Odhiambo', 'developer', 'I\'m FelloMarley, the mastermind behind the government tracker website', 0, 'avatar.png', 'profiles/Fel14_9bkNTiv.jpg', '2026-04-26 11:19:11.324442'),
 (2, 'pbkdf2_sha256$390000$TDORiaVNPtEXR4OUPLDiTC$LwK7MIK1UWZ52hhBoZcJ3fER0UWBAZ6bbpIYJ1fhfVE=', '2026-04-26 19:58:17.256715', 0, '', '', 0, 1, '2026-04-26 19:50:51.247921', 'nicole@gmail.com', 'Atieno NyarChula', 'Nicole Atieno', 'engineer', 'Im Nyachula, born to be a winner', 0, 'avatar.png', 'profiles/02c92d479a634167955278c0bef5d671_R0mYTV3.jpg', '2026-04-26 19:50:52.868190'),
 (15, 'pbkdf2_sha256$600000$sdZXg14tgnO7xa9BZMRudV$15CmOFaWIpD5svoHyNtsQKA70oqKwIhFRoihCTrZTBo=', '2024-11-13 10:44:07.903587', 0, '', '', 0, 1, '2024-03-17 08:35:44.262524', 'omondi@gmail.com', 'Ajumbutule', 'Frank Omondi', 'citizen', 'Im Ajumbutule', 1, 'avatar.png', 'images/3006.webp', '2026-02-22 13:21:42.485592'),
 (21, 'pbkdf2_sha256$390000$L3rjadbchaO0SpN9HBxF3S$7IwkCJCvSjH+A153Y3J+8W2hT03K8drd0wkQGjzV7iI=', '2026-02-15 09:24:48.995603', 1, '', '', 0, 1, '2024-03-18 21:04:19.576787', 'fellomarley@gmail.com', 'Fello', 'Felix Odhiambo', 'citizen', 'Im Marley', 0, 'avatar.png', 'images/chief_J9TcRuW.jpg', '2026-02-22 13:21:42.485592'),
@@ -1189,7 +1233,8 @@ INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `firs
 (23, 'pbkdf2_sha256$390000$WQOqv9km54x7scaodebVCd$HYGL9+bFmqvTtlw+RAE5YgIwulygM1B9Egut5CAJry0=', '2026-02-23 08:19:46.449107', 0, '', '', 0, 1, '2024-03-20 19:38:48.673003', 'vanessa@gmail.com', 'Vanessah', 'Toto Vanessah', 'citizen', 'Im Vanessah. The only Titan from the lake in the family of akina Fellix The StoryTeller', 1, 'avatar.png', 'profiles/tree.jpg', '2026-02-22 13:21:42.485592'),
 (25, 'pbkdf2_sha256$390000$QCtLfFIyYQvtD9z4whkpmK$QSWeErI3jRNzVRw1BnuRCRDR23Sy3FCsF5Z74v2OLXo=', '2026-02-23 09:07:24.976027', 0, '', '', 0, 1, '2025-03-12 10:02:37.372369', 'assielo@gmail.com', 'assiello', 'Assiello Nomar', 'citizen', 'Assiello Norma', 1, 'avatar.png', 'profiles/solar.jpg', '2026-02-22 13:21:42.485592'),
 (26, 'pbkdf2_sha256$390000$rvjkDxGKNzDBpOphsu5Rss$fBQTcWntdNp131fgkCqBTyd69P8/xm3kYdLvNG81S1Y=', '2026-04-28 05:57:02.225708', 0, '', '', 0, 1, '2026-02-15 09:22:02.825205', 'betty@gmail.com', 'Amanda', 'Betty Amanda', 'developer', 'im betty amanda', 0, 'avatar.png', 'profiles/038e478f9c094c01be86505e030c974d_DC7y9U9.jpg', '2026-02-22 13:21:42.485592'),
-(27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-23 09:13:17.518974', 1, '', '', 1, 1, '2026-02-16 13:56:00.197953', 'felix@gmail.com', 'Odinga', 'Felix Odhiambo', 'developer', 'im felix odhiamo', 0, 'avatar.png', 'profiles/Fel14.jpg', '2026-02-22 13:21:42.485592');
+(27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-23 09:13:17.518974', 1, '', '', 1, 1, '2026-02-16 13:56:00.197953', 'felix@gmail.com', 'Odinga', 'Felix Odhiambo', 'developer', 'im felix odhiamo', 0, 'avatar.png', 'profiles/Fel14.jpg', '2026-02-22 13:21:42.485592'),
+(29, 'pbkdf2_sha256$600000$BavP8B0es7pFn9ME210i3X$Xr3WxFnouS6cGR9C/AuHZbcAVlK6bncoXJ7WnfEhH9M=', '2026-06-08 08:29:15.187052', 1, '', '', 1, 1, '2026-06-08 08:28:37.288152', 'felix7@gmail.com', 'FelloMarley7', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-06-08 08:28:38.384166');
 
 -- --------------------------------------------------------
 
@@ -1201,7 +1246,7 @@ CREATE TABLE `member_user_groups` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
   `group_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -1213,7 +1258,7 @@ CREATE TABLE `member_user_user_permissions` (
   `id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
   `permission_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Indexes for dumped tables
@@ -1268,13 +1313,6 @@ ALTER TABLE `django_migrations`
 ALTER TABLE `django_session`
   ADD PRIMARY KEY (`session_key`),
   ADD KEY `django_session_expire_date_a5c62663` (`expire_date`);
-
---
--- Indexes for table `member_activity`
---
-ALTER TABLE `member_activity`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `member_activity_project_id_67a37100_fk_member_project_id` (`project_id`);
 
 --
 -- Indexes for table `member_announcement`
@@ -1338,22 +1376,20 @@ ALTER TABLE `member_contractor`
 --
 ALTER TABLE `member_contractorrating`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `member_contractorrat_contractor_id_178933fa_fk_member_co` (`contractor_id`),
-  ADD KEY `member_contractorrating_project_id_30a25827_fk_member_project_id` (`project_id`);
-
---
--- Indexes for table `member_contractor_projects`
---
-ALTER TABLE `member_contractor_projects`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `member_contractor_projec_contractor_id_project_id_bc2bbd08_uniq` (`contractor_id`,`project_id`),
-  ADD KEY `member_contractor_pr_project_id_d495a68e_fk_member_pr` (`project_id`);
+  ADD KEY `fk_contractor_rating_project` (`project_id`);
 
 --
 -- Indexes for table `member_feedback`
 --
 ALTER TABLE `member_feedback`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `member_governmentrequest`
+--
+ALTER TABLE `member_governmentrequest`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_governmentrequest_citizen_id_0e8ec8f8_fk_member_user_id` (`citizen_id`);
 
 --
 -- Indexes for table `member_media`
@@ -1375,7 +1411,8 @@ ALTER TABLE `member_milestone`
 --
 ALTER TABLE `member_notification`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `member_notification_user_id_fc0e3f26_fk_member_user_id` (`user_id`);
+  ADD KEY `member_notification_user_id_fc0e3f26_fk_member_user_id` (`recipient_id`),
+  ADD KEY `member_notification_project_id_c3be49b0_fk_member_project_id` (`project_id`);
 
 --
 -- Indexes for table `member_participation`
@@ -1511,7 +1548,6 @@ ALTER TABLE `member_reportissue`
 --
 ALTER TABLE `member_stagereport`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `member_stagereport_contractor_id_f03a035e_fk_member_co` (`contractor_id`),
   ADD KEY `member_stagereport_project_id_2f86d019_fk_member_project_id` (`project_id`),
   ADD KEY `member_stagereport_stage_id_d929cb5b_fk_member_projectstage_id` (`stage_id`);
 
@@ -1597,7 +1633,7 @@ ALTER TABLE `auth_group_permissions`
 -- AUTO_INCREMENT for table `auth_permission`
 --
 ALTER TABLE `auth_permission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=169;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
 
 --
 -- AUTO_INCREMENT for table `django_admin_log`
@@ -1609,19 +1645,13 @@ ALTER TABLE `django_admin_log`
 -- AUTO_INCREMENT for table `django_content_type`
 --
 ALTER TABLE `django_content_type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
-
---
--- AUTO_INCREMENT for table `member_activity`
---
-ALTER TABLE `member_activity`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `member_announcement`
@@ -1645,7 +1675,7 @@ ALTER TABLE `member_budget`
 -- AUTO_INCREMENT for table `member_citizenevidence`
 --
 ALTER TABLE `member_citizenevidence`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_citizensubmission`
@@ -1675,19 +1705,19 @@ ALTER TABLE `member_contractor`
 -- AUTO_INCREMENT for table `member_contractorrating`
 --
 ALTER TABLE `member_contractorrating`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `member_contractor_projects`
---
-ALTER TABLE `member_contractor_projects`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_feedback`
 --
 ALTER TABLE `member_feedback`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `member_governmentrequest`
+--
+ALTER TABLE `member_governmentrequest`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_media`
@@ -1855,7 +1885,7 @@ ALTER TABLE `member_testimonial`
 -- AUTO_INCREMENT for table `member_user`
 --
 ALTER TABLE `member_user`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `member_user_groups`
@@ -1892,12 +1922,6 @@ ALTER TABLE `auth_permission`
 ALTER TABLE `django_admin_log`
   ADD CONSTRAINT `django_admin_log_content_type_id_c4bce8eb_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`),
   ADD CONSTRAINT `django_admin_log_user_id_c564eba6_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
-
---
--- Constraints for table `member_activity`
---
-ALTER TABLE `member_activity`
-  ADD CONSTRAINT `member_activity_project_id_67a37100_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
 
 --
 -- Constraints for table `member_auditlog`
@@ -1937,15 +1961,13 @@ ALTER TABLE `member_comment`
 -- Constraints for table `member_contractorrating`
 --
 ALTER TABLE `member_contractorrating`
-  ADD CONSTRAINT `member_contractorrat_contractor_id_178933fa_fk_member_co` FOREIGN KEY (`contractor_id`) REFERENCES `member_contractor` (`id`),
-  ADD CONSTRAINT `member_contractorrating_project_id_30a25827_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+  ADD CONSTRAINT `fk_contractor_rating_project` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `member_contractor_projects`
+-- Constraints for table `member_governmentrequest`
 --
-ALTER TABLE `member_contractor_projects`
-  ADD CONSTRAINT `member_contractor_pr_contractor_id_3a48a997_fk_member_co` FOREIGN KEY (`contractor_id`) REFERENCES `member_contractor` (`id`),
-  ADD CONSTRAINT `member_contractor_pr_project_id_d495a68e_fk_member_pr` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+ALTER TABLE `member_governmentrequest`
+  ADD CONSTRAINT `member_governmentrequest_citizen_id_0e8ec8f8_fk_member_user_id` FOREIGN KEY (`citizen_id`) REFERENCES `member_user` (`id`);
 
 --
 -- Constraints for table `member_media`
@@ -1964,7 +1986,8 @@ ALTER TABLE `member_milestone`
 -- Constraints for table `member_notification`
 --
 ALTER TABLE `member_notification`
-  ADD CONSTRAINT `member_notification_user_id_fc0e3f26_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
+  ADD CONSTRAINT `member_notification_project_id_c3be49b0_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_notification_recipient_id_6a3177d9_fk_member_user_id` FOREIGN KEY (`recipient_id`) REFERENCES `member_user` (`id`);
 
 --
 -- Constraints for table `member_participation`
@@ -2071,7 +2094,6 @@ ALTER TABLE `member_reportissue`
 -- Constraints for table `member_stagereport`
 --
 ALTER TABLE `member_stagereport`
-  ADD CONSTRAINT `member_stagereport_contractor_id_f03a035e_fk_member_co` FOREIGN KEY (`contractor_id`) REFERENCES `member_contractor` (`id`),
   ADD CONSTRAINT `member_stagereport_project_id_2f86d019_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
   ADD CONSTRAINT `member_stagereport_stage_id_d929cb5b_fk_member_projectstage_id` FOREIGN KEY (`stage_id`) REFERENCES `member_projectstage` (`id`);
 

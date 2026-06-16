@@ -225,11 +225,10 @@ class Budget(models.Model):
     spent_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     last_updated = models.DateTimeField(auto_now=True)
 
-    def remaining_budget(self):
-        return self.allocated_amount - self.spent_amount
     
     def __str__(self):
         return f"Budget for {self.project.project_title}"
+    
     
 
 class ProjectExpense(models.Model):
@@ -276,7 +275,7 @@ class PDF(models.Model):
 
 
 class AuditLog(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     action = models.CharField(max_length=255)  # e.g., "Project Updated"
     timestamp = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
@@ -284,10 +283,9 @@ class AuditLog(models.Model):
     class Meta:
         ordering = ['-timestamp']
 
-    def __str__(self):
+    def __str__(self): 
         return f"{self.user} - {self.action} - {self.timestamp}"
-
-
+    
 class Comment(models.Model):
     name=models.CharField(max_length=1000,null=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='comments')
@@ -576,7 +574,7 @@ class StageReport(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     stage = models.ForeignKey(ProjectStage, on_delete=models.CASCADE)
 
-    contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE)
+    contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE,null=True, blank=True)
 
     description = models.TextField()
     progress_percentage = models.IntegerField(default=0)
@@ -591,7 +589,7 @@ class StageReport(models.Model):
 
 
 class ContractorRating(models.Model):
-    contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE)
+    contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE,null=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     quality_score = models.IntegerField(default=0)
@@ -659,3 +657,4 @@ class GovernmentRequest(models.Model):
 
     def __str__(self):
         return self.title
+        

@@ -11,7 +11,7 @@ from django.db.models import Sum
 import pdfkit
 from django.db.models import Q
 from django.core.paginator import Paginator
-from django.db.models.functions import ExtractMonth
+import django.db.models.functions
 from datetime import datetime, timedelta, timezone
 from django.db.models.functions import TruncMonth
 from reportlab.platypus import SimpleDocTemplate, Paragraph
@@ -157,7 +157,7 @@ def dashboard(request):
 # Aggregate budget per month
     data = (
         Project.objects
-        .annotate(month=ExtractMonth('start_date'))
+        .annotate(month=django.db.models.functions.ExtractMonth('start_date'))
         .values('month')
         .annotate(
             total_budget=Sum('budget'),
@@ -1209,7 +1209,7 @@ def AuditLogs(request):
 def add_audit(request):
     form=AuditLogForm()
     if request.method=='POST':
-        form=AuditLogForm(request.POST)
+        form=AuditLogForm(request.POST,request.FILES)
         if form.is_valid():
             form.save()
             return redirect('AuditLog')
@@ -1521,9 +1521,9 @@ def budget_dashboard(request):
     
 
 def add_budget(request):
-    form = BudgetForm(request.POST or None)
-
+    form= BudgetForm()
     if request.method == "POST":
+        form = BudgetForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return redirect('dashboard')
