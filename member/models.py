@@ -97,7 +97,7 @@ class Project(models.Model):
         ordering = ['-start_date']
 
     def __str__(self):
-        return self.project_title
+      return self.project_title or "Untitled Project"
 
     
 class Project_type(models.Model):
