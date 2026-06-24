@@ -99,7 +99,7 @@ class Project(models.Model):
     def __str__(self):
       return self.project_title or "Untitled Project"
 
-    
+
 class Project_type(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -562,7 +562,7 @@ class Contractor(models.Model):
     email = models.EmailField(blank=True, null=True)
     location = models.CharField(max_length=255, null=True)
     profile = models.ImageField(upload_to='contractors/', null=True, blank=True)
-    projects = models.ManyToManyField(Project, related_name='contractors', blank=True,null=True)
+    projects = models.ManyToManyField(Project, related_name='contractors', blank=True)
     created_at=models.DateTimeField(auto_now_add=True,null=True)
     
 

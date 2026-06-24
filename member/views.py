@@ -1030,7 +1030,6 @@ def upload_tender(request, project_id):
 
 # 🔹 Report Issue View
 
-
 @login_required(login_url='login')
 def issue_list(request):
     issues = ReportIssue.objects.all()
@@ -1529,11 +1528,27 @@ def add_budget(request):
             return redirect('dashboard')
 
     return render(request, 'finance/add_budget.html', {'form': form})
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import TenderApplication
 
+@login_required(login_url='login')
 def track_application(request):
-    applications = TenderApplication.objects.filter(applicant=request.user)
-    return render(request, 'Track_application/tracking_application.html', {'applications': applications})
+    applications = TenderApplication.objects.filter(
+        applicant=request.user
+    ).select_related('tender')
 
+    context = {
+        'applications': applications,
+        'total_applications': applications.count(),
+        'awarded_count': applications.filter(status='awarded').count(),
+        'pending_count': applications.filter(
+            status__in=['submitted', 'under_review']
+        ).count(),
+        'rejected_count': applications.filter(status='rejected').count(),
+    }
+
+    return render( request,'Track_application/tracking_application.html', context)
 
 @login_required
 def my_documents(request):
