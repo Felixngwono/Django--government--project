@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Government AI Assistant</title>
+</head>
+<body>
+
+<h1>Government AI Assistant</h1>
+
+<form method="POST">
+
+    {% csrf_token %}
+
+    <textarea
+        name="question"
+        rows="5"
+        cols="70"
+        placeholder="Ask something..."
+    ></textarea>
+
+    <br><br>
+
+    <button type="submit">
+        Ask AI
+    </button>
+
+</form>
+
+<hr>
+
+<pre>
+
+{{ answer }}
+
+</pre>
+
+</body>
+</html>

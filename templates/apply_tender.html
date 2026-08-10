@@ -47,7 +47,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-gray-700">
         <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
             <span class="block text-sm font-semibold text-gray-500">Project</span>
-            <span class="block text-gray-800 mt-1">{{ tender.project }}</span>
+            <span class="block text-gray-800 mt-1">{{ tender.project.project_title|default:"Unassigned" }}</span>
         </div>
         <div class="bg-green-50 p-4 rounded-lg shadow-sm">
             <span class="block text-sm font-semibold text-gray-500">Opening Date</span>

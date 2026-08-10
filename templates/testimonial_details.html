@@ -98,15 +98,16 @@
             {% endif %}
 
             <!-- Status Badge -->
-            {% if testimonial.is_published %}
+            {% if testimonial.is_approved %}
             <span class="mt-3 inline-block bg-green-100 text-green-700 px-4 py-1 text-sm rounded-full font-semibold">
                 Published
             </span>
             {% else %}
             <span class="mt-3 inline-block bg-yellow-100 text-yellow-700 px-4 py-1 text-sm rounded-full font-semibold">
-                Draft
+                Pending review
             </span>
             {% endif %}
+            {% if testimonial.project %}<a href="{% url 'project_details' testimonial.project.id %}" class="mt-3 block text-indigo-600 hover:underline">Project: {{ testimonial.project.project_title }}</a>{% endif %}
         </div>
 
         <!-- Testimonial Content -->
@@ -149,6 +150,13 @@
             </p>
             {% endif %}
         </div>
+        <form method="post" action="{% url 'moderate_testimonial' testimonial.id %}" class="bg-amber-50 border border-amber-200 rounded-2xl p-6 space-y-3">
+            {% csrf_token %}
+            <h3 class="font-semibold text-amber-900">Moderation</h3>
+            <textarea name="moderation_note" rows="2" class="w-full rounded-lg border p-3" placeholder="Optional note for the contributor">{{ testimonial.moderation_note }}</textarea>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="featured" {% if testimonial.is_featured %}checked{% endif %}> Feature on public pages</label>
+            <div class="flex gap-3"><button name="action" value="approve" class="bg-green-600 text-white px-4 py-2 rounded-lg">Approve</button><button name="action" value="pending" class="bg-amber-600 text-white px-4 py-2 rounded-lg">Return to pending</button></div>
+        </form>
         {% endif %}
 
         <!-- Action Buttons -->

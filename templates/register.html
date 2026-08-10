@@ -1,67 +1,153 @@
 {% load static %}
 {% load widget_tweaks %}
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body {
-  font-size: 14px;
-  background-image: url("{% static 'images/wel.jpg' %}");
-  background-size: cover;}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account | GovTracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #052e16 0%, #0f766e 45%, #14532d 100%);
+    }
   </style>
-<div class="min-h-screen  w-full flex items-center justify-center ">
-    <div class="max-w-md w-full space-y-8  dark:bg-gray-800 rounded-xl shadow-lg p-12">
-        <div>
-            <h2 class="mt-2 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-                Create your account
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
-                Please fill in the information below
-            </p>
-        </div>
-        <form class="mt-8 space-y-6" action="" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="space-y-4">
-                <div>
-                    <label for="name" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Name</label>
-                    {% render_field form.name class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Name" required="" %}
-                </div>
-                <div>
-                    <label for="username" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Username</label>
-                    {% render_field form.username class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Username" required="" %}
-                </div>
-                <div>
-                    <label for="email" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Email</label>
-                    {% render_field form.email class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="email@gmail.com" required="" %}
-                </div>
-                <div>
-                    <label for="role" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Role</label>
-                    {% render_field form.role class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Role" required="" %}
-                </div>
-                <div>
-                    <label for="file_input" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Upload Profile</label>
-                    {% render_field form.profile class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required="" %}
-                </div>
-                <div class="flex items-center">
-                    {% render_field form.is_enduser class="mr-2" %}
-                    <label for="bio" class="text-sm font-medium text-gray-700 dark:text-gray-200">End User</label>
-                </div>
-                <div>
-                    <label for="bio" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Your Bio</label>
-                    {% render_field form.bio class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Your Biography" required="" %}
-                </div>
-                <div>
-                    <label for="password" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
-                    {% render_field form.password1 class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Enter Password" required="" %}
-                </div>
-                <div>
-                    <label for="confirm-password" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Confirm Password</label>
-                    {% render_field form.password2 class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Confirm Password" required="" %}
-                </div>
+</head>
+<body class="min-h-screen text-slate-800">
+  <div class="min-h-screen bg-[url('{% static 'images/county-banner-kisumu.jpg' %}')] bg-cover bg-center">
+    <div class="min-h-screen bg-slate-950/70 px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-6xl rounded-[2rem] border border-white/10 bg-white/95 p-4 shadow-2xl backdrop-blur sm:p-6 lg:p-8">
+        <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <div class="rounded-[1.5rem] bg-gradient-to-br from-emerald-800 to-teal-700 p-8 text-white">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-100">GovTracker</p>
+            <h1 class="mt-4 text-3xl font-extrabold sm:text-4xl">Create your account</h1>
+            <p class="mt-4 text-lg text-emerald-50">Join the platform to track public projects, stay informed, and participate in transparent government services.</p>
+            <div class="mt-8 space-y-3">
+              <div class="rounded-2xl border border-white/20 bg-white/10 p-4">
+                <p class="font-semibold">Fast and secure</p>
+                <p class="mt-1 text-sm text-emerald-50">Your information is protected and ready for public service engagement.</p>
+              </div>
+              <div class="rounded-2xl border border-white/20 bg-white/10 p-4">
+                <p class="font-semibold">Simple onboarding</p>
+                <p class="mt-1 text-sm text-emerald-50">A straightforward sign-up process with helpful guidance at every step.</p>
+              </div>
             </div>
-            <button type="submit" class="w-full mt-4 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-semibold rounded-md text-base px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition">Create an account</button>
-            <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                Already have an account?
-                <a href="{% url 'login' %}" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Login here</a>
-            </p>
-        </form>
+          </div>
+
+          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6 sm:p-8">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Registration</p>
+                <h2 class="mt-2 text-2xl font-bold text-slate-900">Sign up for GovTracker</h2>
+              </div>
+              <div class="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">Secure</div>
+            </div>
+
+            {% if messages %}
+              <div class="mt-5 space-y-2">
+                {% for message in messages %}
+                  <div class="rounded-2xl border px-4 py-3 text-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-amber-200 bg-amber-50 text-amber-700{% endif %}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <form class="mt-6 space-y-4" action="" method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Full name</label>
+                  {% render_field form.name class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="Enter your full name" required="" %}
+                  {% if form.name.errors %}<p class="mt-2 text-sm text-red-600">{{ form.name.errors|striptags }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Username</label>
+                  {% render_field form.username class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="Choose a username" required="" %}
+                  {% if form.username.errors %}<p class="mt-2 text-sm text-red-600">{{ form.username.errors|striptags }}</p>{% endif %}
+                </div>
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Email address</label>
+                  {% render_field form.email class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="name@example.com" required="" %}
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Role</label>
+                  {% render_field form.role class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" required="" %}
+                  {% if form.role.errors %}<p class="mt-2 text-sm text-red-600">{{ form.role.errors|striptags }}</p>{% endif %}
+                </div>
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-700">Short biography</label>
+                {% render_field form.bio class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" rows="4" placeholder="Tell us a little about yourself" %}
+                {% if form.bio.errors %}<p class="mt-2 text-sm text-red-600">{{ form.bio.errors|striptags }}</p>{% endif %}
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-700">Profile photo</label>
+                {% render_field form.profile class="block w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700" %}
+              </div>
+
+              <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                {% render_field form.is_enduser class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" %}
+                <label class="text-sm font-medium text-slate-700">I am an end user interested in public services and project updates</label>
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+                  <div class="relative">
+                    {% render_field form.password1 id="password1" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="Create a password" required="" %}
+                    <button type="button" onclick="togglePassword('password1', 'togglePassword1')" id="togglePassword1" class="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-emerald-700">Show</button>
+                  </div>
+                  <p class="mt-2 text-xs text-slate-500">Use at least 8 characters for better security.</p>
+                  {% if form.password1.errors %}<p class="mt-2 text-sm text-red-600">{{ form.password1.errors|striptags }}</p>{% endif %}
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Confirm password</label>
+                  <div class="relative">
+                    {% render_field form.password2 id="password2" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="Confirm password" required="" %}
+                    <button type="button" onclick="togglePassword('password2', 'togglePassword2')" id="togglePassword2" class="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-emerald-700">Show</button>
+                  </div>
+                  {% if form.password2.errors %}<p class="mt-2 text-sm text-red-600">{{ form.password2.errors|striptags }}</p>{% endif %}
+                </div>
+              </div>
+
+              <button type="submit" class="w-full rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800">
+                Create account
+              </button>
+
+              <p class="text-center text-sm text-slate-600">
+                Already registered?
+                <a href="{% url 'login' %}" class="font-semibold text-emerald-700 hover:underline">Sign in here</a>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+
+  <script>
+    function togglePassword(inputId, buttonId) {
+      const input = document.getElementById(inputId);
+      const button = document.getElementById(buttonId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = 'Hide';
+      } else {
+        input.type = 'password';
+        button.textContent = 'Show';
+      }
+    }
+  </script>
+</body>
+</html>

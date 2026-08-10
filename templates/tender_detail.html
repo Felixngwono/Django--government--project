@@ -38,7 +38,7 @@
 
     <div class="space-y-3 text-gray-700">
 
-        <p><strong>Project:</strong> {{ tender.project }}</p>
+        <p><strong>Project:</strong> {{ tender.project.project_title|default:"Unassigned" }}</p>
 
         <p><strong>Reference Number:</strong> {{ tender.reference_number }}</p>
 

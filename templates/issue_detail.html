@@ -39,10 +39,13 @@
 
 <div class="container mx-auto px-4 py-6">
     <h1 class="text-2xl font-semibold text-gray-800">{{ issue.title }}</h1>
-    <p class="mt-2 text-gray-700">{{ issue.description }}</p>
-    <p class="mt-2 text-gray-600"><strong>Status:</strong> {{ issue.status }}</p>
-    <p class="mt-2 text-gray-600"><strong>Reported By:</strong> {{ issue.user.username }}</p>
+    <p class="mt-2 text-gray-700">{{ issue.issue_description }}</p>
+    <p class="mt-2 text-gray-600"><strong>Status:</strong> {{ issue.get_status_display }}</p>
+    <p class="mt-2 text-gray-600"><strong>Reported By:</strong> {{ issue.user.username|default:"Anonymous" }}</p>
     <p class="mt-2 text-gray-600"><strong>Created At:</strong> {{ issue.created_at }}</p>
+    {% if issue.evidence %}
+    <p class="mt-2 text-gray-600"><strong>Evidence:</strong> <a href="{{ issue.evidence.url }}" target="_blank" class="text-blue-600 underline">Open attachment</a></p>
+    {% endif %}
 </div>
 </div></div>
 

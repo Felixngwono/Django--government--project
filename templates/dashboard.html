@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -35,6 +35,20 @@
          PAGE: DASHBOARD
     ============================= -->
     <div class="page-section" :class="{ active: currentPage==='dashboard' }">
+
+      <div class="rounded-3xl bg-gradient-to-r from-red-700 via-red-600 to-orange-500 p-8 text-white shadow-xl" style="margin-bottom:24px;">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-red-100">Executive overview</p>
+            <h1 class="text-3xl font-extrabold">Government project dashboard</h1>
+            <p class="mt-2 max-w-2xl text-sm text-red-50">Monitor the full project lifecycle, urgency indicators, budget usage, and recent operational activity from one place.</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <a href="{% url 'createproject' %}" class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow">Create project</a>
+            <a href="{% url 'add_budget' %}" class="rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white">Add budget</a>
+          </div>
+        </div>
+      </div>
 
       <!-- Stat Cards -->
       <div class="grid-6 "  style="margin-bottom:24px;">
@@ -160,27 +174,21 @@
         <div class="card">
           <div class="section-header">
             <div>
-              <div class="section-title">project distributions</div>
-              <div class="section-sub">number of projects per year</div>
+              <div class="section-title">Project distribution</div>
+              <div class="section-sub">Projects started over the last 12 months</div>
             </div>
-            <select class="filter-select" style="font-size:0.78rem;padding:6px 10px;">
-              <option>2026</option>
-              <option>2025</option>
-              <option>2024</option>
-              <option>2023</option>
-              <option>2022</option>
-            </select>
+            <span class="section-sub">Last 12 months</span>
           </div>
           <div class="chart-wrap">
             <canvas id="salesChart"></canvas>
           </div>
         </div>
 
-        <div class="card">
+        <div class="card chart-card">
           <div class="section-header">
             <div>
-              <div class="section-title">Project Analysis</div>
-              <div class="section-sub">Total Project</div>
+              <div class="section-title">Project status overview</div>
+              <div class="section-sub">Current distribution of all projects</div>
             </div>
           </div>
           <div class="chart-wrap">
@@ -189,7 +197,110 @@
         </div>
       </div>
 
-      <!-- Table -->
+      <div class="grid-2" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Quick actions</div>
+              <div class="section-sub">Fast links for day-to-day administration</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <a class="quick-action-link" href="{% url 'createproject' %}">
+              <div class="font-semibold">Create project</div>
+              <div class="text-sm text-gray-500">Register a new government project or initiative.</div>
+            </a>
+            <a class="quick-action-link" href="{% url 'add_budget' %}">
+              <div class="font-semibold">Add budget</div>
+              <div class="text-sm text-gray-500">Capture new allocations and spending updates.</div>
+            </a>
+            <a class="quick-action-link" href="{% url 'issue_list' %}">
+              <div class="font-semibold">Review issues</div>
+              <div class="text-sm text-gray-500">Track public complaints and follow-up progress.</div>
+            </a>
+            <a class="quick-action-link" href="{% url 'system_reports' %}">
+              <div class="font-semibold">Open reports</div>
+              <div class="text-sm text-gray-500">Access reports for oversight and leadership review.</div>
+            </a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Needs attention</div>
+              <div class="section-sub">{{ open_issues_count }} active issue{{ open_issues_count|pluralize }} and delayed workstreams</div>
+            </div>
+          </div>
+          <div>
+            {% for project in attention_projects %}
+              <div class="activity-item">
+                <div>
+                  <div class="font-semibold">{{ project.project_title }}</div>
+                  <div class="text-sm text-gray-500">{{ project.project_location }} • {{ project.project_status|title }}</div>
+                </div>
+                <span class="status-pill {{ project.project_status|lower }}">{{ project.project_status|title }}</span>
+              </div>
+            {% empty %}
+              <div class="text-sm text-gray-500">No urgent projects to display right now.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:24px;">
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Recent issues</div>
+              <div class="section-sub">Latest citizen and project reports awaiting action</div>
+            </div>
+          </div>
+          <div>
+            {% for issue in recent_issues %}
+              <div class="activity-item">
+                <div>
+                  <a class="font-semibold text-red-600 hover:underline" href="{% url 'issue_detail' issue.id %}">{{ issue.title|default:issue.project.project_title }}</a>
+                  <div class="text-sm text-gray-500">{{ issue.project.project_title }} • {{ issue.created_at|date:'M d, Y' }}</div>
+                </div>
+                <span class="status-pill {{ issue.status }}">{{ issue.status|title }}</span>
+              </div>
+            {% empty %}
+              <div class="text-sm text-gray-500">No recent issues reported.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Recent projects</div>
+              <div class="section-sub">Newest entries added to the project portfolio</div>
+            </div>
+          </div>
+          <div>
+            {% for recent_project in recent_projects %}
+              <div class="activity-item">
+                <div>
+                  <a class="font-semibold text-blue-600 hover:underline" href="{% url 'project_details' recent_project.id %}">{{ recent_project.project_title }}</a>
+                  <div class="text-sm text-gray-500">{{ recent_project.implementing_agency }} • {{ recent_project.start_date|date:'M d, Y' }}</div>
+                </div>
+                <span class="status-pill {{ recent_project.project_status|lower }}">{{ recent_project.project_status|title }}</span>
+              </div>
+            {% empty %}
+              <div class="text-sm text-gray-500">No recent projects available.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px;">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Project portfolio</div>
+            <div class="section-sub">A live view of active, upcoming, delayed, and completed projects</div>
+          </div>
+        </div>
         <div class="overflow-x-auto">
                 <table class="w-full text-left text-gray-700 border rounded-lg">
                         <thead class="bg-gray-200 text-gray-700">
@@ -258,25 +369,26 @@
                         </tbody>
                 </table>
         </div>
+      </div>
 
       <!-- Pie + Traffic -->
       <div class="grid-2">
         <div class="card">
           <div class="section-header">
             <div>
-              <div class="section-title">Distribusi Perajin per Wilayah</div>
-              <div class="section-sub">40 perajin aktif</div>
+              <div class="section-title">Projects by location</div>
+              <div class="section-sub">Distribution of registered projects</div>
             </div>
           </div>
           <div class="chart-wrap">
             <canvas id="artisanPieChart"></canvas>
           </div>
         </div>
-        <div class="card">
+        <div class="card chart-card">
           <div class="section-header">
             <div>
-              <div class="section-title">Budget Allocation</div>
-              <div class="section-sub">Government of Kenya</div>
+              <div class="section-title">Budget trend</div>
+              <div class="section-sub">Allocated vs used budget</div>
             </div>
           </div>
           <div class="chart-wrap">
@@ -764,153 +876,163 @@ function dashboardApp() {
     charts: {},
 
     initCharts() {
-      // Cleanup
       Object.values(this.charts).forEach(c => { if (c) c.destroy(); });
       this.charts = {};
 
       Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+      Chart.defaults.color = this.darkMode ? '#94A3B8' : '#6C757D';
 
       const isDark = this.darkMode;
-      const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-      const textColor = isDark ? '#94A3B8' : '#6C757D';
+      const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+      const textColor = isDark ? '#CBD5E1' : '#475569';
 
-      // Sales Line Chart
       const salesCtx = document.getElementById('salesChart');
       if (salesCtx) {
         this.charts.sales = new Chart(salesCtx, {
           type: 'line',
           data: {
-             labels: {{ month_labels|safe }},
+            labels: {{ month_labels|safe }},
             datasets: [{
-              label: 'Total Users',
-              data:  {{ user_counts|safe }},
-              borderColor: '#fc1919',
-              backgroundColor: 'rgba(252,25,25,0.08)',
+              label: 'Projects started',
+              data: {{ project_counts|safe }},
+              borderColor: '#0f766e',
+              backgroundColor: 'rgba(15, 118, 110, 0.12)',
               fill: true,
-              tension: 0.4,
-              pointBackgroundColor: '#fc1919',
+              tension: 0.35,
+              pointBackgroundColor: '#0f766e',
               pointBorderColor: '#fff',
               pointBorderWidth: 2,
-              pointRadius: 5,
-              pointHoverRadius: 7,
+              pointRadius: 4,
+              pointHoverRadius: 6,
             }]
           },
           options: {
-            responsive: true, maintainAspectRatio: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1200, easing: 'easeOutQuart' },
+            interaction: { mode: 'index', intersect: false },
+            elements: { line: { borderWidth: 3 }, point: { hoverBorderWidth: 3 } },
             plugins: {
               legend: { display: false },
               tooltip: {
                 backgroundColor: '#fff',
-                titleColor: '#212529',
-                bodyColor: '#fc1919',
-                borderColor: '#fc1919',
+                titleColor: '#0f172a',
+                bodyColor: '#0f766e',
+                borderColor: '#0f766e',
                 borderWidth: 1,
-                callbacks: { label: ctx => 'Rp ' + ctx.raw + ' Juta' }
+                callbacks: { label: ctx => `${ctx.raw} project${ctx.raw === 1 ? '' : 's'}` }
               }
             },
             scales: {
-              x: { grid: { color: gridColor }, ticks: { color: textColor } },
-              y: { grid: { color: gridColor }, ticks: { color: textColor, callback: v => 'Rp '+v+'Jt' } }
+              x: { grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, maxRotation: 0 } },
+              y: { beginAtZero: true, grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, precision: 0 } }
             }
           }
         });
       }
 
-      // Category Bar Chart
       const catCtx = document.getElementById('categoryChart');
       if (catCtx) {
+        const statusLabels = [{% for project in projects %}'{{ project.project_status|title }}',{% endfor %}];
+        const statusValues = [{% for x in projects %}{{ x.total }},{% endfor %}];
+
         this.charts.category = new Chart(catCtx, {
           type: 'bar',
           data: {
-            labels: [{% for project in projects %}'{{project.project_status}}' ,{% endfor %}],
+            labels: statusLabels,
             datasets: [{
-              label: 'Unit Terjual',
-              data: [{% for x in projects %} '{{x.total}}',{% endfor %}],
-              backgroundColor: ['#fc1919','#28A745','#17A2B8','#FFC107','#6C757D','#DC3545'],
-              borderRadius: 6,
+              label: 'Projects',
+              data: statusValues,
+              backgroundColor: ['#0f766e','#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6'],
+              borderRadius: 8,
+              maxBarThickness: 38,
             }]
           },
           options: {
-            responsive: true, maintainAspectRatio: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeOutQuart' },
+            interaction: { mode: 'index', intersect: false },
             plugins: {
               legend: { display: false },
-              tooltip: {
-                backgroundColor: '#fff',
-                titleColor: '#212529',
-                bodyColor: '#495057',
-                borderColor: '#fc1919',
-                borderWidth: 1,
-              }
+              tooltip: { backgroundColor: '#fff', titleColor: '#0f172a', bodyColor: '#475569', borderColor: '#0f766e', borderWidth: 1 }
             },
             scales: {
               x: { grid: { display: false }, ticks: { color: textColor } },
-              y: { grid: { color: gridColor }, ticks: { color: textColor } }
+              y: { beginAtZero: true, grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, precision: 0 } }
             }
           }
         });
       }
 
-      // Artisan Pie
       const pieCtx = document.getElementById('artisanPieChart');
       if (pieCtx) {
         this.charts.pie = new Chart(pieCtx, {
           type: 'doughnut',
           data: {
-            labels: ['Kota Gorontalo','Bone Bolango','Gorontalo Utara','Pohuwato','Boalemo'],
+            labels: {{ location_labels|safe }},
             datasets: [{
-              data: [16, 12, 7, 3, 2],
-              backgroundColor: ['#fc1919','#28A745','#17A2B8','#FFC107','#6C757D'],
+              data: {{ location_counts|safe }},
+              backgroundColor: ['#0f766e','#10b981','#3b82f6','#f59e0b','#8b5cf6'],
               borderWidth: 0,
               hoverOffset: 6,
             }]
           },
           options: {
-            responsive: true, maintainAspectRatio: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeOutQuart' },
+            interaction: { mode: 'index', intersect: false },
             plugins: {
               legend: {
                 position: 'bottom',
                 labels: { color: textColor, padding: 12, font: { size: 12 } }
               },
-              tooltip: {
-                backgroundColor: '#fff',
-                titleColor: '#212529',
-                bodyColor: '#495057',
-                borderColor: '#fc1919',
-                borderWidth: 1,
-              }
+              tooltip: { backgroundColor: '#fff', titleColor: '#0f172a', bodyColor: '#475569', borderColor: '#0f766e', borderWidth: 1 }
             },
-            cutout: '65%',
+            cutout: '68%',
           }
         });
       }
 
-      // Traffic
       const trafficCtx = document.getElementById('trafficChart');
       if (trafficCtx) {
         this.charts.traffic = new Chart(trafficCtx, {
           type: 'bar',
           data: {
-             labels: {{ months|safe }},
+            labels: {{ months|safe }},
             datasets: [
-             {
-        label: 'Allocated Budget (KES)',
-        data: {{ allocated|safe }},
-        backgroundColor: '#3b82f6',
-        borderRadius: 6,
-      },
-        {
-        label: 'Used Budget (KES)',
-        data: {{ used|safe }},
-        backgroundColor: '#10b981',
-        borderRadius: 6,
-      },
+              {
+                label: 'Allocated Budget (KES)',
+                data: {{ allocated|safe }},
+                backgroundColor: '#0f766e',
+                borderRadius: 6,
+                maxBarThickness: 22,
+              },
+              {
+                label: 'Used Budget (KES)',
+                data: {{ used|safe }},
+                backgroundColor: '#10b981',
+                borderRadius: 6,
+                maxBarThickness: 22,
+              }
             ]
           },
           options: {
-    responsive: true,
-    maintainAspectRatio: false,
-  }
-});
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeOutQuart' },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { labels: { color: textColor } },
+              tooltip: { backgroundColor: '#fff', titleColor: '#0f172a', bodyColor: '#475569', borderColor: '#0f766e', borderWidth: 1 }
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 0 } },
+              y: { beginAtZero: true, grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor } }
+            }
+          }
+        });
       }
     },
 

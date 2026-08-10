@@ -1,0 +1,35 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow p-8">
+        <h1 class="text-2xl font-bold text-gray-800">AI Assistant Chat</h1>
+        <p class="mt-2 text-gray-600">Ask about project status, risks, or issue triage. The assistant cannot approve or change records.</p>
+
+        <div class="mt-4 flex flex-wrap gap-2 text-sm">
+            <a href="{% url 'ai_chatbot' %}?new=1" class="rounded border px-3 py-1 text-indigo-700">New chat</a>
+            {% for item in chat_sessions %}
+                <a href="{% url 'ai_chatbot' %}?session_id={{ item.id }}" class="rounded border px-3 py-1 {% if item.id == session.id %}bg-indigo-100{% endif %}">{{ item.title|truncatechars:32 }}</a>
+            {% endfor %}
+        </div>
+
+        <div class="mt-6 space-y-3">
+            {% for item in chat_messages %}
+                <div class="rounded-lg p-4 {% if item.role == 'user' %}bg-gray-100{% else %}bg-indigo-50{% endif %}">
+                    <p class="font-semibold text-sm">{% if item.role == 'user' %}You{% else %}Assistant{% endif %}</p>
+                    <p class="mt-1 text-gray-700 whitespace-pre-wrap">{{ item.content }}</p>
+                </div>
+            {% empty %}
+                <p class="text-gray-500">Start a private conversation about the available project records.</p>
+            {% endfor %}
+        </div>
+
+        <form method="post" class="mt-6 space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="session_id" value="{{ session.id|default_if_none:'' }}">
+            <textarea name="message" rows="4" class="w-full border rounded-lg p-3" placeholder="Ask the assistant..."></textarea>
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Send</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

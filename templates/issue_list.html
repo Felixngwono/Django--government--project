@@ -55,7 +55,7 @@
             {% for issue in issues %}
             <tr class="border text-gray-700">
                 <td class="py-2 px-4 border">{{ issue.title }}</td>
-                <td class="py-2 px-4 border">{{ issue.status }}</td>
+                <td class="py-2 px-4 border">{{ issue.get_status_display }}</td>
                 <td class="py-2 px-4 border">
                     <a href="{% url 'issue_detail' issue.id %}" class="text-blue-500 hover:underline">View</a>
                 </td>

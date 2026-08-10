@@ -41,7 +41,7 @@
 
         <!-- Page Title -->
         <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-3">
-            💬 Comments on: <span class="text-blue-600">{{ project.title }}</span>
+            💬 Comments on: <span class="text-blue-600">{{ project.project_title|default:"this project" }}</span>
         </h1>
 
         <!-- Comments List -->

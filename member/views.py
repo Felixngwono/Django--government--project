@@ -1,6 +1,6 @@
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, GovernmentRequest, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, TenderApplication, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
@@ -13,12 +13,28 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 import django.db.models.functions
 from datetime import datetime, timedelta, timezone
+from django.utils import timezone as django_timezone
+from django.db import transaction
 from django.db.models.functions import TruncMonth
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from openpyxl import Workbook
 from reportlab.platypus import  Spacer
+from .workflow import OFFICER_ROLES, PROJECT_ROLES, audit, notify, role_required
 
+
+def get_participants_for_request(request, limit=None):
+    if request.user.is_superuser:
+        queryset = Participation.objects.all()
+    elif request.user.is_authenticated:
+        queryset = Participation.objects.filter(user=request.user)
+    else:
+        queryset = Participation.objects.none()
+
+    queryset = queryset.order_by('-joined_at')
+    if limit is not None:
+        return queryset[:limit]
+    return queryset
 
 
 def generate_report(request):
@@ -60,6 +76,8 @@ def generate_report(request):
     return render(request, 'generate_pdf.html', context)
 
 def export_report_pdf(request):
+    if pdfkit is None:
+        return HttpResponse('PDF export is unavailable. Install pdfkit and wkhtmltopdf.', status=503)
     template = get_template('generate_pdf.html')
     context = generate_report(request).context_data
     html = template.render(context)
@@ -72,13 +90,7 @@ def export_report_pdf(request):
 
 @login_required(login_url='login')
 def AboutUs(request):
-    
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:5]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-  
-    
+    participants = get_participants_for_request(request, limit=5)
     return render(request, 'about_us.html', context={'participants': participants})
 
 
@@ -91,11 +103,8 @@ def Home(request):
 @login_required(login_url='login')
 def Participation_details(request,pk):
     participation=get_object_or_404(Participation,id=pk)
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:5]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-        
+    participants = get_participants_for_request(request, limit=5)
+    
     form=participationForm(instance=participation)
     if request.method=='POST':
         form=participationForm(request.POST, instance=participation)
@@ -140,6 +149,7 @@ def Notifications(request):
 
     return render(request, "notifications.html", context)
 
+@login_required(login_url='login')
 def dashboard(request):
     ongoingcount=Project.objects.filter(project_status='ongoing').count()
     upcomingcount=Project.objects.filter(project_status='upcoming').count()
@@ -150,86 +160,113 @@ def dashboard(request):
     users=User.objects.all().count()
     people=User.objects.all()
     agencies=Project_Division.objects.all().count()
-    projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
-    pro=Project.objects.all().order_by('-start_date')[:5]
-     # Initialize month list
-    project_counts = [0] * 12  # Jan to Dec
-# Aggregate budget per month
-    data = (
+    projects = Project.objects.values('project_status').annotate(total=Count('id')).order_by('-total')
+    projects_by_location = (
+        Project.objects.exclude(project_location__isnull=True)
+        .exclude(project_location='')
+        .values('project_location')
+        .annotate(total=Count('id'))
+        .order_by('-total')[:5]
+    )
+    pro = Project.objects.all().order_by('-start_date')[:5]
+
+    # Aggregate project counts by status for the chart
+    status_labels = [choice[1] for choice in Project.STATUS_CHOICES]
+    status_counts = [0] * len(status_labels)
+    status_lookup = {choice[0]: choice[1] for choice in Project.STATUS_CHOICES}
+    for item in projects:
+        status_key = item['project_status']
+        if status_key in status_lookup:
+            status_counts[list(status_lookup.keys()).index(status_key)] = item['total']
+
+    # Aggregate budget per month using actual project records
+    months = []
+    month_labels = []
+    allocated = [0] * 12
+    used = [0] * 12
+    today = datetime.today()
+    month_date = today.replace(day=1)
+    for _ in range(12):
+        months.append((month_date.year, month_date.month))
+        month_labels.append(month_date.strftime('%b %Y'))
+        month_date = (
+            month_date.replace(year=month_date.year - 1, month=12)
+            if month_date.month == 1
+            else month_date.replace(month=month_date.month - 1)
+        )
+    months.reverse()
+    month_labels.reverse()
+
+    monthly_projects = (
         Project.objects
-        .annotate(month=django.db.models.functions.ExtractMonth('start_date'))
+        .filter(start_date__isnull=False, start_date__gte=today.replace(day=1) - timedelta(days=365))
+        .annotate(month=TruncMonth('start_date'))
         .values('month')
         .annotate(
-            total_budget=Sum('budget'),
+            total_budget=Sum('project_Budgeting'),
             used_budget=Sum('amount_spent')
         )
         .order_by('month')
     )
 
-    # Prepare arrays for all 12 months
-    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-    allocated = [0]*12
-    used = [0]*12
+    monthly_map = {(item['month'].year, item['month'].month): {'allocated': item['total_budget'] or 0, 'used': item['used_budget'] or 0} for item in monthly_projects}
+    for idx, month_key in enumerate(months):
+        month_data = monthly_map.get(month_key, {'allocated': 0, 'used': 0})
+        allocated[idx] = month_data['allocated']
+        used[idx] = month_data['used']
 
-     # Prepare last 12 months
-    today = datetime.today()
-    months = []
-    month_labels = []
-    for i in range(11, -1, -1):  # 11 → 0
-        month_date = today - timedelta(days=i*30)  # approximate month
-        months.append(month_date.month)
-        month_labels.append(month_date.strftime('%b'))
+    # Count projects started during the last twelve months for the dashboard line chart.
+    project_months = (
+        Project.objects.filter(start_date__isnull=False, start_date__gte=(today - timedelta(days=365)).date())
+        .annotate(month=TruncMonth('start_date'))
+        .values('month')
+        .annotate(count=Count('id'))
+    )
+    project_counts_by_month = {item['month'].month: item['count'] for item in project_months}
+    project_counts = [project_counts_by_month.get(month, 0) for month in months]
 
-    # Count users per month
-    users_by_month = User.objects.filter(
-        date_joined__year__gte=today.year-1
-    ).annotate(
-        month=TruncMonth('date_joined')
-    ).values('month').annotate(count=Count('id'))
+    participants = get_participants_for_request(request, limit=5)
+    attention_projects = Project.objects.filter(
+        Q(project_status__in=['delayed', 'suspended']) |
+        Q(end_date__lt=today.date(), project_status__in=['ongoing', 'upcoming'])
+    ).order_by('end_date')[:4]
+    open_issues = ReportIssue.objects.exclude(status__in=['resolved', 'dismissed'])
+    recent_issues = open_issues.select_related('project').order_by('-created_at')[:4]
+    recent_projects = Project.objects.order_by('-created_at')[:4]
 
-    # Build data array for Chart.js
-    data = []
-    users_dict = {x['month'].month: x['count'] for x in users_by_month}
-    for m in months:
-        data.append(users_dict.get(m, 0))
-
-
-    
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:5]
-    else:
-        participants = Participation.objects.filter(user=request.user).order_by('-joined_at')[:5]
-  
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
              'completedcount':completedcount,
              'delayedcount':delayedcount,
-            'stalledcount':stalledcount,
+             'stalledcount':stalledcount,
              'allproject':allproject,
              'users':users,
              'project':projects,
              'agencies':agencies,
              'projects':projects,
+             'location_labels': [item['project_location'] for item in projects_by_location],
+             'location_counts': [item['total'] for item in projects_by_location],
              'people':people,
              'participants':participants,
-             'projects_per_month': project_counts,
-             'months': months,
+             'projects_per_month': status_counts,
+             'months': month_labels,
              'allocated': allocated,
              'used': used,
              'month_labels': month_labels,
-              'user_counts': data,
-                'pro':pro
+             'project_counts': project_counts,
+             'attention_projects': attention_projects,
+             'open_issues_count': open_issues.count(),
+             'recent_issues': recent_issues,
+             'recent_projects': recent_projects,
+             'project_status_labels': status_labels,
+             'pro':pro
              }
     return render(request, 'dashboard.html',context)
 
 @login_required(login_url='login')
 def ContactusPage(request):
-    
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:4]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-  
+    participants = get_participants_for_request(request, limit=4)
+
     form = ContactUsForm()
     
     if request.method == 'POST':
@@ -244,29 +281,41 @@ def ContactusPage(request):
 
 @login_required(login_url='login')
 def Testimonials(request):
-    testimonials= Testimonial.objects.all()
+    query = request.GET.get('q', '').strip()
+    selected_project = request.GET.get('project', '')
+    selected_rating = request.GET.get('rating', '')
+    testimonials = Testimonial.objects.select_related('project', 'user')
+    if not request.user.is_superuser:
+        testimonials = testimonials.filter(is_approved=True)
+    if query:
+        testimonials = testimonials.filter(Q(name__icontains=query) | Q(content__icontains=query) | Q(project__project_title__icontains=query))
+    if selected_project:
+        testimonials = testimonials.filter(project_id=selected_project)
+    if selected_rating in {'1', '2', '3', '4', '5'}:
+        testimonials = testimonials.filter(rating=int(selected_rating))
     
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:4]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-  
-    
+    participants = get_participants_for_request(request, limit=4)
+
     context={
         'testimonials':testimonials,
-        'participants': participants
+        'participants': participants,
+        'projects': Project.objects.order_by('project_title'),
+        'selected_project': selected_project,
+        'selected_rating': selected_rating,
+        'query': query,
+        'pending_count': Testimonial.objects.filter(is_approved=False).count() if request.user.is_superuser else 0,
     }
     return render(request,'testimonials.html',context)
 
 @login_required(login_url='login')
 def testimonial_details(request,pk):
     testimonial=get_object_or_404(Testimonial,id=pk)
+    if not testimonial.is_approved and not (request.user.is_superuser or testimonial.user_id == request.user.id):
+        messages.error(request, 'This testimonial is awaiting moderation.')
+        return redirect('testimonials')
     
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:5]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-  
+    participants = get_participants_for_request(request, limit=5)
+
     context={'testimonial':testimonial, 'participants': participants}
     return render(request,'testimonial_details.html',context)
 
@@ -277,58 +326,118 @@ def add_testimonial(request):
     if request.method=='POST':
         form=TestimonialForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            testimonial = form.save(commit=False)
+            testimonial.user = request.user
+            if not testimonial.name:
+                testimonial.name = request.user.get_full_name() or request.user.username
+            testimonial.is_approved = request.user.is_superuser
+            testimonial.save()
+            messages.success(request, 'Your testimonial has been submitted for review.' if not testimonial.is_approved else 'Testimonial published.')
             return redirect('testimonials')
     context={'form':form}
     return render(request,'add_testimonial.html',context)
 
 @login_required(login_url='login')
 def delete_testimonial(request, pk):
-    testimonial= Testimonial.objects.get(id=pk)
+    testimonial = get_object_or_404(Testimonial, id=pk)
+    if not (request.user.is_superuser or testimonial.user_id == request.user.id):
+        messages.error(request, 'You do not have permission to delete this testimonial.')
+        return redirect('testimonials')
     if request.method== 'POST':
         testimonial.delete()
         return redirect ('testimonials')
-    return render(request, 'delete_testimonial.html')
+    return render(request, 'testimonial_delete.html', {'testimonial': testimonial})
 
 @login_required(login_url='login')
 def update_testimonial(request, pk):
-    testimonial=Testimonial.objects.get(id= pk)
+    testimonial=get_object_or_404(Testimonial, id=pk)
+    if not (request.user.is_superuser or testimonial.user_id == request.user.id):
+        messages.error(request, 'You do not have permission to update this testimonial.')
+        return redirect('testimonials')
     form= TestimonialForm(instance=testimonial)
     if request.method=='POST':
         form= TestimonialForm(request.POST,request.FILES,instance=testimonial)
         if form.is_valid():
-            form.save()
+            updated = form.save(commit=False)
+            if not request.user.is_superuser:
+                updated.is_approved = False
+                updated.is_featured = False
+            updated.save()
+            messages.success(request, 'Testimonial updated and sent for review.' if not request.user.is_superuser else 'Testimonial updated.')
             return redirect('testimonials')
-    context={'form':form}
+    context={'form':form, 'testimonial': testimonial}
     return render(request,'add_testimonial.html', context)
 
 @login_required(login_url='login')
-def adminview(request):
-    feedbacks=Feedback.objects.all()
-    impacts=ProgramImpact.objects.all()
-    updates=ProgressUpdate.objects.all()
-    budgetings=Budget.objects.all()
-    comments=Comment.objects.all()
-    risks=ProjectRisk.objects.all()
-    stakeholder=Stakeholder.objects.all()
-    reportedissues=ReportIssue.objects.all()
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:5]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-  
+def moderate_testimonial(request, pk):
+    if not request.user.is_superuser or request.method != 'POST':
+        return redirect('testimonials')
+    testimonial = get_object_or_404(Testimonial, id=pk)
+    action = request.POST.get('action')
+    testimonial.is_approved = action == 'approve'
+    testimonial.is_featured = request.POST.get('featured') == 'on' and testimonial.is_approved
+    testimonial.moderation_note = request.POST.get('moderation_note', '').strip()
+    testimonial.save(update_fields=['is_approved', 'is_featured', 'moderation_note', 'updated_at'])
+    messages.success(request, 'Testimonial approved.' if testimonial.is_approved else 'Testimonial returned to pending review.')
+    return redirect('testimonial_details', pk=pk)
 
-    context={'feedbacks':feedbacks,
-             'impacts':impacts,
-             'updates':updates,
-             'budgetings':budgetings,
-             'comments':comments,
-             'risks':risks,
-             'stakeholder':stakeholder,
-             'reportedissues':reportedissues,
-             'participants':participants
-             }
-    return render(request,'adminview.html',context)
+@login_required(login_url='login')
+def adminview(request):
+    feedbacks = Feedback.objects.order_by('-created_at')[:10]
+    impacts = ProgramImpact.objects.order_by('-id')[:10]
+    updates = ProgressUpdate.objects.select_related('project', 'stage', 'reported_by').order_by('-date_reported')[:10]
+    budgetings = Budget.objects.select_related('project').order_by('-last_updated')[:10]
+    comments = Comment.objects.select_related('project', 'user').order_by('-created_at')[:10]
+    risks = ProjectRisk.objects.select_related('project', 'owner').order_by('-created_at')[:10]
+    stakeholder = Stakeholder.objects.select_related('project').order_by('-id')[:10]
+    reportedissues = ReportIssue.objects.select_related('project', 'user').order_by('-created_at')[:10]
+    recent_projects = Project.objects.order_by('-created_at')[:8]
+    participants = get_participants_for_request(request, limit=5)
+
+    project_stats = {
+        'total': Project.objects.count(),
+        'ongoing': Project.objects.filter(project_status='ongoing').count(),
+        'upcoming': Project.objects.filter(project_status='upcoming').count(),
+        'completed': Project.objects.filter(project_status='completed').count(),
+        'delayed': Project.objects.filter(project_status='delayed').count(),
+    }
+
+    budget_rows = list(budgetings[:6])
+    project_status_labels = ['Ongoing', 'Upcoming', 'Completed', 'Delayed']
+    project_status_counts = [
+        project_stats['ongoing'],
+        project_stats['upcoming'],
+        project_stats['completed'],
+        project_stats['delayed'],
+    ]
+    budget_labels = [
+        budget.project.project_title if budget.project else 'Unassigned budget'
+        for budget in budget_rows
+    ]
+    budget_allocated = [float(budget.allocated_amount or 0) for budget in budget_rows]
+    budget_spent = [float(budget.spent_amount or 0) for budget in budget_rows]
+
+    context = {
+        'feedbacks': feedbacks,
+        'impacts': impacts,
+        'updates': updates,
+        'budgetings': budgetings,
+        'comments': comments,
+        'risks': risks,
+        'stakeholder': stakeholder,
+        'reportedissues': reportedissues,
+        'recent_projects': recent_projects,
+        'project_stats': project_stats,
+        'participants': participants,
+        'project_status_labels': project_status_labels,
+        'project_status_counts': project_status_counts,
+        'budget_labels': budget_labels,
+        'budget_allocated': budget_allocated,
+        'budget_spent': budget_spent,
+        'total_budget_allocated': sum(budget_allocated),
+        'total_budget_spent': sum(budget_spent),
+    }
+    return render(request, 'adminview.html', context)
 
 @login_required(login_url='login')
 def feedback_details(request,pk):
@@ -350,10 +459,19 @@ def notifications(request):
     return render(request, 'notifications.html')
 
 def welcomingpage(request):
-    comment=Comment.objects.all()
-    projects = Project.objects.all()[:6]
-    testimonials=Testimonial.objects.all()[:5]
-    return render(request, 'welcoming page.html', context={'projects': projects,'comment':comment,'testimonials':testimonials})
+    comment = Comment.objects.all()[:5]
+    projects = (
+        Project.objects
+        .filter(is_public=True)
+        .only('project_title', 'project_description', 'images', 'project_status')
+        .order_by('-created_at')[:6]
+    )
+    testimonials = Testimonial.objects.filter(is_approved=True).only('name', 'content', 'image', 'rating', 'is_featured').order_by('-is_featured', '-created_at')[:5]
+    return render(
+        request,
+        'welcoming page.html',
+        context={'projects': projects, 'comment': comment, 'testimonials': testimonials},
+    )
 
 def loginpage(request):
     next_url = request.GET.get('next') or request.POST.get('next')
@@ -385,17 +503,15 @@ def logoutuser(request):
     return redirect('login') 
 
 def registrationpage(request):
-    form =MyUserCreationForm()
+    form = MyUserCreationForm()
     if request.method == 'POST':
-        form = MyUserCreationForm(request.POST,request.FILES)
+        form = MyUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
-                user = form.save(commit=False)
-                user.email = user.email
-                user.save()
-                messages.info(request,'Registration successful, login to continue to main page')
-                return redirect('login')
-        else:
-            messages.warning(request,'An error occured during registration')
+            user = form.save(commit=False)
+            user.save()
+            messages.success(request, 'Account created successfully. Please sign in to continue.')
+            return redirect('login')
+        messages.warning(request, 'Please correct the highlighted fields and try again.')
 
     return render(request, 'register.html', {'form': form})
 
@@ -770,7 +886,7 @@ def OngoingStatuses(request, pk):
 
     projects = Project.objects.filter(project_status='ongoing', id=pk)
 
-    Participants = Participation.objects.filter(user=request.user)
+    Participants = get_participants_for_request(request, limit=5)
     form = participationForm()
 
     if request.method == 'POST':
@@ -1032,7 +1148,7 @@ def upload_tender(request, project_id):
 
 @login_required(login_url='login')
 def issue_list(request):
-    issues = ReportIssue.objects.all()
+    issues = ReportIssue.objects.all() if (request.user.is_superuser or request.user.role in OFFICER_ROLES) else ReportIssue.objects.filter(user=request.user)
     return render(request, 'issue_list.html', {'issues': issues})
 
 @login_required(login_url='login')
@@ -1041,7 +1157,12 @@ def add_report_issue(request):
     if request.method == "POST":
         form = ReportIssueForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            issue = form.save(commit=False)
+            issue.user = request.user
+            issue.save()
+            audit(request, 'issue_reported', issue, project=issue.project)
+            if issue.project.created_by:
+                notify(issue.project.created_by, 'issue', 'New project issue', issue.title, f'/issues/{issue.id}/')
             return redirect('issue_list')
     
     return render(request, 'report_issue.html', {'form': form})
@@ -1071,8 +1192,16 @@ def tender_detail(request, tender_id):
     
     return render(request, 'tender_detail.html', {'tender': tender})
 
+@login_required(login_url='login')
+@role_required('contractor')
 def apply_tender(request, pk):
     tender = get_object_or_404(Tender, id=pk)
+    if tender.status != 'published' or (tender.closing_date and tender.closing_date < django_timezone.localdate()):
+        messages.error(request, 'This tender is not open for applications.')
+        return redirect('tender_detail', tender_id=tender.id)
+    if TenderApplication.objects.filter(tender=tender, applicant=request.user).exists():
+        messages.error(request, 'You have already submitted an application for this tender.')
+        return redirect('my_bids')
     form = TenderApplicationForm(request.POST or None, request.FILES or None)
 
     if form.is_valid():
@@ -1080,6 +1209,8 @@ def apply_tender(request, pk):
         application.tender = tender
         application.applicant = request.user
         application.save()
+        audit(request, 'tender_application_submitted', application, project=tender.project)
+        notify(tender.created_by, 'tender', 'New tender application', f'{application.company_name} applied for {tender.reference_number}.', f'/tenders/{tender.id}/')
         messages.success(request, "Your application has been submitted.")
         return redirect('tender_list')
 
@@ -1107,9 +1238,14 @@ def calculate_financial_scores(tender):
         app.save()
         
 @login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def evaluate_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     applications = tender.applications.all()
+
+    if tender.status not in ('closed', 'evaluating'):
+        messages.error(request, 'Only closed tenders can be evaluated.')
+        return redirect('tender_detail', tender_id=tender.id)
 
     if request.method == "POST":
         for app in applications:
@@ -1120,6 +1256,9 @@ def evaluate_tender(request, tender_id):
 
         # 🔥 Auto calculate financial + total
         calculate_financial_scores(tender)
+        tender.status = 'evaluating'
+        tender.save(update_fields=['status'])
+        audit(request, 'tender_evaluated', tender, project=tender.project)
 
         return redirect('evaluate_tender', tender_id=tender.id)
 
@@ -1128,16 +1267,33 @@ def evaluate_tender(request, tender_id):
         'applications': applications
     })
     
-def award_tender(tender):
-    best = tender.applications.order_by('-total_score').first()
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
+def award_tender(request, tender_id):
+    tender = get_object_or_404(Tender, id=tender_id)
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Tender awards must be submitted with POST.')
+    if tender.status != 'evaluating':
+        messages.error(request, 'Evaluate this tender before awarding it.')
+        return redirect('tender_detail', tender_id=tender.id)
 
-    if best:
-        best.status = 'awarded'
-        best.save()
-
-        tender.contractor = best.applicant
+    with transaction.atomic():
+        winner = tender.applications.order_by('-total_score', 'submitted_at').first()
+        if not winner:
+            messages.error(request, 'This tender has no applications to award.')
+            return redirect('tender_detail', tender_id=tender.id)
+        tender.applications.exclude(pk=winner.pk).update(status='rejected')
+        winner.status = 'awarded'
+        winner.save(update_fields=['status'])
         tender.status = 'awarded'
-        tender.save()
+        tender.award_date = django_timezone.localdate()
+        tender.award_amount = winner.bid_amount
+        tender.save(update_fields=['status', 'award_date', 'award_amount'])
+
+    audit(request, 'tender_awarded', tender, project=tender.project, changes={'application_id': winner.id})
+    notify(winner.applicant, 'tender', 'Tender awarded', f'Your bid for {tender.reference_number} was awarded.', '/my-bids/')
+    messages.success(request, 'Tender awarded and all other applicants were notified of the outcome.')
+    return redirect('tender_detail', tender_id=tender.id)
 
 # Add a new tender
 @login_required(login_url='login')
@@ -1299,16 +1455,21 @@ def sms_dashboard(request):
     return render(request, 'sms/intergration.html')
 
 
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def send_sms_report(request):
     if request.method == "POST":
         phone = request.POST.get('phone')
         message = request.POST.get('message')
-
-        # TODO: Integrate SMS API here
-        print(phone, message)
-
-        messages.success(request, "SMS sent successfully!")
+        if not phone or not message:
+            messages.error(request, 'Phone number and message are required.')
+            return redirect('sms_dashboard')
+        # An external delivery provider is intentionally not faked. Keep a traceable
+        # in-platform notification until a configured SMS gateway is connected.
+        audit(request, 'sms_queued', request.user, changes={'phone': phone, 'message': message})
+        messages.info(request, 'Message recorded. Configure an SMS gateway before claiming delivery.')
         return redirect('sms_dashboard')
+    return redirect('sms_dashboard')
 
 
 def check_project_status(request):
@@ -1321,20 +1482,25 @@ def check_project_status(request):
     }
     return render(request, 'sms/status.html', context)
 
+@login_required(login_url='login')
 def regional_analysis(request):
-    regions = ["Nairobi", "Kisumu", "Siaya", "Mombasa"]
+    regions = list(Project.objects.exclude(project_location__isnull=True).exclude(project_location='').values_list('project_location', flat=True).distinct().order_by('project_location'))
 
     region1 = request.GET.get('region1')
     region2 = request.GET.get('region2')
 
     def get_data(region):
-        # Replace with real DB queries
+        projects = Project.objects.filter(project_location=region)
+        total = projects.count()
+        completed = projects.filter(project_status='completed').count()
+        ongoing = projects.filter(project_status='ongoing').count()
+        delayed = projects.filter(project_status='delayed').count()
         return {
-            "total": 50,
-            "completed": 20,
-            "ongoing": 20,
-            "delayed": 10,
-            "completion_rate": 40
+            "total": total,
+            "completed": completed,
+            "ongoing": ongoing,
+            "delayed": delayed,
+            "completion_rate": round((completed / total) * 100, 1) if total else 0,
         }
 
     context = {
@@ -1352,7 +1518,7 @@ def generate_announcements():
     projects = Project.objects.all()
 
     # 1. Delayed Projects
-    delayed = projects.filter(status='delayed')
+    delayed = projects.filter(project_status='delayed')
     if delayed.count() > 0:
         Announcement.objects.create(
             title="Delayed Projects Alert",
@@ -1361,7 +1527,7 @@ def generate_announcements():
         )
 
     # 2. Completed Projects
-    completed = projects.filter(status='completed')
+    completed = projects.filter(project_status='completed')
     if completed.count() > 0:
         Announcement.objects.create(
             title="Project Completion Update",
@@ -1371,10 +1537,10 @@ def generate_announcements():
 
     # 3. Budget Anomalies
     for p in projects:
-        if p.actual_budget and p.estimated_budget:
-            if p.actual_budget > p.estimated_budget * 1.5:
+        if p.amount_spent and p.project_Budgeting:
+            if p.amount_spent > p.project_Budgeting * 1.5:
                 Announcement.objects.create(
-                    title=f"Budget Overrun: {p.name}",
+                    title=f"Budget Overrun: {p.project_title}",
                     message="Project exceeded budget by more than 50%.",
                     level="critical"
                 )
@@ -1385,7 +1551,7 @@ def generate_announcements():
             days = (timezone.now() - p.updated_at).days
             if days > 30:
                 Announcement.objects.create(
-                    title=f"Stalled Project: {p.name}",
+                    title=f"Stalled Project: {p.project_title}",
                     message=f"No updates for {days} days.",
                     level="warning"
                 )
@@ -1399,6 +1565,7 @@ def announcements(request):
     })
     
    
+@login_required(login_url='login')
 def citizen_portal(request):
     submissions = CitizenSubmission.objects.filter(user=request.user).order_by('-created_at')
     proje=Project.objects.all()
@@ -1408,6 +1575,7 @@ def citizen_portal(request):
         'proje': proje
     })
 
+@login_required(login_url='login')
 def submit_issue(request):
     if request.method == "POST":
 
@@ -1430,6 +1598,8 @@ def submit_issue(request):
     
 
 
+@login_required(login_url='login')
+@role_required('contractor')
 def contractor_dashboard(request):
     con=Project.objects.all()
     contractors = Contractor.objects.all().order_by('-created_at')
@@ -1452,20 +1622,29 @@ def contractor_dashboard(request):
         'form': form
     })
  
+@login_required(login_url='login')
+@role_required('contractor')
 def submit_stage_report(request):
     projects = Project.objects.all()
     stages = ProjectStage.objects.all()
     contractors = Contractor.objects.all()
 
     if request.method == "POST":
-        StageReport.objects.create(
-            project_id=request.POST.get('project'),
-            stage_id=request.POST.get('stage'),
-            contractor_id=request.POST.get('contractor'),
-            description=request.POST.get('description'),
-            progress_percentage=request.POST.get('progress'),
-            location=request.POST.get('location')
-        )
+        try:
+            report = StageReport(
+                project_id=request.POST.get('project'), stage_id=request.POST.get('stage'),
+                contractor_id=request.POST.get('contractor') or None, reported_by=request.user,
+                description=request.POST.get('description'), progress_percentage=request.POST.get('progress'),
+                location=request.POST.get('location'), photo=request.FILES.get('photo'),
+            )
+            report.full_clean()
+            report.save()
+            report.stage.progress_percentage = report.progress_percentage
+            report.stage.save(update_fields=['progress_percentage'])
+            audit(request, 'stage_report_submitted', report, project=report.project)
+        except (ValueError, ValidationError) as error:
+            messages.error(request, f'Unable to submit report: {error}')
+            return redirect('submit_stage_report')
         return redirect('contractor_dashboard')
 
     return render(request, 'contractors/report_form.html', {
@@ -1552,11 +1731,15 @@ def track_application(request):
 
 @login_required
 def my_documents(request):
-    applications = TenderApplication.objects.filter(applicant=request.user)
-    return render(request, 'My_doc/my_documents.html', {
-        'applications': applications
-    })
-    
+    applications = (TenderApplication.objects.filter(applicant=request.user) .select_related("tender", "tender__project").order_by("-submitted_at") )
+
+    return render(request,"My_doc/my_documents.html",context = {
+    "applications": applications,
+    "review_count": applications.filter(status="under_review").count(),
+    "awarded_count": applications.filter(status="awarded").count(),
+    "rejected_count": applications.filter(status="rejected").count(),
+})
+
 @login_required
 def my_bids(request):
     applications = TenderApplication.objects.filter(applicant=request.user).select_related('tender')
@@ -1726,6 +1909,8 @@ def export_pdf(request):
 
 
 def export_excel(request):
+    if Workbook is None:
+        return HttpResponse('Excel export is unavailable. Install openpyxl.', status=503)
     wb = Workbook()
     ws = wb.active
     ws.title = "Report"

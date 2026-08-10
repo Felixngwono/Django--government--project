@@ -37,108 +37,327 @@
 </div>
 
 
-<div class='proj_container'>
-    <div>
-    <div>
-        <h1 class="text-center text-4xl font-extrabold text-gray-800 mb-8">Admin Dashboard</h1>
-        <p class="text-center text-lg text-gray-600 mb-12">Welcome to the admin dashboard! Here you can manage feedback, reported issues, and comments.</p>
-    </div>
-    <!-- feedback Information Section -->
-    <div>
-        <h2 class="text-center text-3xl font-extrabold text-orange-800  mb-6">📞 Feedback Information</h2>
-        <div class="overflow-x-auto bg-white bg-gray-800 rounded-lg shadow-lg">
-            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
-                    <tr>
-                        <th class="px-6 py-4">Name</th>
-                        <th class="px-6 py-4">Email</th>
-                        <th class="px-6 py-4 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for feedback in feedbacks %}
-                        <tr class="border-b dark:border-yellow-700 hover:bg-gray-50 dark:hover:bg-oranhe-700 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ feedback.full_name }}</td>
-                            <td class="px-6 py-4">{{ feedback.email }}</td>
-                            <td class="px-6 py-4 flex justify-center">
-                                <a href="{% url "feedback_details" feedback.pk %}"
-                                   class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition">
-                                   View Details
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-<br>
-<br>
-    <!-- Events Information Section -->
-    <div>
-        <h2 class="text-center text-3xl font-extrabold text-blue-800  mb-6">🎉 Reported Issues </h2>
-        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
-                    <tr>
-                        <th class="px-6 py-4">Title</th>
-                        <th class="px-6 py-4">Project</th>
-                        <th class="px-6 py-4 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for z in reportedissues %}
-                        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ z.title }}</td>
-                            <td class="px-6 py-4">{{ z.project }}</td>
-                            <td class="px-6 py-4 flex justify-center">
-                                <a href=""
-                                   class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg transition">
-                                   View Details
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="proj_container space-y-8 px-2 pb-8">
+    <div class="rounded-3xl bg-gradient-to-r from-red-700 via-red-600 to-orange-500 p-8 text-white shadow-xl">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-red-100">Executive oversight</p>
+                <h1 class="text-3xl font-extrabold">Admin Dashboard</h1>
+                <p class="mt-2 max-w-2xl text-sm text-red-50">Monitor portfolio health, public feedback, operational risk, and budget performance from one place.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a href="{% url 'createproject' %}" class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow">Create project</a>
+                <a href="{% url 'add_budget' %}" class="rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white">Add budget</a>
+                <a href="{% url 'add_report_issue' %}" class="rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white">Log issue</a>
+            </div>
         </div>
     </div>
 
-    <!-- Job Applicants Section -->
-    <div>
-        <h2 class="text-center text-3xl font-extrabold text-green-800 text-white mb-6">👷 Comment Section </h2>
-        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
-                    <tr>
-                        <th class="px-6 py-4">name</th>
-                        <th class="px-6 py-4">Project</th>
-                        <th class="px-6 py-4">User</th>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+        <div class="rounded-2xl bg-white p-6 shadow">
+            <div class="text-sm uppercase tracking-wide text-gray-500">Total projects</div>
+            <div class="mt-2 text-3xl font-bold text-gray-900">{{ project_stats.total }}</div>
+            <div class="mt-2 text-sm text-gray-500">{{ project_stats.ongoing }} ongoing • {{ project_stats.completed }} completed</div>
+        </div>
+        <div class="rounded-2xl bg-white p-6 shadow">
+            <div class="text-sm uppercase tracking-wide text-gray-500">Upcoming</div>
+            <div class="mt-2 text-3xl font-bold text-blue-600">{{ project_stats.upcoming }}</div>
+            <div class="mt-2 text-sm text-gray-500">Planned interventions</div>
+        </div>
+        <div class="rounded-2xl bg-white p-6 shadow">
+            <div class="text-sm uppercase tracking-wide text-gray-500">Delayed</div>
+            <div class="mt-2 text-3xl font-bold text-amber-600">{{ project_stats.delayed }}</div>
+            <div class="mt-2 text-sm text-gray-500">Require intervention</div>
+        </div>
+        <div class="rounded-2xl bg-white p-6 shadow">
+            <div class="text-sm uppercase tracking-wide text-gray-500">Feedback</div>
+            <div class="mt-2 text-3xl font-bold text-green-600">{{ feedbacks|length }}</div>
+            <div class="mt-2 text-sm text-gray-500">New citizen input</div>
+        </div>
+        <div class="rounded-2xl bg-white p-6 shadow">
+            <div class="text-sm uppercase tracking-wide text-gray-500">Issues</div>
+            <div class="mt-2 text-3xl font-bold text-red-600">{{ reportedissues|length }}</div>
+            <div class="mt-2 text-sm text-gray-500">Open and pending cases</div>
+        </div>
+    </div>
 
-                        <th class="px-6 py-4 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for job in comments %}
-                        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ job.name }}</td>
-                            <td class="px-6 py-4">{{ job.project }}</td>
-                            <td class="px-6 py-4">{{ job.user }}</td>
-                            <td class="px-6 py-4 flex justify-center">
-                                <a href="{% url "comment" job.pk %}"
-                                   class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition">
-                                   View Details
-                                </a>
-                            </td>
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="rounded-2xl bg-white p-6 shadow">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Project status overview</h2>
+                    <p class="text-sm text-gray-500">Current portfolio health by stage</p>
+                </div>
+            </div>
+            <div class="h-72">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow">
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Budget performance</h2>
+                    <p class="text-sm text-gray-500">Allocated vs spent across active budgets</p>
+                </div>
+                <div class="text-right text-sm text-gray-500">
+                    <div class="font-semibold text-gray-800">KES {{ total_budget_allocated }}</div>
+                    <div>allocated</div>
+                </div>
+            </div>
+            <div class="h-72">
+                <canvas id="budgetChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="rounded-2xl bg-white shadow overflow-hidden">
+            <div class="border-b px-6 py-4">
+                <h2 class="text-xl font-bold text-gray-800">Recent projects</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                        <tr>
+                            <th class="px-6 py-4">Project</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Manager</th>
+                            <th class="px-6 py-4">Created</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for project in recent_projects %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ project.project_title }}</td>
+                            <td class="px-6 py-4">{{ project.get_project_status_display }}</td>
+                            <td class="px-6 py-4">{{ project.project_manager|default:'Not assigned' }}</td>
+                            <td class="px-6 py-4">{{ project.created_at|date:'Y-m-d' }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td class="px-6 py-4 text-gray-500" colspan="4">No projects yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        <div class="rounded-2xl bg-white shadow overflow-hidden">
+            <div class="border-b px-6 py-4">
+                <h2 class="text-xl font-bold text-gray-800">Reported issues</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                        <tr><th class="px-6 py-4">Title</th><th class="px-6 py-4">Project</th><th class="px-6 py-4">Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in reportedissues %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ issue.title }}</td>
+                            <td class="px-6 py-4">{{ issue.project.project_title }}</td>
+                            <td class="px-6 py-4">{{ issue.get_status_display }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No issues reported yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
- 
+    </div>
 
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="rounded-2xl bg-white shadow overflow-hidden">
+            <div class="border-b px-6 py-4">
+                <h2 class="text-xl font-bold text-gray-800">Latest feedback</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                        <tr><th class="px-6 py-4">Name</th><th class="px-6 py-4">Message</th><th class="px-6 py-4">Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for feedback in feedbacks %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ feedback.full_name }}</td>
+                            <td class="px-6 py-4">{{ feedback.feedback|truncatewords:12 }}</td>
+                            <td class="px-6 py-4"><a href="{% url 'feedback_details' feedback.pk %}" class="font-semibold text-green-600">View</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No feedback submitted yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
+        <div class="rounded-2xl bg-white shadow overflow-hidden">
+            <div class="border-b px-6 py-4">
+                <h2 class="text-xl font-bold text-gray-800">Recent activity</h2>
+            </div>
+            <div class="divide-y">
+                {% for update in updates %}
+                <div class="px-6 py-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="font-semibold text-gray-900">{{ update.project.project_title }}</div>
+                            <div class="text-sm text-gray-500">{{ update.description|truncatewords:12 }}</div>
+                        </div>
+                        <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{{ update.progress_percentage }}%</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="px-6 py-4 text-sm text-gray-500">No progress updates available.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="rounded-2xl bg-white shadow overflow-hidden">
+            <div class="border-b px-6 py-4">
+                <h2 class="text-xl font-bold text-gray-800">Budget overview</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                        <tr><th class="px-6 py-4">Project</th><th class="px-6 py-4">Allocated</th><th class="px-6 py-4">Spent</th><th class="px-6 py-4">Utilization</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for budget in budgetings %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ budget.project.project_title }}</td>
+                            <td class="px-6 py-4">KES {{ budget.allocated_amount }}</td>
+                            <td class="px-6 py-4">KES {{ budget.spent_amount }}</td>
+                            <td class="px-6 py-4">{{ budget.utilization_rate }}%</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td class="px-6 py-4 text-gray-500" colspan="4">No budget records found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="rounded-2xl bg-white shadow overflow-hidden">
+            <div class="border-b px-6 py-4">
+                <h2 class="text-xl font-bold text-gray-800">Risks & stakeholders</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                        <tr><th class="px-6 py-4">Type</th><th class="px-6 py-4">Details</th><th class="px-6 py-4">Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for risk in risks %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">Risk</td>
+                            <td class="px-6 py-4">{{ risk.risk_description|truncatewords:8 }}</td>
+                            <td class="px-6 py-4">{{ risk.get_status_display }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No risks recorded.</td></tr>
+                        {% endfor %}
+                        {% for person in stakeholder %}
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">Stakeholder</td>
+                            <td class="px-6 py-4">{{ person.name }} — {{ person.role_in_program }}</td>
+                            <td class="px-6 py-4">{{ person.organization|default:'N/A' }}</td>
+                        </tr>
+                        {% empty %}
+                        {% if not risks %}
+                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No stakeholders recorded.</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+<script>
+function dashboardApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    currentPage: 'dashboard',
+    initCharts() {
+      const statusCtx = document.getElementById('statusChart');
+      if (statusCtx) {
+        new Chart(statusCtx, {
+          type: 'bar',
+          data: {
+            labels: {{ project_status_labels|safe }},
+            datasets: [{
+              label: 'Projects',
+              data: {{ project_status_counts|safe }},
+              backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f59e0b'],
+              borderRadius: 8,
+              maxBarThickness: 34,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false } },
+              y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+          }
+        });
+      }
+
+      const budgetCtx = document.getElementById('budgetChart');
+      if (budgetCtx) {
+        new Chart(budgetCtx, {
+          type: 'bar',
+          data: {
+            labels: {{ budget_labels|safe }},
+            datasets: [
+              {
+                label: 'Allocated',
+                data: {{ budget_allocated|safe }},
+                backgroundColor: '#ef4444',
+                borderRadius: 6,
+                maxBarThickness: 18,
+              },
+              {
+                label: 'Spent',
+                data: {{ budget_spent|safe }},
+                backgroundColor: '#10b981',
+                borderRadius: 6,
+                maxBarThickness: 18,
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+              x: { grid: { display: false } },
+              y: { beginAtZero: true, ticks: { callback: v => `KES ${v}` } }
+            }
+          }
+        });
+      }
+    },
+    init() {
+      this.$nextTick(() => this.initCharts());
+      window.addEventListener('resize', () => {
+        this.isMobile = window.innerWidth < 1024;
+        if (!this.isMobile) this.mobileSidebarOpen = false;
+      });
+      this.$watch('darkMode', () => {
+        setTimeout(() => this.initCharts(), 100);
+      });
+    }
+  }
+}
+</script>
 </main>
 {% include "footer.html" %}

@@ -20,12 +20,16 @@ LOGIN_REDIRECT_URL='login'
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(svrg#m-aj6f1=y)i3tkq9^*4&)nq#_hvp=tkyxmof2*a-tx&t'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-development-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = []
+
+# AI configuration. Keep API keys in the hosting environment, never in Git.
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-5.6-sol')
 
 
 # Application definition
@@ -39,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'member',
     'widget_tweaks',
+    "ai",
 ]
 
 MIDDLEWARE = [

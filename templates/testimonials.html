@@ -48,6 +48,14 @@
             Read testimonials from community members on how our government tracking development projects have improved transparency, accountability, and citizen engagement in their communities.
         </p>
 
+        <form method="get" class="max-w-4xl mx-auto bg-white rounded-xl shadow p-4 mb-8 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <input name="q" value="{{ query }}" placeholder="Search testimonials or projects" class="border rounded-lg px-3 py-2 md:col-span-2">
+            <select name="project" class="border rounded-lg px-3 py-2"><option value="">All projects</option>{% for project in projects %}<option value="{{ project.id }}" {% if selected_project == project.id|stringformat:'s' %}selected{% endif %}>{{ project.project_title }}</option>{% endfor %}</select>
+            <div class="flex gap-2"><select name="rating" class="border rounded-lg px-3 py-2 w-full"><option value="">All ratings</option>{% for value in '12345' %}<option value="{{ value }}" {% if selected_rating == value %}selected{% endif %}>{{ value }} stars</option>{% endfor %}</select><button class="bg-green-700 text-white rounded-lg px-4">Filter</button></div>
+        </form>
+
+        {% if request.user.is_superuser and pending_count %}<div class="max-w-4xl mx-auto mb-6 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800"><strong>{{ pending_count }}</strong> testimonial{{ pending_count|pluralize }} awaiting moderation. Pending entries are visible to administrators only.</div>{% endif %}
+
        
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -65,7 +73,11 @@
                     {% endif %}
 
                     <h3 class="text-xl font-semibold text-gray-800">{{ testimonial.name }}</h3>
+                    <div class="text-amber-400 mt-2" aria-label="{{ testimonial.rating }} out of 5 stars">{% for i in '12345' %}{% if forloop.counter <= testimonial.rating %}★{% else %}<span class="text-gray-300">★</span>{% endif %}{% endfor %}</div>
+                    {% if testimonial.project %}<a href="{% url 'project_details' testimonial.project.id %}" class="text-xs text-blue-600 hover:underline mt-2">{{ testimonial.project.project_title }}</a>{% endif %}
                     <p class="text-sm text-green-600 mt-2 italic">{{ testimonial.content|truncatewords:20 }}</p>
+
+                    {% if request.user.is_superuser and not testimonial.is_approved %}<span class="mt-3 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-semibold">Awaiting review</span>{% elif testimonial.is_featured %}<span class="mt-3 rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">Featured</span>{% endif %}
 
                     <a href="{% url 'testimonial_details' testimonial.pk %}"
                        class="mt-3 text-blue-600 hover:underline text-sm font-medium">View Details</a>

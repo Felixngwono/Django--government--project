@@ -1,0 +1,48 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-6xl mx-auto space-y-6">
+        <div class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white rounded-2xl p-8 shadow-lg">
+            <h1 class="text-3xl font-bold">AI Project Insights</h1>
+            <p class="mt-2 text-purple-100">This view turns your existing project records into practical guidance for better decisions.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800">Executive Summary</h2>
+                <p class="mt-4 text-gray-700">{{ insights.summary }}</p>
+                {% if insights.ai_assistant_summary %}
+                    <div class="mt-4 rounded-lg bg-indigo-50 p-4">
+                        <h3 class="font-semibold text-indigo-700">AI Assistant</h3>
+                        <p class="mt-2 text-gray-700">{{ insights.ai_assistant_summary }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="bg-white rounded-2xl shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800">Project Totals</h2>
+                <ul class="mt-4 space-y-2 text-gray-700">
+                    <li><strong>Total Projects:</strong> {{ insights.totals.total_projects }}</li>
+                    <li><strong>Ongoing:</strong> {{ insights.totals.ongoing_projects }}</li>
+                    <li><strong>Upcoming:</strong> {{ insights.totals.upcoming_projects }}</li>
+                    <li><strong>Completed:</strong> {{ insights.totals.completed_projects }}</li>
+                    <li><strong>Delayed:</strong> {{ insights.totals.delayed_projects }}</li>
+                    <li><strong>Budget Utilization:</strong> {{ insights.totals.budget_utilization }}%</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-800">Recommended Actions</h2>
+            <ul class="mt-4 list-disc list-inside space-y-2 text-gray-700">
+                {% for recommendation in insights.recommendations %}
+                    <li>{{ recommendation }}</li>
+                {% empty %}
+                    <li>No recommendations yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

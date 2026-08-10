@@ -42,100 +42,208 @@
     
 <form action="" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    
-    <div class="slider-item" style="background-image: url({% static 'images/wstr.jpg' %}); background-repeat: no-repeat;">
-        {% if request.user.is_superuser %}
-        <div class="py-12  bg-blue px-4 mx-auto  max-w-fill lg:py-20">
-            <h2 class="mb-4 text-center p-10 font-bold text-gray-900 dark:text-white">Add a new Project</h2>
-            <form action="#" method='POST'>
-                <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-                    <div class="sm:col-span-2">
-                        <label for="project_title" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Title </label>
-                        {%render_field form.project_title  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Type project name" required="" %}
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-                        {%render_field form.project_description  class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Your description here" %}
-                    </div>
-                    <div class="w-full">
-                        <label for="Location" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Location</label>
-                        {%render_field form.project_location  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="project Location" required="" %}
-                    </div>
-                    
-                    
-                        <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Agencies</label>
-                            {%render_field form.implementing_agency class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
-                        </div>
-                        <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">project_Budgeting</label>
-                            {%render_field form.project_Budgeting class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Project Budget " required=""%}
-                        </div>
-                        <div class="w-auto">
-                            <label for="project_manager" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Manager</label>
-                            {% render_field form.project_contractor class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Project Contractor" required="" %}
-                        </div>
-                        <div class="w-auto">
-                            <label for="funding_source" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contacting Mail</label>
-                            {% render_field form.contact_email class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Funding Source" required="" %}
-                        </div>
-                        <div class="w-auto">
-                            <label for="completion_percentage" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Completion Status</label>
-                            {% render_field form.progress class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Completion %" required="" %}
-                        </div>
 
-                       <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Remarks</label>
-                            {%render_field form.remarks  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
-                        </div>
-                        <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">start_date</label>
-                            {%render_field form.start_date  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}                        </div>
-                        <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">end_date</label>
-                            {%render_field form.end_date  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="implementing Agencies" required=""%}
-                        </div>
+    <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
 
-                        <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">beneficiaries</label>
-                            {%render_field form.beneficiaries  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Our beneficiaries" required=""%}
-                        </div>
-                        <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">stakeholders</label>
-                            {%render_field form.stakeholders  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Stakeholders " required=""%}
-                        </div>
-                        <div class="w-auto">
-                            <label for="Agencies" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">impact</label>
-                            {%render_field form.impact  type='date' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="impact of the project " required=""%}
-                        </div>
-                       
-                    <div>
-                        <label for="category" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
-                        {%render_field form.project_status  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" %}
-                           
-                    </div>
-                     
-                    
-                     
-                    
-                     
-                   
-                </div>
-                <br>
-    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="user_avatar">Upload images</label>
-    {%render_field form.images  class="block  text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="user_avatar_help" id="user_avatar" type="file" %}
-     <br>
-    <button type="submit" class="w-50 text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Submit Project</button>
-</div>
-   
-          
-            </form>
+        <!-- Reference Code -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reference Code</label>
+            {% render_field form.reference_code class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="PRJ-001" %}
         </div>
+
+        <!-- Project Title -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Title</label>
+            {% render_field form.project_title class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Project Title" %}
+        </div>
+
+        <!-- Description -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Description</label>
+            {% render_field form.project_description class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" rows="5" %}
+        </div>
+
+        <!-- Location -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Location</label>
+            {% render_field form.project_location class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- District -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">District</label>
+            {% render_field form.district class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Category -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
+            {% render_field form.category class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Implementing Agency -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Implementing Agency</label>
+            {% render_field form.implementing_agency class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Supervising Agency -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Supervising Agency</label>
+            {% render_field form.supervising_agency class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Budget -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Budget</label>
+            {% render_field form.project_Budgeting class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Amount Spent -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount Spent</label>
+            {% render_field form.amount_spent class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Funding Source -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Funding Source</label>
+            {% render_field form.funding_source class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Start Date -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Start Date</label>
+            {% render_field form.start_date type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- End Date -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Expected End Date</label>
+            {% render_field form.end_date type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Actual End Date -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Actual End Date</label>
+            {% render_field form.actual_end_date type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Beneficiaries -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Beneficiaries</label>
+            {% render_field form.beneficiaries class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Stakeholders -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Stakeholders</label>
+            {% render_field form.stakeholders class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Project Manager -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Manager</label>
+            {% render_field form.project_manager class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Contractor -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Contractor</label>
+            {% render_field form.project_contractor class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Contact Email -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contact Email</label>
+            {% render_field form.contact_email class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Status -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Status</label>
+            {% render_field form.project_status class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Priority -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Priority</label>
+            {% render_field form.priority class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Public -->
+        <div class="flex items-center">
+            {% render_field form.is_public class="w-4 h-4 text-blue-600 rounded" %}
+            <label class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                Public Project
+            </label>
+        </div>
+
+        <!-- Featured -->
+        <div class="flex items-center">
+            {% render_field form.is_featured class="w-4 h-4 text-blue-600 rounded" %}
+            <label class="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                Featured Project
+            </label>
+        </div>
+
+        <!-- AI Summary -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">AI Summary</label>
+            {% render_field form.ai_summary class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" rows="4" %}
+        </div>
+
+        <!-- AI Risk Score -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">AI Risk Score</label>
+            {% render_field form.ai_risk_score class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- AI Completion Estimate -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">AI Completion Estimate</label>
+            {% render_field form.ai_completion_estimate type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Impact -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Impact</label>
+            {% render_field form.impact class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Progress -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Progress</label>
+            {% render_field form.progress class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Remarks -->
+        <div class="sm:col-span-2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Remarks</label>
+            {% render_field form.remarks class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" %}
+        </div>
+
+        <!-- Main Image -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Image</label>
+            {% render_field form.images class="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50" type="file" %}
+        </div>
+
+        <!-- Cover Image -->
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cover Image</label>
+            {% render_field form.cover_image class="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50" type="file" %}
+        </div>
+
     </div>
-    {% endif %}
-    
-    
-      
+
+    <div class="mt-6">
+        <button type="submit"
+                class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-3">
+            Save Project
+        </button>
+    </div>
+
 </form>
 </div>
 <script src="{% static 'js/projectform.js' %}"></script>

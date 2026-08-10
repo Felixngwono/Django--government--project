@@ -39,44 +39,72 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-    <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-2xl">
-        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-4">Add Milestone</h2>
-        
-        <form method="POST" class="space-y-4">
+    <div class="max-w-3xl mx-auto py-8">
+
+    <div class="bg-white shadow-lg rounded-xl p-8">
+
+        <h2 class="text-2xl font-bold mb-6">
+            Milestone Form
+        </h2>
+
+        <form method="POST">
             {% csrf_token %}
-            <div>
-                <label for="project" class="block text-gray-700 font-medium mb-1">Project</label>
-                {% render_field form.project class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
-            </div>
-            <div>
-                <label for="stage" class="block text-gray-700 font-medium mb-1">Stage</label>
-                {% render_field form.stage class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
-            </div>
-            <div>
-                <label for="title" class="block text-gray-700 font-medium mb-1">Title</label>
-                {% render_field form.title class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
+
+            <div class="space-y-5">
+
+                <div>
+                    <label class="block mb-2 font-medium">
+                       Project
+                    </label>
+
+                    {{ form.project|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                </div>
+
+                <div>
+                    <label class="block mb-2 font-medium">
+                        Stage
+                    </label>
+
+                    {{ form.stage|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                </div>
+
+                <div>
+                    <label class="block mb-2 font-medium">
+                        Description
+                    </label>
+
+                    {{ form.description|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                </div>
+
+                <div>
+                    <label class="block mb-2 font-medium">
+                        Progress Percentage
+                    </label>
+
+                    {{ form.progress_percentage|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                </div>
+
+                <div class="flex gap-3">
+
+                    <button type="submit"
+                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
+                        Save Milestone
+                    </button>
+
+                    <a href="{% url 'milestone_list' %}"
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg">
+                        Cancel
+                    </a>
+
+                </div>
+
             </div>
 
-            <div>
-                <label for="description" class="block text-gray-700 font-medium mb-1">Description</label>
-                {% render_field form.description class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
-            </div>
-             <div>
-                <label for="progress_percentage" class="block text-gray-700 font-medium mb-1">Progress percentage</label>
-                {% render_field form.progress_percentage class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" %}
-            </div>
-
-
-            <div class="flex justify-between">
-                <a href="{% url 'milestone_list' %}" class="text-gray-600 hover:text-gray-800 text-sm underline">
-                    ← Back to Milestones
-                </a>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">
-                    Save Milestone
-                </button>
-            </div>
         </form>
+
     </div>
+
+</div>
 </div>
 
 </div>
