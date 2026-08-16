@@ -77,12 +77,11 @@
                     {% if testimonial.project %}<a href="{% url 'project_details' testimonial.project.id %}" class="text-xs text-blue-600 hover:underline mt-2">{{ testimonial.project.project_title }}</a>{% endif %}
                     <p class="text-sm text-green-600 mt-2 italic">{{ testimonial.content|truncatewords:20 }}</p>
 
-                    {% if request.user.is_superuser and not testimonial.is_approved %}<span class="mt-3 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-semibold">Awaiting review</span>{% elif testimonial.is_featured %}<span class="mt-3 rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">Featured</span>{% endif %}
-
+                    {% if request.user.is_superuser %}<span class="mt-3 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-semibold">Awaiting review</span>{% elif testimonial.is_featured %}<span class="mt-3 rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">Featured</span>{% endif %}
+                    {% if request.user.is_superuser %}
                     <a href="{% url 'testimonial_details' testimonial.pk %}"
                        class="mt-3 text-blue-600 hover:underline text-sm font-medium">View Details</a>
 
-                    {% if request.user.is_superuser %}
                     <div class="flex justify-center space-x-3 mt-5">
                         <a href="{% url 'update_testimonial' testimonial.pk %}"
                            class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm transition">
@@ -99,7 +98,7 @@
                 <p class="text-center col-span-full text-gray-500">No testimonials available at the moment.</p>
             {% endfor %}
         </div>
-
+        
         <div class="text-center mt-14">
             <a href="{% url 'add_testimonial' %}"
                class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all inline-flex items-center gap-2">

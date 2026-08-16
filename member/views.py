@@ -1,26 +1,79 @@
-from django.db.models import Count
-from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
-from .models import Announcement, CitizenEvidence, CitizenSubmission, Comment,PDF, AuditLog, Contractor, GovernmentRequest, Participation, ProgramImpact, ProgressUpdate, Project_Division, Project_type, ProjectExpense, ProjectRisk, ProjectStage, ReportIssue,  StageReport, Stakeholder, Team, Tender, TenderApplication, Testimonial, User, Project,  Budget, Feedback, Notification, Milestone, Media
-from django.contrib import messages
-from .forms import AuditLogForm, BudgetForm, CommentForm, GovernmentRequestForm,  MediaForm, MilestoneForm, MyUserCreationForm, ContactUsForm,FeedbackForm, NotificationForm, ProgressReportForm, ProjectCreationForm,ProjectDivisionForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm
-from django.template.loader import get_template
-from django.db.models import Sum
-import pdfkit
-from django.db.models import Q
-from django.core.paginator import Paginator
-import django.db.models.functions
 from datetime import datetime, timedelta, timezone
-from django.utils import timezone as django_timezone
+from xml.dom import ValidationErr
+
+import pdfkit
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncMonth
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import get_template
+from django.utils import timezone as django_timezone
 from openpyxl import Workbook
-from reportlab.platypus import  Spacer
-from .workflow import OFFICER_ROLES, PROJECT_ROLES, audit, notify, role_required
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+
+from .forms import (
+    AuditLogForm,
+    BudgetForm,
+    CommentForm,
+    ContactUsForm,
+    FeedbackForm,
+    GovernmentRequestForm,
+    MediaForm,
+    MilestoneForm,
+    MyUserCreationForm,
+    NotificationForm,
+    ProgressReportForm,
+    ProjectCreationForm,
+    ProjectDivisionForm,
+    ProjectStageForm,
+    ProjectTypeForm,
+    ReportIssueForm,
+    TeamsForm,
+    TenderApplicationForm,
+    TenderForm,
+    TestimonialForm,
+    contractorForm,
+    participationForm,
+)
+from .models import (
+    PDF,
+    Announcement,
+    AuditLog,
+    Budget,
+    CitizenEvidence,
+    CitizenSubmission,
+    Comment,
+    Contractor,
+    Feedback,
+    GovernmentRequest,
+    Media,
+    Milestone,
+    Notification,
+    Participation,
+    ProgramImpact,
+    ProgressUpdate,
+    Project,
+    Project_Division,
+    Project_type,
+    ProjectExpense,
+    ProjectRisk,
+    ProjectStage,
+    ReportIssue,
+    StageReport,
+    Stakeholder,
+    Team,
+    Tender,
+    TenderApplication,
+    Testimonial,
+    User,
+)
+from .workflow import OFFICER_ROLES, audit, notify, role_required
 
 
 def get_participants_for_request(request, limit=None):
@@ -284,21 +337,11 @@ def Testimonials(request):
     query = request.GET.get('q', '').strip()
     selected_project = request.GET.get('project', '')
     selected_rating = request.GET.get('rating', '')
-    testimonials = Testimonial.objects.select_related('project', 'user')
-    if not request.user.is_superuser:
-        testimonials = testimonials.filter(is_approved=True)
-    if query:
-        testimonials = testimonials.filter(Q(name__icontains=query) | Q(content__icontains=query) | Q(project__project_title__icontains=query))
-    if selected_project:
-        testimonials = testimonials.filter(project_id=selected_project)
-    if selected_rating in {'1', '2', '3', '4', '5'}:
-        testimonials = testimonials.filter(rating=int(selected_rating))
+    testimonials = Testimonial.objects.all()
     
-    participants = get_participants_for_request(request, limit=4)
 
     context={
         'testimonials':testimonials,
-        'participants': participants,
         'projects': Project.objects.order_by('project_title'),
         'selected_project': selected_project,
         'selected_rating': selected_rating,
@@ -1608,10 +1651,9 @@ def contractor_dashboard(request):
     stages = ProjectStage.objects.all()
     form = contractorForm(request.POST or None)
 
-    if request.method == "POST":
-        if form.is_valid():
-            form.save()
-            return redirect('contractor_performance')
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect('contractor_performance')
 
 
     return render(request, 'contractors/dashboard.html', {
@@ -1642,7 +1684,7 @@ def submit_stage_report(request):
             report.stage.progress_percentage = report.progress_percentage
             report.stage.save(update_fields=['progress_percentage'])
             audit(request, 'stage_report_submitted', report, project=report.project)
-        except (ValueError, ValidationError) as error:
+        except (ValueError, ValidationErr) as error:
             messages.error(request, f'Unable to submit report: {error}')
             return redirect('submit_stage_report')
         return redirect('contractor_dashboard')
@@ -1707,9 +1749,6 @@ def add_budget(request):
             return redirect('dashboard')
 
     return render(request, 'finance/add_budget.html', {'form': form})
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from .models import TenderApplication
 
 @login_required(login_url='login')
 def track_application(request):

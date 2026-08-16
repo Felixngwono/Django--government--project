@@ -1,13 +1,13 @@
 # models.py — GovTracker Complete
 
-from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
-from django.conf import settings
-from django.utils import timezone
 import uuid
 
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.utils import timezone
 
 # ─────────────────────────────────────────────
 # USER & AUTHENTICATION
