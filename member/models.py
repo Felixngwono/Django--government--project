@@ -174,6 +174,7 @@ class Project(models.Model):
     # Agencies
     implementing_agency = models.CharField(max_length=200, null=True)
     supervising_agency  = models.CharField(max_length=200, null=True, blank=True)
+    project_division    = models.ForeignKey('Project_Division', on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
 
     # Financial
     project_Budgeting   = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
@@ -351,6 +352,20 @@ class Milestone(models.Model):
     def __str__(self):
         return f"{self.project.project_title} — {self.title}"
 
+    @property
+    def is_overdue(self):
+        from datetime import date
+        if self.due_date and self.status != 'completed':
+            return self.due_date < date.today()
+        return False
+
+    @property
+    def days_left(self):
+        from datetime import date
+        if self.due_date:
+            return (self.due_date - date.today()).days
+        return None
+
     def clean(self):
         errors = {}
         if not 0 <= self.progress_percentage <= 100:
@@ -515,7 +530,7 @@ class TenderApplication(models.Model):
     company_name       = models.CharField(max_length=200, null=True)
     company_email      = models.EmailField(null=True)
     company_phone      = models.CharField(max_length=20, null=True)
-    proposal_document  = models.FileField(upload_to='tender_applications/', null=True)
+    proposal_document  = models.FileField(upload_to='tender_applications/', null=True, blank=True)
     cover_letter       = models.FileField(upload_to='tender_coverLetter/', blank=True, null=True)
     bid_amount         = models.DecimalField(max_digits=15, decimal_places=2, null=True)
     technical_score    = models.FloatField(default=0)
@@ -564,7 +579,7 @@ class Contractor(models.Model):
     is_blacklisted   = models.BooleanField(default=False)
     blacklist_reason = models.TextField(null=True, blank=True)
     projects         = models.ManyToManyField(Project, related_name='contractors', blank=True)
-    created_at       = models.DateTimeField(auto_now_add=True, null=True)
+    created_at       = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         return self.company or self.name or "Unnamed Contractor"
@@ -692,26 +707,48 @@ class GovernmentRequest(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ('pending',     'Pending'),
-        ('in_progress', 'In Progress'),
+        ('pending',     'Pending Review'),
+        ('in_progress', 'Under Investigation'),
+        ('responded',   'Official Response Provided'),
         ('resolved',    'Resolved'),
-        ('rejected',    'Rejected'),
+        ('rejected',    'Rejected / Dismissed'),
+        ('closed',      'Closed'),
     ]
 
-    citizen     = models.ForeignKey(User, on_delete=models.CASCADE)
-    title       = models.CharField(max_length=255)
-    description = models.TextField()
-    category    = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-    location    = models.CharField(max_length=255)
-    image       = models.ImageField(upload_to='requests/', blank=True, null=True)
-    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_requests')
+    PRIORITY_CHOICES = [
+        ('low',      'Low Priority'),
+        ('medium',   'Medium Priority'),
+        ('high',     'High Priority'),
+        ('urgent',   'Urgent Action Needed'),
+    ]
+
+    reference_no           = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    citizen                = models.ForeignKey(User, on_delete=models.CASCADE, related_name='citizen_requests')
+    title                  = models.CharField(max_length=255)
+    description            = models.TextField()
+    category               = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    location               = models.CharField(max_length=255)
+    priority               = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
+    image                  = models.ImageField(upload_to='requests/', blank=True, null=True)
+    status                 = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    assigned_to            = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_requests')
+    official_response      = models.TextField(null=True, blank=True)
+    responded_by           = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='responded_requests')
+    responded_at           = models.DateTimeField(null=True, blank=True)
     ai_category_suggestion = models.CharField(max_length=50, null=True, blank=True)
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
+    created_at             = models.DateTimeField(auto_now_add=True)
+    updated_at             = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
-        return self.title
+        return f"{self.reference_no or 'REQ'} — {self.title}"
+
+    def save(self, *args, **kwargs):
+        if not self.reference_no:
+            self.reference_no = f"REQ-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
 
 
 class ReportIssue(models.Model):
@@ -922,7 +959,7 @@ class Notification(models.Model):
         ('system',        'System Alert'),
     ]
 
-    user              = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True)
+    user              = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, db_column='recipient_id')
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, null=True)
     title             = models.CharField(max_length=255, null=True)
     message           = models.TextField(null=True)
@@ -1218,9 +1255,69 @@ class Project_type(models.Model):
 
 
 class Project_Division(models.Model):
-    project_name = models.ManyToManyField(Project, related_name='project_list')
-    project_type = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True, related_name='divisions')
+    name              = models.CharField(max_length=200, null=True, blank=True)
+    code              = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    description       = models.TextField(null=True, blank=True)
+    project_type      = models.ForeignKey(Project_type, on_delete=models.SET_NULL, null=True, blank=True, related_name='divisions')
+    head_of_division  = models.CharField(max_length=150, null=True, blank=True)
+    head_user         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='headed_divisions')
+    contact_email     = models.EmailField(null=True, blank=True)
+    contact_phone     = models.CharField(max_length=30, null=True, blank=True)
+    office_location   = models.CharField(max_length=255, null=True, blank=True)
+    allocated_budget  = models.DecimalField(max_digits=15, decimal_places=2, default=0.00, null=True, blank=True)
+    image             = models.ImageField(upload_to='divisions/', null=True, blank=True)
+    is_active         = models.BooleanField(default=True)
+    project_name      = models.ManyToManyField(Project, related_name='project_list', blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at        = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        verbose_name = "Project Division"
+        verbose_name_plural = "Project Divisions"
+        ordering = ['name', '-created_at']
 
     def __str__(self):
+        if self.name:
+            return self.name
+        if self.project_type:
+            return f"{self.project_type.name} Division"
         first = self.project_name.first()
-        return first.project_title if first else "No Project"
+        return first.project_title if first else f"Division #{self.id}"
+
+    def save(self, *args, **kwargs):
+        if not self.code and self.name:
+            import uuid
+            self.code = f"DIV-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)
+
+    @property
+    def head_display(self):
+        if self.head_of_division and str(self.head_of_division).strip():
+            return str(self.head_of_division).strip()
+        if self.head_user:
+            return self.head_user.full_name
+        return "Not Assigned"
+
+    @property
+    def total_projects_count(self):
+        return self.project_name.count()
+
+    @property
+    def total_budget_allocated(self):
+        if self.allocated_budget and float(self.allocated_budget) > 0:
+            return self.allocated_budget
+        from django.db.models import Sum
+        return self.project_name.aggregate(total=Sum('project_Budgeting'))['total'] or 0.00
+
+    @property
+    def total_budget_spent(self):
+        from django.db.models import Sum
+        return self.project_name.aggregate(total=Sum('amount_spent'))['total'] or 0.00
+
+    @property
+    def utilization_rate(self):
+        allocated = float(self.total_budget_allocated or 0)
+        spent = float(self.total_budget_spent or 0)
+        if not allocated:
+            return 0.0
+        return round((spent / allocated) * 100, 1)

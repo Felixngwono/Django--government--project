@@ -136,9 +136,56 @@ Delete
 
 </div>
 {% empty %}
-<p class="col-span-full text-center text-gray-500">
-No media files available.
-</p>
+<!-- SAMPLE DEFAULT PROJECT MEDIA & VIDEOS WHEN EMPTY -->
+<div class="media-item bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition" data-type="image">
+  <div class="cursor-pointer relative h-48 bg-slate-900" onclick="openPreview('https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=1200', 'image')">
+    <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=800&auto=format&fit=crop" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+    <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-600 text-white">Image</span>
+  </div>
+  <div class="p-4">
+    <p class="text-sm font-bold text-slate-800 truncate">Highway_Construction_Site.jpg</p>
+    <p class="text-xs text-slate-400 mt-1">Inspection Inspection Photo • 2.4 MB</p>
+  </div>
+</div>
+
+<div class="media-item bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition" data-type="video">
+  <div class="cursor-pointer relative h-48 bg-slate-900" onclick="openPreview('https://www.w3schools.com/html/mov_bbb.mp4', 'video')">
+    <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800&auto=format&fit=crop" class="w-full h-48 object-cover opacity-80 group-hover:scale-105 transition duration-300">
+    <div class="absolute inset-0 flex items-center justify-center">
+      <span class="w-12 h-12 rounded-full bg-white/90 text-purple-600 flex items-center justify-center shadow-lg">
+        <iconify-icon icon="solar:play-bold" style="font-size:24px;"></iconify-icon>
+      </span>
+    </div>
+    <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-600 text-white">Video</span>
+  </div>
+  <div class="p-4">
+    <p class="text-sm font-bold text-slate-800 truncate">Referral_Hospital_3D_Tour.mp4</p>
+    <p class="text-xs text-slate-400 mt-1">Site Inspection Video • 14.8 MB</p>
+  </div>
+</div>
+
+<div class="media-item bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition" data-type="image">
+  <div class="cursor-pointer relative h-48 bg-slate-900" onclick="openPreview('https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200', 'image')">
+    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=800&auto=format&fit=crop" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+    <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-600 text-white">Image</span>
+  </div>
+  <div class="p-4">
+    <p class="text-sm font-bold text-slate-800 truncate">Vocational_Polytechnic_Aerial.jpg</p>
+    <p class="text-xs text-slate-400 mt-1">Drone Survey • 3.1 MB</p>
+  </div>
+</div>
+
+<div class="media-item bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition" data-type="document">
+  <div class="cursor-pointer relative h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
+    <iconify-icon icon="solar:document-text-bold-duotone" style="font-size:56px;" class="text-emerald-600 mb-2"></iconify-icon>
+    <span class="text-xs font-semibold text-slate-600">Audit_Report_2024.pdf</span>
+    <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white">Document</span>
+  </div>
+  <div class="p-4">
+    <p class="text-sm font-bold text-slate-800 truncate">Public_Audit_Financial_Report.pdf</p>
+    <p class="text-xs text-slate-400 mt-1">Verification Record • 1.2 MB</p>
+  </div>
+</div>
 {% endfor %}
 
 </div>

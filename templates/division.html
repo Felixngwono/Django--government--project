@@ -46,53 +46,143 @@ body {
 font-size: 14px;
 background-image: url("{% static 'images/wel.jpg' %}");
 background-size: cover;
-background-attachment: fixed; 
+background-attachment: fixed;
 background-repeat: no-repeat;
 }
 </style>
 <div class='proj_container'>
-<div >
- <div class="flex justify-center items-center  p-6">
+<div>
+ <div class="flex justify-center items-center p-6 bg-gray-50 min-h-screen">
 
-  <div class="w-full max-w-l shadow-xl rounded-2xl p-8">
+  <div class="w-full max-w-4xl bg-white shadow-2xl rounded-2xl p-8 border border-gray-100">
 
     <!-- Header -->
-    <div class="text-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-bold text-gray-800">
         {% if division %}Edit{% else %}Create{% endif %} Project Division
       </h2>
-      <hr class="border-gray-300 dark:border-gray-600 my-4">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        Create or update project division details
+      <p class="text-sm text-gray-500 mt-2">
+        Define government division authority, leadership, sector affiliation, and assigned project portfolio.
       </p>
+      <hr class="border-gray-200 my-4">
     </div>
 
     <!-- Form -->
-    <form method="POST" class="space-y-6">
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
       {% csrf_token %}
 
-      <!-- Project Name -->
-     <div>
-        <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Project Name
-        </label>
-        {% render_field form.project_name class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-200" placeholder="Select projects for this division" %}
+      <!-- Row 1: Name & Code -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Division Name *
+          </label>
+          {% render_field form.name class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="e.g. Public Works & Infrastructure Division" %}
+        </div>
+
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Division Code
+          </label>
+          {% render_field form.code class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="e.g. DIV-PW-01" %}
+        </div>
       </div>
 
-      <!-- Project Type -->
-      <div>
-        <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Project Type
-        </label>
-        {% render_field form.project_type class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition duration-200" placeholder="Enter project type (e.g Infrastructure, ICT, Health)" %}
-      </div>
-      
+      <!-- Row 2: Project Type / Sector & Head of Division -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Project Type / Sector
+          </label>
+          {% render_field form.project_type class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" %}
+        </div>
 
-      <!-- Submit Button -->
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Head of Division / Director Name
+          </label>
+          {% render_field form.head_of_division class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="e.g. Eng. Michael Scott" %}
+        </div>
+      </div>
+
+      <!-- Row 3: Contact Email & Phone -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Contact Email
+          </label>
+          {% render_field form.contact_email class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="division@gov.org" %}
+        </div>
+
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Contact Phone Number
+          </label>
+          {% render_field form.contact_phone class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="+1 (555) 019-2831" %}
+        </div>
+      </div>
+
+      <!-- Row 4: Allocated Budget & Office Location -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Allocated Budget ($)
+          </label>
+          {% render_field form.allocated_budget class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="0.00" %}
+        </div>
+
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Office Headquarters / Location
+          </label>
+          {% render_field form.office_location class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" placeholder="e.g. Building B, Capital Complex" %}
+        </div>
+      </div>
+
+      <!-- Description -->
       <div>
+        <label class="block mb-2 text-sm font-semibold text-gray-700">
+          Description & Mandate
+        </label>
+        {% render_field form.description class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" rows="3" placeholder="Describe division goals, responsibilities, and operational purview..." %}
+      </div>
+
+      <!-- Project Assignments -->
+      <div>
+        <label class="block mb-2 text-sm font-semibold text-gray-700">
+          Assigned Projects
+        </label>
+        <p class="text-xs text-gray-400 mb-2">Hold Ctrl (Cmd) to select multiple projects under this division.</p>
+        {% render_field form.project_name class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm min-h-[120px]" %}
+      </div>
+
+      <!-- Image & Status -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Division Logo / Banner Image
+          </label>
+          {% render_field form.image class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" %}
+        </div>
+
+        <div class="flex items-center gap-3 pt-4">
+          {% render_field form.is_active class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" %}
+          <label class="text-sm font-medium text-gray-700">
+            Division is Active & Operational
+          </label>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+        <a href="{% url 'division_details' %}"
+           class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold px-6 py-3 rounded-xl transition">
+          Cancel
+        </a>
+
         <button type="submit"
-          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl shadow-md transition duration-300 hover:scale-105">
-          Save Project Division
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl shadow-md transition transform hover:scale-105">
+          💾 Save Division
         </button>
       </div>
 

@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import  Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_portal, comment, contractor_dashboard, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_testimonial, edit_division, export_excel, export_pdf, feedback_details, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, regional_analysis, reportedissuesdetails,delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_create, milestone_update, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial
+from .views import Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_expense, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, evaluate_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_portal, close_request, comment, contractor_dashboard, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_team, delete_testimonial, edit_division, export_excel, export_pdf, feedback_details, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, regional_analysis, reportedissuesdetails, request_detail, respond_request, delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, delete_audit, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_detail, milestone_create, milestone_update, milestone_quick_update, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial, api_unread_notifications, api_mark_notification_read, api_mark_all_read
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
-    
+
     path('login/', loginpage, name="login"),
     path('chart/', charts, name="chart"),
 
@@ -13,10 +13,11 @@ urlpatterns = [
     path('deleteprofile/<str:pk>/', deleteprofile, name="deleteprofile"),
 
     path('user',people,name='user'),
-    
+
     path('team',teams,name='team'),
     path('add_team',add_team,name='add_team'),
     path('update_team/<str:pk>/', update_team, name='update_team'),
+    path('delete_team/<str:pk>/', delete_team, name='delete_team'),
     path('teams_details/<str:pk>/', teams_details, name='teams_details'),
 
     path('logout', logoutuser, name="logout"),
@@ -27,7 +28,7 @@ urlpatterns = [
     path('register/', registrationpage, name="registrationpage"),
     path('index', index, name="index"),
     path('sidebar/', sidebar, name="sidebar"),
-    path('header/', header, name="header"), 
+    path('header/', header, name="header"),
     path('feedback/', feedback, name="feedback"),
     path('createproject/', CreateProject, name="createproject"),
     path('updateproject/<str:pk>/', updateProject, name="update"),
@@ -46,7 +47,7 @@ urlpatterns = [
 
     path('team/', teams, name="team"),
     path('add_team/', add_team, name="add_team"),
-    
+
     path('testimonials/', Testimonials, name="testimonials"),
     path('add_testimonial/', add_testimonial, name="add_testimonial"),
     path('testimonial_details/<str:pk>/', testimonial_details, name="testimonial_details"),
@@ -76,89 +77,100 @@ urlpatterns = [
     path('edit_division/<str:pk>/', edit_division, name="edit_division"),
     path('delete_division/<str:pk>/', delete_division, name="delete_division"),
 
-    
+
 
     path('ptypes/', ptypes, name="ptypes"),
     path('ProjectTypes/', ProjectTypes, name="ProjectTypes"),
 
     path('milestones/', milestone_list, name='milestone_list'),
     path('milestones/new/', milestone_create, name='milestone_create'),
+    path('milestones/<int:pk>/', milestone_detail, name='milestone_detail'),
     path('milestones/edit/<int:pk>/', milestone_update, name='milestone_update'),
+    path('milestones/quick-update/<int:pk>/', milestone_quick_update, name='milestone_quick_update'),
     path('milestones/delete/<int:pk>/', milestone_delete, name='milestone_delete'),
 
-    path('notifications/', notification_list, name='notification_list'),
+    path('notifications/', notifications, name='notifications'),
+    path('notification_list/', notification_list, name='notification_list'),
     path('notification_create/', notification_create, name='notification_create'),
-    path('notifications/', notifications,name='notifications'),
+    path('notifications/api/latest/', api_unread_notifications, name='api_unread_notifications'),
+    path('notifications/api/mark-read/<int:pk>/', api_mark_notification_read, name='api_mark_notification_read'),
+    path('notifications/api/mark-all-read/', api_mark_all_read, name='api_mark_all_read'),
 
 
     path('media/', media_list, name='media_list'),
     path('media/upload/', media_upload, name='media_upload'),
     path('media/delete/<int:id>/', delete_media, name='delete_media'),
-     
-    
+
+
     path('project/<int:project_id>/upload-progress/', upload_progress_report, name='upload_progress_report'),
     path('add_report_issue/', add_report_issue, name='add_report_issue'),
     path('issues/', issue_list, name='issue_list'),
     path('issues/<int:issue_id>/', issue_detail, name='issue_detail'),
-    
+
     path('tenders/', tender_list, name='tender_list'),
     path('apply_tender/<str:pk>/', apply_tender,name='apply_tender'),
     path('tenders/<int:tender_id>/', tender_detail, name='tender_detail'),
     path('tenders/add/', add_tender, name='add_tender'),
     path('tenders/update/<int:tender_id>/', update_tender, name='update_tender'),
     path('tenders/delete/<int:tender_id>/', delete_tender, name='delete_tender'),
-    path('award_tender/', award_tender, name='award_tender'),
-    
+    path('award_tender/<int:tender_id>/', award_tender, name='award_tender'),
+    path('evaluate_tender/<int:tender_id>/', evaluate_tender, name='evaluate_tender'),
+
     path('track_application/', track_application, name='track_application'),
 
-   
+
     path('add-comment/<str:pk>/', add_comment, name='add_comment'),
     path('comments/', comment_list, name='comment_list'),
 
     path('AuditLog/', AuditLogs, name='AuditLog'),
     path('add_audit/', add_audit, name='add_audit'),
     path('audit_details/<str:pk>/', audit_details, name='audit_details'),
+    path('delete_audit/<str:pk>/', delete_audit, name='delete_audit'),
 
 
     path('stages/', projectstage, name='projectstage_list'),
     path('stages/<int:pk>/', projectstage_details, name='projectstage_detail'),
     path('new/', ProjectStageCreate, name='projectstage_create'),
     path('updatestages/<int:pk>/', ProjectStageUpdate, name='projectstage_update'),
-    path('stages/<int:pk>//',ProjectStageDelete , name='projectstage_delete'),
-    
-    
+    path('stages/<int:pk>/delete/', ProjectStageDelete, name='projectstage_delete'),
+
+
     path('sms/', sms_dashboard, name='sms_dashboard'),
     path('send-sms/', send_sms_report, name='send_sms_report'),
     path('check-project/', check_project_status, name='check_project_status'),
-    
+
     path('regional-comparison/', regional_analysis, name='regional_comparison'),
-    
+
     path('announcements/', announcements, name='announcements'),
-    
+
     path('citizen/', citizen_portal, name='citizen_portal'),
     path('submit/', submit_issue, name='submit_issue'),
-    
+
     path('contractor_performance/', contractor_dashboard, name='contractor_performance'),
     path('submit-stage-report/', submit_stage_report, name='submit_stage_report'),
-    
+
     path('citizen_evidence/', citizen_evidence, name='citizen_evidence'),
     path('citizen/evidence/submit/', submit_evidence, name='submit_evidence'),
-    
+
     path('budget/', budget_dashboard, name='budget_dashboard'),
     path('budget/add/', add_budget, name='add_budget'),
-    
+    path('budget/expense/add/', add_expense, name='add_expense'),
+
     path('my-documents/', my_documents, name='my_documents'),
     path('my-bids/', my_bids, name='my_bids'),
-    
-    path('government-requests/',my_requests, name='my_requests'),
-    path('government-requests/create/',create_request, name='create_request'),
-    path('government-requests/all/',all_requests, name='all_requests'),
+
+    path('government-requests/', my_requests, name='my_requests'),
+    path('government-requests/create/', create_request, name='create_request'),
+    path('government-requests/all/', all_requests, name='all_requests'),
+    path('government-requests/<int:pk>/', request_detail, name='request_detail'),
+    path('government-requests/<int:pk>/respond/', respond_request, name='respond_request'),
+    path('government-requests/<int:pk>/close/', close_request, name='close_request'),
     path('add_request/', create_request, name='add_request'),
-    
+
     path('progress-report/', progress_report, name='progress_report'),
-    
+
     path('settings/', account_settings, name='account_settings'),
-    
+
     path('system_reports/', system_reports, name='system_reports'),
     path('reports/pdf/', export_pdf, name='export_pdf'),
     path('reports/excel/', export_excel, name='export_excel'),

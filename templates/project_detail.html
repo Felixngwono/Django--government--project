@@ -2,23 +2,20 @@
 {% block content %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>{{ project.project_title }} — Project Details | GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,52 +23,387 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<!-- ===== HEADER ===== -->
-
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="content p-4 md:p-8 max-w-7xl mx-auto space-y-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <!-- HERO HEADER CARD -->
+    <div class="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-6 md:p-10 shadow-xl border border-slate-800">
+      {% if project.cover_image %}
+        <img src="{{ project.cover_image.url }}" alt="{{ project.project_title }}" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay">
+      {% elif project.images %}
+        <img src="{{ project.images.url }}" alt="{{ project.project_title }}" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay">
+      {% else %}
+        <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=1400&auto=format&fit=crop" alt="Government Infrastructure" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay">
+      {% endif %}
 
-    <p class="text-2xl font-bold text-center  text-gray-800">Project Status</p>
-    <hr class="my-6 border-gray-300">
+      <div class="relative z-10 space-y-4">
+        <!-- Top Pill Badges -->
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="{% url 'projectoverview' %}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/15 backdrop-blur-md transition">
+            <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+            <span>Back to Projects</span>
+          </a>
 
-    <div class="w-full h-full bg-white ">
-            <div class="flex justify-end">
-                <a href="{% url 'project' %}" class="bg-blue-700 hover:bg-blue-800 text-white font-medium py-2 px-4 ">Collapse</a>
-            </div>
+          {% if project.category %}
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-400/30 backdrop-blur-md">
+              {{ project.category.name }}
+            </span>
+          {% endif %}
 
-        {% for project in projects %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-lg shadow-md p-6 mb-10">
-            <div>
-              <img src="{{ project.images.url }}" alt="Project Image" class="w-full max-h-[500px] object-cover rounded-lg shadow-lg" />            
-            </div>
-            <div class="space-y-4 text-gray-700">
-                <h2 class="text-xl font-bold underline text-green-800">{{ project.project_title }}</h2>
-                <p><span class="font-semibold">Description:</span> {{ project.project_description }}</p>
-                <p><span class="font-semibold">Location:</span> {{ project.project_location }}</p>
-                <p><span class="font-semibold">Agency:</span> {{ project.implementing_agency }}</p>
-                <p><span class="font-semibold">Budget:</span> {{ project.project_Budgeting }}</p>
-                <p><span class="font-semibold">Start Date:</span> {{ project.start_date }}</p>
-                <p><span class="font-semibold">End Date:</span> {{ project.end_date }}</p>
-                <p><span class="font-semibold">Beneficiaries:</span> {{ project.beneficiaries }}</p>
-                <p><span class="font-semibold">Stakeholders:</span> {{ project.stakeholders }}</p>
-                <p><span class="font-semibold">Impact:</span> {{ project.impact }}</p>
-                <p><span class="font-semibold">Progress:</span> {{ project.progress }}</p>
-                <p><span class="font-semibold">Project Type:</span> {{ project.project_type }}</p>
-                <p><span class="font-semibold">Division:</span> {{ project.division }}</p>
-            </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md
+            {% if project.project_status == 'ongoing' %}
+              bg-blue-500/20 text-blue-300 border-blue-400/30
+            {% elif project.project_status == 'completed' %}
+              bg-emerald-500/20 text-emerald-300 border-emerald-400/30
+            {% elif project.project_status == 'delayed' %}
+              bg-rose-500/20 text-rose-300 border-rose-400/30
+            {% else %}
+              bg-amber-500/20 text-amber-300 border-amber-400/30
+            {% endif %}">
+            <span class="w-2 h-2 rounded-full
+              {% if project.project_status == 'ongoing' %}bg-blue-400
+              {% elif project.project_status == 'completed' %}bg-emerald-400
+              {% elif project.project_status == 'delayed' %}bg-rose-400 animate-pulse
+              {% else %}bg-amber-400{% endif %}"></span>
+            <span>{{ project.get_project_status_display|default:project.project_status|title }}</span>
+          </span>
         </div>
-        {% endfor %}
 
-       
+        <!-- Project Title -->
+        <div>
+          <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight text-white leading-tight">
+            {{ project.project_title }}
+          </h1>
+          <div class="flex flex-wrap items-center gap-4 text-xs md:text-sm text-slate-300 mt-2 font-medium">
+            <span class="flex items-center gap-1.5">
+              <iconify-icon icon="solar:map-point-bold" class="text-purple-400 text-base"></iconify-icon>
+              {{ project.project_location|default:"National / Regional Scope" }}
+            </span>
+            <span>&bull;</span>
+            <span class="flex items-center gap-1.5">
+              <iconify-icon icon="solar:buildings-bold" class="text-indigo-400 text-base"></iconify-icon>
+              {{ project.implementing_agency|default:"Public Works Department" }}
+            </span>
+            {% if project.project_contractor %}
+              <span>&bull;</span>
+              <span class="flex items-center gap-1.5">
+                <iconify-icon icon="solar:user-bold" class="text-emerald-400 text-base"></iconify-icon>
+                Contractor: {{ project.project_contractor }}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Action Bar Buttons -->
+        <div class="pt-2 flex flex-wrap gap-2.5">
+          <a href="{% url 'upload_progress_report' project.id %}" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+            <iconify-icon icon="solar:document-add-bold" class="text-base"></iconify-icon>
+            <span>Upload Progress Report</span>
+          </a>
+
+          <a href="{% url 'add_tender' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+            <iconify-icon icon="solar:file-send-bold" class="text-base"></iconify-icon>
+            <span>Add Tender</span>
+          </a>
+
+          <a href="{% url 'add_report_issue' %}" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/15 transition flex items-center gap-2">
+            <iconify-icon icon="solar:danger-bold" class="text-base text-amber-400"></iconify-icon>
+            <span>Report Issue / Risk</span>
+          </a>
+        </div>
+      </div>
     </div>
-</div>
-</div>
 
+    <!-- KPI STATS CARDS GRID -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Total Budget Card -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-start">
+        <div>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Capital Budget</span>
+          <h3 class="text-xl md:text-2xl font-black text-slate-900 font-mono">KES {{ b_total|floatformat:2 }}</h3>
+          <span class="text-[11px] font-semibold text-slate-500 mt-1 block">Approved Allocation</span>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0">
+          <iconify-icon icon="solar:wallet-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
+
+      <!-- Spent Expenditure Card -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-start">
+        <div>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Disbursed Spent</span>
+          <h3 class="text-xl md:text-2xl font-black text-red-600 font-mono">KES {{ s_total|floatformat:2 }}</h3>
+          <span class="text-[11px] font-bold text-emerald-600 mt-1 block">{{ utilization }}% Absorption Rate</span>
+        </div>
+        <div class="p-3 bg-red-50 text-red-600 rounded-2xl shrink-0">
+          <iconify-icon icon="solar:card-send-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
+
+      <!-- Remaining Liquidity Card -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-start">
+        <div>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Remaining Reserve</span>
+          <h3 class="text-xl md:text-2xl font-black text-emerald-600 font-mono">KES {{ remaining|floatformat:2 }}</h3>
+          <span class="text-[11px] font-semibold text-slate-500 mt-1 block">Available Funds</span>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl shrink-0">
+          <iconify-icon icon="solar:vault-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
+
+      <!-- Progress Completion Card -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-start">
+        <div class="w-full mr-2">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Execution Progress</span>
+          <h3 class="text-xl md:text-2xl font-black text-purple-700 font-mono">{{ project.progress|default:0 }}%</h3>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
+            <div class="bg-purple-600 h-2 rounded-full" style="width: {{ project.progress|default:0 }}%"></div>
+          </div>
+        </div>
+        <div class="p-3 bg-purple-50 text-purple-600 rounded-2xl shrink-0">
+          <iconify-icon icon="solar:chart-2-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN DETAILS GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT COLUMN: Project Description & Stages -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Narrative Description -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:notes-bold-duotone" class="text-purple-600 text-xl"></iconify-icon>
+            <span>Project Description & Scope</span>
+          </h2>
+          <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
+            {{ project.project_description|default:"No narrative description provided for this project." }}
+          </p>
+
+          <!-- Secondary Attributes Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 text-xs">
+            <div>
+              <span class="font-bold text-slate-400 uppercase tracking-wider block">Beneficiaries</span>
+              <span class="font-bold text-slate-800 text-sm mt-0.5 block">{{ project.beneficiaries|default:"Public Citizens" }}</span>
+            </div>
+            <div>
+              <span class="font-bold text-slate-400 uppercase tracking-wider block">Key Stakeholders</span>
+              <span class="font-bold text-slate-800 text-sm mt-0.5 block">{{ project.stakeholders|default:"County & National Authorities" }}</span>
+            </div>
+            <div>
+              <span class="font-bold text-slate-400 uppercase tracking-wider block">Expected Impact</span>
+              <span class="font-bold text-slate-800 text-sm mt-0.5 block">{{ project.impact|default:"Socio-Economic Development" }}</span>
+            </div>
+            <div>
+              <span class="font-bold text-slate-400 uppercase tracking-wider block">Timeline Schedule</span>
+              <span class="font-bold text-slate-800 text-sm mt-0.5 block">
+                {{ project.start_date|date:"M d, Y"|default:"TBD" }} — {{ project.end_date|date:"M d, Y"|default:"TBD" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Stages & Milestones -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <iconify-icon icon="solar:checklist-bold-duotone" class="text-blue-600 text-xl"></iconify-icon>
+              <span>Project Stages & Milestones</span>
+            </h2>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ stages|length }} Active Stages</span>
+          </div>
+
+          {% if stages %}
+            <div class="space-y-4">
+              {% for st in stages %}
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      <iconify-icon icon="solar:flag-bold" class="text-indigo-600 text-base"></iconify-icon>
+                      {{ st.get_stage_name_display|default:st.stage_name }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase
+                      {% if st.status == 'completed' %}bg-emerald-100 text-emerald-800{% elif st.status == 'in_progress' %}bg-blue-100 text-blue-800{% else %}bg-slate-200 text-slate-700{% endif %}">
+                      {{ st.status|default:"In Progress" }}
+                    </span>
+                  </div>
+
+                  {% if st.milestones.all %}
+                    <div class="pl-4 space-y-1.5 border-l-2 border-slate-300 mt-2 text-xs">
+                      {% for m in st.milestones.all %}
+                        <div class="flex justify-between items-center text-slate-700">
+                          <span class="font-medium">• {{ m.title }}</span>
+                          <span class="font-bold text-slate-500">{{ m.status|title }}</span>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-xs text-slate-400 italic py-4 text-center">No explicit stages or milestones configured yet.</p>
+          {% endif %}
+        </div>
+
+        <!-- Expense Items Table -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <iconify-icon icon="solar:bill-list-bold-duotone" class="text-emerald-600 text-xl"></iconify-icon>
+              <span>Disbursed Expenses Breakdown</span>
+            </h2>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ expenses|length }} Recorded Items</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/80 shadow-xs">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100/70 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200/80">
+                <tr>
+                  <th class="p-3.5">Title / Item</th>
+                  <th class="p-3.5">Category</th>
+                  <th class="p-3.5">Amount (KES)</th>
+                  <th class="p-3.5">Date</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                {% for exp in expenses %}
+                  <tr class="hover:bg-slate-50 transition">
+                    <td class="p-3.5 font-bold text-slate-900">{{ exp.title|default:"Expense Line" }}</td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{{ exp.category|default:"General" }}</span></td>
+                    <td class="p-3.5 font-mono font-extrabold text-red-600">KES {{ exp.amount|floatformat:2 }}</td>
+                    <td class="p-3.5 text-slate-500">{{ exp.date_spent|date:"M d, Y"|default:"N/A" }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="4" class="p-6 text-center text-slate-400 text-xs italic">No individual expense transactions recorded yet.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Media, Issues, Comments -->
+      <div class="space-y-6">
+
+        <!-- Project Media & Documents -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:gallery-bold-duotone" class="text-purple-600 text-xl"></iconify-icon>
+            <span>Media & Documents Vault</span>
+          </h2>
+
+          <!-- Media Images Grid -->
+          {% if media or project.images %}
+            <div class="grid grid-cols-2 gap-2">
+              {% if project.images %}
+                <img src="{{ project.images.url }}" class="w-full h-24 object-cover rounded-xl border border-slate-200 shadow-xs" alt="Project Image">
+              {% endif %}
+              {% for m in media %}
+                <img src="{{ m.file.url }}" class="w-full h-24 object-cover rounded-xl border border-slate-200 shadow-xs" alt="Media File">
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-xs text-slate-400 italic text-center py-2">No photo attachments uploaded.</p>
+          {% endif %}
+
+          <!-- Documents List -->
+          {% if documents or progress_reports %}
+            <div class="pt-2 border-t border-slate-100 space-y-2 text-xs">
+              <span class="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">Official Documents & PDFs</span>
+              {% for doc in documents %}
+                <a href="{{ doc.file.url }}" target="_blank" class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-purple-50 transition border border-slate-200 text-slate-800 font-semibold line-clamp-1">
+                  <iconify-icon icon="solar:document-bold" class="text-purple-600 shrink-0"></iconify-icon>
+                  <span>{{ doc.name|default:"Document" }}</span>
+                </a>
+              {% endfor %}
+              {% for pr in progress_reports %}
+                <a href="{{ pr.pdf_file.url }}" target="_blank" class="flex items-center gap-2 p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 transition border border-indigo-100 text-indigo-900 font-semibold line-clamp-1">
+                  <iconify-icon icon="solar:file-text-bold" class="text-indigo-600 shrink-0"></iconify-icon>
+                  <span>{{ pr.report_title|default:"Progress Report" }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Citizen Issues & Risk Signals -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:shield-warning-bold-duotone" class="text-amber-500 text-xl"></iconify-icon>
+            <span>Reported Issues & Risks</span>
+          </h2>
+
+          {% if issues %}
+            <div class="space-y-2 text-xs">
+              {% for iss in issues %}
+                <div class="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-1">
+                  <div class="flex justify-between items-start gap-2">
+                    <span class="font-bold text-slate-900 line-clamp-1">{{ iss.title }}</span>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-amber-200 text-amber-800 shrink-0">
+                      {{ iss.severity|default:"Moderate" }}
+                    </span>
+                  </div>
+                  <p class="text-slate-600 leading-relaxed text-[11px] line-clamp-2">{{ iss.issue_description }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-xs text-slate-400 italic text-center py-2">No citizen issue reports or risk warnings logged.</p>
+          {% endif %}
+        </div>
+
+        <!-- Public Comments & Feedback Section -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:chat-line-bold-duotone" class="text-purple-600 text-xl"></iconify-icon>
+            <span>Public Comments & Feedback ({{ comments|length }})</span>
+          </h2>
+
+          <!-- Post Comment Form -->
+          <form method="post" class="space-y-3">
+            {% csrf_token %}
+            <div>
+              <textarea name="content" rows="2" required class="w-full border border-slate-200 rounded-2xl p-3 text-xs focus:ring-2 focus:ring-purple-500 outline-none" placeholder="Share your feedback, observation, or question..."></textarea>
+            </div>
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2">
+              <iconify-icon icon="solar:plain-2-bold" class="text-sm"></iconify-icon>
+              <span>Submit Comment</span>
+            </button>
+          </form>
+
+          <!-- Comments Feed List -->
+          <div class="space-y-3 pt-3 border-t border-slate-100 max-h-80 overflow-y-auto">
+            {% for c in comments %}
+              <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-1">
+                <div class="flex items-center justify-between font-bold text-slate-800">
+                  <span class="flex items-center gap-1.5">
+                    <iconify-icon icon="solar:user-circle-bold" class="text-purple-600 text-sm"></iconify-icon>
+                    {{ c.user.get_full_name|default:c.user.username }}
+                  </span>
+                  <span class="text-[10px] font-medium text-slate-400">{{ c.created_at|date:"M d, Y" }}</span>
+                </div>
+                <p class="text-slate-700 leading-relaxed text-[11px]">{{ c.content }}</p>
+              </div>
+            {% empty %}
+              <p class="text-xs text-slate-400 italic text-center py-2">No comments posted yet. Be the first to leave feedback!</p>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
 </main>
+
 {% include "footer.html" %}
 {% endblock content %}

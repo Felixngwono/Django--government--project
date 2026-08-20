@@ -546,7 +546,7 @@ class Migration(migrations.Migration):
                 ('link', models.CharField(blank=True, max_length=255, null=True)),
                 ('is_read', models.BooleanField(default=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(db_column='recipient_id', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['-created_at'],

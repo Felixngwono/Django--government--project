@@ -13,6 +13,18 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 
+# Patch for Python 3.14 compatibility with Django template Context.__copy__
+try:
+    import django.template.context as _dtc
+    def _context_copy(self):
+        duplicate = self.__class__.__new__(self.__class__)
+        duplicate.dicts = self.dicts[:]
+        return duplicate
+    _dtc.Context.__copy__ = _context_copy
+    _dtc.BaseContext.__copy__ = lambda self: self.__class__.__new__(self.__class__)
+except Exception:
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOGIN_REDIRECT_URL='login'
@@ -28,8 +40,8 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = []
 
 # AI configuration. Keep API keys in the hosting environment, never in Git.
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
-OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-5.6-sol')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY') 
+OPENAI_MODEL = os.environ.get('OPENAI_MODEL')
 
 
 # Application definition
@@ -69,6 +81,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'member.context_processors.notifications_processor',
             ],
         },
     },
@@ -86,8 +99,8 @@ DATABASES = {
         'NAME': 'django-government',
         'USER': 'root',
         'PASSWORD': '',
-        'HOST': 'localhost',  
-        'PORT': '3306',  
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 

@@ -1,22 +1,32 @@
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+{% load widget_tweaks %}
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="teamFormApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Add Team Member — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+<style>
+/* Team form styles */
+.team-form-hero{background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 50%,var(--primary) 130%);border-radius:20px;padding:36px 32px;color:#fff;position:relative;overflow:hidden;margin-bottom:24px}
+.team-form-hero h1{font-size:1.8rem;font-weight:800;margin-bottom:6px;position:relative;z-index:1}
+.team-form-hero p{font-size:.9rem;opacity:.9;position:relative;z-index:1}
+.team-form-card{background:var(--surface);border-radius:16px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.team-form-label{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:6px;display:block}
+.team-form-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:.9rem;color:var(--text);background:var(--surface);font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:all .2s}
+.team-form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-10)}
+.team-form-input::placeholder{color:var(--text-light)}
+.alert-success{background:rgba(40,167,69,.1);border:1px solid rgba(40,167,69,.25);color:var(--success);border-radius:12px;padding:14px 18px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:20px}
+</style>
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="teamFormApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -29,157 +39,124 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
-{% load widget_tweaks %}
-<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
-<div class='proj_container'>
-    <div>
-<div class="text-center my-4">
-    {% for message in messages %}
-        <p id="messages" class="font-semibold text-lg text-green-600">{{ message }}</p>
-    {% endfor %}
-</div>
+  <div class="content">
 
-<div class="w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 flex">
+    <!-- ===== HERO ===== -->
+    <div class="team-form-hero">
+      <h1>Add Team Member</h1>
+      <p>Add a new member to the GovTracker team.</p>
+    </div>
 
+    <!-- ===== SUCCESS MESSAGE ===== -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert-success">
+          <iconify-icon icon="solar:check-circle-bold" style="font-size:20px;"></iconify-icon>
+          {{ message }}
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
 
-    {% include 'Sidebar.html' %}
+    <!-- ===== FORM ===== -->
+    <div class="team-form-card">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-    <div class=" items-center justify-center ">
+        <div class="grid-2" style="margin-bottom:0;">
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.name.id_for_label }}">Full Name</label>
+            {% render_field form.name class="team-form-input" %}
+            {% if form.name.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.name.errors.0 }}</p>
+            {% endif %}
+          </div>
 
-        <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 flex">
-
-    {% include 'Sidebar.html' %}
-
-    <!-- Main Content -->
-    <div class="flex-1 flex items-center text-50 justify-center p-8">
-
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-10">
-
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-800">
-                    Add Team Member
-                </h2>
-                <p class="text-gray-500 mt-2 text-sm">
-                    Add a new member to your project team.
-                </p>
-            </div>
-
-            <!-- Success Messages -->
-            {% for message in messages %}
-                <p class="mb-6 text-center font-semibold text-green-600">
-                    {{ message }}
-                </p>
-            {% endfor %}
-
-            <!-- Form -->
-            <form method="POST" enctype="multipart/form-data" class="space-y-6">
-                {% csrf_token %}
-
-                <!-- Name -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Full Name
-                    </label>
-                    {% render_field form.name class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Enter name..." %}
-                </div>
-
-                <!-- Role -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Role
-                    </label>
-                    {% render_field form.role class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Enter role..." %}
-                </div>
-
-                <!-- Image -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Profile Image
-                    </label>
-                    <div class="border border-gray-300 rounded-xl p-3 bg-gray-50">
-                        {{ form.image }}
-                    </div>
-                </div>
-                
-                 <!-- Description -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Description
-                    </label>
-                    {% render_field form.description class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Enter a brief description..." %}
-                </div>
-                    <!-- Social Media Handles -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Facebook URL
-                        </label>
-                        {% render_field form.facebook class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://facebook.com/username" %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Instagram URL
-                        </label>
-                        {% render_field form.instagram class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://instagram.com/username" %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Twitter URL
-                        </label>
-                        {% render_field form.twitter class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://twitter.com/username" %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            LinkedIn URL
-                        </label>
-                        {% render_field form.linkedin class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="https://linkedin.com/in/username" %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            WhatsApp Number
-                        </label>
-                        {% render_field form.whatsapp class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="+1234567890" %}
-                    </div>
-                </div>
-                
-
-                <!-- Buttons -->
-                <div class="flex justify-between items-center pt-6 border-t">
-
-                    <button type="submit"
-                        class="bg-green-600 hover:bg-green-700 text-white 
-                               font-semibold py-3 px-6 rounded-xl shadow-md 
-                               transition duration-300 transform hover:scale-105">
-                        ➕ Submit Member
-                    </button>
-
-                    <a href="{% url 'team' %}"
-                       class="bg-gray-700 hover:bg-gray-800 text-white 
-                              font-semibold py-3 px-6 rounded-xl shadow-md 
-                              transition duration-300 transform hover:scale-105">
-                        🔙 Back
-                    </a>
-
-                </div>
-
-            </form>
-
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.role.id_for_label }}">Role</label>
+            {% render_field form.role class="team-form-input" %}
+            {% if form.role.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.role.errors.0 }}</p>
+            {% endif %}
+          </div>
         </div>
 
-    </div>
-</div>
-</div>
+        <div class="form-group">
+          <label class="team-form-label" for="{{ form.image.id_for_label }}">Profile Image</label>
+          <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;background:var(--bg);">
+            {{ form.image }}
+          </div>
+          {% if form.image.errors %}
+          <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.image.errors.0 }}</p>
+          {% endif %}
+        </div>
 
-    </div>
-</div>
-</div>
-</div>
-{% include "recent_activities.html" %}
-</div>
+        <div class="form-group">
+          <label class="team-form-label" for="{{ form.description.id_for_label }}">Description</label>
+          {% render_field form.description class="team-form-input" %}
+          {% if form.description.errors %}
+          <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.description.errors.0 }}</p>
+          {% endif %}
+        </div>
 
-</div>
+        <div class="grid-2" style="margin-bottom:0;">
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.facebook.id_for_label }}">Facebook URL</label>
+            {% render_field form.facebook class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.instagram.id_for_label }}">Instagram URL</label>
+            {% render_field form.instagram class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.twitter.id_for_label }}">Twitter URL</label>
+            {% render_field form.twitter class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.linkedin.id_for_label }}">LinkedIn URL</label>
+            {% render_field form.linkedin class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.whatsapp.id_for_label }}">WhatsApp Number</label>
+            {% render_field form.whatsapp class="team-form-input" %}
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:20px;border-top:1px solid var(--border-light);">
+          <a href="{% url 'team' %}" class="btn btn-outline">
+            <iconify-icon icon="solar:arrow-left-bold"></iconify-icon>
+            Back
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <iconify-icon icon="solar:check-circle-bold"></iconify-icon>
+            Add Member
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div><!-- .content -->
 </main>
 
 {% include "footer.html" %}
+
+<script>
+function teamFormApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    pageTitle: 'Add Team Member',
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    }
+  }
+}
+</script>
+
+</body>
+</html>

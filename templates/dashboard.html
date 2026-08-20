@@ -1,18 +1,19 @@
-﻿{% load static %}
+{% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>GovTracker — Executive Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
 </head>
@@ -29,23 +30,53 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="content space-y-6">
+    {% block content %}
 
     <!-- ============================
-         PAGE: DASHBOARD
+         PAGE: DASHBOARD EXECUTIVE COMMAND CENTER
     ============================= -->
-    <div class="page-section" :class="{ active: currentPage==='dashboard' }">
+    <div class="page-section active">
 
-      <div class="rounded-3xl bg-gradient-to-r from-red-700 via-red-600 to-orange-500 p-8 text-white shadow-xl" style="margin-bottom:24px;">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <!-- Executive Hero Banner -->
+      <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 p-8 text-white shadow-2xl relative overflow-hidden mb-6 border border-slate-700/50">
+        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between relative z-10">
           <div>
-            <p class="text-sm uppercase tracking-[0.3em] text-red-100">Executive overview</p>
-            <h1 class="text-3xl font-extrabold">Government project dashboard</h1>
-            <p class="mt-2 max-w-2xl text-sm text-red-50">Monitor the full project lifecycle, urgency indicators, budget usage, and recent operational activity from one place.</p>
+            <div class="flex items-center gap-3 mb-2">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 backdrop-blur-md">
+                <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+                GovTracker Command Center
+              </span>
+              <span class="text-xs text-slate-300 font-mono" x-text="currentDate + ' • ' + currentTime"></span>
+            </div>
+            <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
+            <p class="mt-2 max-w-2xl text-sm text-slate-300 leading-relaxed">
+              Real-time executive oversight across <span class="font-semibold text-white">{{ allproject }}</span> government projects, budget utilization, milestone progress, and citizen issue reports.
+            </p>
           </div>
-          <div class="flex flex-wrap gap-3">
-            <a href="{% url 'createproject' %}" class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow">Create project</a>
-            <a href="{% url 'add_budget' %}" class="rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white">Add budget</a>
+          <div class="flex flex-wrap items-center gap-3">
+            {% if request.user.is_superuser  %}
+            <a href="{% url 'createproject' %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
+              <i class="fas fa-plus"></i> Create Project
+            </a>
+            <a href="{% url 'add_budget' %}" class="inline-flex items-center gap-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-200 border border-slate-600/50 backdrop-blur-md transition-all">
+              <i class="fas fa-coins"></i> Allocate Budget
+            </a>
+            <a href="{% url 'ai_insights' %}" class="inline-flex items-center gap-2 rounded-xl bg-purple-600/80 hover:bg-purple-500 px-4 py-2.5 text-sm font-semibold text-white border border-purple-400/30 backdrop-blur-md shadow-lg shadow-purple-600/20 transition-all">
+              <i class="fas fa-brain"></i> AI Insights
+            </a>
+            {% else %}
+            <a href="{% url 'create_request' %}" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition-all hover:-translate-y-0.5">
+              <i class="fas fa-paper-plane"></i> Submit Request
+            </a>
+            <a href="{% url 'track_application' %}" class="inline-flex items-center gap-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-200 border border-slate-600/50 backdrop-blur-md transition-all">
+              <i class="fas fa-route"></i> Track Applications
+            </a>
+            <a href="{% url 'ai_chatbot' %}" class="inline-flex items-center gap-2 rounded-xl bg-purple-600/80 hover:bg-purple-500 px-4 py-2.5 text-sm font-semibold text-white border border-purple-400/30 backdrop-blur-md shadow-lg shadow-purple-600/20 transition-all">
+              <i class="fas fa-robot"></i> AI Assistant
+            </a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -65,7 +96,7 @@
             {{user.name}}
           </div>
         </div>
-{% if request.user.is_superuser %}
+{% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' %}
 <div class="stat-card bg-green-800 text-white ">
     <a href="{% url 'user' %}" class="block">
 
@@ -89,24 +120,6 @@
     </a>
 </div>
 {% endif %}
-
-<div class="stat-card bg-green-800 text-white">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-    <div>
-      <a href="{% url 'user' %}" class="block">
-      <div class="stat-label">Total Users</div>
-      <div class="stat-value">{{ users }}</div>
-    </div>
-    <div class="text-green-300">
-      <iconify-icon icon="solar:users-group-rounded-bold-duotone" style="font-size:28px;"></iconify-icon>
-    </div>
-  </div>
-  <div class="flex items-center gap-2 mt-2 text-green-400 text-sm font-semibold">
-    <iconify-icon icon="solar:arrow-up-bold"></iconify-icon>
-    {{ user.name }}
-  </div>
-</a>
-</div>
 
         <div class="stat-card bg-blue-800 text-white ">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -165,7 +178,7 @@
               <i class="fas fa-check-circle fa-2x"></i>
             </div>
           </div>
-         
+
         </div>
       </div>
 
@@ -202,10 +215,17 @@
           <div class="section-header">
             <div>
               <div class="section-title">Quick actions</div>
-              <div class="section-sub">Fast links for day-to-day administration</div>
+              <div class="section-sub">
+                {% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' %}
+                Fast links for day-to-day administration
+                {% else %}
+                Key links for citizen participation and tracking
+                {% endif %}
+              </div>
             </div>
           </div>
           <div class="grid-2">
+            {% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' %}
             <a class="quick-action-link" href="{% url 'createproject' %}">
               <div class="font-semibold">Create project</div>
               <div class="text-sm text-gray-500">Register a new government project or initiative.</div>
@@ -222,6 +242,24 @@
               <div class="font-semibold">Open reports</div>
               <div class="text-sm text-gray-500">Access reports for oversight and leadership review.</div>
             </a>
+            {% else %}
+            <a class="quick-action-link" href="{% url 'create_request' %}">
+              <div class="font-semibold">Submit Government Request</div>
+              <div class="text-sm text-gray-500">Submit formal requests or petitions to local authorities.</div>
+            </a>
+            <a class="quick-action-link" href="{% url 'track_application' %}">
+              <div class="font-semibold">Track Applications</div>
+              <div class="text-sm text-gray-500">Monitor status of your bids, tenders, and petitions.</div>
+            </a>
+            <a class="quick-action-link" href="{% url 'citizen_portal' %}">
+              <div class="font-semibold">Public Participation</div>
+              <div class="text-sm text-gray-500">Provide citizen feedback and suggestions on local projects.</div>
+            </a>
+            <a class="quick-action-link" href="{% url 'add_report_issue' %}">
+              <div class="font-semibold">Report Site Concern</div>
+              <div class="text-sm text-gray-500">Flag delayed construction or public safety concerns.</div>
+            </a>
+            {% endif %}
           </div>
         </div>
 
@@ -335,7 +373,7 @@
                                         <td class="px-4 py-3">{{ project.end_date }}</td>
                                         <td class="px-4 py-3">{{ project.project_status }}</td>
                                         <td class="px-4 py-3">{{ project.project_Budgeting }}</td>
-                                        
+
                                         <td class="px-4 py-3 text-center">
                                                 <div class="relative inline-block text-left group">
                                                         <button type="button" class="dropdown-toggle text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center">
@@ -398,368 +436,9 @@
       </div>
     </div>
 
-    
-    <div class="page-section" :class="{ active: currentPage==='gallery' }">
-      <div class="section-header">
-        <div>
-          <div class="section-title" style="font-size:1.25rem;">Galeri EVDesign</div>
-          <div class="section-sub">Koleksi foto produk dan dokumentasi</div>
-        </div>
-        <button class="btn btn-primary">
-          <iconify-icon icon="solar:cloud-upload-bold"></iconify-icon>
-          Upload Foto
-        </button>
-      </div>
 
-      <div class="card" style="margin-bottom:20px;">
-        <div class="upload-area" style="padding:24px;">
-          <iconify-icon icon="solar:cloud-upload-bold" style="font-size:40px;display:block;margin:0 auto 10px;"></iconify-icon>
-          <p style="font-size:0.9rem;font-weight:600;">Drag & Drop foto di sini</p>
-          <p style="font-size:0.78rem;margin-top:4px;">atau klik untuk memilih file (PNG, JPG, WEBP - maks 5MB)</p>
-          <button class="btn btn-primary btn-sm" style="margin-top:12px;">
-            <iconify-icon icon="solar:gallery-add-bold"></iconify-icon>
-            Pilih File
-          </button>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="filter-bar" style="margin-bottom:16px;">
-          <select class="filter-select">
-            <option>Semua Kategori</option>
-            <option>Produk</option>
-            <option>Proses Pembuatan</option>
-            <option>Event</option>
-          </select>
-          <button class="btn btn-danger btn-sm" style="margin-left:auto;">
-            <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
-            Hapus Terpilih
-          </button>
-        </div>
-
-        <div class="gallery-grid">
-          <template x-for="i in 12" :key="i">
-            <div class="gallery-item">
-              <div :style="`background:hsl(${i*30},40%,${80-(i%3)*10}%);width:100%;height:100%;display:flex;align-items:center;justify-content:center;`">
-                <iconify-icon icon="solar:t-shirt-bold-duotone" style="font-size:48px;opacity:0.4;color:#fc1919;"></iconify-icon>
-              </div>
-              <div class="gallery-item-overlay">
-                <button class="btn btn-icon" style="background:rgba(255,255,255,0.9);color:#212529;border:none;width:36px;height:36px;border-radius:8px;">
-                  <iconify-icon icon="solar:eye-bold" style="font-size:18px;"></iconify-icon>
-                </button>
-                <button class="btn btn-icon" style="background:rgba(255,255,255,0.9);color:#212529;border:none;width:36px;height:36px;border-radius:8px;">
-                  <iconify-icon icon="solar:pen-bold" style="font-size:18px;"></iconify-icon>
-                </button>
-                <button class="btn btn-icon" style="background:rgba(220,53,69,0.9);color:#fff;border:none;width:36px;height:36px;border-radius:8px;">
-                  <iconify-icon icon="solar:trash-bin-trash-bold" style="font-size:18px;"></iconify-icon>
-                </button>
-              </div>
-            </div>
-          </template>
-        </div>
-
-        <div style="display:flex;justify-content:center;margin-top:20px;">
-          <div class="pagination">
-            <button class="page-btn" disabled><iconify-icon icon="solar:arrow-left-bold" style="font-size:14px;"></iconify-icon></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn">3</button>
-            <button class="page-btn"><iconify-icon icon="solar:arrow-right-bold" style="font-size:14px;"></iconify-icon></button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============================
-         PAGE: ARTICLES
-    ============================= -->
-    <div class="page-section" :class="{ active: currentPage==='articles' }">
-      <div class="section-header">
-        <div>
-          <div class="section-title" style="font-size:1.25rem;">Artikel & Berita</div>
-          <div class="section-sub">Konten digital EVDesign</div>
-        </div>
-        <button class="btn btn-primary">
-          <iconify-icon icon="solar:pen-new-square-bold"></iconify-icon>
-          Tulis Artikel
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="filter-bar">
-          <div class="filter-input">
-            <iconify-icon icon="solar:magnifer-bold" style="color:var(--text-light);font-size:16px;"></iconify-icon>
-            <input type="text" placeholder="Cari artikel...">
-          </div>
-          <select class="filter-select">
-            <option>Semua Status</option>
-            <option>Published</option>
-            <option>Draft</option>
-            <option>Archived</option>
-          </select>
-          <select class="filter-select">
-            <option>Semua Kategori</option>
-            <option>Karawo</option>
-            <option>Budaya Gorontalo</option>
-            <option>Tutorial</option>
-            <option>Berita</option>
-          </select>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Judul Artikel</th>
-                <th>Kategori</th>
-                <th>Tanggal</th>
-                <th>Views</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="art in articlesList" :key="art.id">
-                <tr>
-                  <td>
-                    <div style="font-weight:600;font-size:0.875rem;color:var(--text);" x-text="art.title"></div>
-                    <div style="font-size:0.75rem;color:var(--text-light);" x-text="art.excerpt"></div>
-                  </td>
-                  <td><span class="badge-pill badge-gray" x-text="art.category"></span></td>
-                  <td x-text="art.date"></td>
-                  <td><span class="mono" x-text="art.views.toLocaleString()"></span></td>
-                  <td>
-                    <span :class="{
-                      'badge-pill badge-active': art.status==='Published',
-                      'badge-pill badge-pending': art.status==='Draft',
-                      'badge-pill badge-gray': art.status==='Archived'
-                    }" x-text="art.status"></span>
-                  </td>
-                  <td>
-                    <div style="display:flex;gap:6px;">
-                      <button class="btn btn-outline btn-icon btn-sm"><iconify-icon icon="solar:eye-bold" style="font-size:16px;"></iconify-icon></button>
-                      <button class="btn btn-outline btn-icon btn-sm"><iconify-icon icon="solar:pen-bold" style="font-size:16px;"></iconify-icon></button>
-                      <button class="btn btn-icon btn-sm" style="background:rgba(220,53,69,0.1);border:none;color:var(--danger);"><iconify-icon icon="solar:trash-bin-trash-bold" style="font-size:16px;"></iconify-icon></button>
-                    </div>
-                  </td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============================
-         PAGE: SETTINGS
-    ============================= -->
-    <div class="page-section" :class="{ active: currentPage==='settings' }">
-      <div class="section-header" style="margin-bottom:24px;">
-        <div>
-          <div class="section-title" style="font-size:1.25rem;">Pengaturan</div>
-          <div class="section-sub">Kelola konfigurasi sistem EVDesign</div>
-        </div>
-      </div>
-
-      <div class="tabs">
-        <div class="tab active" @click="settingsTab='profile'">Profil Admin</div>
-        <div class="tab" @click="settingsTab='notif'">Pengumuman</div>
-        <div class="tab" @click="settingsTab='log'">Log Aktivitas</div>
-        <div class="tab" @click="settingsTab='backup'">Backup Data</div>
-      </div>
-
-      <!-- Profile Tab -->
-      <div x-show="settingsTab==='profile' || !settingsTab">
-        <div class="grid-2">
-          <div class="card">
-            <div class="section-title" style="margin-bottom:20px;">Informasi Admin</div>
-            <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
-              <div class="avatar" style="width:72px;height:72px;font-size:1.5rem;border-radius:16px;">EV</div>
-              <div>
-                <button class="btn btn-outline btn-sm">
-                  <iconify-icon icon="solar:cloud-upload-bold"></iconify-icon>
-                  Ganti Foto
-                </button>
-                <p style="font-size:0.75rem;color:var(--text-light);margin-top:4px;">JPG, PNG maks 2MB</p>
-              </div>
-            </div>
-            <div class="form-group"><label class="form-label">Nama Lengkap</label><input class="form-control" value="Admin EVDesign"></div>
-            <div class="form-group"><label class="form-label">Email</label><input class="form-control" value="admin@evdesign.id" type="email"></div>
-            <div class="form-group"><label class="form-label">Telepon</label><input class="form-control" value="+62 812 3456 7890"></div>
-            <div class="form-group"><label class="form-label">Role</label><input class="form-control" value="Super Admin" disabled style="opacity:0.6;"></div>
-            <button class="btn btn-primary">
-              <iconify-icon icon="solar:check-circle-bold"></iconify-icon>
-              Simpan Perubahan
-            </button>
-          </div>
-          <div class="card">
-            <div class="section-title" style="margin-bottom:20px;">Ubah Password</div>
-            <div class="form-group"><label class="form-label">Password Lama</label><input class="form-control" type="password" placeholder="••••••••"></div>
-            <div class="form-group"><label class="form-label">Password Baru</label><input class="form-control" type="password" placeholder="••••••••"></div>
-            <div class="form-group"><label class="form-label">Konfirmasi Password</label><input class="form-control" type="password" placeholder="••••••••"></div>
-            <button class="btn btn-secondary">
-              <iconify-icon icon="solar:lock-bold"></iconify-icon>
-              Update Password
-            </button>
-
-            <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
-              <div class="section-title" style="font-size:1rem;margin-bottom:16px;">Preferensi Tampilan</div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                <span style="font-size:0.875rem;color:var(--text-sec);">Mode Gelap</span>
-                <label class="toggle"><input type="checkbox" :checked="darkMode" @change="darkMode=!darkMode"><span class="toggle-slider"></span></label>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                <span style="font-size:0.875rem;color:var(--text-sec);">Compact Sidebar</span>
-                <label class="toggle"><input type="checkbox" :checked="sidebarCollapsed" @change="sidebarCollapsed=!sidebarCollapsed"><span class="toggle-slider"></span></label>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size:0.875rem;color:var(--text-sec);">Notifikasi Browser</span>
-                <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Log Tab -->
-      <div x-show="settingsTab==='log'">
-        <div class="card">
-          <div class="section-title" style="margin-bottom:20px;">Log Aktivitas Sistem</div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Waktu</th>
-                  <th>Admin</th>
-                  <th>Aksi</th>
-                  <th>Detail</th>
-                  <th>IP Address</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td class="mono" style="font-size:0.78rem;">2024-01-15 14:32:10</td><td>Admin EVDesign</td><td><span class="badge-pill badge-active">CREATE</span></td><td style="font-size:0.8rem;">Menambahkan produk baru: Kemeja Karawo Premium</td><td class="mono" style="font-size:0.78rem;">192.168.1.1</td></tr>
-                <tr><td class="mono" style="font-size:0.78rem;">2024-01-15 13:15:42</td><td>Admin EVDesign</td><td><span class="badge-pill badge-info-b">UPDATE</span></td><td style="font-size:0.8rem;">Memperbarui status pesanan #INV-056</td><td class="mono" style="font-size:0.78rem;">192.168.1.1</td></tr>
-                <tr><td class="mono" style="font-size:0.78rem;">2024-01-15 12:00:05</td><td>Admin EVDesign</td><td><span class="badge-pill badge-inactive">DELETE</span></td><td style="font-size:0.8rem;">Menghapus foto galeri ID #48</td><td class="mono" style="font-size:0.78rem;">192.168.1.1</td></tr>
-                <tr><td class="mono" style="font-size:0.78rem;">2024-01-15 09:45:22</td><td>Admin EVDesign</td><td><span class="badge-pill badge-active">CREATE</span></td><td style="font-size:0.8rem;">Mendaftarkan perajin baru: Ibu Siti</td><td class="mono" style="font-size:0.78rem;">192.168.1.1</td></tr>
-                <tr><td class="mono" style="font-size:0.78rem;">2024-01-14 17:20:11</td><td>Admin EVDesign</td><td><span class="badge-pill badge-info-b">UPDATE</span></td><td style="font-size:0.8rem;">Memperbarui stok benang sutra merah: +50 gulungan</td><td class="mono" style="font-size:0.78rem;">192.168.1.2</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Backup Tab -->
-      <div x-show="settingsTab==='backup'">
-        <div class="grid-2">
-          <div class="card">
-            <div class="section-title" style="margin-bottom:8px;">Backup Database</div>
-            <p style="font-size:0.875rem;color:var(--text-sec);margin-bottom:20px;">Download salinan lengkap data sistem EVDesign</p>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-              <button class="btn btn-primary" style="justify-content:center;">
-                <iconify-icon icon="solar:cloud-download-bold"></iconify-icon>
-                Download Backup Lengkap
-              </button>
-              <button class="btn btn-secondary" style="justify-content:center;">
-                <iconify-icon icon="solar:bag-5-bold"></iconify-icon>
-                Backup Produk & Pesanan
-              </button>
-              <button class="btn btn-outline" style="justify-content:center;">
-                <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
-                Backup Data Perajin
-              </button>
-            </div>
-            <div style="margin-top:20px;padding:14px;background:var(--bg);border-radius:10px;">
-              <div style="font-size:0.78rem;color:var(--text-light);">Backup terakhir</div>
-              <div style="font-size:0.875rem;font-weight:600;color:var(--text);margin-top:2px;">15 Januari 2024, 03:00 WIB</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="section-title" style="margin-bottom:8px;">Auto Backup</div>
-            <p style="font-size:0.875rem;color:var(--text-sec);margin-bottom:20px;">Jadwalkan backup otomatis</p>
-            <div class="form-group">
-              <label class="form-label">Frekuensi Backup</label>
-              <select class="form-control">
-                <option>Setiap Hari (Otomatis)</option>
-                <option>Setiap Minggu</option>
-                <option>Setiap Bulan</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Waktu Backup</label>
-              <input class="form-control" type="time" value="03:00">
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-              <span style="font-size:0.875rem;color:var(--text-sec);">Auto Backup Aktif</span>
-              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-            </div>
-            <button class="btn btn-primary" style="justify-content:center;width:100%;">
-              <iconify-icon icon="solar:check-circle-bold"></iconify-icon>
-              Simpan Pengaturan
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notification Tab -->
-      <div x-show="settingsTab==='notif'">
-        <div class="card">
-          <div class="section-title" style="margin-bottom:20px;">Kirim Pengumuman ke Perajin</div>
-          <div class="form-group"><label class="form-label">Judul Pengumuman</label><input class="form-control" placeholder="e.g. Jadwal Pertemuan Bulanan"></div>
-          <div class="form-group"><label class="form-label">Penerima</label>
-            <select class="form-control">
-              <option>Semua Perajin (40)</option>
-              <option>Perajin Aktif (34)</option>
-              <option>Wilayah Kota Gorontalo</option>
-              <option>Wilayah Bone Bolango</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Pesan</label><textarea class="form-control" style="min-height:140px;" placeholder="Tulis pengumuman di sini..."></textarea></div>
-          <div style="display:flex;gap:10px;">
-            <button class="btn btn-outline">Simpan Draft</button>
-            <button class="btn btn-primary">
-              <iconify-icon icon="solar:plain-2-bold"></iconify-icon>
-              Kirim Sekarang
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============================
-         PAGE: CATEGORIES
-    ============================= -->
-    <div class="page-section" :class="{ active: currentPage==='categories' }">
-      <div class="section-header">
-        <div>
-          <div class="section-title" style="font-size:1.25rem;">Manajemen Kategori</div>
-          <div class="section-sub">6 kategori produk</div>
-        </div>
-        <button class="btn btn-primary">
-          <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
-          Tambah Kategori
-        </button>
-      </div>
-      <div class="grid-3">
-        <template x-for="cat in categories" :key="cat.id">
-          <div class="card" style="display:flex;gap:16px;align-items:center;cursor:pointer;" :style="cat.color">
-            <div class="stat-icon" style="width:52px;height:52px;border-radius:14px;">
-              <iconify-icon :icon="cat.icon" style="font-size:28px;"></iconify-icon>
-            </div>
-            <div style="flex:1;">
-              <div style="font-weight:700;font-size:1rem;color:var(--text);" x-text="cat.name"></div>
-              <div style="font-size:0.8rem;color:var(--text-light);" x-text="cat.count+' produk'"></div>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-outline btn-icon btn-sm"><iconify-icon icon="solar:pen-bold" style="font-size:14px;"></iconify-icon></button>
-              <button class="btn btn-icon btn-sm" style="background:rgba(220,53,69,0.1);border:none;color:var(--danger);"><iconify-icon icon="solar:trash-bin-trash-bold" style="font-size:14px;"></iconify-icon></button>
-            </div>
-          </div>
-        </template>
-      </div>
-    </div>
-
-   
-
+    {% endblock content %}
   </div><!-- .content -->
 </main>
 

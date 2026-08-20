@@ -64,65 +64,55 @@
             <!-- =========================
      FILTERS + STATS SECTION
 ========================= -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
     <!-- Total Delayed -->
-    <div class="bg-red-100 border-l-4 border-red-600 p-5 rounded-xl shadow">
-        <h3 class="text-sm font-semibold text-gray-600 uppercase">Total Delayed</h3>
-        <p class="text-3xl font-bold text-red-700 mt-2">{{ delaying|length }}</p>
+    <div class="bg-red-50 border-l-4 border-red-600 p-5 rounded-xl shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase">Total Delayed Projects</h3>
+        <p class="text-3xl font-bold text-red-700 mt-2">{{ total_delayed }}</p>
     </div>
 
-    <!-- In Progress -->
-    <div class="bg-yellow-100 border-l-4 border-yellow-600 p-5 rounded-xl shadow">
-        <h3 class="text-sm font-semibold text-gray-600 uppercase">In Progress</h3>
-        <p class="text-3xl font-bold text-yellow-700 mt-2">{{ progress_count }}</p>
+    <!-- Active In Progress -->
+    <div class="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-xl shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase">With Financial Expenses</h3>
+        <p class="text-3xl font-bold text-amber-700 mt-2">{{ progress_count }}</p>
     </div>
 
-  
-{% for x in delaying %}
-    <!-- Budget -->
-    <div class="bg-blue-100 border-l-4 border-blue-600 p-5 rounded-xl shadow">
-        <h3 class="text-sm font-semibold text-gray-600 uppercase">Budget Impact</h3>
-        <p class="text-xl font-bold text-blue-700 mt-2">
-            KES {{ x.project_Budgeting}}
+    <!-- Budget Impact -->
+    <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-xl shadow-sm">
+        <h3 class="text-xs font-semibold text-gray-500 uppercase">Total Budget Impact</h3>
+        <p class="text-2xl font-bold text-blue-800 mt-2">
+            ${{ total_budget_delayed|floatformat:2 }}
         </p>
     </div>
 
 </div>
-{% endfor %}
 
 <!-- =========================
      SEARCH + FILTERS
 ========================= -->
-<div class="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6">
+<form method="GET" class="flex flex-col md:flex-row gap-3 justify-between items-center mb-6">
+    <div class="flex flex-1 gap-3 w-full">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search delayed projects..." class="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
 
-    
-
-    <!-- Filter -->
-    <div class="flex gap-3 w-full lg:w-auto">
-
-        <select id="statusFilter"
-                class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500">
-            <option value="">All Status</option>
-            <option value="Delayed">Delayed</option>
-            <option value="Pending">Pending</option>
-            <option value="Ongoing">Ongoing</option>
-            <option value="Completed">Completed</option>
-        </select>
-
-        <select id="countyFilter"
-                class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500">
-            <option value="">All Counties</option>
-
-            {% for county in counties %}
-            <option value="{{ county.name }}">{{ county.name }}</option>
+        <select name="location" onchange="this.form.submit()" class="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">All Locations</option>
+            {% for loc in locations %}
+                <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
             {% endfor %}
-
         </select>
 
-    </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-xl text-sm transition shadow">
+            Filter
+        </button>
 
-</div>
+        {% if q or selected_location %}
+            <a href="{% url 'delayed' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-xl text-sm transition flex items-center justify-center">
+                Reset
+            </a>
+        {% endif %}
+    </div>
+</form>
 
 
 <!-- =========================
@@ -367,7 +357,7 @@ searchInput.addEventListener("keyup", function () {
     <span class="text-sm text-gray-600">
         Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
     </span>
-    
+
 
     <div class="flex space-x-2">
 
@@ -404,7 +394,7 @@ searchInput.addEventListener("keyup", function () {
 
 </div>
         </div>
-        
+
     </div>
 </div>
 </div>

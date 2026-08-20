@@ -1,24 +1,72 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="aboutApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>About Us — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+<style>
+/* About page styles */
+.about-hero{background:linear-gradient(135deg,rgba(30,30,46,0.85) 0%,rgba(45,45,68,0.85) 50%,rgba(16,185,129,0.85) 130%), url('https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=1400&auto=format&fit=crop') center/cover no-repeat;border-radius:20px;padding:48px 40px;color:#fff;position:relative;overflow:hidden;margin-bottom:28px}
+.about-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06)}
+.about-hero::after{content:'';position:absolute;bottom:-80px;left:30%;width:200px;height:200px;border-radius:50%;background:rgba(252,25,25,.15)}
+.about-hero h1{font-size:2.2rem;font-weight:800;margin-bottom:10px;position:relative;z-index:1}
+.about-hero p{font-size:1rem;opacity:.9;max-width:640px;position:relative;z-index:1;line-height:1.7}
+.about-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);border-radius:999px;padding:6px 16px;font-size:.75rem;font-weight:600;margin-bottom:18px;position:relative;z-index:1}
+.about-stat{background:var(--surface);border-radius:16px;padding:24px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04);border-top:4px solid var(--primary);transition:transform .2s,box-shadow .2s}
+.about-stat:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(252,25,25,.12)}
+.about-stat .stat-num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--primary);line-height:1}
+.about-stat .stat-label{font-size:.78rem;color:var(--text-light);font-weight:600;margin-top:8px;text-transform:uppercase;letter-spacing:.05em}
+.about-stat .stat-icon{width:44px;height:44px;border-radius:12px;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px}
+.about-section-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.about-section-sub{font-size:.9rem;color:var(--text-light);margin-bottom:24px}
+.feature-card{background:var(--surface);border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:transform .2s,box-shadow .2s;height:100%}
+.feature-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(252,25,25,.1)}
+.feature-icon{width:52px;height:52px;border-radius:14px;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:16px}
+.feature-card h3{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:8px}
+.feature-card p{font-size:.85rem;color:var(--text-sec);line-height:1.6}
+.team-card{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:transform .2s,box-shadow .2s;text-align:center}
+.team-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(252,25,25,.1)}
+.team-card img{width:100%;height:200px;object-fit:cover}
+.team-avatar{width:100%;height:200px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary-10),var(--primary-05));font-size:3rem;font-weight:800;color:var(--primary)}
+.team-card .team-body{padding:18px 16px}
+.team-card .team-name{font-weight:700;color:var(--text);font-size:.95rem}
+.team-card .team-role{font-size:.78rem;color:var(--primary);font-weight:600;margin-top:2px}
+.team-card .team-desc{font-size:.78rem;color:var(--text-light);margin-top:8px;line-height:1.5}
+.team-social{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.team-social a{width:32px;height:32px;border-radius:8px;background:var(--bg);color:var(--text-sec);display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+.team-social a:hover{background:var(--primary);color:#fff}
+.testimonial-card{background:var(--surface);border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.04);position:relative}
+.testimonial-card::before{content:'"';position:absolute;top:8px;left:20px;font-size:4rem;font-family:Georgia,serif;color:var(--primary-10);line-height:1}
+.testimonial-card .stars{color:#f59e0b;font-size:.85rem;margin-bottom:10px}
+.testimonial-card p{font-size:.85rem;color:var(--text-sec);line-height:1.6;font-style:italic}
+.testimonial-card .author{display:flex;align-items:center;gap:10px;margin-top:16px}
+.testimonial-card .author img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.testimonial-card .author .name{font-weight:700;font-size:.85rem;color:var(--text)}
+.testimonial-card .author .meta{font-size:.72rem;color:var(--text-light)}
+.value-card{background:var(--surface);border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.04);text-align:center;transition:transform .2s}
+.value-card:hover{transform:translateY(-4px)}
+.value-card .value-icon{width:56px;height:56px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.value-card h3{font-weight:700;color:var(--text);font-size:.95rem;margin-bottom:6px}
+.value-card p{font-size:.8rem;color:var(--text-light);line-height:1.5}
+.cta-banner{background:linear-gradient(135deg,var(--primary),#ff6b6b);border-radius:20px;padding:40px;color:#fff;text-align:center;position:relative;overflow:hidden}
+.cta-banner h2{font-size:1.6rem;font-weight:800;margin-bottom:8px}
+.cta-banner p{opacity:.9;margin-bottom:20px}
+.cta-banner .btn-white{background:#fff;color:var(--primary);font-weight:700}
+.cta-banner .btn-white:hover{background:#f8f9fa;transform:translateY(-2px)}
+.cta-banner .btn-ghost{border:2px solid rgba(255,255,255,.6);color:#fff;font-weight:700}
+.cta-banner .btn-ghost:hover{background:rgba(255,255,255,.15)}
+@media(max-width:768px){.about-hero{padding:32px 24px}.about-hero h1{font-size:1.6rem}}
+</style>
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="aboutApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,79 +74,290 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
+  <div class="content">
 
-<div class="flex bg-gray-100">
-        <section class="bg-white shadow-lg rounded-xl w-full  p-10">
-            <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">About Us</h2>
-            <div 
-                class="mb-8 h-56 rounded-lg flex items-center justify-center"
-                style="background-image: url('{% static 'images/bg.jpg' %}'); background-size: cover; background-position: center;"
-            >
-                <div class="bg-white bg-opacity-70 rounded p-4">
-                    <p class="text-center text-gray-700 text-lg">
-                        Government Insights Hub is dedicated to providing comprehensive and transparent information on government activities, policies, and initiatives. Our mission is to empower individuals and organizations with accurate data to make informed decisions and engage actively in their communities. By utilizing cutting-edge tracking technologies and analysis tools, we ensure a seamless and user-friendly experience for our customers.
-                    </p>
-                </div>
-            </div>
-            <div class="text-gray-700 space-y-6">
-                <div>
-                    <h3 class="font-semibold text-xl mb-2">Our Mission</h3>
-                    <p>
-                        To enhance transparency, accountability, and citizen engagement by providing real-time tracking of government projects.
-                    </p>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-xl mb-2">Objectives</h3>
-                    <ul class="list-disc list-inside space-y-1 ml-4">
-                        <li>Monitor public infrastructure projects efficiently.</li>
-                        <li>Ensure projects are completed on time and within budget.</li>
-                        <li>Empower citizens to report concerns and provide feedback.</li>
-                        <li>Promote data-driven decision-making for government authorities.</li>
-                        <li>Enhance public trust in government project execution.</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-xl mb-2">Platform Features</h3>
-                    <ul class="list-disc list-inside space-y-1 ml-4">
-                        <li>Real-time project tracking.</li>
-                        <li>Interactive maps for project locations.</li>
-                        <li>Public feedback and reporting tools.</li>
-                        <li>Milestone tracking and transparency reports.</li>
-                        <li>Data analytics and project performance insights.</li>
-                        <li>Automated alerts and notifications for project updates.</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-xl mb-2">Who We Serve</h3>
-                    <p>
-                        Our platform benefits government agencies, policymakers, journalists, researchers, and citizens, ensuring effective project oversight and accountability.
-                    </p>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-xl mb-2">Our Commitment</h3>
-                    <p>
-                        We are committed to leveraging technology to provide a transparent and accessible system for tracking government projects. By fostering collaboration between government entities and the public, we aim to create a more accountable and efficient governance system.
-                    </p>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-xl mb-2">Contact Us</h3>
-                    <p>
-                        For inquiries, feedback, or partnerships, reach out via our official channels or email us at 
-                        <a href="mailto:support@govtrack.com" class="text-blue-600 hover:underline">support@govtrack.com</a>.
-                    </p>
-                </div>
-            </div>
-        </section>
-</div>
-</div>
+    <!-- ===== HERO ===== -->
+    <div class="about-hero">
+      <div class="about-badge">
+        <iconify-icon icon="solar:shield-check-bold-duotone"></iconify-icon>
+        Government Transparency Platform
+      </div>
+      <h1>About GovTracker</h1>
+      <p>
+        GovTracker is a comprehensive government project monitoring platform designed to bring
+        transparency, accountability, and citizen engagement to public infrastructure and services.
+        We empower citizens, officials, and stakeholders with real-time project tracking, budget
+        oversight, and AI-powered insights — all in one place.
+      </p>
+    </div>
 
-</div>
-</div>
-</div>
+    <!-- ===== STATS ===== -->
+    <div class="grid-4" style="margin-bottom:28px;">
+      <div class="about-stat">
+        <div class="stat-icon"><iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon></div>
+        <div class="stat-num">{{ total_projects }}</div>
+        <div class="stat-label">Total Projects</div>
+      </div>
+      <div class="about-stat" style="border-top-color:var(--success);">
+        <div class="stat-icon" style="background:rgba(40,167,69,.1);color:var(--success);"><iconify-icon icon="solar:play-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--success);">{{ ongoing_count }}</div>
+        <div class="stat-label">Ongoing</div>
+      </div>
+      <div class="about-stat" style="border-top-color:var(--info);">
+        <div class="stat-icon" style="background:rgba(23,162,184,.1);color:var(--info);"><iconify-icon icon="solar:check-circle-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--info);">{{ completed_count }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="about-stat" style="border-top-color:var(--warning);">
+        <div class="stat-icon" style="background:rgba(255,193,7,.1);color:var(--warning);"><iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--warning);">{{ total_users }}</div>
+        <div class="stat-label">Registered Users</div>
+      </div>
+    </div>
+
+    <!-- ===== MISSION & OBJECTIVES ===== -->
+    <div class="grid-2" style="margin-bottom:28px;">
+      <div class="card">
+        <div class="section-title" style="font-size:1.2rem;margin-bottom:12px;">Our Mission</div>
+        <p style="font-size:.9rem;color:var(--text-sec);line-height:1.7;">
+          To enhance transparency, accountability, and citizen engagement by providing real-time
+          tracking of government projects. We believe that when citizens can see how public funds
+          are being used — and can participate in the process — governments become more responsive,
+          efficient, and trustworthy.
+        </p>
+        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+          <a href="{% url 'projectoverview' %}" class="btn btn-primary btn-sm">
+            <iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon>
+            Explore Projects
+          </a>
+          <a href="{% url 'contactus' %}" class="btn btn-outline btn-sm">
+            <iconify-icon icon="solar:chat-round-bold-duotone"></iconify-icon>
+            Contact Us
+          </a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="font-size:1.2rem;margin-bottom:12px;">Our Objectives</div>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--text-sec);">
+            <iconify-icon icon="solar:check-circle-bold" style="color:var(--success);font-size:18px;flex-shrink:0;"></iconify-icon>
+            Monitor public infrastructure projects efficiently and transparently.
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--text-sec);">
+            <iconify-icon icon="solar:check-circle-bold" style="color:var(--success);font-size:18px;flex-shrink:0;"></iconify-icon>
+            Ensure projects are completed on time and within budget.
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--text-sec);">
+            <iconify-icon icon="solar:check-circle-bold" style="color:var(--success);font-size:18px;flex-shrink:0;"></iconify-icon>
+            Empower citizens to report concerns, submit evidence, and provide feedback.
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--text-sec);">
+            <iconify-icon icon="solar:check-circle-bold" style="color:var(--success);font-size:18px;flex-shrink:0;"></iconify-icon>
+            Promote data-driven decision-making for government authorities.
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--text-sec);">
+            <iconify-icon icon="solar:check-circle-bold" style="color:var(--success);font-size:18px;flex-shrink:0;"></iconify-icon>
+            Enhance public trust in government project execution.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== PLATFORM FEATURES ===== -->
+    <div style="margin-bottom:28px;">
+      <div class="section-header">
+        <div>
+          <div class="about-section-title">Platform Features</div>
+          <div class="about-section-sub">Everything you need to track, monitor, and engage with government projects</div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="solar:map-point-bold-duotone"></iconify-icon></div>
+          <h3>Real-Time Project Tracking</h3>
+          <p>Follow every government project from planning to completion with live status updates, milestones, and progress reports.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="solar:wallet-bold-duotone"></iconify-icon></div>
+          <h3>Budget Transparency</h3>
+          <p>Track budget allocations, spending, and utilization across all projects. See exactly where public funds are going.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="solar:chat-round-dots-bold-duotone"></iconify-icon></div>
+          <h3>AI-Powered Insights</h3>
+          <p>Leverage AI assistants, risk assessments, and predictive analytics to identify issues before they become problems.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="solar:flag-bold-duotone"></iconify-icon></div>
+          <h3>Milestone & Stage Tracking</h3>
+          <p>Monitor project stages and milestones with detailed progress percentages, timelines, and completion status.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="solar:shield-warning-bold-duotone"></iconify-icon></div>
+          <h3>Citizen Reporting</h3>
+          <p>Report issues, submit evidence, and provide feedback directly on projects. Your voice drives accountability.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon></div>
+          <h3>Transparency Reports</h3>
+          <p>Access detailed reports, audit logs, and performance metrics for full oversight and informed decision-making.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WHO WE SERVE ===== -->
+    <div class="card" style="margin-bottom:28px;">
+      <div class="section-title" style="font-size:1.2rem;margin-bottom:16px;">Who We Serve</div>
+      <div class="grid-4">
+        <div class="value-card">
+          <div class="value-icon" style="background:rgba(252,25,25,.1);color:var(--primary);"><iconify-icon icon="solar:building-bold-duotone"></iconify-icon></div>
+          <h3>Government Agencies</h3>
+          <p>Streamline project oversight and reporting.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon" style="background:rgba(40,167,69,.1);color:var(--success);"><iconify-icon icon="solar:user-bold-duotone"></iconify-icon></div>
+          <h3>Citizens</h3>
+          <p>Stay informed and participate in governance.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon" style="background:rgba(23,162,184,.1);color:var(--info);"><iconify-icon icon="solar:pen-bold-duotone"></iconify-icon></div>
+          <h3>Journalists & Researchers</h3>
+          <p>Access accurate data for reporting and analysis.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon" style="background:rgba(255,193,7,.1);color:var(--warning);"><iconify-icon icon="solar:briefcase-bold-duotone"></iconify-icon></div>
+          <h3>Contractors & Partners</h3>
+          <p>Track tenders, bids, and project performance.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TEAM ===== -->
+    {% if team_members %}
+    <div style="margin-bottom:28px;">
+      <div class="section-header">
+        <div>
+          <div class="about-section-title">Meet Our Team</div>
+          <div class="about-section-sub">The people behind GovTracker</div>
+        </div>
+      </div>
+      <div class="grid-3">
+        {% for member in team_members %}
+        <div class="team-card">
+          {% if member.image %}
+          <img src="{{ member.image.url }}" alt="{{ member.name }}">
+          {% else %}
+          <div class="team-avatar">{{ member.name|slice:":1" }}</div>
+          {% endif %}
+          <div class="team-body">
+            <div class="team-name">{{ member.name }}</div>
+            <div class="team-role">{{ member.role }}</div>
+            {% if member.description %}
+            <div class="team-desc">{{ member.description|truncatechars:90 }}</div>
+            {% endif %}
+            <div class="team-social">
+              {% if member.facebook %}<a href="{{ member.facebook }}" target="_blank" title="Facebook"><iconify-icon icon="solar:facebook-bold"></iconify-icon></a>{% endif %}
+              {% if member.twitter %}<a href="{{ member.twitter }}" target="_blank" title="Twitter"><iconify-icon icon="solar:twitter-bold"></iconify-icon></a>{% endif %}
+              {% if member.instagram %}<a href="{{ member.instagram }}" target="_blank" title="Instagram"><iconify-icon icon="solar:instagram-bold"></iconify-icon></a>{% endif %}
+              {% if member.linkedin %}<a href="{{ member.linkedin }}" target="_blank" title="LinkedIn"><iconify-icon icon="solar:linkedin-bold"></iconify-icon></a>{% endif %}
+              {% if member.whatsapp %}<a href="https://wa.me/{{ member.whatsapp }}" target="_blank" title="WhatsApp"><iconify-icon icon="solar:phone-bold"></iconify-icon></a>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== TESTIMONIALS ===== -->
+    {% if testimonials %}
+    <div style="margin-bottom:28px;">
+      <div class="section-header">
+        <div>
+          <div class="about-section-title">What People Say</div>
+          <div class="about-section-sub">Trusted by citizens and officials alike</div>
+        </div>
+        <a href="{% url 'testimonials' %}" class="btn btn-outline btn-sm">
+          View All Testimonials
+        </a>
+      </div>
+      <div class="grid-3">
+        {% for t in testimonials %}
+        <div class="testimonial-card">
+          <div class="stars">
+            {% for i in "12345" %}{% if forloop.counter <= t.rating %}★{% else %}☆{% endif %}{% endfor %}
+          </div>
+          <p>"{{ t.content|truncatechars:140 }}"</p>
+          <div class="author">
+            {% if t.image %}
+            <img src="{{ t.image.url }}" alt="{{ t.name }}">
+            {% else %}
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;">{{ t.name|slice:":1" }}</div>
+            {% endif %}
+            <div>
+              <div class="name">{{ t.name|default:"Anonymous" }}</div>
+              {% if t.project %}<div class="meta">{{ t.project.project_title|truncatechars:30 }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== COMMITMENT ===== -->
+    <div class="card" style="margin-bottom:28px;">
+      <div class="section-title" style="font-size:1.2rem;margin-bottom:12px;">Our Commitment</div>
+      <p style="font-size:.9rem;color:var(--text-sec);line-height:1.7;">
+        We are committed to leveraging technology to provide a transparent and accessible system for
+        tracking government projects. By fostering collaboration between government entities and the
+        public, we aim to create a more accountable and efficient governance system. Every feature we
+        build is designed with one goal in mind: <strong>building public trust through transparency</strong>.
+      </p>
+    </div>
+
+    <!-- ===== CTA ===== -->
+    <div class="cta-banner">
+      <h2>Ready to explore GovTracker?</h2>
+      <p>Join thousands of citizens and officials monitoring government projects in real time.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="{% url 'projectoverview' %}" class="btn btn-white">
+          <iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon>
+          Browse Projects
+        </a>
+        <a href="{% url 'contactus' %}" class="btn btn-ghost">
+          <iconify-icon icon="solar:chat-round-bold-duotone"></iconify-icon>
+          Get in Touch
+        </a>
+      </div>
+    </div>
+
+  </div><!-- .content -->
 </main>
+
 {% include "footer.html" %}
-{% endblock content %}
+
+<script>
+function aboutApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    pageTitle: 'About Us',
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    }
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,57 +1,150 @@
-{% extends 'dashboard.html' %}
-
+{% extends "heading.html" %}
 {% block content %}
-<div class="p-6">
-    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow p-8">
-        <h1 class="text-2xl font-bold text-gray-800">AI Issue Triage</h1>
-        <p class="mt-2 text-gray-600">Issues are automatically categorized and scored for urgency.</p>
+{% load static %}
 
-        <div class="overflow-x-auto mt-6">
-            <table class="min-w-full border border-gray-200">
-                <thead>
-                    <tr class="bg-gray-100 text-left">
-                        <th class="py-3 px-4">Title</th>
-                        <th class="py-3 px-4">Category</th>
-                        <th class="py-3 px-4">Risk</th>
-                        <th class="py-3 px-4">Status</th>
-                        <th class="py-3 px-4">AI review</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in issues %}
-                        <tr class="border-t">
-                            <td class="py-3 px-4">{{ item.issue.title }}</td>
-                            <td class="py-3 px-4">{{ item.category }}</td>
-                            <td class="py-3 px-4">{{ item.risk.level }} (score: {{ item.risk.score }})</td>
-                            <td class="py-3 px-4">{{ item.issue.status }}</td>
-                            <td class="py-3 px-4">
-                                {% if item.assessment %}
-                                    <p><strong>{{ item.assessment.urgency|title }}</strong>: {{ item.assessment.summary }}</p>
-                                    <p class="mt-1 text-sm">Action: {{ item.assessment.recommended_action }}</p>
-                                    <p class="mt-1 text-xs">{{ item.assessment.provider }} · {{ item.assessment.confidence }}% · {{ item.assessment.review_status }}</p>
-                                    {% if item.assessment.review_status == 'pending' %}
-                                        <form method="post" action="{% url 'ai_review_assessment' item.assessment.id %}" class="mt-2 inline-flex gap-2">
-                                            {% csrf_token %}
-                                            <button name="decision" value="approved" class="rounded bg-green-600 px-2 py-1 text-white">Approve</button>
-                                            <button name="decision" value="rejected" class="rounded bg-red-600 px-2 py-1 text-white">Reject</button>
-                                        </form>
-                                    {% endif %}
-                                {% else %}
-                                    <form method="post" action="{% url 'ai_triage_issue' item.issue.id %}">
-                                        {% csrf_token %}
-                                        <button class="rounded bg-indigo-600 px-2 py-1 text-white">Generate recommendation</button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="5" class="py-4 px-4 text-gray-500">No issues available.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Issue Triage Dashboard — GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-gray-50 text-gray-800 antialiased font-sans">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content p-6 max-w-7xl mx-auto space-y-6">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100 gap-4">
+      <div>
+        <h2 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+          <iconify-icon icon="solar:shield-warning-bold-duotone" class="text-rose-600 text-3xl"></iconify-icon>
+          <span>AI Issue Triage & Urgency Assessment</span>
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">
+          Automated risk scoring, severity assessment, and staff recommendation engine for citizen & field project issues.
+        </p>
+      </div>
+
+      <div class="flex gap-3">
+        <a href="{% url 'ai_insights' %}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-5 py-2.5 rounded-2xl shadow transition">
+          AI Intelligence Dashboard
+        </a>
+      </div>
     </div>
-</div>
+
+    <!-- Issues Table Card -->
+    <div class="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-600">
+          <thead class="text-xs uppercase bg-gray-50 text-gray-400 font-semibold border-b border-gray-100">
+            <tr>
+              <th class="px-6 py-4">Issue & Project</th>
+              <th class="px-6 py-4">AI Category</th>
+              <th class="px-6 py-4">Risk Level & Score</th>
+              <th class="px-6 py-4">Status</th>
+              <th class="px-6 py-4">AI Recommendation & Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for item in issues %}
+            <tr class="hover:bg-blue-50/40 transition">
+              <!-- Title & Project -->
+              <td class="px-6 py-4">
+                <div class="font-bold text-gray-900 text-base mb-0.5">{{ item.issue.title|default:"Reported Issue" }}</div>
+                <div class="text-xs text-blue-600 font-medium">{{ item.issue.project.project_title }}</div>
+                <div class="text-[11px] text-gray-400 mt-1">Reported {{ item.issue.created_at|date:"M d, Y" }}</div>
+              </td>
+
+              <!-- Category -->
+              <td class="px-6 py-4">
+                <span class="inline-block bg-indigo-50 text-indigo-700 font-semibold text-xs px-2.5 py-1 rounded-lg">
+                  {{ item.category|title }}
+                </span>
+              </td>
+
+              <!-- Risk -->
+              <td class="px-6 py-4">
+                <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold uppercase
+                  {% if item.risk.level == 'high' or item.risk.level == 'critical' %}bg-rose-100 text-rose-800
+                  {% else %}bg-amber-100 text-amber-800{% endif %}">
+                  {{ item.risk.level }} (Score: {{ item.risk.score }})
+                </span>
+              </td>
+
+              <!-- Status -->
+              <td class="px-6 py-4">
+                <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold
+                  {% if item.issue.status == 'resolved' %}bg-emerald-100 text-emerald-800
+                  {% else %}bg-gray-100 text-gray-700{% endif %}">
+                  {{ item.issue.get_status_display|default:item.issue.status }}
+                </span>
+              </td>
+
+              <!-- AI Review & Staff Decision -->
+              <td class="px-6 py-4">
+                {% if item.assessment %}
+                  <div class="bg-purple-50/80 p-3 rounded-2xl border border-purple-100 text-xs space-y-2">
+                    <p class="font-bold text-purple-900">
+                      Urgency: <span class="uppercase text-rose-700">{{ item.assessment.urgency }}</span> — {{ item.assessment.summary }}
+                    </p>
+                    <p class="text-gray-700"><strong>Recommended Action:</strong> {{ item.assessment.recommended_action }}</p>
+                    <div class="text-[10px] text-purple-700 pt-1 border-t border-purple-200/60 flex justify-between items-center">
+                      <span>{{ item.assessment.provider }} · Confidence: {{ item.assessment.confidence }}%</span>
+                      <span class="font-bold uppercase">{{ item.assessment.review_status }}</span>
+                    </div>
+
+                    {% if item.assessment.review_status == 'pending' %}
+                    <form method="post" action="{% url 'ai_review_assessment' item.assessment.id %}" class="pt-2 flex gap-2">
+                      {% csrf_token %}
+                      <button name="decision" value="approved" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition">
+                        Approve Action
+                      </button>
+                      <button name="decision" value="rejected" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition">
+                        Reject
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <form method="post" action="{% url 'ai_triage_issue' item.issue.id %}">
+                    {% csrf_token %}
+                    <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+                      <iconify-icon icon="solar:stars-bold" class="text-sm"></iconify-icon>
+                      <span>Generate AI Assessment</span>
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-12 text-gray-400">
+                <iconify-icon icon="solar:folder-error-bold-duotone" class="text-4xl text-gray-300 mb-2"></iconify-icon>
+                <p class="font-medium text-sm">No issues registered for AI triage.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+{% include "footer.html" %}
 {% endblock %}

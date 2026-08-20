@@ -1,29 +1,61 @@
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+{% load widget_tweaks %}
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="contactApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Contact Us — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+<style>
+/* Contact page styles */
+.contact-hero{background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 50%,var(--primary) 130%);border-radius:20px;padding:48px 40px;color:#fff;position:relative;overflow:hidden;margin-bottom:28px}
+.contact-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06)}
+.contact-hero::after{content:'';position:absolute;bottom:-80px;left:30%;width:200px;height:200px;border-radius:50%;background:rgba(252,25,25,.15)}
+.contact-hero h1{font-size:2.2rem;font-weight:800;margin-bottom:10px;position:relative;z-index:1}
+.contact-hero p{font-size:1rem;opacity:.9;max-width:640px;position:relative;z-index:1;line-height:1.7}
+.contact-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);border-radius:999px;padding:6px 16px;font-size:.75rem;font-weight:600;margin-bottom:18px;position:relative;z-index:1}
+.contact-stat{background:var(--surface);border-radius:16px;padding:24px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04);border-top:4px solid var(--primary);transition:transform .2s,box-shadow .2s}
+.contact-stat:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(252,25,25,.12)}
+.contact-stat .stat-num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--primary);line-height:1}
+.contact-stat .stat-label{font-size:.78rem;color:var(--text-light);font-weight:600;margin-top:8px;text-transform:uppercase;letter-spacing:.05em}
+.contact-stat .stat-icon{width:44px;height:44px;border-radius:12px;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px}
+.contact-card{background:var(--surface);border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.04);height:100%}
+.contact-info-item{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:12px;background:var(--bg);margin-bottom:12px;transition:all .2s}
+.contact-info-item:hover{background:var(--primary-05);transform:translateX(4px)}
+.contact-info-icon{width:44px;height:44px;min-width:44px;border-radius:12px;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:20px}
+.contact-info-item h4{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.contact-info-item p{font-size:.8rem;color:var(--text-light);line-height:1.5}
+.contact-form-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:.9rem;color:var(--text);background:var(--surface);font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:all .2s}
+.contact-form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-10)}
+.contact-form-label{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:6px;display:block}
+.contact-map{border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:28px}
+.contact-map iframe{width:100%;height:320px;border:0;display:block}
+.faq-item{background:var(--surface);border-radius:12px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:12px;cursor:pointer;transition:all .2s}
+.faq-item:hover{border-color:var(--primary)}
+.faq-item summary{list-style:none;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem;color:var(--text);cursor:pointer}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary iconify-icon{transition:transform .2s;color:var(--primary)}
+.faq-item[open] summary iconify-icon{transform:rotate(45deg)}
+.faq-item p{font-size:.85rem;color:var(--text-sec);line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light)}
+.alert-success{background:rgba(40,167,69,.1);border:1px solid rgba(40,167,69,.25);color:var(--success);border-radius:12px;padding:14px 18px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:20px}
+@media(max-width:768px){.contact-hero{padding:32px 24px}.contact-hero h1{font-size:1.6rem}}
+</style>
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="contactApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
-{% load widget_tweaks %}
+
 <!-- ===== HEADER ===== -->
 {% include "heading.html" %}
 
@@ -31,120 +63,263 @@
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="content">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <!-- ===== HERO ===== -->
+    <div class="contact-hero">
+      <div class="contact-badge">
+        <iconify-icon icon="solar:chat-round-dots-bold-duotone"></iconify-icon>
+        We're Here to Help
+      </div>
+      <h1>Contact GovTracker</h1>
+      <p>
+        Have a question, suggestion, or need support? Our team is ready to assist you.
+        Whether you're a citizen tracking a project, an official managing oversight,
+        or a partner exploring collaboration — reach out and we'll get back to you.
+      </p>
+    </div>
 
+    <!-- ===== STATS ===== -->
+    <div class="grid-4" style="margin-bottom:28px;">
+      <div class="contact-stat">
+        <div class="stat-icon"><iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon></div>
+        <div class="stat-num">{{ total_projects }}</div>
+        <div class="stat-label">Projects Tracked</div>
+      </div>
+      <div class="contact-stat" style="border-top-color:var(--success);">
+        <div class="stat-icon" style="background:rgba(40,167,69,.1);color:var(--success);"><iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--success);">{{ total_users }}</div>
+        <div class="stat-label">Registered Users</div>
+      </div>
+      <div class="contact-stat" style="border-top-color:var(--info);">
+        <div class="stat-icon" style="background:rgba(23,162,184,.1);color:var(--info);"><iconify-icon icon="solar:building-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--info);">{{ total_agencies }}</div>
+        <div class="stat-label">Agencies</div>
+      </div>
+      <div class="contact-stat" style="border-top-color:var(--warning);">
+        <div class="stat-icon" style="background:rgba(255,193,7,.1);color:var(--warning);"><iconify-icon icon="solar:chat-round-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--warning);">{{ total_testimonials }}</div>
+        <div class="stat-label">Testimonials</div>
+      </div>
+    </div>
 
+    <!-- ===== SUCCESS MESSAGE ===== -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert-success">
+          <iconify-icon icon="solar:check-circle-bold" style="font-size:20px;"></iconify-icon>
+          {{ message }}
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
 
-        
-   
+    <!-- ===== MAP ===== -->
+    <div class="contact-map">
+      <iframe
+        src="https://www.google.com/maps?q=Nairobi,Kenya&output=embed"
+        loading="lazy"
+        title="GovTracker Location — Nairobi, Kenya">
+      </iframe>
+    </div>
 
-    <!-- Contact Card -->
+    <!-- ===== FORM + INFO ===== -->
+    <div class="grid-2" style="margin-bottom:28px;">
+      <!-- Contact Form -->
+      <div class="contact-card">
+        <div class="section-title" style="font-size:1.2rem;margin-bottom:6px;">Send Us a Message</div>
+        <p style="font-size:.85rem;color:var(--text-light);margin-bottom:20px;">
+          Fill out the form below and our team will respond within 24 hours.
+        </p>
 
-        <div class="backdrop-blur-md bg-white/90 border border-white/20 rounded-2xl shadow-2xl p-8">
+        <form method="POST" action="{% url 'contactus' %}">
+          {% csrf_token %}
 
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <h2 class="text-4xl font-bold mb-3">Contact Us</h2>
-                <p class="text-gray-600 text-sm max-w-md mx-auto">
-                    Have a question, suggestion, or need support? We’re here to help.
-                </p>
+          <div class="form-group">
+            <label class="contact-form-label" for="{{ form.name.id_for_label }}">Full Name</label>
+            {% render_field form.name class="contact-form-input" %}
+            {% if form.name.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.name.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="contact-form-label" for="{{ form.email.id_for_label }}">Email Address</label>
+            {% render_field form.email class="contact-form-input" %}
+            {% if form.email.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.email.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="contact-form-label" for="{{ form.subject.id_for_label }}">Subject</label>
+            {% render_field form.subject class="contact-form-input" %}
+            {% if form.subject.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.subject.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="contact-form-label" for="{{ form.message.id_for_label }}">Message</label>
+            {% render_field form.message class="contact-form-input" %}
+            {% if form.message.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.message.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+            <iconify-icon icon="solar:plain-2-bold"></iconify-icon>
+            Send Message
+          </button>
+        </form>
+      </div>
+
+      <!-- Contact Info -->
+      <div>
+        <div class="contact-card" style="margin-bottom:20px;">
+          <div class="section-title" style="font-size:1.2rem;margin-bottom:16px;">Contact Information</div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><iconify-icon icon="solar:mail-bold-duotone"></iconify-icon></div>
+            <div>
+              <h4>Email Support</h4>
+              <p>support@govtracker.co.ke</p>
+              <p>info@govtracker.co.ke</p>
             </div>
+          </div>
 
-            <!-- ✅ MAP (KENYA) -->
-            <div class="mb-8 rounded-xl overflow-hidden shadow">
-                <iframe
-                    src="https://www.google.com/maps?q=Nairobi,Kenya&output=embed"
-                    class="w-full h-[300px] border-0"
-                    loading="lazy">
-                </iframe>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><iconify-icon icon="solar:map-point-bold-duotone"></iconify-icon></div>
+            <div>
+              <h4>Office Address</h4>
+              <p>Nairobi, Kenya</p>
+              <p>Upper Hill, Harambee Avenue</p>
             </div>
+          </div>
 
-            <!-- CONTENT -->
-            <div class="flex flex-wrap gap-8">
-
-                <!-- ✅ FORM -->
-                <div class="w-full lg:w-5/12">
-                    <form method="POST" class="space-y-5">
-                        {% csrf_token %}
-
-                        <div>
-                            <label class="text-sm font-semibold text-gray-700">Name</label>
-                            {% render_field form.name class="w-full mt-1 rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" %}
-                        </div>
-
-                        <div>
-                            <label class="text-sm font-semibold text-gray-700">Email</label>
-                            {% render_field form.email class="w-full mt-1 rounded-lg border px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" %}
-                        </div>
-
-                        <div>
-                            <label class="text-sm font-semibold text-gray-700">Message</label>
-                            {% render_field form.message class="w-full mt-1 rounded-lg border px-3 py-2 h-32 focus:ring-2 focus:ring-blue-500 outline-none" %}
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="copy">
-                            <label for="copy" class="text-sm text-gray-600">
-                                Send me a copy
-                            </label>
-                        </div>
-
-                        <button type="submit"
-                            class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
-                            Send Message
-                        </button>
-                    </form>
-                </div>
-
-                <!-- ✅ CONTACT INFO -->
-                <div class="w-full lg:w-6/12">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                        <div class="flex items-start gap-3">
-                            <div class="bg-blue-100 p-3 rounded-lg">📧</div>
-                            <div>
-                                <p class="font-bold">Support</p>
-                                <p class="text-sm text-gray-500">support@govtracker.co.ke</p>
-                                <p class="text-sm text-gray-500">+254 700 000 000</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-3">
-                            <div class="bg-blue-100 p-3 rounded-lg">📍</div>
-                            <div>
-                                <p class="font-bold">Address</p>
-                                <p class="text-sm text-gray-500">Nairobi, Kenya</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-3">
-                            <div class="bg-blue-100 p-3 rounded-lg">☎️</div>
-                            <div>
-                                <p class="font-bold">Landline</p>
-                                <p class="text-gray-500">020 123 4567</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-3">
-                            <div class="bg-blue-100 p-3 rounded-lg">📱</div>
-                            <div>
-                                <p class="font-bold">Mobile</p>
-                                <p class="text-gray-500">+254 712 345 678</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><iconify-icon icon="solar:phone-bold-duotone"></iconify-icon></div>
+            <div>
+              <h4>Phone</h4>
+              <p>+254 700 000 000 (Mobile)</p>
+              <p>020 123 4567 (Landline)</p>
             </div>
+          </div>
 
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><iconify-icon icon="solar:clock-circle-bold-duotone"></iconify-icon></div>
+            <div>
+              <h4>Working Hours</h4>
+              <p>Monday – Friday: 8:00 AM – 5:00 PM</p>
+              <p>Saturday: 9:00 AM – 1:00 PM</p>
+            </div>
+          </div>
         </div>
 
+        <!-- Quick Links -->
+        <div class="contact-card">
+          <div class="section-title" style="font-size:1.2rem;margin-bottom:16px;">Quick Links</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="{% url 'projectoverview' %}" class="btn btn-outline" style="justify-content:flex-start;">
+              <iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon>
+              Browse Projects
+            </a>
+            <a href="{% url 'feedback' %}" class="btn btn-outline" style="justify-content:flex-start;">
+              <iconify-icon icon="solar:chat-round-bold-duotone"></iconify-icon>
+              Submit Feedback
+            </a>
+            <a href="{% url 'add_report_issue' %}" class="btn btn-outline" style="justify-content:flex-start;">
+              <iconify-icon icon="solar:shield-warning-bold-duotone"></iconify-icon>
+              Report an Issue
+            </a>
+            <a href="{% url 'AboutUs' %}" class="btn btn-outline" style="justify-content:flex-start;">
+              <iconify-icon icon="solar:info-circle-bold-duotone"></iconify-icon>
+              About GovTracker
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
 
-</div>
+    <!-- ===== FAQ ===== -->
+    <div style="margin-bottom:28px;">
+      <div class="section-header">
+        <div>
+          <div class="section-title" style="font-size:1.2rem;">Frequently Asked Questions</div>
+          <div class="section-sub">Quick answers to common questions</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <details class="faq-item">
+            <summary>
+              How do I track a government project?
+              <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            </summary>
+            <p>Visit the Project Overview page to browse all projects, or use the search and filter tools to find a specific project by name, agency, status, or priority.</p>
+          </details>
+          <details class="faq-item">
+            <summary>
+              How can I report an issue with a project?
+              <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            </summary>
+            <p>Use the "Report an Issue" link to submit a detailed report with optional evidence. Our team reviews every submission and follows up with the relevant authorities.</p>
+          </details>
+          <details class="faq-item">
+            <summary>
+              Is GovTracker free to use?
+              <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            </summary>
+            <p>Yes! GovTracker is a public transparency platform. All project tracking, budget oversight, and citizen reporting features are completely free for citizens.</p>
+          </details>
+        </div>
+        <div>
+          <details class="faq-item">
+            <summary>
+              How do I submit feedback or a testimonial?
+              <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            </summary>
+            <p>Use the Feedback page to share your thoughts, or the Testimonials page to leave a public testimonial about your experience with a project.</p>
+          </details>
+          <details class="faq-item">
+            <summary>
+              Can contractors apply for tenders?
+              <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            </summary>
+            <p>Yes. Registered contractors can browse open tenders, submit applications with proposals, and track their bid status through the Bids & Proposals section.</p>
+          </details>
+          <details class="faq-item">
+            <summary>
+              How quickly will I get a response?
+              <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            </summary>
+            <p>Our support team responds to all inquiries within 24 hours on business days. Urgent issues are escalated immediately to the relevant department.</p>
+          </details>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- .content -->
 </main>
+
+
+<script>
+function contactApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    pageTitle: 'Contact Us',
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    }
+  }
+}
+</script>
+</div>
 {% include "footer.html" %}
+
+</body>
+</html>

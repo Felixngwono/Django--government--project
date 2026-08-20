@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
+from urllib.parse import quote
 from xml.dom import ValidationErr
 
 import pdfkit
@@ -7,9 +9,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import TruncMonth
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.utils.timesince import timesince
+from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.utils import timezone as django_timezone
@@ -17,62 +21,8 @@ from openpyxl import Workbook
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-from .forms import (
-    AuditLogForm,
-    BudgetForm,
-    CommentForm,
-    ContactUsForm,
-    FeedbackForm,
-    GovernmentRequestForm,
-    MediaForm,
-    MilestoneForm,
-    MyUserCreationForm,
-    NotificationForm,
-    ProgressReportForm,
-    ProjectCreationForm,
-    ProjectDivisionForm,
-    ProjectStageForm,
-    ProjectTypeForm,
-    ReportIssueForm,
-    TeamsForm,
-    TenderApplicationForm,
-    TenderForm,
-    TestimonialForm,
-    contractorForm,
-    participationForm,
-)
-from .models import (
-    PDF,
-    Announcement,
-    AuditLog,
-    Budget,
-    CitizenEvidence,
-    CitizenSubmission,
-    Comment,
-    Contractor,
-    Feedback,
-    GovernmentRequest,
-    Media,
-    Milestone,
-    Notification,
-    Participation,
-    ProgramImpact,
-    ProgressUpdate,
-    Project,
-    Project_Division,
-    Project_type,
-    ProjectExpense,
-    ProjectRisk,
-    ProjectStage,
-    ReportIssue,
-    StageReport,
-    Stakeholder,
-    Team,
-    Tender,
-    TenderApplication,
-    Testimonial,
-    User,
-)
+from .forms import ( AuditLogForm, BudgetForm, CommentForm, ContactUsForm, FeedbackForm, GovernmentRequestForm, MediaForm, MilestoneForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
+from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ReportIssue,StageReport,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
 from .workflow import OFFICER_ROLES, audit, notify, role_required
 
 
@@ -84,7 +34,7 @@ def get_participants_for_request(request, limit=None):
     else:
         queryset = Participation.objects.none()
 
-    queryset = queryset.order_by('-joined_at')
+    queryset = queryset.select_related('user', 'project').order_by('-joined_at')
     if limit is not None:
         return queryset[:limit]
     return queryset
@@ -144,7 +94,25 @@ def export_report_pdf(request):
 @login_required(login_url='login')
 def AboutUs(request):
     participants = get_participants_for_request(request, limit=5)
-    return render(request, 'about_us.html', context={'participants': participants})
+    team_members = Team.objects.all()[:6]
+    testimonials = Testimonial.objects.filter(is_approved=True).order_by('-is_featured', '-created_at')[:3]
+    projects = Project.objects.all()
+
+    context = {
+        'participants': participants,
+        'team_members': team_members,
+        'testimonials': testimonials,
+        'total_projects': projects.count(),
+        'ongoing_count': projects.filter(project_status='ongoing').count(),
+        'completed_count': projects.filter(project_status='completed').count(),
+        'delayed_count': projects.filter(project_status='delayed').count(),
+        'total_budget': projects.aggregate(total=Sum('project_Budgeting'))['total'] or 0,
+        'total_spent': projects.aggregate(total=Sum('amount_spent'))['total'] or 0,
+        'total_users': User.objects.count(),
+        'total_agencies': Project_Division.objects.count(),
+        'total_testimonials': Testimonial.objects.filter(is_approved=True).count(),
+    }
+    return render(request, 'about_us.html', context=context)
 
 
 def Home(request):
@@ -155,16 +123,17 @@ def Home(request):
 
 @login_required(login_url='login')
 def Participation_details(request,pk):
-    participation=get_object_or_404(Participation,id=pk)
-    participants = get_participants_for_request(request, limit=5)
-    
+    participation=get_object_or_404(Participation.objects.select_related('user', 'project'), id=pk)
+    participants = get_participants_for_request(request, limit=6)
+
     form=participationForm(instance=participation)
     if request.method=='POST':
         form=participationForm(request.POST, instance=participation)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Participation details and feedback updated successfully!')
             return redirect('participation_details',pk=pk)
-  
+
     context={'participation':participation, 'participants': participants,'form':form}
     return render(request,'participation_details.html',context)
 
@@ -197,7 +166,7 @@ def Notifications(request):
 
     context = {
         "notifications": notifications,
-        "notification_count": len(notifications)  
+        "notification_count": len(notifications)
     }
 
     return render(request, "notifications.html", context)
@@ -321,16 +290,23 @@ def ContactusPage(request):
     participants = get_participants_for_request(request, limit=4)
 
     form = ContactUsForm()
-    
+
     if request.method == 'POST':
             form = ContactUsForm(request.POST)
             if form.is_valid():
                 form.save()
-            
-            return redirect('contactus')
-        
-    context={'form':form, 'participants': participants}
-    return render(request, 'contact_us.html',context)
+                messages.success(request, 'Your message has been sent successfully. We will get back to you soon!')
+                return redirect('contactus')
+
+    context={
+        'form': form,
+        'participants': participants,
+        'total_projects': Project.objects.count(),
+        'total_users': User.objects.count(),
+        'total_agencies': Project_Division.objects.count(),
+        'total_testimonials': Testimonial.objects.filter(is_approved=True).count(),
+    }
+    return render(request, 'contact_us.html', context)
 
 @login_required(login_url='login')
 def Testimonials(request):
@@ -338,7 +314,7 @@ def Testimonials(request):
     selected_project = request.GET.get('project', '')
     selected_rating = request.GET.get('rating', '')
     testimonials = Testimonial.objects.all()
-    
+
 
     context={
         'testimonials':testimonials,
@@ -356,7 +332,7 @@ def testimonial_details(request,pk):
     if not testimonial.is_approved and not (request.user.is_superuser or testimonial.user_id == request.user.id):
         messages.error(request, 'This testimonial is awaiting moderation.')
         return redirect('testimonials')
-    
+
     participants = get_participants_for_request(request, limit=5)
 
     context={'testimonial':testimonial, 'participants': participants}
@@ -364,7 +340,7 @@ def testimonial_details(request,pk):
 
 @login_required(login_url='login')
 def add_testimonial(request):
-  
+
     form=TestimonialForm()
     if request.method=='POST':
         form=TestimonialForm(request.POST, request.FILES)
@@ -426,6 +402,10 @@ def moderate_testimonial(request, pk):
 
 @login_required(login_url='login')
 def adminview(request):
+    if not (request.user.is_superuser or request.user.is_staff or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)):
+        messages.error(request, "Access restricted. You do not have permission to view the executive admin portal.")
+        return redirect('dashboard')
+
     feedbacks = Feedback.objects.order_by('-created_at')[:10]
     impacts = ProgramImpact.objects.order_by('-id')[:10]
     updates = ProgressUpdate.objects.select_related('project', 'stage', 'reported_by').order_by('-date_reported')[:10]
@@ -499,7 +479,10 @@ def comment(request,pk):
 
 @login_required(login_url='login')
 def notifications(request):
-    return render(request, 'notifications.html')
+    notifications_qs = Notification.objects.filter(user=request.user).order_by('-created_at')
+    # Mark unread as read
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return render(request, 'notifications.html', {'notifications': notifications_qs})
 
 def welcomingpage(request):
     comment = Comment.objects.all()[:5]
@@ -543,7 +526,7 @@ def loginpage(request):
 def logoutuser(request):
     logout(request)
     messages.info(request,"Its sad to see you leave, welcome again")
-    return redirect('login') 
+    return redirect('login')
 
 def registrationpage(request):
     form = MyUserCreationForm()
@@ -563,14 +546,14 @@ def registrationpage(request):
 def updateprofile(request,pk):
 
     profiles = get_object_or_404(User, id=pk)
-    form = MyUserCreationForm(instance=profiles)   
+    form = MyUserCreationForm(instance=profiles)
     if request.method == 'POST':
         form = MyUserCreationForm(request.POST, request.FILES, instance=profiles)
         if form.is_valid():
             form.save()
             messages.info(request,'Profile updated successfully')
             return redirect('index')
-   
+
     return render(request, 'profile.html', {'form': form, 'profiles': profiles})
 
 @login_required(login_url='login')
@@ -595,12 +578,12 @@ def index(request):
     people=User.objects.all()
     agencies=Project_Division.objects.all().count()
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
-    
+
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:5]
     else:
         participants = Participation.objects.filter(user=request.user).order_by('-joined_at')[:5]
-  
+
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
              'completedcount':completedcount,
@@ -635,25 +618,25 @@ def jobApplication(request):
 
 @login_required(login_url='login')
 def feedback(request):
-     
+
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-  
+
     form= FeedbackForm()
     if request.method=='POST':
         form=FeedbackForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('index')
-        
+
     context= {'form':form, 'participants': participants}
     return render(request,'feedback.html',context)
 
 
 
-    
+
 @login_required(login_url='login')
 def CreateProject(request):
     form= ProjectCreationForm()
@@ -687,7 +670,90 @@ def deleteProject(request, pk):
 
 @login_required(login_url='login')
 def BudgetAnalysis(request):
-    return render(request,'budgetanalysis.html')
+    projects = Project.objects.all()
+    budgets = Budget.objects.select_related('project', 'project__project_division').all()
+    expenses = ProjectExpense.objects.select_related('project').all()
+
+    # Financial Metrics
+    total_allocated_budget = Budget.objects.aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0.00')
+    if not total_allocated_budget:
+        total_allocated_budget = Project.objects.aggregate(Sum('project_Budgeting'))['project_Budgeting__sum'] or Decimal('0.00')
+
+    total_spent_budget = Budget.objects.aggregate(Sum('spent_amount'))['spent_amount__sum'] or Decimal('0.00')
+    total_expense_sum = expenses.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_spent = max(total_spent_budget, total_expense_sum)
+
+    total_remaining = total_allocated_budget - total_spent
+    overall_utilization = round(float((total_spent / total_allocated_budget) * 100), 1) if total_allocated_budget else 0.0
+
+    # Division / Sector Allocation Analysis
+    division_data = []
+    divisions = Project_Division.objects.all()
+    for div in divisions:
+        div_projects = projects.filter(project_division=div)
+        div_allocated = div_projects.aggregate(Sum('project_Budgeting'))['project_Budgeting__sum'] or Decimal('0.00')
+        div_spent = div_projects.aggregate(Sum('amount_spent'))['amount_spent__sum'] or Decimal('0.00')
+        div_utilization = round(float((div_spent / div_allocated) * 100), 1) if div_allocated else 0.0
+        division_data.append({
+            'name': getattr(div, 'name', str(div)),
+            'project_count': div_projects.count(),
+            'allocated': div_allocated,
+            'spent': div_spent,
+            'remaining': div_allocated - div_spent,
+            'utilization': div_utilization
+        })
+
+    # Expense Category Breakdown
+    category_choices = ProjectExpense.CATEGORY_CHOICES
+    category_breakdown = []
+    for cat_code, cat_label in category_choices:
+        cat_amount = expenses.filter(category=cat_code).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+        category_breakdown.append({
+            'code': cat_code,
+            'label': cat_label,
+            'amount': cat_amount
+        })
+
+    # Top Funded Projects
+    top_projects = projects.order_by('-project_Budgeting')[:10]
+
+    # At-risk projects (utilization >= 85% or spent > budget)
+    at_risk_projects = []
+    for p in projects:
+        if p.project_Budgeting and p.amount_spent:
+            pct = (p.amount_spent / p.project_Budgeting) * 100
+            if pct >= 85:
+                at_risk_projects.append({
+                    'project': p,
+                    'utilization': round(float(pct), 1),
+                    'status': 'Overrun Risk' if pct > 100 else 'High Utilization'
+                })
+
+    # JS Charts Data
+    project_labels = [p.project_title[:20] for p in top_projects]
+    project_allocated = [float(p.project_Budgeting or 0) for p in top_projects]
+    project_spent = [float(p.amount_spent or 0) for p in top_projects]
+
+    cat_labels = [c['label'] for c in category_breakdown]
+    cat_amounts = [float(c['amount']) for c in category_breakdown]
+
+    context = {
+        'total_allocated': total_allocated_budget,
+        'total_spent': total_spent,
+        'total_remaining': total_remaining,
+        'overall_utilization': overall_utilization,
+        'division_data': division_data,
+        'category_breakdown': category_breakdown,
+        'top_projects': top_projects,
+        'at_risk_projects': at_risk_projects,
+        'project_labels': project_labels,
+        'project_allocated': project_allocated,
+        'project_spent': project_spent,
+        'cat_labels': cat_labels,
+        'cat_amounts': cat_amounts,
+        'budgets': budgets,
+    }
+    return render(request, 'budgetanalysis.html', context)
 
 @login_required(login_url='login')
 def PerfomanceMetrix(request):
@@ -696,36 +762,96 @@ def PerfomanceMetrix(request):
 
 @login_required(login_url='login')
 def completed(request):
-    projects= Project.objects.filter(project_status='completed')
-    q=request.GET.get('q') if request.GET.get('q') is not None else ''
-    project = Project.objects.filter(
-        Q(project_title__icontains=q) |
-        Q(project_description__icontains=q) |
-        Q(project_status__icontains=q) 
-    )
-    paginator = Paginator(projects, 6)  # number per page
+    q = request.GET.get('q', '').strip()
+    location = request.GET.get('location', '').strip()
 
+    projects_qs = Project.objects.filter(project_status='completed').select_related('district', 'category', 'project_division')
+
+    if q:
+        projects_qs = projects_qs.filter(
+            Q(project_title__icontains=q) |
+            Q(project_description__icontains=q) |
+            Q(project_location__icontains=q) |
+            Q(implementing_agency__icontains=q) |
+            Q(reference_code__icontains=q)
+        )
+
+    if location:
+        projects_qs = projects_qs.filter(project_location__icontains=location)
+
+    projects_qs = projects_qs.order_by('-updated_at', '-id')
+
+    locations = Project.objects.filter(project_status='completed').exclude(
+        project_location__isnull=True
+    ).exclude(project_location='').values_list('project_location', flat=True).distinct()
+
+    paginator = Paginator(projects_qs, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
-    context= {'projects':page_obj, 'project':project}
-    return render( request,'completed.html', context) 
+
+    context = {
+        'projects': page_obj,
+        'q': q,
+        'query': q,
+        'locations': locations,
+        'selected_location': location,
+        'total_count': paginator.count,
+    }
+    return render(request, 'completed.html', context)
+
 
 @login_required(login_url='login')
 def delayed(request):
-    delaying= Project.objects.filter(project_status='delayed')
-    
-    paginator = Paginator(delaying, 6)  # number per page
+    q = request.GET.get('q', '').strip()
+    location = request.GET.get('location', '').strip()
 
+    delaying_qs = Project.objects.filter(project_status='delayed').select_related('district', 'category', 'project_division')
+
+    if q:
+        delaying_qs = delaying_qs.filter(
+            Q(project_title__icontains=q) |
+            Q(project_description__icontains=q) |
+            Q(project_location__icontains=q) |
+            Q(implementing_agency__icontains=q) |
+            Q(reference_code__icontains=q)
+        )
+
+    if location:
+        delaying_qs = delaying_qs.filter(project_location__icontains=location)
+
+    delaying_qs = delaying_qs.order_by('-updated_at', '-id')
+
+    # Aggregates for delayed page summary
+    total_delayed = delaying_qs.count()
+    progress_count = delaying_qs.filter(amount_spent__gt=0).count()
+    total_budget_delayed = delaying_qs.aggregate(total=Sum('project_Budgeting'))['total'] or 0
+
+    locations = Project.objects.filter(project_status='delayed').exclude(
+        project_location__isnull=True
+    ).exclude(project_location='').values_list('project_location', flat=True).distinct()
+
+    paginator = Paginator(delaying_qs, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
-    context= {'delaying':delaying,'projects':page_obj}
-    return render( request,'delayed.html', context) 
+
+    context = {
+        'delaying': page_obj,
+        'projects': page_obj,
+        'q': q,
+        'query': q,
+        'locations': locations,
+        'selected_location': location,
+        'total_delayed': total_delayed,
+        'progress_count': progress_count,
+        'total_budget_delayed': total_budget_delayed,
+    }
+    return render(request, 'delayed.html', context)
+
 
 @login_required(login_url='login')
-def delayedstatus(request,pk):
-    projects= Project.objects.filter(project_status='delayed', id=pk)
+def delayedstatus(request, pk):
+    target_project = get_object_or_404(Project, id=pk)
+    projects = [target_project]
     form = participationForm()
 
     if request.method == 'POST':
@@ -733,12 +859,18 @@ def delayedstatus(request,pk):
         if form.is_valid():
             participation = form.save(commit=False)
             participation.user = request.user
-            participation.project = projects[0]  # Assuming only one project is returned
+            participation.project = target_project
             participation.save()
+            messages.success(request, f"Feedback submitted for '{target_project.project_title}'.")
             return redirect('delayed')
 
-    context= {'projects':projects, 'form':form}
-    return render( request,'statuses.html', context)
+    context = {
+        'projects': projects,
+        'project': target_project,
+        'project_status': target_project.project_status,
+        'form': form
+    }
+    return render(request, 'statuses.html', context)
 
 
 
@@ -749,8 +881,15 @@ def teams(request):
         participants = Participation.objects.all().order_by('-joined_at')[:5]
     else:
         participants = Participation.objects.filter(user=request.user)
-  
-    context={'tim':tim, 'participants':participants}
+
+    context={
+        'tim': tim,
+        'participants': participants,
+        'total_members': tim.count(),
+        'total_roles': tim.values('role').distinct().count(),
+        'total_projects': Project.objects.count(),
+        'total_users': User.objects.count(),
+    }
     return render(request,'team.html',context)
 
 @login_required(login_url='login')
@@ -759,12 +898,13 @@ def add_team(request):
         participants = Participation.objects.all().order_by('-joined_at')[:5]
     else:
         participants = Participation.objects.filter(user=request.user)
-  
+
     form=TeamsForm()
     if request.method=='POST':
         form=TeamsForm(request.POST,request.FILES)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Team member added successfully!')
             return redirect('team')
     return render(request,'add_team.html',context={'form':form,'participants':participants})
 
@@ -774,10 +914,11 @@ def update_team(request,pk):
     form=TeamsForm(instance=tim)
     if request.method=='POST':
         form=TeamsForm(request.POST,request.FILES,instance=tim)
-        if request.is_valid():
+        if form.is_valid():
             form.save()
+            messages.success(request, 'Team member updated successfully!')
             return redirect('team')
-    context={'tim':tim}
+    context={'tim':tim, 'form':form}
     return render(request,'update_team.html',context)
 
 @login_required(login_url='login')
@@ -785,6 +926,7 @@ def delete_team(request,pk):
     deletetim=get_object_or_404(Team,pk=pk)
     if request.method=='POST':
         deletetim.delete()
+        messages.success(request, 'Team member deleted successfully!')
         return redirect('team')
     return render(request,'delete_team.html',{'deletetim':deletetim})
 
@@ -794,36 +936,113 @@ def teams_details(request,pk):
     form=TeamsForm(instance=details)
     if request.method=='POST':
         form=TeamsForm(request.POST,request.FILES,instance=details)
-        if request.is_valid():
+        if form.is_valid():
             form.save()
+            messages.success(request, 'Team member updated successfully!')
             return redirect('team')
     context={
            'details':details,
-           'form':form 
+           'form':form
         }
     return render(request, 'teams_details.html',context)
-    
-    
-        
+
+
+
 @login_required(login_url='login')
 def project_overview(request):
-
-    q = request.GET.get('q') if request.GET.get('q') is not None else ''
+    q = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    priority_filter = request.GET.get('priority', '').strip()
 
     projects = Project.objects.filter(
         Q(project_title__icontains=q) |
         Q(project_description__icontains=q) |
         Q(project_status__icontains=q) |
         Q(implementing_agency__icontains=q)
-    ).order_by('-id')
+    )
+
+    if status_filter:
+        projects = projects.filter(project_status=status_filter)
+
+    if priority_filter:
+        projects = projects.filter(priority=priority_filter)
+
+    projects = projects.order_by('-id')
 
     paginator = Paginator(projects, 6)  # number per page
-
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Summary statistics for the overview dashboard
+    total_projects = Project.objects.all().count()
+    ongoing_count = Project.objects.filter(project_status='ongoing').count()
+    upcoming_count = Project.objects.filter(project_status='upcoming').count()
+    completed_count = Project.objects.filter(project_status='completed').count()
+    delayed_count = Project.objects.filter(project_status='delayed').count()
+    stalled_count = Project.objects.filter(project_status='stalled').count()
+    draft_count = Project.objects.filter(project_status='draft').count()
+    suspended_count = Project.objects.filter(project_status='suspended').count()
+    cancelled_count = Project.objects.filter(project_status='cancelled').count()
+
+    status_counts = {
+        status: Project.objects.filter(project_status=status).count()
+        for status, _label in Project.STATUS_CHOICES
+    }
+
+    total_budget = Project.objects.aggregate(total=Sum('project_Budgeting'))['total'] or 0
+    total_spent = Project.objects.aggregate(total=Sum('amount_spent'))['total'] or 0
+
+    # Locations for the recent projects sidebar
+    projects_by_location = (
+        Project.objects.exclude(project_location__isnull=True)
+        .exclude(project_location='')
+        .values('project_location')
+        .annotate(total=Count('id'))
+        .order_by('-total')[:6]
+    )
+
+    # Recent & attention projects
+    recent_projects = Project.objects.order_by('-created_at')[:5]
+    attention_projects = Project.objects.filter(
+        Q(project_status__in=['delayed', 'suspended']) |
+        Q(end_date__lt=datetime.now().date(), project_status__in=['ongoing', 'upcoming'])
+    ).order_by('end_date')[:4]
+
+    # Query string that preserves the active filters (used in pagination links)
+    base_params = []
+    if q:
+        base_params.append(f"q={quote(q)}")
+    if status_filter:
+        base_params.append(f"status={quote(status_filter)}")
+    if priority_filter:
+        base_params.append(f"priority={quote(priority_filter)}")
+    base_query = "&".join(base_params)
+
     context = {
-        "projects": page_obj
+        "projects": page_obj,
+        "total_projects": total_projects,
+        "ongoing_count": ongoing_count,
+        "upcoming_count": upcoming_count,
+        "completed_count": completed_count,
+        "delayed_count": delayed_count,
+        "stalled_count": stalled_count,
+        "draft_count": draft_count,
+        "suspended_count": suspended_count,
+        "cancelled_count": cancelled_count,
+        "status_counts": status_counts,
+        "total_budget": total_budget,
+        "total_spent": total_spent,
+        "budget_remaining": total_budget - total_spent,
+        "budget_utilization": round(float(total_spent / total_budget * 100), 1) if total_budget else 0,
+        "projects_by_location": projects_by_location,
+        "recent_projects": recent_projects,
+        "attention_projects": attention_projects,
+        "status_filter": status_filter,
+        "priority_filter": priority_filter,
+        "q": q,
+        "base_query": base_query,
+        "status_choices": Project.STATUS_CHOICES,
+        "priority_choices": Project.PRIORITY_CHOICES,
     }
 
     return render(request, "overview.html", context)
@@ -843,55 +1062,134 @@ def project_details(request,pk):
 
 @login_required(login_url='login')
 def ongoing(request):
-    projects= Project.objects.filter(project_status='ongoing')
-    q=request.GET.get('q') if request.GET.get('q') is not None else ''
-    project = Project.objects.filter(
-        Q(project_title__icontains=q) |
-        Q(project_description__icontains=q) |
-        Q(project_status__icontains=q) 
-    )
-    
-    paginator = Paginator(projects, 6)  # 6 per page
-    page_number = request.GET.get('page')
-    projects = paginator.get_page(page_number)
+    q = request.GET.get('q', '').strip()
+    location = request.GET.get('location', '').strip()
 
-    
-    context= {'projects':projects, 'project':project}
-    return render( request,'ongoing.html', context) 
+    projects_qs = Project.objects.filter(project_status='ongoing').select_related('district', 'category', 'project_division')
+
+    if q:
+        projects_qs = projects_qs.filter(
+            Q(project_title__icontains=q) |
+            Q(project_description__icontains=q) |
+            Q(project_location__icontains=q) |
+            Q(implementing_agency__icontains=q) |
+            Q(reference_code__icontains=q)
+        )
+
+    if location:
+        projects_qs = projects_qs.filter(project_location__icontains=location)
+
+    projects_qs = projects_qs.order_by('-start_date', '-id')
+
+    locations = Project.objects.filter(project_status='ongoing').exclude(
+        project_location__isnull=True
+    ).exclude(project_location='').values_list('project_location', flat=True).distinct()
+
+    paginator = Paginator(projects_qs, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'projects': page_obj,
+        'q': q,
+        'query': q,
+        'locations': locations,
+        'selected_location': location,
+        'total_count': paginator.count,
+    }
+    return render(request, 'ongoing.html', context)
+
 
 @login_required(login_url='login')
 def upcoming(request):
-    projects= Project.objects.filter(project_status='upcoming')
-    q=request.GET.get('q') if request.GET.get('q') is not None else ''
-    project = Project.objects.filter(
-        Q(project_title__icontains=q) |
-        Q(project_description__icontains=q) |
-        Q(project_status__icontains=q) 
-    )
-    paginator = Paginator(projects, 6)  # number per page
+    q = request.GET.get('q', '').strip()
+    location = request.GET.get('location', '').strip()
 
+    projects_qs = Project.objects.filter(project_status='upcoming').select_related('district', 'category', 'project_division')
+
+    if q:
+        projects_qs = projects_qs.filter(
+            Q(project_title__icontains=q) |
+            Q(project_description__icontains=q) |
+            Q(project_location__icontains=q) |
+            Q(implementing_agency__icontains=q) |
+            Q(reference_code__icontains=q)
+        )
+
+    if location:
+        projects_qs = projects_qs.filter(project_location__icontains=location)
+
+    projects_qs = projects_qs.order_by('-start_date', '-id')
+
+    locations = Project.objects.filter(project_status='upcoming').exclude(
+        project_location__isnull=True
+    ).exclude(project_location='').values_list('project_location', flat=True).distinct()
+
+    paginator = Paginator(projects_qs, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
-    context= {'projects':page_obj, 'project':project}
-    return render( request,'upcoming.html', context) 
+
+    context = {
+        'projects': page_obj,
+        'q': q,
+        'query': q,
+        'locations': locations,
+        'selected_location': location,
+        'total_count': paginator.count,
+    }
+    return render(request, 'upcoming.html', context)
 
 @login_required(login_url='login')
 def project(request):
-    projects= Project.objects.filter(project_status='project')
-    projects=Project.objects.all().order_by('-end_date')[:1]
+    query = (request.GET.get('q') or '').strip()
+    selected_status = (request.GET.get('status') or '').lower()
+    projects = Project.objects.select_related('district', 'category').order_by('-updated_at')
+    if query:
+        projects = projects.filter(
+            Q(project_title__icontains=query)
+            | Q(reference_code__icontains=query)
+            | Q(project_location__icontains=query)
+            | Q(implementing_agency__icontains=query)
+        )
+    if selected_status in dict(Project.STATUS_CHOICES):
+        projects = projects.filter(project_status=selected_status)
+
+    status_counts = {
+        status: Project.objects.filter(project_status=status).count()
+        for status, _label in Project.STATUS_CHOICES
+    }
+    financials = Project.objects.aggregate(
+        total_budget=Sum('project_Budgeting'),
+        total_spent=Sum('amount_spent'),
+    )
+    total_budget = financials['total_budget'] or 0
+    total_spent = financials['total_spent'] or 0
+    paginator = Paginator(projects, 9)
+    page_obj = paginator.get_page(request.GET.get('page'))
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:5]
     else:
         participants = Participation.objects.filter(user=request.user)
-  
-    context= {'projects':projects, 'participants':participants}
+
+    context = {
+        'projects': page_obj,
+        'participants': participants,
+        'status_counts': status_counts,
+        'total_projects': sum(status_counts.values()),
+        'total_budget': total_budget,
+        'total_spent': total_spent,
+        'total_remaining': total_budget - total_spent,
+        'budget_utilization': round(float(total_spent / total_budget * 100), 1) if total_budget else 0,
+        'selected_status': selected_status,
+        'query': query,
+    }
     return render(request, "project.html",context)
 
 @login_required(login_url='login')
-def UpcomingStatuses(request,pk):
-    projects= Project.objects.filter(project_status='upcoming', id=pk)
-    Participants=Participation.objects.filter(user=request.user)
+def UpcomingStatuses(request, pk):
+    target_project = get_object_or_404(Project, id=pk)
+    projects = [target_project]
+    participants = get_participants_for_request(request, limit=5)
     form = participationForm()
 
     if request.method == 'POST':
@@ -899,16 +1197,26 @@ def UpcomingStatuses(request,pk):
         if form.is_valid():
             participation = form.save(commit=False)
             participation.user = request.user
-            participation.project = projects[0] 
+            participation.project = target_project
             participation.save()
+            messages.success(request, f"Feedback submitted for '{target_project.project_title}'.")
             return redirect('upcoming')
-    context= {'projects':projects, 'Participants':Participants, 'form':form}
-    return render( request,'statuses.html', context) 
+
+    context = {
+        'projects': projects,
+        'project': target_project,
+        'project_status': target_project.project_status,
+        'Participants': participants,
+        'form': form
+    }
+    return render(request, 'statuses.html', context)
+
 
 @login_required(login_url='login')
-def CompletedStatuses(request,pk):
-    projects= Project.objects.filter(project_status='completed',id=pk)
-    Participants=Participation.objects.filter(user=request.user)
+def CompletedStatuses(request, pk):
+    target_project = get_object_or_404(Project, id=pk)
+    projects = [target_project]
+    participants = get_participants_for_request(request, limit=5)
     form = participationForm()
 
     if request.method == 'POST':
@@ -916,20 +1224,26 @@ def CompletedStatuses(request,pk):
         if form.is_valid():
             participation = form.save(commit=False)
             participation.user = request.user
-            participation.project = projects[0]  # Assuming only one project is returned
+            participation.project = target_project
             participation.save()
+            messages.success(request, f"Feedback submitted for '{target_project.project_title}'.")
             return redirect('completed')
-    context= {'projects':projects, 'Participants':Participants, 'form':form}
-    return render( request,'statuses.html', context) 
 
+    context = {
+        'projects': projects,
+        'project': target_project,
+        'project_status': target_project.project_status,
+        'Participants': participants,
+        'form': form
+    }
+    return render(request, 'statuses.html', context)
 
 
 @login_required(login_url='login')
 def OngoingStatuses(request, pk):
-
-    projects = Project.objects.filter(project_status='ongoing', id=pk)
-
-    Participants = get_participants_for_request(request, limit=5)
+    target_project = get_object_or_404(Project, id=pk)
+    projects = [target_project]
+    participants = get_participants_for_request(request, limit=5)
     form = participationForm()
 
     if request.method == 'POST':
@@ -937,33 +1251,38 @@ def OngoingStatuses(request, pk):
         if form.is_valid():
             participation = form.save(commit=False)
             participation.user = request.user
-            participation.project = projects[0]
+            participation.project = target_project
             participation.save()
+            messages.success(request, f"Feedback submitted for '{target_project.project_title}'.")
             return redirect('ongoing')
 
     context = {
         'projects': projects,
-        'Participants': Participants,
+        'project': target_project,
+        'project_status': target_project.project_status,
+        'Participants': participants,
         'form': form
     }
-
     return render(request, 'statuses.html', context)
-  
+
 @login_required(login_url='login')
 def divisionform(request):
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-        
-    form= ProjectDivisionForm()
-    if request.method=='POST':
-        form= ProjectDivisionForm(request.POST,request.FILES)
+
+    form = ProjectDivisionForm()
+    if request.method == 'POST':
+        form = ProjectDivisionForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            division = form.save()
+            audit(request, 'created', division, changes={'name': str(division)})
+            messages.success(request, f"Project Division '{division}' created successfully!")
             return redirect('division_details')
-    context={'form':form, 'participants':participants}
-    return render(request,'division.html', context)
+    context = {'form': form, 'participants': participants}
+    return render(request, 'division.html', context)
+
 
 @login_required(login_url='login')
 def Division_details(request):
@@ -971,34 +1290,123 @@ def Division_details(request):
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-        
-    divisions=Project_Division.objects.all()
-    context={'divisions':divisions, 'participants':participants}
-    return render(request,'division_details.html', context)
 
-def Division_view(request,pk):
-    division=get_object_or_404(Project_Division,id=pk)
-    context={'division':division}
-    return render(request,'division_view.html',context)
+    query = request.GET.get('q', '').strip()
+    selected_type = request.GET.get('type', '').strip()
 
-def edit_division(request,pk):
-    editdivision=get_object_or_404(Project_Division,id=pk)
-    form=ProjectDivisionForm(instance=editdivision)
-    if request.method=='POST':
-        form=ProjectDivisionForm(request.POST,request.FILES,instance=editdivision)
+    divisions = Project_Division.objects.select_related('project_type', 'head_user').prefetch_related('project_name')
+
+    if query:
+        divisions = divisions.filter(
+            Q(name__icontains=query) |
+            Q(code__icontains=query) |
+            Q(description__icontains=query) |
+            Q(head_of_division__icontains=query)
+        )
+
+    if selected_type and selected_type.isdigit():
+        divisions = divisions.filter(project_type_id=int(selected_type))
+
+    total_divisions = divisions.count()
+    active_divisions = divisions.filter(is_active=True).count()
+    project_types = Project_type.objects.order_by('name')
+
+    total_allocated = sum([float(d.total_budget_allocated or 0) for d in divisions])
+    total_spent = sum([float(d.total_budget_spent or 0) for d in divisions])
+
+    context = {
+        'divisions': divisions,
+        'participants': participants,
+        'query': query,
+        'selected_type': selected_type,
+        'project_types': project_types,
+        'total_divisions': total_divisions,
+        'active_divisions': active_divisions,
+        'total_allocated': total_allocated,
+        'total_spent': total_spent,
+    }
+    return render(request, 'division_details.html', context)
+
+
+@login_required(login_url='login')
+def Division_view(request, pk):
+    division = get_object_or_404(
+        Project_Division.objects.select_related('project_type', 'head_user').prefetch_related('project_name'),
+        id=pk
+    )
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    assigned_projects = division.project_name.select_related('district', 'category').all()
+
+    total_projects = assigned_projects.count()
+    ongoing_count = assigned_projects.filter(project_status='ongoing').count()
+    completed_count = assigned_projects.filter(project_status='completed').count()
+    delayed_count = assigned_projects.filter(project_status='delayed').count()
+    upcoming_count = assigned_projects.filter(project_status='upcoming').count()
+
+    total_allocated = float(division.total_budget_allocated or 0)
+    total_spent = float(division.total_budget_spent or 0)
+    remaining_budget = total_allocated - total_spent
+    utilization_rate = division.utilization_rate
+
+    context = {
+        'division': division,
+        'participants': participants,
+        'assigned_projects': assigned_projects,
+        'total_projects': total_projects,
+        'ongoing_count': ongoing_count,
+        'completed_count': completed_count,
+        'delayed_count': delayed_count,
+        'upcoming_count': upcoming_count,
+        'total_allocated': total_allocated,
+        'total_spent': total_spent,
+        'remaining_budget': remaining_budget,
+        'utilization_rate': utilization_rate,
+    }
+    return render(request, 'division_view.html', context)
+
+
+@login_required(login_url='login')
+def edit_division(request, pk):
+    editdivision = get_object_or_404(Project_Division, id=pk)
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    form = ProjectDivisionForm(instance=editdivision)
+    if request.method == 'POST':
+        form = ProjectDivisionForm(request.POST, request.FILES, instance=editdivision)
         if form.is_valid():
-            form.save()
+            division = form.save()
+            audit(request, 'updated', division, changes={'name': str(division)})
+            messages.success(request, f"Project Division '{division}' updated successfully!")
             return redirect('division_details')
-    context={'form':form,'division':editdivision}
-    return render(request,'division.html',context)
 
-def delete_division(request,pk):
-    division=get_object_or_404(Project_Division,id=pk)
-    if request.method=='POST':
+    context = {'form': form, 'division': editdivision, 'participants': participants}
+    return render(request, 'division.html', context)
+
+
+@login_required(login_url='login')
+def delete_division(request, pk):
+    division = get_object_or_404(Project_Division, id=pk)
+    if request.method == 'POST':
+        name = str(division)
+        audit(request, 'deleted', division, changes={'name': name})
         division.delete()
+        messages.success(request, f"Project Division '{name}' deleted successfully!")
         return redirect('division_details')
-    context={'division':division}
-    return render(request,'delete/delete_division.html',context)
+
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    context = {'division': division, 'participants': participants}
+    return render(request, 'delete/delete_division.html', context)
 
 
 @login_required(login_url='login')
@@ -1007,10 +1415,10 @@ def ProjectTypes(request):
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-        
+
     ptypes=Project_type.objects.all()
-  
-    
+
+
     context={'participants':participants, 'ptypes':ptypes}
     return render(request,'projectType.html',context)
 
@@ -1021,7 +1429,7 @@ def ptypes(request):
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-  
+
     form=ProjectTypeForm()
     if request.method=='POST':
         form=ProjectTypeForm(request.POST,request.FILES)
@@ -1034,7 +1442,7 @@ def ptypes(request):
 @login_required(login_url='login')
 def charts(request):
     projects=Project.objects.all().values('project_status').annotate(total=Count('project_status')).order_by('-total')
-   
+
     context={
         'projects':projects,
     }
@@ -1044,44 +1452,205 @@ def charts(request):
 
 @login_required(login_url='login')
 def milestone_list(request):
-    milestones = Milestone.objects.all()
+    milestones = Milestone.objects.select_related('project', 'stage').all().order_by('-due_date', '-id')
+
+    # Search query
+    query = request.GET.get('q', '').strip()
+    if query:
+        milestones = milestones.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(project__project_title__icontains=query) |
+            Q(stage__name__icontains=query)
+        )
+
+    # Filter by project
+    project_id = request.GET.get('project', '').strip()
+    if project_id and project_id.isdigit():
+        milestones = milestones.filter(project_id=int(project_id))
+
+    # Filter by status
+    status = request.GET.get('status', '').strip()
+    if status:
+        milestones = milestones.filter(status=status)
+
+    # Filter by stage
+    stage_id = request.GET.get('stage', '').strip()
+    if stage_id and stage_id.isdigit():
+        milestones = milestones.filter(stage_id=int(stage_id))
+
+    # Key Performance Indicators (KPIs)
+    all_milestones = Milestone.objects.all()
+    total_milestones = all_milestones.count()
+    completed_count = all_milestones.filter(status='completed').count()
+    in_progress_count = all_milestones.filter(status='in_progress').count()
+    pending_count = all_milestones.filter(status='pending').count()
+    missed_count = all_milestones.filter(status='missed').count()
+
+    today = date.today()
+    overdue_count = all_milestones.filter(due_date__lt=today).exclude(status='completed').count()
+
+    avg_progress_agg = all_milestones.aggregate(Avg('progress_percentage'))['progress_percentage__avg']
+    avg_progress = round(avg_progress_agg, 1) if avg_progress_agg is not None else 0
+
+    completion_rate = round((completed_count / total_milestones * 100), 1) if total_milestones > 0 else 0
+
+    projects = Project.objects.all().order_by('project_title')
+    stages = ProjectStage.objects.all().order_by('stage_name')
+
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-    context={'milestones': milestones, 'participants': participants}
+
+    context = {
+        'milestones': milestones,
+        'participants': participants,
+        'projects': projects,
+        'stages': stages,
+        'stats': {
+            'total': total_milestones,
+            'completed': completed_count,
+            'in_progress': in_progress_count,
+            'pending': pending_count,
+            'missed': missed_count,
+            'overdue': overdue_count,
+            'avg_progress': avg_progress,
+            'completion_rate': completion_rate,
+        },
+        'query': query,
+        'selected_project': project_id,
+        'selected_status': status,
+        'selected_stage': stage_id,
+    }
     return render(request, 'milestone_list.html', context)
+
+
+@login_required(login_url='login')
+def milestone_detail(request, pk):
+    milestone = get_object_or_404(Milestone.objects.select_related('project', 'stage'), pk=pk)
+    sibling_milestones = Milestone.objects.filter(project=milestone.project).exclude(pk=milestone.pk)
+
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    context = {
+        'milestone': milestone,
+        'project': milestone.project,
+        'stage': milestone.stage,
+        'sibling_milestones': sibling_milestones,
+        'participants': participants,
+    }
+    return render(request, 'milestone_detail.html', context)
+
 
 @login_required(login_url='login')
 def milestone_create(request):
+    initial = {}
+    if request.GET.get('project'):
+        initial['project'] = request.GET.get('project')
+
     if request.method == 'POST':
         form = MilestoneForm(request.POST)
         if form.is_valid():
-            form.save()
+            milestone_obj = form.save(commit=False)
+            if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
+                milestone_obj.status = 'completed'
+                if not milestone_obj.completion_date:
+                    milestone_obj.completion_date = date.today()
+            milestone_obj.save()
+
+            audit(request, 'created', milestone_obj, project=milestone_obj.project, changes={'title': milestone_obj.title})
+            messages.success(request, f"Milestone '{milestone_obj.title}' created successfully!")
             return redirect('milestone_list')
     else:
-        form = MilestoneForm()
-    return render(request, 'milestone_form.html', {'form': form})
+        form = MilestoneForm(initial=initial)
+
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    return render(request, 'milestone_form.html', {'form': form, 'title': 'Create New Milestone', 'participants': participants})
+
 
 @login_required(login_url='login')
 def milestone_update(request, pk):
-    milestone = get_object_or_404(Milestone, pk=pk)
+    milestone_obj = get_object_or_404(Milestone, pk=pk)
     if request.method == 'POST':
-        form = MilestoneForm(request.POST, instance=milestone)
+        form = MilestoneForm(request.POST, instance=milestone_obj)
         if form.is_valid():
-            form.save()
+            milestone_obj = form.save(commit=False)
+            if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
+                milestone_obj.status = 'completed'
+                if not milestone_obj.completion_date:
+                    milestone_obj.completion_date = date.today()
+            milestone_obj.save()
+
+            audit(request, 'updated', milestone_obj, project=milestone_obj.project, changes={'title': milestone_obj.title})
+            messages.success(request, f"Milestone '{milestone_obj.title}' updated successfully!")
             return redirect('milestone_list')
     else:
-        form = MilestoneForm(instance=milestone)
-    return render(request, 'milestone_form.html', {'form': form})
+        form = MilestoneForm(instance=milestone_obj)
+
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    return render(request, 'milestone_form.html', {'form': form, 'milestone': milestone_obj, 'title': 'Edit Milestone', 'participants': participants})
+
+
+@login_required(login_url='login')
+def milestone_quick_update(request, pk):
+    milestone_obj = get_object_or_404(Milestone, pk=pk)
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        progress = request.POST.get('progress_percentage')
+
+        if status in [choice[0] for choice in Milestone.STATUS_CHOICES]:
+            milestone_obj.status = status
+            if status == 'completed' and not milestone_obj.completion_date:
+                milestone_obj.completion_date = date.today()
+                if not progress:
+                    milestone_obj.progress_percentage = 100
+
+        if progress is not None and progress != '':
+            try:
+                p_val = int(progress)
+                if 0 <= p_val <= 100:
+                    milestone_obj.progress_percentage = p_val
+                    if p_val == 100:
+                        milestone_obj.status = 'completed'
+                        if not milestone_obj.completion_date:
+                            milestone_obj.completion_date = date.today()
+            except ValueError:
+                pass
+
+        milestone_obj.save()
+        audit(request, 'quick_updated', milestone_obj, project=milestone_obj.project, changes={'status': milestone_obj.status, 'progress': milestone_obj.progress_percentage})
+        messages.success(request, f"Milestone '{milestone_obj.title}' updated.")
+    return redirect(request.META.get('HTTP_REFERER', 'milestone_list'))
+
 
 @login_required(login_url='login')
 def milestone_delete(request, pk):
-    milestone = get_object_or_404(Milestone, pk=pk)
+    milestone_obj = get_object_or_404(Milestone, pk=pk)
     if request.method == 'POST':
-        milestone.delete()
+        title = milestone_obj.title
+        audit(request, 'deleted', milestone_obj, project=milestone_obj.project, changes={'title': title})
+        milestone_obj.delete()
+        messages.success(request, f"Milestone '{title}' deleted.")
         return redirect('milestone_list')
-    return render(request, 'milestone_confirm_delete.html', {'milestone': milestone})
+
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    return render(request, 'milestone_confirm_delete.html', {'milestone': milestone_obj, 'participants': participants})
 
 
 
@@ -1098,8 +1667,55 @@ def notification_create(request):
         if form.is_valid():
             form.save()
             return redirect('notification_list')
-   
+
     return render(request, 'notification_create.html',{'form':form})
+
+
+@login_required(login_url='login')
+@require_GET
+def api_unread_notifications(request):
+    qs = Notification.objects.filter(user=request.user)
+    unread_count = qs.filter(is_read=False).count()
+    recent = list(qs.order_by('-created_at')[:10])
+
+    data = []
+    for n in recent:
+        data.append({
+            'id': n.id,
+            'title': n.title or 'Notification',
+            'message': n.message or '',
+            'notification_type': n.notification_type or 'system',
+            'link': n.link or '/notifications/',
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M') if n.created_at else '',
+            'timesince': f"{timesince(n.created_at)} ago" if n.created_at else 'just now',
+        })
+
+    latest_id = data[0]['id'] if data else 0
+    return JsonResponse({
+        'status': 'success',
+        'unread_count': unread_count,
+        'notifications': data,
+        'latest_id': latest_id,
+    })
+
+
+@login_required(login_url='login')
+def api_mark_notification_read(request, pk):
+    try:
+        notification = Notification.objects.get(id=pk, user=request.user)
+        if not notification.is_read:
+            notification.is_read = True
+            notification.save(update_fields=['is_read'])
+        return JsonResponse({'status': 'success', 'id': pk})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+
+
+@login_required(login_url='login')
+def api_mark_all_read(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'status': 'success'})
 
 
 def media_list(request):
@@ -1123,7 +1739,7 @@ def media_upload(request):
         if form.is_valid():
             form.save()
             return redirect('media_list')
-      
+
     return render(request, 'media_upload.html', {'form': form})
 
 
@@ -1140,11 +1756,30 @@ def milestone(request):
 
 
 
-# 🔹 Project Comments View
+# 🔹 Project Detail View
 @login_required(login_url='login')
-def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    comments = project.comments.all()
+def project_detail(request, pk):
+    project = get_object_or_404(
+        Project.objects.select_related('category', 'district', 'project_division', 'created_by'),
+        id=pk
+    )
+    comments = project.comments.select_related('user').order_by('-created_at')
+    stages = project.stages.prefetch_related('milestones').all()
+    milestones = project.milestones.all()
+    expenses = project.expenses.all()
+    media = project.media.all()
+    documents = project.documents.all()
+    progress_reports = project.progress_reports.all()
+    risks = project.risks.all()
+    issues = project.issues.all()
+    tenders = project.tenders.all()
+
+    # Calculate financial metrics
+    b_total = float(project.project_Budgeting or 0)
+    s_total = float(project.amount_spent or 0)
+    remaining = max(0.0, b_total - s_total)
+    utilization = round((s_total / b_total * 100), 1) if b_total > 0 else 0.0
+
     if request.method == "POST":
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -1152,10 +1787,29 @@ def project_detail(request, project_id):
             comment.project = project
             comment.user = request.user
             comment.save()
-            return redirect('project_detail', project_id=project.id)
+            return redirect('project_details', pk=project.id)
     else:
         form = CommentForm()
-    return render(request, 'project_detail.html', {'project': project, 'comments': comments, 'form': form})
+
+    context = {
+        'project': project,
+        'comments': comments,
+        'stages': stages,
+        'milestones': milestones,
+        'expenses': expenses,
+        'media': media,
+        'documents': documents,
+        'progress_reports': progress_reports,
+        'risks': risks,
+        'issues': issues,
+        'tenders': tenders,
+        'b_total': b_total,
+        's_total': s_total,
+        'remaining': remaining,
+        'utilization': utilization,
+        'form': form,
+    }
+    return render(request, 'project_detail.html', context)
 
 # 🔹 Progress Report View
 @login_required(login_url='login')
@@ -1167,7 +1821,7 @@ def upload_progress_report(request, project_id):
             report = form.save(commit=False)
             report.project = project
             report.save()
-            return redirect('project_detail', project_id=project.id)
+            return redirect('project_details', pk=project.id)
     else:
         form = ProgressReportForm()
     return render(request, 'upload_progress_report.html', {'form': form, 'project': project})
@@ -1182,7 +1836,7 @@ def upload_tender(request, project_id):
             tender = form.save(commit=False)
             tender.project = project
             tender.save()
-            return redirect('project_detail', project_id=project.id)
+            return redirect('project_details', pk=project.id)
     else:
         form = TenderForm()
     return render(request, 'upload_tender.html', {'form': form, 'project': project})
@@ -1207,7 +1861,7 @@ def add_report_issue(request):
             if issue.project.created_by:
                 notify(issue.project.created_by, 'issue', 'New project issue', issue.title, f'/issues/{issue.id}/')
             return redirect('issue_list')
-    
+
     return render(request, 'report_issue.html', {'form': form})
 
 @login_required(login_url='login')
@@ -1220,31 +1874,46 @@ def issue_detail(request, issue_id):
 # List all tenders
 @login_required(login_url='login')
 def tender_list(request):
-    tenders = Tender.objects.all()
+    tenders = Tender.objects.all().select_related('project', 'awarded_to').prefetch_related('applications')
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:5]
     else:
         participants = Participation.objects.filter(user=request.user)
-      
-    return render(request, 'tender_list.html', {'tenders': tenders, 'participants': participants})
 
-# View tender details
+    is_officer = request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)
+
+    return render(request, 'tender_list.html', {
+        'tenders': tenders,
+        'participants': participants,
+        'is_officer': is_officer,
+    })
+
+# View tender details with complete bids and awarded contractor integration
 @login_required(login_url='login')
 def tender_detail(request, tender_id):
-    tender = get_object_or_404(Tender, id=tender_id)
-    
-    return render(request, 'tender_detail.html', {'tender': tender})
+    tender = get_object_or_404(Tender.objects.select_related('project', 'created_by', 'awarded_to'), id=tender_id)
+    applications = tender.applications.select_related('applicant').order_by('-total_score', '-submitted_at')
+
+    context = {
+        'tender': tender,
+        'applications': applications,
+        'applications_count': applications.count(),
+        'is_officer': request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES),
+    }
+    return render(request, 'tender_detail.html', context)
+
 
 @login_required(login_url='login')
-@role_required('contractor')
 def apply_tender(request, pk):
     tender = get_object_or_404(Tender, id=pk)
-    if tender.status != 'published' or (tender.closing_date and tender.closing_date < django_timezone.localdate()):
-        messages.error(request, 'This tender is not open for applications.')
+    if tender.status == 'closed' or (tender.closing_date and tender.closing_date < django_timezone.localdate()):
+        messages.error(request, 'This tender is closed for applications.')
         return redirect('tender_detail', tender_id=tender.id)
+
     if TenderApplication.objects.filter(tender=tender, applicant=request.user).exists():
         messages.error(request, 'You have already submitted an application for this tender.')
-        return redirect('my_bids')
+        return redirect('track_application')
+
     form = TenderApplicationForm(request.POST or None, request.FILES or None)
 
     if form.is_valid():
@@ -1252,13 +1921,25 @@ def apply_tender(request, pk):
         application.tender = tender
         application.applicant = request.user
         application.save()
+
+        # Ensure Contractor profile exists or is created for company
+        contractor, created = Contractor.objects.get_or_create(
+            company=application.company_name or request.user.username,
+            defaults={
+                'name': request.user.get_full_name() or application.company_name or request.user.username,
+                'email': application.company_email or request.user.email,
+                'phone': application.company_phone or '',
+                'location': tender.project.project_location if (tender.project and tender.project.project_location) else 'National',
+            }
+        )
+
         audit(request, 'tender_application_submitted', application, project=tender.project)
         notify(tender.created_by, 'tender', 'New tender application', f'{application.company_name} applied for {tender.reference_number}.', f'/tenders/{tender.id}/')
-        messages.success(request, "Your application has been submitted.")
-        return redirect('tender_list')
+        messages.success(request, "Your tender application has been submitted successfully!")
+        return redirect('track_application')
 
     context = {
-        'tender': tender,   # <-- pass 'tender', not 'apply'
+        'tender': tender,
         'form': form,
     }
     return render(request, 'apply_tender.html', context)
@@ -1269,39 +1950,48 @@ def calculate_financial_scores(tender):
     if not applications.exists():
         return
 
-    lowest_bid = min(app.bid_amount for app in applications)
+    valid_bids = [app.bid_amount for app in applications if app.bid_amount is not None]
+    if not valid_bids:
+        return
+
+    lowest_bid = float(min(valid_bids))
 
     for app in applications:
-        if app.bid_amount > 0:
-            app.financial_score = (lowest_bid / app.bid_amount) * 100
+        bid = float(app.bid_amount or 0)
+        if bid > 0:
+            app.financial_score = (lowest_bid / bid) * 100.0
         else:
-            app.financial_score = 0
+            app.financial_score = 0.0
 
-        app.total_score = (app.technical_score * 0.7) + (app.financial_score * 0.3)
+        app.total_score = (float(app.technical_score or 0) * 0.7) + (float(app.financial_score or 0) * 0.3)
         app.save()
-        
+
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def evaluate_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     applications = tender.applications.all()
 
-    if tender.status not in ('closed', 'evaluating'):
-        messages.error(request, 'Only closed tenders can be evaluated.')
+    if tender.status in ('awarded', 'cancelled'):
+        messages.error(request, 'This tender is already awarded or cancelled and cannot be evaluated.')
         return redirect('tender_detail', tender_id=tender.id)
 
     if request.method == "POST":
         for app in applications:
             score = request.POST.get(f"tech_{app.id}")
             if score:
-                app.technical_score = float(score)
-                app.save()
+                try:
+                    app.technical_score = float(score)
+                    app.save()
+                except (ValueError, TypeError):
+                    pass
 
         # 🔥 Auto calculate financial + total
         calculate_financial_scores(tender)
         tender.status = 'evaluating'
         tender.save(update_fields=['status'])
         audit(request, 'tender_evaluated', tender, project=tender.project)
+        messages.success(request, "Tender evaluation scores updated successfully.")
 
         return redirect('evaluate_tender', tender_id=tender.id)
 
@@ -1309,60 +1999,90 @@ def evaluate_tender(request, tender_id):
         'tender': tender,
         'applications': applications
     })
-    
+
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def award_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     if request.method != 'POST':
         return HttpResponseBadRequest('Tender awards must be submitted with POST.')
-    if tender.status != 'evaluating':
-        messages.error(request, 'Evaluate this tender before awarding it.')
-        return redirect('tender_detail', tender_id=tender.id)
 
     with transaction.atomic():
-        winner = tender.applications.order_by('-total_score', 'submitted_at').first()
+        app_id = request.POST.get('application_id')
+        if app_id:
+            winner = get_object_or_404(TenderApplication, id=app_id, tender=tender)
+        else:
+            winner = tender.applications.order_by('-total_score', 'submitted_at').first()
+
         if not winner:
             messages.error(request, 'This tender has no applications to award.')
             return redirect('tender_detail', tender_id=tender.id)
+
         tender.applications.exclude(pk=winner.pk).update(status='rejected')
         winner.status = 'awarded'
         winner.save(update_fields=['status'])
+
+        # Auto Link or Create Contractor profile
+        company_name = winner.company_name or (winner.applicant.get_full_name() if winner.applicant else 'Contractor Company')
+        contractor = Contractor.objects.filter(company=company_name).first()
+        if not contractor and winner.applicant:
+            contractor = Contractor.objects.filter(email=winner.company_email or winner.applicant.email).first()
+        if not contractor:
+            contractor = Contractor.objects.create(
+                company=company_name,
+                name=(winner.applicant.get_full_name() if winner.applicant and winner.applicant.get_full_name() else company_name),
+                email=winner.company_email or (winner.applicant.email if winner.applicant else ''),
+                phone=winner.company_phone or '',
+                location=(tender.project.project_location if (tender.project and tender.project.project_location) else 'National'),
+            )
+
+        if tender.project:
+            contractor.projects.add(tender.project)
+            tender.project.project_contractor = contractor.company or contractor.name
+            tender.project.save(update_fields=['project_contractor'])
+
         tender.status = 'awarded'
+        tender.awarded_to = contractor
         tender.award_date = django_timezone.localdate()
         tender.award_amount = winner.bid_amount
-        tender.save(update_fields=['status', 'award_date', 'award_amount'])
+        tender.save(update_fields=['status', 'awarded_to', 'award_date', 'award_amount'])
 
-    audit(request, 'tender_awarded', tender, project=tender.project, changes={'application_id': winner.id})
-    notify(winner.applicant, 'tender', 'Tender awarded', f'Your bid for {tender.reference_number} was awarded.', '/my-bids/')
-    messages.success(request, 'Tender awarded and all other applicants were notified of the outcome.')
+    audit(request, 'tender_awarded', tender, project=tender.project, changes={'application_id': winner.id, 'contractor_id': contractor.id})
+    notify(winner.applicant, 'tender', 'Tender awarded', f'Congratulations! Your bid for {tender.reference_number} has been awarded.', '/track_application/')
+    messages.success(request, f'Tender {tender.reference_number} successfully awarded to {contractor.company or contractor.name}!')
     return redirect('tender_detail', tender_id=tender.id)
 
 # Add a new tender
 @login_required(login_url='login')
 def add_tender(request):
-    pr=Project.objects.all()
-    form = TenderForm()
+    pr = Project.objects.all()
+    form = TenderForm(request.POST or None, request.FILES or None)
 
-    if request.method == "POST":
-        form = TenderForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('tender_list')
-    return render(request, 'tender_form.html', {'form': form, 'pr': pr})
+    if request.method == "POST" and form.is_valid():
+        tender = form.save(commit=False)
+        tender.created_by = request.user
+        if not tender.status or tender.status == 'draft':
+            tender.status = 'published'
+        tender.save()
+        messages.success(request, "New tender created successfully.")
+        return redirect('tender_list')
+
+    return render(request, 'tender_form.html', {'form': form, 'pr': pr, 'title': 'Add New Tender'})
 
 # Update an existing tender
 @login_required(login_url='login')
 def update_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
+    pr = Project.objects.all()
     if request.method == "POST":
         form = TenderForm(request.POST, request.FILES, instance=tender)
         if form.is_valid():
             form.save()
+            messages.success(request, "Tender updated successfully.")
             return redirect('tender_list')
     else:
         form = TenderForm(instance=tender)
-    return render(request, 'tender_form.html', {'form': form, 'title': 'Update Tender'})
+    return render(request, 'tender_form.html', {'form': form, 'pr': pr, 'title': 'Update Tender', 'tender': tender})
 
 # Delete a tender
 @login_required(login_url='login')
@@ -1370,7 +2090,9 @@ def delete_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     if request.method == "POST":
         tender.delete()
+        messages.success(request, "Tender deleted successfully.")
         return redirect('tender_list')
+    return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
     return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
 
 
@@ -1400,99 +2122,233 @@ def add_comment(request, pk):
     })
 @login_required(login_url='login')
 def AuditLogs(request):
-    auditing=AuditLog.objects.all()
-    return render(request,'audit.html',{'auditing':auditing})
+    query = request.GET.get('q', '').strip()
+    action_filter = request.GET.get('action', '').strip()
+    project_filter = request.GET.get('project', '').strip()
+
+    auditing = AuditLog.objects.select_related('user', 'project').all().order_by('-timestamp')
+
+    if query:
+        auditing = auditing.filter(
+            Q(action__icontains=query) |
+            Q(user__username__icontains=query) |
+            Q(user__email__icontains=query) |
+            Q(model_name__icontains=query) |
+            Q(project__project_title__icontains=query) |
+            Q(ip_address__icontains=query)
+        )
+
+    if action_filter:
+        auditing = auditing.filter(action=action_filter)
+
+    if project_filter:
+        auditing = auditing.filter(project_id=project_filter)
+
+    total_audits = auditing.count()
+    today = django_timezone.now().date()
+    today_count = AuditLog.objects.filter(timestamp__date=today).count()
+    active_users = AuditLog.objects.values('user').distinct().count()
+    unique_actions = AuditLog.objects.values('action').distinct().count()
+
+    paginator = Paginator(auditing, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    distinct_actions = AuditLog.objects.values_list('action', flat=True).distinct()
+    projects = Project.objects.order_by('project_title')
+
+    context = {
+        'auditing': page_obj,
+        'total_audits': total_audits,
+        'today_count': today_count,
+        'active_users': active_users,
+        'unique_actions': unique_actions,
+        'query': query,
+        'action_filter': action_filter,
+        'project_filter': project_filter,
+        'distinct_actions': distinct_actions,
+        'projects': projects,
+    }
+    return render(request, 'audit.html', context)
+
 
 @login_required(login_url='login')
 def add_audit(request):
-    form=AuditLogForm()
-    if request.method=='POST':
-        form=AuditLogForm(request.POST,request.FILES)
+    form = AuditLogForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST':
         if form.is_valid():
-            form.save()
+            audit_log = form.save(commit=False)
+            if not audit_log.user and request.user.is_authenticated:
+                audit_log.user = request.user
+            if not audit_log.ip_address:
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    ip = x_forwarded_for.split(',')[0].strip()
+                else:
+                    ip = request.META.get('REMOTE_ADDR') or '127.0.0.1'
+                audit_log.ip_address = ip
+            audit_log.save()
+            messages.success(request, 'Audit log entry created successfully.')
             return redirect('AuditLog')
-    return render(request,'add_audit.html',{'form':form})
+        else:
+            messages.error(request, 'Failed to save audit log. Please check the form errors below.')
+
+    return render(request, 'add_audit.html', {'form': form, 'projects': Project.objects.order_by('project_title')})
+
 
 @login_required(login_url='login')
-def audit_details(request,pk):
-    audit_details=get_object_or_404(AuditLog,id=pk)
-    if request.method=='POST':
-        form=AuditLogForm(request.POST,request.FILES,instance=audit_details),
+def audit_details(request, pk):
+    audit_item = get_object_or_404(AuditLog.objects.select_related('user', 'project'), id=pk)
+    if request.method == 'POST':
+        form = AuditLogForm(request.POST, request.FILES, instance=audit_item)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Audit log updated successfully.')
             return redirect('AuditLog')
     else:
-        form=AuditLogForm(instance=audit_details)
-    context={'audit_details':audit_details, 'form':form}
-    return render(request,'audit_details.html',context)
+        form = AuditLogForm(instance=audit_item)
+
+    context = {
+        'audit_details': audit_item,
+        'form': form,
+    }
+    return render(request, 'audit_details.html', context)
+
+
+@login_required(login_url='login')
+def delete_audit(request, pk):
+    audit_item = get_object_or_404(AuditLog, id=pk)
+    if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)):
+        messages.error(request, "You do not have permission to delete audit records.")
+        return redirect('AuditLog')
+
+    if request.method == 'POST':
+        audit_item.delete()
+        messages.success(request, 'Audit log deleted successfully.')
+        return redirect('AuditLog')
+
+    return render(request, 'confirm_delete.html', {'object': f'Audit #{audit_item.id} - {audit_item.action}', 'title': 'Delete Audit Record'})
 
 # 🔹 List All Project Stages
 
+@login_required(login_url='login')
 def projectstage(request):
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-  
-    stages = ProjectStage.objects.all()
-    return render(request, 'projectstage_list.html', {'stages': stages, 'participants': participants})
+
+    stages = ProjectStage.objects.select_related('project').all()
+
+    # Search & Filtering
+    q = request.GET.get('q', '').strip()
+    project_id = request.GET.get('project', '').strip()
+    stage_name = request.GET.get('stage_name', '').strip()
+
+    if q:
+        stages = stages.filter(
+            Q(project__project_title__icontains=q) |
+            Q(description__icontains=q) |
+            Q(stage_name__icontains=q)
+        )
+
+    if project_id and project_id.isdigit():
+        stages = stages.filter(project_id=int(project_id))
+
+    if stage_name:
+        stages = stages.filter(stage_name=stage_name)
+
+    stages = stages.order_by('order', '-start_date')
+
+    context = {
+        'stages': stages,
+        'participants': participants,
+        'q': q,
+        'selected_project': project_id,
+        'selected_stage_name': stage_name,
+        'projects': Project.objects.order_by('project_title'),
+        'stage_choices': ProjectStage.STAGES,
+    }
+    return render(request, 'projectstage_list.html', context)
 
 # 🔹 View Project Stage Details
+@login_required(login_url='login')
 def projectstage_details(request, pk):
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-  
-    stage = get_object_or_404(ProjectStage, pk=pk)
+
+    stage = get_object_or_404(ProjectStage.objects.select_related('project'), pk=pk)
     return render(request, 'projectstage_detail.html', {'stage': stage, 'participants': participants})
 
 
-
+@login_required(login_url='login')
 def ProjectStageCreate(request):
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-    
-    form=ProjectStageForm()
-    if request.method=='POST':
-        form=ProjectStageForm(request.POST,request.FILES)
+
+    initial = {}
+    if request.GET.get('project'):
+        initial['project'] = request.GET.get('project')
+
+    if request.method == 'POST':
+        form = ProjectStageForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            stage = form.save()
+            audit(request, 'created', stage, project=stage.project, changes={'stage_name': stage.stage_name})
+            messages.success(request, f"Project stage '{stage.get_stage_name_display()}' created successfully.")
             return redirect('projectstage_list')
-    context={'form':form, 'participants': participants}
-    return render(request,'projectstage_form.html', context)
+    else:
+        form = ProjectStageForm(initial=initial)
+
+    context = {'form': form, 'participants': participants}
+    return render(request, 'projectstage_form.html', context)
 
 # 🔹 Update Project Stage
 @login_required(login_url='login')
-def ProjectStageUpdate(request,pk):
+def ProjectStageUpdate(request, pk):
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
-        
-    updatestage=get_object_or_404(ProjectStage,pk=pk)
-    form=ProjectStageForm(instance=updatestage)
-    if request.method=='POST':
-        form=ProjectStageForm(request.POST,instance=updatestage)
+
+    updatestage = get_object_or_404(ProjectStage.objects.select_related('project'), pk=pk)
+    if request.method == 'POST':
+        form = ProjectStageForm(request.POST, request.FILES, instance=updatestage)
         if form.is_valid():
-            form.save()
+            stage = form.save()
+            audit(request, 'updated', stage, project=stage.project, changes={'stage_name': stage.stage_name})
+            messages.success(request, f"Project stage '{stage.get_stage_name_display()}' updated successfully.")
             return redirect('projectstage_list')
-    context={'form':form, 'participants': participants, 'updatestage':updatestage}
-    return render(request,'projectstage_update.html', context)
+    else:
+        form = ProjectStageForm(instance=updatestage)
+
+    context = {'form': form, 'participants': participants, 'updatestage': updatestage, 'stage': updatestage}
+    return render(request, 'projectstage_update.html', context)
 
 
 
 
 # 🔹 Delete Project Stage
 @login_required(login_url='login')
-def ProjectStageDelete(request,pk):
-    deletestage=get_object_or_404(ProjectStage,id=pk)
-    if request.method=='POST':
-        deletestage.delete()
+def ProjectStageDelete(request, pk):
+    stage = get_object_or_404(ProjectStage.objects.select_related('project'), id=pk)
+    if request.method == 'POST':
+        stage_title = f"{stage.project.project_title} - {stage.get_stage_name_display()}"
+        audit(request, 'deleted', stage, project=stage.project, changes={'stage_name': stage.stage_name})
+        stage.delete()
+        messages.success(request, f"Project stage '{stage_title}' deleted successfully.")
         return redirect('projectstage_list')
-    return render(request,'projectstage_confirm_delete.html',{'deletestage':deletestage})
+
+    if request.user.is_superuser:
+        participants = Participation.objects.all().order_by('-joined_at')[:4]
+    else:
+        participants = Participation.objects.filter(user=request.user)
+
+    return render(request, 'projectstage_confirm_delete.html', {'stage': stage, 'deletestage': stage, 'participants': participants})
 
 def sms_dashboard(request):
     return render(request, 'sms/intergration.html')
@@ -1557,7 +2413,7 @@ def regional_analysis(request):
     return render(request, "regional_analytics/regional_analysis.html", context)
 
 def generate_announcements():
-    
+
     projects = Project.objects.all()
 
     # 1. Delayed Projects
@@ -1598,16 +2454,16 @@ def generate_announcements():
                     message=f"No updates for {days} days.",
                     level="warning"
                 )
-                
-                
+
+
 
 def announcements(request):
     announcements = Announcement.objects.all().order_by('-created_at')
     return render(request, 'announcements/list.html', {
         'announcements': announcements
     })
-    
-   
+
+
 @login_required(login_url='login')
 def citizen_portal(request):
     submissions = CitizenSubmission.objects.filter(user=request.user).order_by('-created_at')
@@ -1638,34 +2494,32 @@ def submit_issue(request):
         messages.success(request, "Your submission has been received successfully!")
 
         return redirect('citizen_portal')
-    
+
 
 
 @login_required(login_url='login')
-@role_required('contractor')
 def contractor_dashboard(request):
-    con=Project.objects.all()
-    contractors = Contractor.objects.all().order_by('-created_at')
-    reports = StageReport.objects.all().order_by('-created_at')
-    
+    con = Project.objects.all()
+    contractors = Contractor.objects.all().prefetch_related('projects', 'awarded_tenders').order_by('-created_at')
+    reports = StageReport.objects.select_related('project', 'stage', 'contractor', 'reported_by').all().order_by('-created_at')
     stages = ProjectStage.objects.all()
-    form = contractorForm(request.POST or None)
+    form = contractorForm(request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
         form.save()
+        messages.success(request, "Contractor added successfully.")
         return redirect('contractor_performance')
-
 
     return render(request, 'contractors/dashboard.html', {
         'contractors': contractors,
         'reports': reports,
-        'con':con,
+        'con': con,
         'stages': stages,
         'form': form
     })
- 
+
+
 @login_required(login_url='login')
-@role_required('contractor')
 def submit_stage_report(request):
     projects = Project.objects.all()
     stages = ProjectStage.objects.all()
@@ -1673,28 +2527,31 @@ def submit_stage_report(request):
 
     if request.method == "POST":
         try:
+            progress_val = request.POST.get('progress') or request.POST.get('progress_percentage') or 0
             report = StageReport(
                 project_id=request.POST.get('project'), stage_id=request.POST.get('stage'),
                 contractor_id=request.POST.get('contractor') or None, reported_by=request.user,
-                description=request.POST.get('description'), progress_percentage=request.POST.get('progress'),
+                description=request.POST.get('description'), progress_percentage=progress_val,
                 location=request.POST.get('location'), photo=request.FILES.get('photo'),
             )
             report.full_clean()
             report.save()
-            report.stage.progress_percentage = report.progress_percentage
-            report.stage.save(update_fields=['progress_percentage'])
+            if report.stage:
+                report.stage.progress_percentage = report.progress_percentage
+                report.stage.save(update_fields=['progress_percentage'])
             audit(request, 'stage_report_submitted', report, project=report.project)
+            messages.success(request, "Stage report submitted successfully.")
         except (ValueError, ValidationErr) as error:
             messages.error(request, f'Unable to submit report: {error}')
-            return redirect('submit_stage_report')
-        return redirect('contractor_dashboard')
+            return redirect('contractor_performance')
+        return redirect('contractor_performance')
 
     return render(request, 'contractors/report_form.html', {
         'projects': projects,
         'stages': stages,
         'contractors': contractors
     })
-    
+
 
 @login_required
 def citizen_evidence(request):
@@ -1727,46 +2584,156 @@ def submit_evidence(request):
         )
 
         return redirect('citizen_evidence')
-    
-    
+
+
+@login_required(login_url='login')
 def budget_dashboard(request):
+    query = request.GET.get('q', '').strip()
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
 
-    budgets = Budget.objects.all()
-    spending=ProjectExpense.objects.all()
+    budgets = Budget.objects.select_related('project', 'project__project_division').all()
+    expenses = ProjectExpense.objects.select_related('project', 'recorded_by').order_by('-date', '-id')
 
-    return render(request, 'finance/budget_dashboard.html', {
-        'budgets': budgets,
-        'spending': spending
-    })
-    
+    if query:
+        budgets = budgets.filter(
+            Q(project__project_title__icontains=query) |
+            Q(notes__icontains=query) |
+            Q(fiscal_year__icontains=query)
+        )
+        expenses = expenses.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(project__project_title__icontains=query) |
+            Q(category__icontains=query)
+        )
 
+    if start_date:
+        expenses = expenses.filter(date__gte=start_date)
+    if end_date:
+        expenses = expenses.filter(date__lte=end_date)
+
+    # Aggregates
+    total_budget = Budget.objects.aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0.00')
+    if not total_budget:
+        total_budget = Project.objects.aggregate(Sum('project_Budgeting'))['project_Budgeting__sum'] or Decimal('0.00')
+
+    total_spent_budget = Budget.objects.aggregate(Sum('spent_amount'))['spent_amount__sum'] or Decimal('0.00')
+    total_expense_sum = expenses.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_spent = max(total_spent_budget, total_expense_sum)
+
+    remaining = total_budget - total_spent
+    utilization_rate = round(float((total_spent / total_budget) * 100), 2) if total_budget else 0.0
+
+    # Attach properties for template rendering
+    budget_list = []
+    for b in budgets:
+        rem = (b.allocated_amount or Decimal('0.00')) - (b.spent_amount or Decimal('0.00'))
+        pct = b.utilization_rate
+        budget_list.append({
+            'obj': b,
+            'id': b.id,
+            'project': b.project,
+            'allocated_amount': b.allocated_amount,
+            'spent_amount': b.spent_amount,
+            'remaining_budget': rem,
+            'percentage_used': pct,
+            'fiscal_year': b.fiscal_year,
+            'notes': b.notes,
+        })
+
+    context = {
+        'budgets': budget_list,
+        'spendings': expenses[:25],
+        'total_budget': total_budget,
+        'total_spent': total_spent,
+        'remaining': remaining,
+        'utilization_rate': utilization_rate,
+        'query': query,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'finance/budget_dashboard.html', context)
+
+
+@login_required(login_url='login')
 def add_budget(request):
-    form= BudgetForm()
     if request.method == "POST":
         form = BudgetForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('dashboard')
+            budget = form.save()
+            if budget.project:
+                budget.project.project_Budgeting = budget.allocated_amount
+                budget.project.amount_spent = budget.spent_amount
+                budget.project.save()
+            messages.success(request, f"Budget allocated successfully for {budget.project.project_title}!")
+            return redirect('budget_dashboard')
+    else:
+        form = BudgetForm()
 
     return render(request, 'finance/add_budget.html', {'form': form})
 
+
+@login_required(login_url='login')
+def add_expense(request):
+    if request.method == "POST":
+        form = ProjectExpenseForm(request.POST, request.FILES)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            if request.user.is_authenticated:
+                expense.recorded_by = request.user
+            expense.save()
+
+            if expense.project:
+                proj = expense.project
+                proj.amount_spent = (proj.amount_spent or Decimal('0.00')) + expense.amount
+                proj.save()
+
+                budget = Budget.objects.filter(project=proj).first()
+                if budget:
+                    budget.spent_amount = (budget.spent_amount or Decimal('0.00')) + expense.amount
+                    budget.save()
+                else:
+                    Budget.objects.create(
+                        project=proj,
+                        allocated_amount=proj.project_Budgeting or Decimal('0.00'),
+                        spent_amount=expense.amount
+                    )
+
+            messages.success(request, f"Expense recorded successfully for {expense.project.project_title if expense.project else 'Project'}!")
+            return redirect('budget_dashboard')
+    else:
+        form = ProjectExpenseForm()
+
+    return render(request, 'finance/add_expenses.html', {'form': form})
+
 @login_required(login_url='login')
 def track_application(request):
-    applications = TenderApplication.objects.filter(
-        applicant=request.user
-    ).select_related('tender')
+    query = request.GET.get('q', '').strip()
+
+    if request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES):
+        applications = TenderApplication.objects.select_related('tender', 'tender__project', 'applicant', 'tender__awarded_to').all().order_by('-submitted_at')
+    else:
+        applications = TenderApplication.objects.filter(applicant=request.user).select_related('tender', 'tender__project', 'tender__awarded_to').order_by('-submitted_at')
+
+    if query:
+        applications = applications.filter(
+            Q(tender__title__icontains=query) |
+            Q(tender__reference_number__icontains=query) |
+            Q(company_name__icontains=query) |
+            Q(status__icontains=query)
+        )
 
     context = {
         'applications': applications,
         'total_applications': applications.count(),
         'awarded_count': applications.filter(status='awarded').count(),
-        'pending_count': applications.filter(
-            status__in=['submitted', 'under_review']
-        ).count(),
+        'pending_count': applications.filter(status__in=['submitted', 'under_review', 'shortlisted']).count(),
         'rejected_count': applications.filter(status='rejected').count(),
+        'query': query,
     }
 
-    return render( request,'Track_application/tracking_application.html', context)
+    return render(request, 'Track_Application/tracking_application.html', context)
 
 @login_required
 def my_documents(request):
@@ -1781,14 +2748,26 @@ def my_documents(request):
 
 @login_required
 def my_bids(request):
-    applications = TenderApplication.objects.filter(applicant=request.user).select_related('tender')
-    
-    return render(request, 'My_bids/bids.html', {
-        'applications': applications
-    })
-    
+    query = request.GET.get('q', '').strip()
+    if request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES):
+        applications = TenderApplication.objects.select_related('tender', 'tender__project', 'applicant', 'tender__awarded_to').all().order_by('-submitted_at')
+    else:
+        applications = TenderApplication.objects.filter(applicant=request.user).select_related('tender', 'tender__project', 'tender__awarded_to').order_by('-submitted_at')
 
-@login_required
+    if query:
+        applications = applications.filter(
+            Q(tender__title__icontains=query) |
+            Q(tender__reference_number__icontains=query) |
+            Q(company_name__icontains=query)
+        )
+
+    return render(request, 'My_bids/bids.html', {
+        'applications': applications,
+        'query': query,
+    })
+
+
+@login_required(login_url='login')
 def create_request(request):
     if request.method == 'POST':
         form = GovernmentRequestForm(request.POST, request.FILES)
@@ -1796,46 +2775,135 @@ def create_request(request):
             req = form.save(commit=False)
             req.citizen = request.user
             req.save()
-            return redirect('all_requests')
+            audit(request, 'created', req, changes={'title': req.title, 'reference_no': req.reference_no})
+            messages.success(request, f"Government request '{req.reference_no}' submitted successfully!")
+            return redirect('my_requests')
+        else:
+            messages.error(request, "Failed to submit request. Please check highlighted errors.")
     else:
         form = GovernmentRequestForm()
 
     return render(request, 'GovRequests/create_request.html', {'form': form})
 
-@login_required
+
+@login_required(login_url='login')
 def my_requests(request):
-    requests = GovernmentRequest.objects.filter(citizen=request.user)
-    return render(request, 'GovRequests/my_requests.html', {'requests': requests})
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    requests_qs = GovernmentRequest.objects.filter(citizen=request.user).order_by('-created_at')
+
+    if query:
+        requests_qs = requests_qs.filter(
+            Q(title__icontains=query) |
+            Q(reference_no__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query)
+        )
+
+    if status_filter:
+        requests_qs = requests_qs.filter(status=status_filter)
+
+    total_count = requests_qs.count()
+    pending_count = requests_qs.filter(status='pending').count()
+    resolved_count = requests_qs.filter(status='resolved').count()
+
+    context = {
+        'requests': requests_qs,
+        'query': query,
+        'status_filter': status_filter,
+        'total_count': total_count,
+        'pending_count': pending_count,
+        'resolved_count': resolved_count,
+        'status_choices': GovernmentRequest.STATUS_CHOICES,
+    }
+    return render(request, 'GovRequests/my_requests.html', context)
 
 
 @login_required(login_url='login')
 def all_requests(request):
-    requests = GovernmentRequest.objects.all().order_by('-created_at')
-    return render(request, 'GovRequests/all_requests.html', {'requests': requests})
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    category_filter = request.GET.get('category', '').strip()
+
+    requests_qs = GovernmentRequest.objects.select_related('citizen', 'assigned_to', 'responded_by').all().order_by('-created_at')
+
+    if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)):
+        requests_qs = requests_qs.filter(Q(citizen=request.user) | Q(assigned_to=request.user))
+
+    if query:
+        requests_qs = requests_qs.filter(
+            Q(title__icontains=query) |
+            Q(reference_no__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query) |
+            Q(citizen__username__icontains=query)
+        )
+
+    if status_filter:
+        requests_qs = requests_qs.filter(status=status_filter)
+
+    if category_filter:
+        requests_qs = requests_qs.filter(category=category_filter)
+
+    total_count = requests_qs.count()
+    pending_count = requests_qs.filter(status='pending').count()
+    in_progress_count = requests_qs.filter(status='in_progress').count()
+    resolved_count = requests_qs.filter(status='resolved').count()
+
+    form = GovernmentRequestForm()
+
+    context = {
+        'requests': requests_qs,
+        'form': form,
+        'query': query,
+        'status_filter': status_filter,
+        'category_filter': category_filter,
+        'total_count': total_count,
+        'pending_count': pending_count,
+        'in_progress_count': in_progress_count,
+        'resolved_count': resolved_count,
+        'status_choices': GovernmentRequest.STATUS_CHOICES,
+        'category_choices': GovernmentRequest.CATEGORY_CHOICES,
+    }
+    return render(request, 'GovRequests/all_requests.html', context)
+
 
 @login_required(login_url='login')
 def request_detail(request, pk):
-    req = get_object_or_404(GovernmentRequest, pk=pk)
+    req = get_object_or_404(GovernmentRequest.objects.select_related('citizen', 'assigned_to', 'responded_by'), pk=pk)
     return render(request, 'GovRequests/request_detail.html', {'request': req})
+
 
 @login_required(login_url='login')
 def respond_request(request, pk):
     req = get_object_or_404(GovernmentRequest, pk=pk)
 
     if request.method == 'POST':
-        response = request.POST.get('response')
-        req.response = response
-        req.status = 'responded'
+        response_text = request.POST.get('response') or request.POST.get('official_response')
+        new_status = request.POST.get('status') or 'responded'
+
+        req.official_response = response_text
+        req.responded_by = request.user
+        req.responded_at = django_timezone.now()
+        req.status = new_status
         req.save()
-        return redirect('all_requests')
+
+        audit(request, 'responded_request', req, changes={'status': req.status})
+        notify(req.citizen, 'system', 'Request Response', f'An official response was posted for {req.reference_no or req.title}.', f'/government-requests/{req.id}/')
+        messages.success(request, f"Response saved for Request #{req.reference_no or req.id}.")
+        return redirect('request_detail', pk=req.id)
 
     return render(request, 'GovRequests/respond_request.html', {'request': req})
+
 
 @login_required(login_url='login')
 def close_request(request, pk):
     req = get_object_or_404(GovernmentRequest, pk=pk)
     req.status = 'closed'
     req.save()
+    audit(request, 'closed_request', req, changes={'status': 'closed'})
+    messages.info(request, f"Request '{req.reference_no or req.title}' marked as closed.")
     return redirect('all_requests')
 
 def progress_report(request):

@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" x-data="teamDeleteApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Team Member — GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+<style>
+/* Delete confirmation styles */
+.delete-card{background:var(--surface);border-radius:20px;padding:40px;box-shadow:0 2px 8px rgba(0,0,0,.04);max-width:520px;margin:0 auto;text-align:center}
+.delete-icon{width:80px;height:80px;border-radius:50%;background:rgba(220,53,69,.1);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px}
+.delete-card h1{font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:8px}
+.delete-card p{font-size:.9rem;color:var(--text-light);line-height:1.6;margin-bottom:24px}
+.delete-member{display:flex;align-items:center;gap:14px;background:var(--bg);border-radius:12px;padding:16px;margin-bottom:24px;text-align:left}
+.delete-member img{width:56px;height:56px;border-radius:50%;object-fit:cover}
+.delete-member .avatar{width:56px;height:56px;border-radius:50%;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800}
+.delete-member .name{font-weight:700;color:var(--text);font-size:.95rem}
+.delete-member .role{font-size:.78rem;color:var(--text-light);margin-top:2px}
+.delete-actions{display:flex;gap:12px;justify-content:center}
+</style>
+</head>
+<body x-data="teamDeleteApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content">
+
+    <div class="delete-card">
+      <div class="delete-icon">
+        <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+      </div>
+      <h1>Delete Team Member</h1>
+      <p>
+        Are you sure you want to delete this team member? This action cannot be undone.
+      </p>
+
+      <div class="delete-member">
+        {% if deletetim.image %}
+        <img src="{{ deletetim.image.url }}" alt="{{ deletetim.name }}">
+        {% else %}
+        <div class="avatar">{{ deletetim.name|slice:":1" }}</div>
+        {% endif %}
+        <div>
+          <div class="name">{{ deletetim.name }}</div>
+          <div class="role">{{ deletetim.role }}</div>
+        </div>
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+        <div class="delete-actions">
+          <a href="{% url 'team' %}" class="btn btn-outline">
+            <iconify-icon icon="solar:arrow-left-bold"></iconify-icon>
+            Cancel
+          </a>
+          <button type="submit" class="btn btn-danger">
+            <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+            Yes, Delete
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div><!-- .content -->
+</main>
+
+{% include "footer.html" %}
+
+<script>
+function teamDeleteApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    pageTitle: 'Delete Team Member',
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    }
+  }
+}
+</script>
+
+</body>
+</html>

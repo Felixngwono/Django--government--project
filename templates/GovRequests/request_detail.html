@@ -1,0 +1,168 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Details — GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-gray-50 text-gray-800 antialiased">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content p-6 max-w-5xl mx-auto space-y-6">
+
+    <!-- Top Breadcrumb & Action Bar -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100 gap-4">
+      <div>
+        <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
+          <a href="{% url 'all_requests' %}" class="hover:text-blue-600 transition">Government Requests</a>
+          <span>/</span>
+          <span class="text-gray-800 font-semibold">{{ request.reference_no|default:"Details" }}</span>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+          <span>{{ request.title }}</span>
+          <span class="text-xs font-mono font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+            {{ request.reference_no|default:"REQ-PENDING" }}
+          </span>
+        </h2>
+      </div>
+
+      <div class="flex gap-3">
+        <a href="{% url 'respond_request' request.id %}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-2xl shadow transition">
+          Respond to Request
+        </a>
+        <a href="{% url 'all_requests' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-2xl transition">
+          Back to List
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left: Request Body & Response -->
+      <div class="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-6">
+        <div>
+          <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Request Description</h3>
+          <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {{ request.description }}
+          </p>
+        </div>
+
+        {% if request.image %}
+        <div>
+          <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Photographic Evidence</h3>
+          <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm max-h-96">
+            <img src="{{ request.image.url }}" alt="Evidence Image" class="w-full h-full object-cover">
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Official Response Section -->
+        <div class="border-t border-gray-100 pt-6">
+          <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <iconify-icon icon="solar:chat-round-check-bold" class="text-blue-600 text-xl"></iconify-icon>
+            <span>Official Government Response</span>
+          </h3>
+
+          {% if request.official_response %}
+          <div class="bg-blue-50/70 rounded-2xl p-5 border border-blue-100 space-y-3">
+            <p class="text-xs text-blue-950 leading-relaxed whitespace-pre-line">
+              {{ request.official_response }}
+            </p>
+            <div class="text-[11px] text-blue-700 border-t border-blue-200/60 pt-2 flex justify-between items-center">
+              <span>Responded by: <strong>{{ request.responded_by.full_name|default:"Authorized Official" }}</strong></span>
+              <span>{{ request.responded_at|date:"M d, Y @ H:i" }}</span>
+            </div>
+          </div>
+          {% else %}
+          <div class="bg-gray-50 rounded-2xl p-6 text-center border border-gray-200/80 text-gray-400">
+            <p class="text-xs font-medium">No official response has been posted for this request yet.</p>
+            <a href="{% url 'respond_request' request.id %}" class="inline-block mt-3 bg-blue-600 text-white font-bold text-xs px-5 py-2 rounded-xl hover:bg-blue-700 transition">
+              Post Response Now
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Right Sidebar: Request Metadata -->
+      <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-5 h-fit">
+        <h3 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3">Metadata & Status</h3>
+
+        <div>
+          <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Status</span>
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-bold
+            {% if request.status == 'resolved' %}bg-emerald-100 text-emerald-800
+            {% elif request.status == 'responded' %}bg-blue-100 text-blue-800
+            {% elif request.status == 'in_progress' %}bg-amber-100 text-amber-800
+            {% elif request.status == 'rejected' %}bg-rose-100 text-rose-800
+            {% else %}bg-gray-100 text-gray-700{% endif %}">
+            {{ request.get_status_display }}
+          </span>
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Priority</span>
+          <span class="inline-block px-2.5 py-0.5 rounded-lg text-xs font-semibold uppercase
+            {% if request.priority == 'urgent' %}bg-rose-100 text-rose-800
+            {% elif request.priority == 'high' %}bg-amber-100 text-amber-800
+            {% else %}bg-gray-100 text-gray-700{% endif %}">
+            {{ request.get_priority_display }}
+          </span>
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Category</span>
+          <span class="text-sm font-semibold text-gray-800">{{ request.get_category_display }}</span>
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Location</span>
+          <span class="text-sm font-medium text-gray-700">📍 {{ request.location }}</span>
+        </div>
+
+        <div class="border-t border-gray-100 pt-3">
+          <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Submitted By</span>
+          <p class="text-sm font-bold text-gray-900">{{ request.citizen.full_name }}</p>
+          <p class="text-xs text-gray-400">{{ request.citizen.email }}</p>
+        </div>
+
+        <div class="border-t border-gray-100 pt-3 text-xs text-gray-400">
+          <p>Created: {{ request.created_at|date:"M d, Y @ H:i" }}</p>
+          <p class="mt-1">Last Updated: {{ request.updated_at|date:"M d, Y @ H:i" }}</p>
+        </div>
+
+        {% if request.status != 'closed' %}
+        <div class="border-t border-gray-100 pt-4">
+          <a href="{% url 'close_request' request.id %}" onclick="return confirm('Mark this request as closed?');"
+             class="block w-full bg-gray-100 hover:bg-rose-50 hover:text-rose-700 text-gray-600 font-semibold text-xs py-2.5 rounded-xl text-center transition">
+            Mark Request as Closed
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+{% include "footer.html" %}
+{% endblock %}

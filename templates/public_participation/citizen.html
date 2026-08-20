@@ -29,14 +29,18 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
 
-<div class="max-w-6xl mx-auto space-y-8">
 
-    <!-- HEADER -->
-    <div>
-        <h1 class="text-2xl font-bold text-gray-800">Citizen Participation Portal</h1>
-        <p class="text-gray-500 text-sm">Submit suggestions, complaints, and report issues to government</p>
+<div class="max-w-6xl mx-auto space-y-8 p-4">
+
+    <!-- HERO HEADER BANNER WITH IMAGE -->
+    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
+      <img src="https://images.unsplash.com/photo-1577495508048-b635879837f1?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Public Participation">
+      <div class="relative z-10">
+        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full uppercase tracking-wider mb-2 border border-emerald-500/30">Civic Engagement Portal</span>
+        <h1 class="text-2xl md:text-3xl font-extrabold">Citizen Participation & Feedback</h1>
+        <p class="text-sm text-slate-300 mt-1 max-w-xl">Voice your opinion, report site concerns, submit project suggestions, and engage with public officials.</p>
+      </div>
     </div>
 
     <!-- SUBMISSION FORM -->
@@ -46,7 +50,7 @@
 
         <form method="POST" action="{% url 'submit_issue' %}" class="space-y-4">
             {% csrf_token %}
-           
+
             <select name="project" class="w-full text-black p-3 border rounded-lg" required>
                 <option value="">Select a project</option>
                 {% for project in proje %}

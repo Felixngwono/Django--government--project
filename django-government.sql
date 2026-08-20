@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 14, 2026 at 11:55 AM
+-- Generation Time: Aug 20, 2026 at 08:16 PM
 -- Server version: 10.4.20-MariaDB
 -- PHP Version: 8.0.8
 
@@ -453,7 +453,10 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (49, 'member', '0004_contractor_contractorrating_contractor_and_more', '2026-06-16 07:03:29.021251'),
 (50, 'member', '0002_alter_contractor_projects_aiissueassessment_and_more', '2026-07-30 19:58:30.271259'),
 (51, 'member', '0002_project_schema_repair', '2026-08-02 19:41:09.455816'),
-(52, 'member', '0003_testimonial_experience', '2026-08-02 21:47:40.477027');
+(52, 'member', '0003_testimonial_experience', '2026-08-02 21:47:40.477027'),
+(53, 'member', '0002_alter_tenderapplication_proposal_document', '2026-08-19 12:01:19.024373'),
+(54, 'member', '0003_alter_project_division_options_and_more', '2026-08-20 04:35:22.376249'),
+(55, 'member', '0004_alter_governmentrequest_options_and_more', '2026-08-20 05:05:58.731783');
 
 -- --------------------------------------------------------
 
@@ -472,18 +475,24 @@ CREATE TABLE `django_session` (
 --
 
 INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
-('0o6bajheufzvm2b4mwdz15i607qbe06w', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wtSYv:ZrfYTIE8EgOxiqsRWhM8TmXjIGIMb67T9qvLXNgHwnk', '2026-08-24 16:09:17.427502'),
+('0y38udb061r667efrjos06s1q6uwk3pi', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZm1:nA7NA2c5qLh9zWMB6F_LEIkkKGw-Vt4AVRi60sao8bw', '2026-09-02 06:27:41.250488'),
 ('13rc1o2gyneg0mtf4gugknw1yoxa7y5o', '.eJxVjLsOwjAMAP_FM4rywCHpyM43VI7jkgJKpKadEP-OKnWA9e50bxhpW8u4dVnGOcMA1sPpFybip9Td5AfVe1Pc6rrMSe2JOmxXt5bldT3av0GhXmCAIFpHsZgceeNs5IzZWBGL7uxCnAwRo0t60j5qRgmEEiJfDDJh4gSfL_vUOCw:1wHbRO:LGNacgZMl7vjw_49bEdGhZ8Oa5c6e-iojCNxm55ELmU', '2026-05-12 05:57:02.230908'),
 ('1gi6y4xeflxim6fq6s4emj60al68j0ne', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdpj:l1HlU0aO0NzSD8nrEdodYnvYk_A7YEmOeHWggbu7-fY', '2026-08-16 21:34:59.877056'),
 ('4dnbieymj8lwx2bl75jh2luu6pyvsdla', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqcVi:8cBY20g_9b8HEeZBBP46a-A4qaVPLJ3OmE4uTDyQzbQ', '2026-08-16 20:10:14.904835'),
 ('5q6p769hrbhyh7esawk3q9d82v3b68g3', '.eJxVjMsOwiAQAP9lz4aUp2yP3vsNBNitVA0kpT0Z_9006UGvM5N5Q4j7VsLeeQ0LwQgKLr8sxfzkegh6xHpvIre6rUsSRyJO28XUiF-3s_0blNgLjIDJESnLzFKyZVYojUNpaZhTQjc7Y7y23qLiPHhil686Zp1QkTcaI3y-7OE37g:1wH5cP:Qw_bs23tzMx--7FMW7or8ZXZTIVFrmMeCNJRrKxhoCo', '2026-05-10 19:58:17.264025'),
 ('6ede6lc014tq1scbze0mtr7ufqnmetp3', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqe2v:0YkJhL7ye5CmKJPPy_IXLgpS_96eHBOpzXQbKGs7Nac', '2026-08-16 21:48:37.541021'),
+('7c8t9vnrpokvbo3tg72q54sci3yxw151', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZFv:p51IMIFv7seIXWaqVP4_tNwd4BSpHeP7Nx7NrvSy2Nw', '2026-09-02 05:54:31.534711'),
 ('973u7oel3kzmeeehhi208dj1785rd6a4', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqe2H:e11C-lHallrBgr6ZX3KUPr8LYg_uBMZKP5cmzsGP4CY', '2026-08-16 21:47:57.868496'),
+('9788vj1s9pzud7ze0p45uonhly2brmzi', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZFZ:F0j0V51sfbZ0Y20WC2Rr7zsvSu5Wzn391M3k01Sn1rw', '2026-09-02 05:54:09.156151'),
+('9lej5bly96vbj0cukqe3aoo0fljrssxm', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZl8:lHq7btVRaQ0zLnpYIrbHRwiF1GWvuN-C2kWTB4JdriE', '2026-09-02 06:26:46.826734'),
+('9wum3rydvwbjr0wozu89qm7jh84kjzdh', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZUe:schSqkiWN9V7v_jOIC-Czn9zv-ghkzzp42-6OwyYeFo', '2026-09-02 06:09:44.739461'),
 ('anrzgryp5s60crr2ydh2rlmfup6j9to0', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdeh:3453TIh0v30gouuE1KVMXSRAPAi6sCQx7oZ5VEBvhME', '2026-08-16 21:23:35.994239'),
+('apkdanvslg6nx6ewas6ocm48foqsxkoi', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZO0:Vzd8alfWmA0z3wNrrHMiH_eRkGVLRjhUtfblL9VHGEU', '2026-09-02 06:02:52.008062'),
 ('bt62l6jflu9rac2wbujwx05h60jyimui', 'e30:1wpeNf:stQFfT0Dh5Bnqoa6LcoIL0g0wXuiqEV5jxNQinAkrso', '2026-08-14 03:57:55.913119'),
 ('bx9mzl8hmd6mwn946m9bf8zzbc4wx1yf', '.eJxVjMsOgjAQAP9lz6bpY9siR-98A9lttxY1kFA4Gf_dkHDQ68xk3jDSvtVxb7KOU4YeDFx-GVN6ynyI_KD5vqi0zNs6sToSddqmhiXL63a2f4NKrUIP4WqZUQoJYihRe7FCni266Axpg9EmS4TRidjOaWRvUgiCnNEV08HnC9-oN4o:1wcRhm:i2IVeyEWWXm0NH6ysD9HwEGWWTD0XEUZUz_aLA8FCNY', '2026-07-08 17:48:06.015856'),
 ('c1wzhu1onal52usqs6ka19kl20hwgjj5', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdeY:B_rnwsCtXDyX_Ozxz-4z5PtLwLq7sieNfmpddB3aFHc', '2026-08-16 21:23:26.496860'),
 ('gsef1bmupor5xw670mdq17iybtfguqpv', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdf4:0ncBQepBlDgo_IKh8NiDVw9SCkfVK27_LqkvzW89gmo', '2026-08-16 21:23:58.145761'),
+('h0tsipc9x3yohyh94f6xrq32amz46avf', '.eJxVjEsOwiAUAO_C2pDHv7h03zOQBw-kamhS2pXx7oakC93OTObNAh57DUfPW1iIXZkCdvmFEdMzt2Hoge2-8rS2fVsiHwk_befzSvl1O9u_QcVex5cQbBZCC6OSK1bJSRckIxw4ZYv0XvgEhcBoklaT9ZOGiMaB1KRsZp8v3uY24A:1wwvJk:Wmgt_EyQ1e3sgIXSTyA2lFfnQgm2DE1QGAJFvNVNoZY', '2026-09-03 05:27:56.730267'),
 ('lj4x0otrlw2jsatfnzyhwaliwp6vaatn', '.eJxVjMsOgjAQAP9lz6bpY9siR-98A9lttxY1kFA4Gf_dkHDQ68xk3jDSvtVxb7KOU4YeDFx-GVN6ynyI_KD5vqi0zNs6sToSddqmhiXL63a2f4NKrUIP4WqZUQoJYihRe7FCni266Axpg9EmS4TRidjOaWRvUgiCnNEV08HnC9-oN4o:1wWVjy:F1Q_e2DpAIoXRbbyq1kwQnBa0A4Zoxpd6oySv3tlmyY', '2026-06-22 08:53:50.029226'),
 ('oc9fl01kbez8tu74oj0dc7qtxnn84dy3', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdnt:CvFkkTcstS4KW4lKNR2ixX3ZH-z3TLquLFScvfQKQNE', '2026-08-16 21:33:05.870138'),
 ('odbty7i4iqr4hkz5i6pnderkqh61vtt5', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdqF:MC3ASmlRDC3bVcvT_7E7dehLmxUBXT5fJ4VRG2Y3BHY', '2026-08-16 21:35:31.237470'),
@@ -493,6 +502,7 @@ INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALU
 ('pt6wmwf306y5weg1ayd2qumt3cod61yi', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdmb:MXiDWXnVnDiTj4N5Omxv7NConT9btkbFoV6CEjhQ5XQ', '2026-08-16 21:31:45.605939'),
 ('qbnnxmj7wtnmfk32ameg290jckvtki92', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqcW6:pDqWT9bEw5bRf1nS5HP0CLeLFlw2Kq6suZ6LuZZBxls', '2026-08-16 20:10:38.534387'),
 ('qclz3l0agn7x7cvre48wracmrnz9uw1g', '.eJxVjMsOgjAQAP9lz6bpY9siR-98A9lttxY1kFA4Gf_dkHDQ68xk3jDSvtVxb7KOU4YeDFx-GVN6ynyI_KD5vqi0zNs6sToSddqmhiXL63a2f4NKrUIP4WqZUQoJYihRe7FCni266Axpg9EmS4TRidjOaWRvUgiCnNEV08HnC9-oN4o:1wWvcg:nmDSvfzeoLXxRAE-ovOecU1jEgogjWUx6J0tUvYmyqs', '2026-06-23 12:32:02.873818'),
+('ungx23ac97jaxzr48egsxqfpp1q93t39', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZGW:ihr2bZBdHNTG-erUOOf1B5oBlWNHqPhpr8qhGlg8xTo', '2026-09-02 05:55:08.201328'),
 ('v8q8fbhgvmwhzlnnff0719sidxnw78uy', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdtp:l5-lo5YzIWsSOP4YTu8PwQo7bUj3F6SX21P75m3350U', '2026-08-16 21:39:13.357412'),
 ('xmslh23pc9fp63xbmlrl594qqw1szycy', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdir:60fC9EgTjsRwacceuMUwgKJmoaNKC9DrVpL-2qsqkks', '2026-08-16 21:27:53.239036');
 
@@ -508,20 +518,42 @@ CREATE TABLE `member_aichatmessage` (
   `content` longtext NOT NULL,
   `model` varchar(100) NOT NULL,
   `created_at` datetime(6) NOT NULL,
-  `session_id` bigint(20) NOT NULL
+  `session_id` bigint(20) NOT NULL,
+  `tokens` int(11) DEFAULT NULL,
+  `feedback` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_aichatmessage`
 --
 
-INSERT INTO `member_aichatmessage` (`id`, `role`, `content`, `model`, `created_at`, `session_id`) VALUES
-(1, 'user', 'hello', '', '2026-07-31 03:50:21.736078', 1),
-(2, 'assistant', 'Portfolio: 19 projects — 13 ongoing, 2 upcoming, 2 completed, and 1 delayed. Budget utilization is 0.0%. Ask about project status, delayed work, or budget utilisation for more detail.', '', '2026-07-31 03:50:21.753755', 1),
-(3, 'user', 'status', '', '2026-07-31 03:50:44.914038', 1),
-(4, 'assistant', 'Portfolio: 19 projects — 13 ongoing, 2 upcoming, 2 completed, and 1 delayed. Budget utilization is 0.0%.', '', '2026-07-31 03:50:44.920778', 1),
-(5, 'user', 'delayed', '', '2026-07-31 03:50:59.608540', 1),
-(6, 'assistant', '1 project(s) are recorded as delayed. Please review the dashboard\'s project records for their current recovery actions.', '', '2026-07-31 03:50:59.617579', 1);
+INSERT INTO `member_aichatmessage` (`id`, `role`, `content`, `model`, `created_at`, `session_id`, `tokens`, `feedback`) VALUES
+(1, 'user', 'hello', '', '2026-07-31 03:50:21.736078', 1, NULL, NULL),
+(2, 'assistant', 'Portfolio: 19 projects — 13 ongoing, 2 upcoming, 2 completed, and 1 delayed. Budget utilization is 0.0%. Ask about project status, delayed work, or budget utilisation for more detail.', '', '2026-07-31 03:50:21.753755', 1, NULL, NULL),
+(3, 'user', 'status', '', '2026-07-31 03:50:44.914038', 1, NULL, NULL),
+(4, 'assistant', 'Portfolio: 19 projects — 13 ongoing, 2 upcoming, 2 completed, and 1 delayed. Budget utilization is 0.0%.', '', '2026-07-31 03:50:44.920778', 1, NULL, NULL),
+(5, 'user', 'delayed', '', '2026-07-31 03:50:59.608540', 1, NULL, NULL),
+(6, 'assistant', '1 project(s) are recorded as delayed. Please review the dashboard\'s project records for their current recovery actions.', '', '2026-07-31 03:50:59.617579', 1, NULL, NULL),
+(7, 'user', 'Give me a full executive breakdown of all delayed projects and budget status', '', '2026-08-20 06:00:38.185405', 1, NULL, NULL),
+(8, 'assistant', 'The tracked portfolio budget is KES 22,565,543,923.98; KES 2,000,000.00 has been recorded as spent (0.01% utilization).', 'govtracker-rules-v1', '2026-08-20 06:00:49.008607', 1, NULL, NULL),
+(9, 'user', 'Give me a full executive breakdown of all delayed projects and budget status', '', '2026-08-20 06:03:00.152903', 1, NULL, NULL),
+(10, 'assistant', '### ⚠️ Executive Breakdown: 1 Delayed Capital Project(s)\n\nThere are **1 project(s)** currently experiencing timeline delays, representing a combined financial commitment of **KES 0.00** (KES 0.00 disbursed).\n\n#### ???? Specific Delayed Projects & Status:\n• **Affordable Housing** (ID: 38)\n  - **Category**: Infrastructure | **Location**: Mercy Njeri-Nakuru\n  - **Progress**: 0% | **Budget**: KES 0.00 | **Spent**: KES 0.00 (0% utilized)\n  - **Assigned Contractor**: George Mbola\n\n#### ???? Recommended Strategic Directives:\n1. **Contractor Accountability Review**: Issue formal notices to assigned contractors with progress < 50%.\n2. **Site Inspection Triage**: Mobilize field officers to audit delayed project sites.\n3. **Budget Reallocation Safeguard**: Freeze unspent disbursements until recovery plans are approved.', 'govtracker-intelligence-v2', '2026-08-20 06:03:09.954545', 1, NULL, NULL),
+(11, 'user', 'Give me a full executive breakdown of all delayed projects and budget status', '', '2026-08-20 06:03:24.585220', 1, NULL, NULL),
+(12, 'assistant', '### ⚠️ Executive Breakdown: 1 Delayed Capital Project(s)\n\nThere are **1 project(s)** currently experiencing timeline delays, representing a combined financial commitment of **KES 0.00** (KES 0.00 disbursed).\n\n#### ???? Specific Delayed Projects & Status:\n• **Affordable Housing** (ID: 38)\n  - **Category**: Infrastructure | **Location**: Mercy Njeri-Nakuru\n  - **Progress**: 0% | **Budget**: KES 0.00 | **Spent**: KES 0.00 (0% utilized)\n  - **Assigned Contractor**: George Mbola\n\n#### ???? Recommended Strategic Directives:\n1. **Contractor Accountability Review**: Issue formal notices to assigned contractors with progress < 50%.\n2. **Site Inspection Triage**: Mobilize field officers to audit delayed project sites.\n3. **Budget Reallocation Safeguard**: Freeze unspent disbursements until recovery plans are approved.', 'govtracker-intelligence-v2', '2026-08-20 06:03:33.944816', 1, NULL, NULL),
+(13, 'user', 'h', '', '2026-08-20 06:04:13.345187', 4, NULL, NULL),
+(14, 'assistant', '### ???? Project Deep-Dive: Konza Smart City Phase II Development (ID: 40)\n- **Status**: `DRAFT` | **Progress**: `\"Road works completed (45%), ICT infrastructure completed (38%), \"\r\n        \"utility installations ongoing before suspension.%`\n- **Capital Allocation**: KES 56,000,000.00 | **Disbursed**: KES 1,000,000.00 (1.8% absorption)\n- **Location**: Konza, Machakos County | **Category**: N/A\n- **Contractor**: China State Construction Engineering Corporation\n- **Overview**: \"Construction of roads, ICT infrastructure, utility services, \"\r\n        \"commercial buildings and residential facilities for Konza Smart City.\n\n---\n\n### ???? Project Deep-Dive: Kisumu Highway (ID: 1)\n- **Status**: `ONGOING` | **Progress**: `67%`\n- **Capital Allocation**: KES 23,000,000.00 | **Disbursed**: KES 1,000,000.00 (4.3% absorption)\n- **Location**: Kisumu | **Category**: N/A\n- **Contractor**: George Mbola\n- **Overview**: A perfect highway joining most counties promoting business opportunities\n\n---\n\n### ???? Project Deep-Dive: Affordable Housing (ID: 38)\n- **Status**: `DELAYED` | **Progress**: `0%`\n- **Capital Allocation**: KES 0.00 | **Disbursed**: KES 0.00 (0% absorption)\n- **Location**: Mercy Njeri-Nakuru | **Category**: N/A\n- **Contractor**: George Mbola\n- **Overview**: the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs\n\n---\n\n### ???? Project Deep-Dive: Menengai II Geothermal Power Station (ID: 20)\n- **Status**: `UPCOMING` | **Progress**: `0%`\n- **Capital Allocation**: KES 10,000,000.00 | **Disbursed**: KES 0.00 (0.0% absorption)\n- **Location**: Menengai Crater, Nakuru County | **Category**: N/A\n- **Contractor**: Unassigned\n- **Overview**: Will be done along Menengai to boost power supply in Nakuru city\n\n---\n\n### ???? Project Deep-Dive: Menengai II Geothermal Power Station (ID: 34)\n- **Status**: `ONGOING` | **Progress**: `0%`\n- **Capital Allocation**: KES 20,000,000.00 | **Disbursed**: KES 0.00 (0.0% absorption)\n- **Location**: Menengai Crater, Nakuru County | **Category**: N/A\n- **Contractor**: Unassigned\n- **Overview**: A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'govtracker-intelligence-v2', '2026-08-20 06:04:20.500186', 4, NULL, NULL),
+(15, 'user', 'y', '', '2026-08-20 06:05:00.050561', 4, NULL, NULL),
+(16, 'assistant', '### ???? Project Deep-Dive: Konza Smart City Phase II Development (ID: 40)\n- **Status**: `DRAFT` | **Progress**: `\"Road works completed (45%), ICT infrastructure completed (38%), \"\r\n        \"utility installations ongoing before suspension.%`\n- **Capital Allocation**: KES 56,000,000.00 | **Disbursed**: KES 1,000,000.00 (1.8% absorption)\n- **Location**: Konza, Machakos County | **Category**: N/A\n- **Contractor**: China State Construction Engineering Corporation\n- **Overview**: \"Construction of roads, ICT infrastructure, utility services, \"\r\n        \"commercial buildings and residential facilities for Konza Smart City.\n\n---\n\n### ???? Project Deep-Dive: Kisumu Highway (ID: 1)\n- **Status**: `ONGOING` | **Progress**: `67%`\n- **Capital Allocation**: KES 23,000,000.00 | **Disbursed**: KES 1,000,000.00 (4.3% absorption)\n- **Location**: Kisumu | **Category**: N/A\n- **Contractor**: George Mbola\n- **Overview**: A perfect highway joining most counties promoting business opportunities\n\n---\n\n### ???? Project Deep-Dive: Nairobi Railway City (ID: 37)\n- **Status**: `UPCOMING` | **Progress**: `upcoming%`\n- **Capital Allocation**: KES 0.00 | **Disbursed**: KES 0.00 (0% absorption)\n- **Location**: Nairobi | **Category**: N/A\n- **Contractor**: George Mbola\n- **Overview**: After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.\n\n---\n\n### ???? Project Deep-Dive: Infrastructure and Energy (ID: 39)\n- **Status**: `COMPLETED` | **Progress**: `0%`\n- **Capital Allocation**: KES 0.00 | **Disbursed**: KES 0.00 (0% absorption)\n- **Location**: Siaya County | **Category**: N/A\n- **Contractor**: George Mbola\n- **Overview**: Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.\n\n---\n\n### ???? Project Deep-Dive: Northlands City (ID: 30)\n- **Status**: `ONGOING` | **Progress**: `0%`\n- **Capital Allocation**: KES 23,000,000.00 | **Disbursed**: KES 0.00 (0.0% absorption)\n- **Location**: Ruiru, Nairobi city | **Category**: N/A\n- **Contractor**: Unassigned\n- **Overview**: The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'govtracker-intelligence-v2', '2026-08-20 06:05:05.179815', 4, NULL, NULL),
+(17, 'user', 'budget allocation', '', '2026-08-20 06:05:09.822508', 1, NULL, NULL),
+(18, 'assistant', '### ???? Executive Portfolio Financial Assessment\n\n- **Total Authorized Allocation**: **KES 22,565,543,923.98**\n- **Total Disbursed Expenditure**: **KES 2,000,000.00**\n- **Unspent Liquid Reserves**: **KES 22,563,543,923.98**\n- **Overall Absorption Rate**: **0.01%**\n\n#### ???? Top Capital Allocation Commitments:\n• **Thika super highway**: KES 9,999,999,999.99 budget (Spent: KES 0.00 / 0.0%)\n• **Expansion of Tana River**: KES 9,999,999,999.99 budget (Spent: KES 0.00 / 0.0%)\n• **Mau Mau Road**: KES 2,121,000,000.00 budget (Spent: KES 0.00 / 0.0%)\n• **Kisumu Port**: KES 147,345,646.00 budget (Spent: KES 0.00 / 0.0%)\n• **Konza Smart City Phase II Development**: KES 56,000,000.00 budget (Spent: KES 1,000,000.00 / 1.8%)\n\n#### ???? Financial Guidance:\n• Absorption rate is at **0.01%**. Reserve capital remains solvent.\n• Ensure all disbursement requisitions undergo milestone verification before payment processing.', 'govtracker-intelligence-v2', '2026-08-20 06:05:19.822017', 1, NULL, NULL),
+(19, 'user', 'contractor list', '', '2026-08-20 06:05:19.828310', 1, NULL, NULL),
+(20, 'assistant', '### ???? Contractor Registry & Performance Overview\n\n- **Total Registered Contractors**: **1**\n- **Blacklisted Contractors**: **0**\n\n#### ???? Sample Registered Contractors:\n• **kabarak university** [???? Active] — Category: General | Phone: 0527318502\n\n**Action Note**: Blacklisted contractors are automatically barred from participating in public tenders.', 'govtracker-intelligence-v2', '2026-08-20 06:05:25.937053', 1, NULL, NULL),
+(21, 'user', 'issues reported', '', '2026-08-20 06:05:25.949129', 1, NULL, NULL),
+(22, 'user', 'Give me a full executive breakdown of total capital budget and expenditure absorption', '', '2026-08-20 06:05:25.965039', 4, NULL, NULL),
+(23, 'assistant', '### ???? Executive Portfolio Financial Assessment\n\n- **Total Authorized Allocation**: **KES 22,565,543,923.98**\n- **Total Disbursed Expenditure**: **KES 2,000,000.00**\n- **Unspent Liquid Reserves**: **KES 22,563,543,923.98**\n- **Overall Absorption Rate**: **0.01%**\n\n#### ???? Top Capital Allocation Commitments:\n• **Thika super highway**: KES 9,999,999,999.99 budget (Spent: KES 0.00 / 0.0%)\n• **Expansion of Tana River**: KES 9,999,999,999.99 budget (Spent: KES 0.00 / 0.0%)\n• **Mau Mau Road**: KES 2,121,000,000.00 budget (Spent: KES 0.00 / 0.0%)\n• **Kisumu Port**: KES 147,345,646.00 budget (Spent: KES 0.00 / 0.0%)\n• **Konza Smart City Phase II Development**: KES 56,000,000.00 budget (Spent: KES 1,000,000.00 / 1.8%)\n\n#### ???? Financial Guidance:\n• Absorption rate is at **0.01%**. Reserve capital remains solvent.\n• Ensure all disbursement requisitions undergo milestone verification before payment processing.', 'govtracker-intelligence-v2', '2026-08-20 06:05:31.058558', 4, NULL, NULL),
+(24, 'assistant', '### ???? Citizen Issue & Risk Intelligence Triage\n\n- **Total Reported Citizen Issues**: **2**\n- **Unresolved / Pending Triage**: **1**\n\n#### ⚠️ Recent Reported Signals:\n• **Issue #3** on *Standard Gauge Railway*: \"wqedf\" (Severity: `MODERATE` | Status: `Resolved`) \n• **Issue #2** on *Building of a Dam*: \"jytre\" (Severity: `MODERATE` | Status: `Pending`) \n\n**Triage Action Plan**: Review unresolved issues on the AI Issue Dashboard to assign responsible officers.', 'govtracker-intelligence-v2', '2026-08-20 06:05:31.343877', 1, NULL, NULL),
+(25, 'user', 'general overview', '', '2026-08-20 06:05:31.350515', 1, NULL, NULL),
+(26, 'assistant', '### ???? GovTracker AI Executive Portfolio Synthesis\n\nHere is the comprehensive real-time status overview of the government capital projects portfolio:\n\n#### ???? Portfolio Metrics & Pipeline Status:\n- **Total Tracked Projects**: **20**\n  - ???? **Ongoing**: 13 projects\n  - ???? **Delayed**: 1 projects\n  - ???? **Completed**: 2 projects\n  - ???? **Upcoming**: 2 projects\n\n#### ???? Financial Absorption Overview:\n- **Total Capital Allocation**: **KES 22,565,543,923.98**\n- **Disbursed Expenditure**: **KES 2,000,000.00** (0.01% utilization)\n- **Available Liquid Reserves**: **KES 22,563,543,923.98**\n\n#### ???? Procurement & Citizen Signals:\n- **Active Tenders**: 2 | **Submitted Bids**: 1\n- **Registered Contractors**: 1\n- **Citizen Issue Reports**: 2 total\n\nYou can ask me specific questions such as:\n• *\"Which projects are currently delayed?\"*\n• *\"What is the budget breakdown and spending?\"*\n• *\"Show contractor performance and blacklisted vendors.\"*\n• *\"List reported citizen issues and risks.\"*', 'govtracker-intelligence-v2', '2026-08-20 06:05:37.719145', 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -534,15 +566,19 @@ CREATE TABLE `member_aichatsession` (
   `title` varchar(120) NOT NULL,
   `created_at` datetime(6) NOT NULL,
   `updated_at` datetime(6) NOT NULL,
-  `user_id` bigint(20) NOT NULL
+  `user_id` bigint(20) NOT NULL,
+  `context` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`context`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_aichatsession`
 --
 
-INSERT INTO `member_aichatsession` (`id`, `title`, `created_at`, `updated_at`, `user_id`) VALUES
-(1, 'hello', '2026-07-30 19:58:52.528385', '2026-07-31 03:50:59.621623', 1);
+INSERT INTO `member_aichatsession` (`id`, `title`, `created_at`, `updated_at`, `user_id`, `context`) VALUES
+(1, 'hello', '2026-07-30 19:58:52.528385', '2026-07-31 03:50:59.621623', 1, NULL),
+(2, 'New Conversation', '2026-08-20 05:58:35.572139', '2026-08-20 05:58:35.572171', 30, '{}'),
+(3, 'New Conversation', '2026-08-20 05:58:46.402828', '2026-08-20 05:58:46.402863', 30, '{}'),
+(4, 'h', '2026-08-20 06:04:13.334473', '2026-08-20 06:04:20.507207', 30, '{}');
 
 -- --------------------------------------------------------
 
@@ -565,6 +601,14 @@ CREATE TABLE `member_aiissueassessment` (
   `issue_id` bigint(20) NOT NULL,
   `reviewed_by_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_aiissueassessment`
+--
+
+INSERT INTO `member_aiissueassessment` (`id`, `category`, `urgency`, `confidence`, `summary`, `recommended_action`, `model`, `provider`, `review_status`, `reviewed_at`, `created_at`, `issue_id`, `reviewed_by_id`) VALUES
+(1, 'other', 'low', 45, 'The report for Standard Gauge Railway is classified as other with low urgency based on the reported details.', 'Review the report, confirm the details, and schedule follow-up action.', 'govtracker-rules-v1', 'heuristic', 'rejected', NULL, '2026-08-20 05:51:57.773650', 3, NULL),
+(2, 'other', 'low', 45, 'The report for Building of a Dam is classified as other with low urgency based on the reported details.', 'Review the report, confirm the details, and schedule follow-up action.', 'govtracker-rules-v1', 'heuristic', 'pending', NULL, '2026-08-20 05:52:34.707159', 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -601,6 +645,13 @@ CREATE TABLE `member_aireportgeneration` (
   `project_id` bigint(20) DEFAULT NULL,
   `requested_by_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_aireportgeneration`
+--
+
+INSERT INTO `member_aireportgeneration` (`id`, `report_type`, `prompt`, `output`, `status`, `model`, `created_at`, `project_id`, `requested_by_id`) VALUES
+(1, 'executive_summary', '', 'Summary: Project: Affordable Housing. Status: Delayed. Description: the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs. Budget: 0; Spent: 0; Utilization: 0%. Open issues: 0. Milestones completed: 0/0. Progress: No progress update recorded.\n\nRisk level: Medium (55/100).\n\nRecommended next step: review the project record and assign an accountable follow-up action.', 'generated', 'govtracker-rules-v1', '2026-08-20 05:53:00.812984', 38, 30);
 
 -- --------------------------------------------------------
 
@@ -654,6 +705,18 @@ CREATE TABLE `member_auditlog` (
   `object_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `member_auditlog`
+--
+
+INSERT INTO `member_auditlog` (`id`, `action`, `timestamp`, `project_id`, `user_id`, `changes`, `ip_address`, `model_name`, `object_id`) VALUES
+(1, 'tender_application_submitted', '2026-08-19 13:00:37.703075', NULL, 1, '{}', '127.0.0.1', 'TenderApplication', 1),
+(2, 'tender_awarded', '2026-08-19 13:01:03.283064', NULL, 1, '{\"application_id\": 1, \"contractor_id\": 1}', '127.0.0.1', 'Tender', 1),
+(3, 'valuating exteme finnce usage in this project', '2026-08-19 14:07:12.970231', 12, NULL, '{\"notes\": \"must be brought to book\"}', NULL, NULL, NULL),
+(4, 'quick_updated', '2026-08-19 17:21:55.360866', 35, 1, '{\"status\": \"in_progress\", \"progress\": 90}', '127.0.0.1', 'Milestone', 1),
+(5, 'created', '2026-08-20 04:16:16.224228', 29, 1, '{\"stage_name\": \"construction\"}', '127.0.0.1', 'ProjectStage', 2),
+(6, 'quick_updated', '2026-08-20 04:20:43.718433', 35, 1, '{\"status\": \"in_progress\", \"progress\": 10}', '127.0.0.1', 'Milestone', 2);
+
 -- --------------------------------------------------------
 
 --
@@ -669,6 +732,15 @@ CREATE TABLE `member_budget` (
   `fiscal_year` varchar(10) DEFAULT NULL,
   `notes` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_budget`
+--
+
+INSERT INTO `member_budget` (`id`, `allocated_amount`, `spent_amount`, `last_updated`, `project_id`, `fiscal_year`, `notes`) VALUES
+(1, '56000000.00', '1000000.00', '2026-08-20 05:37:30.190303', 40, '2027', 'in process, will assess'),
+(2, '23000000.00', '1000000.00', '2026-08-20 05:39:19.603196', 1, NULL, NULL),
+(3, '30000000000.00', '20000000.00', '2026-08-20 07:38:54.221735', 38, '2027', 'allocated');
 
 -- --------------------------------------------------------
 
@@ -775,7 +847,8 @@ INSERT INTO `member_contact` (`id`, `name`, `email`, `message`, `created_at`, `i
 (4, 'Toto Vanessah', 'vanessa@gmail.com', 'thanks', '2026-08-02 17:06:04.173277', 0, NULL),
 (5, 'Toto Lavender', 'oketchmichael7@gmail.com', 'vgdfsaz', '2026-08-02 17:06:04.173277', 0, NULL),
 (6, 'Frank Libe', 'libe@gmail.com', 'im frank libe and thanks for the service', '2026-08-02 17:06:04.173277', 0, NULL),
-(7, 'Argwings Kodhek', 'kodhek@gmail.com', 'good work', '2026-08-02 17:06:04.173277', 0, NULL);
+(7, 'Argwings Kodhek', 'kodhek@gmail.com', 'good work', '2026-08-02 17:06:04.173277', 0, NULL),
+(8, 'Test User', 'test@example.com', 'Test message body', '2026-08-19 06:09:45.823490', 0, 'Test Subject');
 
 -- --------------------------------------------------------
 
@@ -795,8 +868,16 @@ CREATE TABLE `member_contractor` (
   `blacklist_reason` longtext DEFAULT NULL,
   `category` varchar(100) DEFAULT NULL,
   `is_blacklisted` tinyint(1) NOT NULL,
-  `registration_no` varchar(100) DEFAULT NULL
+  `registration_no` varchar(100) DEFAULT NULL,
+  `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_contractor`
+--
+
+INSERT INTO `member_contractor` (`id`, `name`, `contractor_id`, `company`, `phone`, `email`, `location`, `profile`, `blacklist_reason`, `category`, `is_blacklisted`, `registration_no`, `created_at`) VALUES
+(1, 'kabarak university', 0, 'kabarak university', '0527318502', 'felixngwono@gmail.com', 'National', '', NULL, NULL, 0, NULL, '2026-08-19 13:00:37');
 
 -- --------------------------------------------------------
 
@@ -886,15 +967,20 @@ CREATE TABLE `member_governmentrequest` (
   `updated_at` datetime(6) NOT NULL,
   `citizen_id` bigint(20) NOT NULL,
   `ai_category_suggestion` varchar(50) DEFAULT NULL,
-  `assigned_to_id` bigint(20) DEFAULT NULL
+  `assigned_to_id` bigint(20) DEFAULT NULL,
+  `official_response` longtext DEFAULT NULL,
+  `priority` varchar(20) NOT NULL,
+  `reference_no` varchar(50) DEFAULT NULL,
+  `responded_at` datetime(6) DEFAULT NULL,
+  `responded_by_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_governmentrequest`
 --
 
-INSERT INTO `member_governmentrequest` (`id`, `title`, `description`, `category`, `location`, `image`, `status`, `created_at`, `updated_at`, `citizen_id`, `ai_category_suggestion`, `assigned_to_id`) VALUES
-(1, 'qewr', 'qwer', 'infrastructure', 'qewr', '', 'pending', '2026-06-11 07:17:01.434909', '2026-06-11 07:17:01.434957', 1, NULL, NULL);
+INSERT INTO `member_governmentrequest` (`id`, `title`, `description`, `category`, `location`, `image`, `status`, `created_at`, `updated_at`, `citizen_id`, `ai_category_suggestion`, `assigned_to_id`, `official_response`, `priority`, `reference_no`, `responded_at`, `responded_by_id`) VALUES
+(1, 'qewr', 'qwer', 'infrastructure', 'qewr', '', 'pending', '2026-06-11 07:17:01.434909', '2026-06-11 07:17:01.434957', 1, NULL, NULL, NULL, 'medium', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -943,8 +1029,8 @@ CREATE TABLE `member_milestone` (
 --
 
 INSERT INTO `member_milestone` (`id`, `title`, `description`, `completion_date`, `progress_percentage`, `project_id`, `stage_id`, `due_date`, `status`) VALUES
-(1, 'nbnm', 'nmjhmn', '2025-03-12', 87, 35, 1, NULL, 'pending'),
-(2, 'geothermal power project', 'power station installation', '2026-02-16', 10, 35, 1, NULL, 'pending');
+(1, 'nbnm', 'nmjhmn', '2025-03-12', 90, 35, 1, NULL, 'in_progress'),
+(2, 'geothermal power project', 'power station installation', '2026-02-16', 10, 35, 1, NULL, 'in_progress');
 
 -- --------------------------------------------------------
 
@@ -970,7 +1056,8 @@ CREATE TABLE `member_notification` (
 
 INSERT INTO `member_notification` (`id`, `notification_type`, `title`, `message`, `is_read`, `created_at`, `recipient_id`, `project_id`, `link`) VALUES
 (1, NULL, NULL, 'Welcome anytime Ajumbutule', 0, '2025-03-06 12:17:36.241868', NULL, NULL, NULL),
-(2, NULL, NULL, 'wecome', 1, '2025-03-06 12:17:56.611611', NULL, NULL, NULL);
+(2, NULL, NULL, 'wecome', 1, '2025-03-06 12:17:56.611611', NULL, NULL, NULL),
+(3, 'system', 'System Update', 'Your government project proposal has been submitted.', 0, '2026-08-20 06:21:59.831487', 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -994,7 +1081,8 @@ CREATE TABLE `member_participation` (
 INSERT INTO `member_participation` (`id`, `content`, `joined_at`, `is_active`, `project_id`, `user_id`) VALUES
 (1, 'good', '2026-02-23 07:08:43.825185', 1, 38, 27),
 (5, 'The project is not clerly showing the milstones, im curious', '2026-02-23 07:38:01.415471', 1, 34, 27),
-(6, 'certisfied', '2026-02-23 08:03:52.925874', 1, 37, 25);
+(6, 'certisfied', '2026-02-23 08:03:52.925874', 1, 37, 25),
+(7, 'good', '2026-08-19 05:19:00.116844', 1, 39, 30);
 
 -- --------------------------------------------------------
 
@@ -1130,34 +1218,35 @@ CREATE TABLE `member_project` (
   `supervising_agency` varchar(200) DEFAULT NULL,
   `updated_at` datetime(6) DEFAULT NULL,
   `category_id` bigint(20) DEFAULT NULL,
-  `district_id` bigint(20) DEFAULT NULL
+  `district_id` bigint(20) DEFAULT NULL,
+  `project_division_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_project`
 --
 
-INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `project_location`, `implementing_agency`, `project_Budgeting`, `amount_spent`, `images`, `start_date`, `end_date`, `beneficiaries`, `stakeholders`, `progress`, `project_status`, `impact`, `project_manager`, `project_contractor`, `contact_email`, `progress_update`, `remarks`, `actual_end_date`, `ai_completion_estimate`, `ai_risk_score`, `ai_summary`, `cover_image`, `created_at`, `created_by_id`, `funding_source`, `is_featured`, `is_public`, `priority`, `reference_code`, `supervising_agency`, `updated_at`, `category_id`, `district_id`) VALUES
-(1, 'Kisumu Highway', 'A perfect highway joining most counties promoting business opportunities', 'Kisumu', 'Governmental Agencies', '23000000.00', NULL, 'projects/dlock.jpg', '2026-04-22', '2026-06-11', 'citizens', 'agencies', '67', 'ongoing', 'good economic network', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-04-26 11:25:50.760102', '- fostering good economy', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', '9999999999.99', NULL, 'projects/thika.jpg', '2024-03-01', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', '147345646.00', NULL, 'projects/login.PNG', '2024-03-02', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', '34567890.00', NULL, 'projects/mau_mau.jpg', '2024-03-06', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(20, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', '10000000.00', NULL, 'projects/im.jpg', '2025-12-06', '2027-12-06', NULL, NULL, NULL, 'upcoming', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', '1654879.00', NULL, 'projects/dandora_9E3A1mg.jpg', '2024-03-07', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', '30000000.00', NULL, 'projects/pacho_7f3AtUZ.jpg', '2024-03-12', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', '34500000.00', NULL, 'projects/expressway_SwK9e6V.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', '4579867.00', NULL, 'projects/tana_river.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', '25895642.00', NULL, 'projects/dala.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', '23000000.00', NULL, 'projects/thika_Ua6mF2X.jpg', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', '34000000.00', NULL, 'projects/sgr.png', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', '2121000000.00', NULL, 'projects/expressway.jpg', '2024-03-12', '2027-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', '20000000.00', NULL, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '2025-02-19', '2025-03-06', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', '9999999999.99', NULL, 'projects/tana_river_Laq2K1W.jpg', '2024-03-07', '2025-03-12', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', '0.00', NULL, 'projects/sgr_saMexVe.png', '2025-03-13', '2028-02-12', 'Railway users', 'multi billionares', 'upcoming', 'upcoming', 'speeding the rate of transportation and reducing the trafficking in public roads', NULL, 'George Mbola', 'info@lapsset.go.ke', '2026-06-10 13:48:50.457266', 'poornproject management', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', '0.00', NULL, 'projects/house.jpg', '2026-02-27', '2031-05-16', '-common mwananchi\r\n- government', '-Government tycoons\r\n- president William Ruto', '', 'Delayed', 'reduction of overcrowding in the country', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', '-this will impact on the reduction of slums in the country\r\n-clean environment', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', '0.00', NULL, 'projects/house_wMsNgUd.jpg', '2024-06-04', '2026-02-21', 'citizens', 'county government', '', 'completed', '- Ease of access of clean and free energy', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', 'free and favourable energy', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL),
-(40, 'Konza Smart City Phase II Development', '\"Construction of roads, ICT infrastructure, utility services, \"\r\n        \"commercial buildings and residential facilities for Konza Smart City.', 'Konza, Machakos County', 'Konza Technopolis Development Authority (KoTDA)', '25000000000.00', '9800000000.00', 'projects/assignment-alukwe.jpeg', '2026-07-28', '2026-07-29', 'Residents of Machakos County, ICT companies, investors, \"\r\n        \"students, entrepreneurs and SMEs.', 'KoTDA, National Treasury, Ministry of ICT, Machakos County Government, \"\r\n        \"Private Investors, Local Communities.', '\"Road works completed (45%), ICT infrastructure completed (38%), \"\r\n        \"utility installations ongoing before suspension.', 'draft', 'The project has attracted investors and improved supporting \"\r\n        \"infrastructure, but expected economic benefits have been delayed.', 'Eng. James Mwangi', 'China State Construction Engineering Corporation', 'info@konza.go.ke', '2026-08-02 21:14:36.637725', '\"Project suspended pending Treasury approval, contractor claims settlement, \"\r\n        \"and completion of an independent audit.', '2026-08-03', '2026-08-27', 56, '\"AI analysis indicates that the project has been suspended because \"\r\n        \"of procurement reviews, delayed funding disbursement, and contractual disputes', 'projects/covers/assignment-alukwe.jpeg', '2026-08-02 21:13:49.935033', NULL, 'Government of Kenya and Public-Private Partnerships (PPP)', 0, 1, 'high', 'PRJ-KEN-2026-001', 'Ministry of Information, Communications and the Digital Economy', '2026-08-02 21:14:36.637742', NULL, NULL);
+INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `project_location`, `implementing_agency`, `project_Budgeting`, `amount_spent`, `images`, `start_date`, `end_date`, `beneficiaries`, `stakeholders`, `progress`, `project_status`, `impact`, `project_manager`, `project_contractor`, `contact_email`, `progress_update`, `remarks`, `actual_end_date`, `ai_completion_estimate`, `ai_risk_score`, `ai_summary`, `cover_image`, `created_at`, `created_by_id`, `funding_source`, `is_featured`, `is_public`, `priority`, `reference_code`, `supervising_agency`, `updated_at`, `category_id`, `district_id`, `project_division_id`) VALUES
+(1, 'Kisumu Highway', 'A perfect highway joining most counties promoting business opportunities', 'Kisumu', 'Governmental Agencies', '23000000.00', '1000000.00', 'projects/dlock.jpg', '2026-04-22', '2026-06-11', 'citizens', 'agencies', '67', 'ongoing', 'good economic network', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-08-20 05:39:19.593664', '- fostering good economy', NULL, NULL, NULL, NULL, '', '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', 'PRJ-4E95B81D', NULL, '2026-08-20 05:39:19.593687', NULL, NULL, NULL),
+(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', '9999999999.99', NULL, 'projects/thika.jpg', '2024-03-01', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', '147345646.00', NULL, 'projects/login.PNG', '2024-03-02', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', '34567890.00', NULL, 'projects/mau_mau.jpg', '2024-03-06', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(20, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', '10000000.00', NULL, 'projects/im.jpg', '2025-12-06', '2027-12-06', NULL, NULL, NULL, 'upcoming', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', '1654879.00', NULL, 'projects/dandora_9E3A1mg.jpg', '2024-03-07', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', '30000000.00', NULL, 'projects/pacho_7f3AtUZ.jpg', '2024-03-12', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', '34500000.00', NULL, 'projects/expressway_SwK9e6V.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', '4579867.00', NULL, 'projects/tana_river.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', '25895642.00', NULL, 'projects/dala.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', '23000000.00', NULL, 'projects/thika_Ua6mF2X.jpg', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', '34000000.00', NULL, 'projects/sgr.png', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', '2121000000.00', NULL, 'projects/expressway.jpg', '2024-03-12', '2027-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', '20000000.00', NULL, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '2025-02-19', '2025-03-06', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', '9999999999.99', NULL, 'projects/tana_river_Laq2K1W.jpg', '2024-03-07', '2025-03-12', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', '0.00', NULL, 'projects/sgr_saMexVe.png', '2025-03-13', '2028-02-12', 'Railway users', 'multi billionares', 'upcoming', 'upcoming', 'speeding the rate of transportation and reducing the trafficking in public roads', NULL, 'George Mbola', 'info@lapsset.go.ke', '2026-06-10 13:48:50.457266', 'poornproject management', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(38, 'Affordable Housing', 'the government is set to build upto 10 floor affordable house to help common mwananchi access the basic needs', 'Mercy Njeri-Nakuru', 'National Government', '30000000000.00', '20000000.00', 'projects/house.jpg', '2026-02-27', '2031-05-16', '-common mwananchi\r\n- government', '-Government tycoons\r\n- president William Ruto', '', 'Delayed', 'reduction of overcrowding in the country', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-08-20 07:38:54.224497', '-this will impact on the reduction of slums in the country\r\n-clean environment', NULL, NULL, NULL, NULL, '', '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', 'PRJ-D4FB8489', NULL, '2026-08-20 07:38:54.224519', NULL, NULL, NULL),
+(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', '0.00', NULL, 'projects/house_wMsNgUd.jpg', '2024-06-04', '2026-02-21', 'citizens', 'county government', '', 'completed', '- Ease of access of clean and free energy', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', 'free and favourable energy', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', NULL, NULL, NULL),
+(40, 'Konza Smart City Phase II Development', '\"Construction of roads, ICT infrastructure, utility services, \"\r\n        \"commercial buildings and residential facilities for Konza Smart City.', 'Konza, Machakos County', 'Konza Technopolis Development Authority (KoTDA)', '56000000.00', '1000000.00', 'projects/assignment-alukwe.jpeg', '2026-07-28', '2026-07-29', 'Residents of Machakos County, ICT companies, investors, \"\r\n        \"students, entrepreneurs and SMEs.', 'KoTDA, National Treasury, Ministry of ICT, Machakos County Government, \"\r\n        \"Private Investors, Local Communities.', '\"Road works completed (45%), ICT infrastructure completed (38%), \"\r\n        \"utility installations ongoing before suspension.', 'draft', 'The project has attracted investors and improved supporting \"\r\n        \"infrastructure, but expected economic benefits have been delayed.', 'Eng. James Mwangi', 'China State Construction Engineering Corporation', 'info@konza.go.ke', '2026-08-20 05:37:30.195671', '\"Project suspended pending Treasury approval, contractor claims settlement, \"\r\n        \"and completion of an independent audit.', '2026-08-03', '2026-08-27', 56, '\"AI analysis indicates that the project has been suspended because \"\r\n        \"of procurement reviews, delayed funding disbursement, and contractual disputes', 'projects/covers/assignment-alukwe.jpeg', '2026-08-02 21:13:49.935033', NULL, 'Government of Kenya and Public-Private Partnerships (PPP)', 0, 1, 'high', 'PRJ-KEN-2026-001', 'Ministry of Information, Communications and the Digital Economy', '2026-08-20 05:37:30.195712', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1206,6 +1295,13 @@ CREATE TABLE `member_projectexpense` (
   `receipt` varchar(100) DEFAULT NULL,
   `recorded_by_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_projectexpense`
+--
+
+INSERT INTO `member_projectexpense` (`id`, `title`, `category`, `amount`, `description`, `date`, `project_id`, `receipt`, `recorded_by_id`) VALUES
+(1, 'tarmac', 'materials', '1000000.00', 'its over quoted', '2026-08-20', 1, 'receipts/Sure.docx', 30);
 
 -- --------------------------------------------------------
 
@@ -1265,7 +1361,8 @@ CREATE TABLE `member_projectstage` (
 --
 
 INSERT INTO `member_projectstage` (`id`, `stage_name`, `description`, `start_date`, `end_date`, `progress_percentage`, `project_id`, `is_current`, `order`) VALUES
-(1, 'construction', 'nghfdtygh', '2024-03-12', '2024-03-09', '60.00', 30, 0, 0);
+(1, 'construction', 'nghfdtygh', '2024-03-12', '2024-03-09', '60.00', 30, 0, 0),
+(2, 'construction', '10km done', '2026-08-06', '2027-01-29', '78.00', 29, 1, 12);
 
 -- --------------------------------------------------------
 
@@ -1304,20 +1401,33 @@ CREATE TABLE `member_projectupdate` (
 CREATE TABLE `member_project_division` (
   `id` bigint(20) NOT NULL,
   `project_name` varchar(1000) NOT NULL,
-  `project_type_id` bigint(20) DEFAULT NULL
+  `project_type_id` bigint(20) DEFAULT NULL,
+  `allocated_budget` decimal(15,2) DEFAULT NULL,
+  `code` varchar(50) DEFAULT NULL,
+  `contact_email` varchar(254) DEFAULT NULL,
+  `contact_phone` varchar(30) DEFAULT NULL,
+  `created_at` datetime(6) DEFAULT NULL,
+  `description` longtext DEFAULT NULL,
+  `head_of_division` varchar(150) DEFAULT NULL,
+  `head_user_id` bigint(20) DEFAULT NULL,
+  `image` varchar(100) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL,
+  `name` varchar(200) DEFAULT NULL,
+  `office_location` varchar(255) DEFAULT NULL,
+  `updated_at` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_project_division`
 --
 
-INSERT INTO `member_project_division` (`id`, `project_name`, `project_type_id`) VALUES
-(1, 'Ground Breaking', NULL),
-(2, 'Tile Fittings', NULL),
-(3, 'Land clearence', NULL),
-(4, 'Initiation stage', NULL),
-(5, 'Ground Breaking', NULL),
-(7, 'nile irrigation', 29);
+INSERT INTO `member_project_division` (`id`, `project_name`, `project_type_id`, `allocated_budget`, `code`, `contact_email`, `contact_phone`, `created_at`, `description`, `head_of_division`, `head_user_id`, `image`, `is_active`, `name`, `office_location`, `updated_at`) VALUES
+(1, 'Ground Breaking', NULL, '0.00', NULL, NULL, NULL, '2026-08-20 04:35:20.558766', NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-08-20 04:35:22.057113'),
+(2, 'Tile Fittings', NULL, '0.00', NULL, NULL, NULL, '2026-08-20 04:35:20.558766', NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-08-20 04:35:22.057113'),
+(3, 'Land clearence', NULL, '0.00', NULL, NULL, NULL, '2026-08-20 04:35:20.558766', NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-08-20 04:35:22.057113'),
+(4, 'Initiation stage', NULL, '0.00', NULL, NULL, NULL, '2026-08-20 04:35:20.558766', NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-08-20 04:35:22.057113'),
+(5, 'Ground Breaking', NULL, '0.00', NULL, NULL, NULL, '2026-08-20 04:35:20.558766', NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-08-20 04:35:22.057113'),
+(7, 'nile irrigation', 29, '0.00', NULL, NULL, NULL, '2026-08-20 04:35:20.558766', NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-08-20 04:35:22.057113');
 
 -- --------------------------------------------------------
 
@@ -1489,8 +1599,9 @@ CREATE TABLE `member_team` (
 --
 
 INSERT INTO `member_team` (`id`, `name`, `role`, `image`, `created_at`, `description`, `facebook`, `instagram`, `twitter`, `linkedin`, `whatsapp`) VALUES
-(1, 'Shanty Page', 'web designer', 'team/dandora_9E3A1mg.jpg', '2026-02-15 12:31:29.817313', NULL, NULL, NULL, NULL, NULL, NULL),
-(3, 'Felix Odhiambo', 'Project Analyst', 'team/login.PNG', '2026-02-16 07:39:45.848005', NULL, NULL, NULL, NULL, NULL, NULL);
+(1, 'Shanty Page', 'web designer', 'team/02c92d479a634167955278c0bef5d671.jpg', '2026-02-15 12:31:29.817313', 'im shanty page and a web designer', 'https://www.facebook.com/francisodhiambo.com', 'https://www.instagram.com/@nicoleatieno.com', 'https://www.facebook.com/francisodhiambo.', 'https://www.facebook.com/@nicoleatieno.com', '+254700456700'),
+(3, 'Felix Odhiambo', 'Programmer', 'team/3E0D6A3A6E21709C14D076FCD8665602C654C9A8.jpg', '2026-02-16 07:39:45.848005', 'im Felix Odhiambo, a computer scientist majorl in the fiield of programming', 'https://www.facebook.com/@nicoleatieno.com', 'https://www.instagram.com/@nicoleatieno.com', 'https://www.facebook.com/francisodhiambo.', 'https://www.linkedin.com/@nicoleatieno.com', '+2547896543245'),
+(5, 'Jane Omondi', 'Project Analyst', 'team/IMG-20250724-WA0011.jpg', '2026-08-20 04:28:14.323787', 'im jane, the project analyst at Filpex Agency', 'https://www.facebook.com/@jane.com', 'https://www.instagram.com/@jane.com', 'https://www.facebook.com/jane.com', 'https://www.linkedin.com/@jane.com', NULL);
 
 -- --------------------------------------------------------
 
@@ -1525,7 +1636,7 @@ CREATE TABLE `member_tender` (
 --
 
 INSERT INTO `member_tender` (`id`, `reference_number`, `description`, `procurement_method`, `estimated_budget`, `opening_date`, `closing_date`, `eligibility_criteria`, `evaluation_criteria`, `status`, `document`, `is_published`, `created_at`, `created_by_id`, `project_id`, `award_amount`, `award_date`, `awarded_to_id`, `title`) VALUES
-(1, 'Ref123we', 'Affordable housing around Manyatta Gonda', 'restricted', '56789765.00', '2026-04-22', '2029-06-28', 'edfghjkl', 'hsaertfg', 'draft', 'tenders/dlock.jpg', 0, '2026-04-28 05:41:12.276887', NULL, NULL, NULL, NULL, NULL, NULL),
+(1, 'Ref123we', 'Affordable housing around Manyatta Gonda', 'restricted', '56789765.00', '2026-04-22', '2029-06-28', 'edfghjkl', 'hsaertfg', 'awarded', 'tenders/dlock.jpg', 0, '2026-04-28 05:41:12.276887', NULL, NULL, '45000000.00', '2026-08-19', 1, NULL),
 (2, 'ULGM123R', 'im a contractor and i have experiences in constructing roads', 'restricted', NULL, '2026-06-27', '2026-09-10', 'kcse certificate', 'attaining all the credit scores', 'draft', 'tenders/login.png', 0, '2026-06-27 20:41:11.191406', NULL, 37, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
@@ -1554,6 +1665,13 @@ CREATE TABLE `member_tenderapplication` (
   `ai_technical_assessment` longtext DEFAULT NULL,
   `evaluator_notes` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_tenderapplication`
+--
+
+INSERT INTO `member_tenderapplication` (`id`, `company_name`, `company_email`, `company_phone`, `proposal_document`, `bid_amount`, `cover_letter`, `submitted_at`, `status`, `applicant_id`, `tender_id`, `technical_score`, `financial_score`, `total_score`, `ai_financial_assessment`, `ai_recommendation`, `ai_technical_assessment`, `evaluator_notes`) VALUES
+(1, 'kabarak university', 'felixngwono@gmail.com', '0527318502', 'tender_applications/students_record.xlsx', '45000000.00', 'tender_coverLetter/Untitled_Diagram.drawio', '2026-08-19 13:00:37.689662', 'awarded', 1, 1, 0, 0, 0, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1642,7 +1760,7 @@ CREATE TABLE `member_user` (
 --
 
 INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `first_name`, `last_name`, `is_staff`, `is_active`, `date_joined`, `email`, `username`, `name`, `role`, `bio`, `is_enduser`, `avatar`, `profile`, `updated`, `created_at`, `is_verified`, `last_login_ip`, `location`, `organization`, `phone_number`, `two_factor_enabled`, `verification_status`) VALUES
-(1, 'pbkdf2_sha256$600000$eK4cX1QJxbLYev4itN2MFq$F0E87XnzWK5poO68PKyJ64MWukjctSF4HWmx4aML8yE=', '2026-08-10 16:09:17.410787', 1, '', '', 1, 1, '2026-04-26 11:11:12.503469', 'felixngwono@gmail.com', 'FelloMarley', 'Felix Odhiambo', 'developer', 'I\'m FelloMarley, the mastermind behind the government tracker website', 0, 'avatar.png', 'profiles/Fel14_9bkNTiv.jpg', '2026-04-26 11:19:11.324442', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
+(1, 'pbkdf2_sha256$600000$eK4cX1QJxbLYev4itN2MFq$F0E87XnzWK5poO68PKyJ64MWukjctSF4HWmx4aML8yE=', '2026-08-19 06:27:41.247804', 1, '', '', 1, 1, '2026-04-26 11:11:12.503469', 'felixngwono@gmail.com', 'FelloMarley', 'Felix Odhiambo', 'developer', 'I\'m FelloMarley, the mastermind behind the government tracker website', 0, 'avatar.png', 'profiles/Fel14_9bkNTiv.jpg', '2026-04-26 11:19:11.324442', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
 (2, 'pbkdf2_sha256$390000$TDORiaVNPtEXR4OUPLDiTC$LwK7MIK1UWZ52hhBoZcJ3fER0UWBAZ6bbpIYJ1fhfVE=', '2026-04-26 19:58:17.256715', 0, '', '', 0, 1, '2026-04-26 19:50:51.247921', 'nicole@gmail.com', 'Atieno NyarChula', 'Nicole Atieno', 'engineer', 'Im Nyachula, born to be a winner', 0, 'avatar.png', 'profiles/02c92d479a634167955278c0bef5d671_R0mYTV3.jpg', '2026-04-26 19:50:52.868190', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
 (15, 'pbkdf2_sha256$600000$sdZXg14tgnO7xa9BZMRudV$15CmOFaWIpD5svoHyNtsQKA70oqKwIhFRoihCTrZTBo=', '2024-11-13 10:44:07.903587', 0, '', '', 0, 1, '2024-03-17 08:35:44.262524', 'omondi@gmail.com', 'Ajumbutule', 'Frank Omondi', 'citizen', 'Im Ajumbutule', 1, 'avatar.png', 'images/3006.webp', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
 (21, 'pbkdf2_sha256$390000$L3rjadbchaO0SpN9HBxF3S$7IwkCJCvSjH+A153Y3J+8W2hT03K8drd0wkQGjzV7iI=', '2026-02-15 09:24:48.995603', 1, '', '', 0, 1, '2024-03-18 21:04:19.576787', 'fellomarley@gmail.com', 'Fello', 'Felix Odhiambo', 'citizen', 'Im Marley', 0, 'avatar.png', 'images/chief_J9TcRuW.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
@@ -1651,7 +1769,8 @@ INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `firs
 (25, 'pbkdf2_sha256$390000$QCtLfFIyYQvtD9z4whkpmK$QSWeErI3jRNzVRw1BnuRCRDR23Sy3FCsF5Z74v2OLXo=', '2026-02-23 09:07:24.976027', 0, '', '', 0, 1, '2025-03-12 10:02:37.372369', 'assielo@gmail.com', 'assiello', 'Assiello Nomar', 'citizen', 'Assiello Norma', 1, 'avatar.png', 'profiles/solar.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
 (26, 'pbkdf2_sha256$390000$rvjkDxGKNzDBpOphsu5Rss$fBQTcWntdNp131fgkCqBTyd69P8/xm3kYdLvNG81S1Y=', '2026-04-28 05:57:02.225708', 0, '', '', 0, 1, '2026-02-15 09:22:02.825205', 'betty@gmail.com', 'Amanda', 'Betty Amanda', 'developer', 'im betty amanda', 0, 'avatar.png', 'profiles/038e478f9c094c01be86505e030c974d_DC7y9U9.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
 (27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-23 09:13:17.518974', 1, '', '', 1, 1, '2026-02-16 13:56:00.197953', 'felix@gmail.com', 'Odinga', 'Felix Odhiambo', 'developer', 'im felix odhiamo', 0, 'avatar.png', 'profiles/Fel14.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
-(29, 'pbkdf2_sha256$600000$BavP8B0es7pFn9ME210i3X$Xr3WxFnouS6cGR9C/AuHZbcAVlK6bncoXJ7WnfEhH9M=', '2026-06-08 08:29:15.187052', 1, '', '', 1, 1, '2026-06-08 08:28:37.288152', 'felix7@gmail.com', 'FelloMarley7', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-06-08 08:28:38.384166', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified');
+(29, 'pbkdf2_sha256$600000$BavP8B0es7pFn9ME210i3X$Xr3WxFnouS6cGR9C/AuHZbcAVlK6bncoXJ7WnfEhH9M=', '2026-06-08 08:29:15.187052', 1, '', '', 1, 1, '2026-06-08 08:28:37.288152', 'felix7@gmail.com', 'FelloMarley7', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-06-08 08:28:38.384166', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified'),
+(30, 'pbkdf2_sha256$600000$rKq0i4dBN2mlV9ieFGVZWb$q26b/wnHa7Vhjhc67nwKimAYHkGz6GuF2ptZ82DiC8Q=', '2026-08-20 05:27:56.720850', 0, '', '', 0, 1, '2026-08-16 07:49:35.828791', 'wanjiru@gmail.com', 'Mercy77', 'Mercy Wanjiru', 'official', 'Im Mercy working with HELB', 1, 'avatar.png', 'profiles/Maccheronis_Valley_View_Dam_Italy_03.jpg', '2026-08-16 07:49:38.263116', '2026-08-16 07:49:38.263163', 0, NULL, NULL, NULL, NULL, 0, 'unverified');
 
 -- --------------------------------------------------------
 
@@ -1900,8 +2019,10 @@ ALTER TABLE `member_feedback`
 --
 ALTER TABLE `member_governmentrequest`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `reference_no` (`reference_no`),
   ADD KEY `member_governmentrequest_citizen_id_0e8ec8f8_fk_member_user_id` (`citizen_id`),
-  ADD KEY `member_governmentreq_assigned_to_id_92671ada_fk_member_us` (`assigned_to_id`);
+  ADD KEY `member_governmentreq_assigned_to_id_92671ada_fk_member_us` (`assigned_to_id`),
+  ADD KEY `member_governmentreq_responded_by_id_23c9c32c_fk_member_us` (`responded_by_id`);
 
 --
 -- Indexes for table `member_media`
@@ -1981,7 +2102,8 @@ ALTER TABLE `member_project`
   ADD UNIQUE KEY `reference_code` (`reference_code`),
   ADD KEY `member_project_created_by_id_7c1552d2_fk_member_user_id` (`created_by_id`),
   ADD KEY `member_project_category_id_1fedb6ef_fk_member_projectcategory_id` (`category_id`),
-  ADD KEY `member_project_district_id_cfa349e8_fk_member_district_id` (`district_id`);
+  ADD KEY `member_project_district_id_cfa349e8_fk_member_district_id` (`district_id`),
+  ADD KEY `member_project_project_division_id_aa8bed68_fk_member_pr` (`project_division_id`);
 
 --
 -- Indexes for table `member_projectcategory`
@@ -2047,7 +2169,9 @@ ALTER TABLE `member_projectupdate`
 --
 ALTER TABLE `member_project_division`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `member_project_divis_project_type_id_68de0c34_fk_member_pr` (`project_type_id`);
+  ADD UNIQUE KEY `code` (`code`),
+  ADD KEY `member_project_divis_project_type_id_68de0c34_fk_member_pr` (`project_type_id`),
+  ADD KEY `member_project_division_head_user_id_9ba7c3ea_fk_member_user_id` (`head_user_id`);
 
 --
 -- Indexes for table `member_project_division_project_name`
@@ -2216,25 +2340,25 @@ ALTER TABLE `django_content_type`
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `member_aichatmessage`
 --
 ALTER TABLE `member_aichatmessage`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `member_aichatsession`
 --
 ALTER TABLE `member_aichatsession`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `member_aiissueassessment`
 --
 ALTER TABLE `member_aiissueassessment`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `member_aiprojectanalysis`
@@ -2246,7 +2370,7 @@ ALTER TABLE `member_aiprojectanalysis`
 -- AUTO_INCREMENT for table `member_aireportgeneration`
 --
 ALTER TABLE `member_aireportgeneration`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_aisearchlog`
@@ -2264,13 +2388,13 @@ ALTER TABLE `member_announcement`
 -- AUTO_INCREMENT for table `member_auditlog`
 --
 ALTER TABLE `member_auditlog`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `member_budget`
 --
 ALTER TABLE `member_budget`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `member_budgetrevision`
@@ -2300,13 +2424,13 @@ ALTER TABLE `member_comment`
 -- AUTO_INCREMENT for table `member_contact`
 --
 ALTER TABLE `member_contact`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `member_contractor`
 --
 ALTER TABLE `member_contractor`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_contractordocument`
@@ -2354,13 +2478,13 @@ ALTER TABLE `member_milestone`
 -- AUTO_INCREMENT for table `member_notification`
 --
 ALTER TABLE `member_notification`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `member_participation`
 --
 ALTER TABLE `member_participation`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `member_pdf`
@@ -2414,7 +2538,7 @@ ALTER TABLE `member_projectdocument`
 -- AUTO_INCREMENT for table `member_projectexpense`
 --
 ALTER TABLE `member_projectexpense`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_projectreport`
@@ -2432,7 +2556,7 @@ ALTER TABLE `member_projectrisk`
 -- AUTO_INCREMENT for table `member_projectstage`
 --
 ALTER TABLE `member_projectstage`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `member_projecttag`
@@ -2498,7 +2622,7 @@ ALTER TABLE `member_stakeholder`
 -- AUTO_INCREMENT for table `member_team`
 --
 ALTER TABLE `member_team`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `member_tender`
@@ -2510,7 +2634,7 @@ ALTER TABLE `member_tender`
 -- AUTO_INCREMENT for table `member_tenderapplication`
 --
 ALTER TABLE `member_tenderapplication`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_tenderevaluationcriteria`
@@ -2528,7 +2652,7 @@ ALTER TABLE `member_testimonial`
 -- AUTO_INCREMENT for table `member_user`
 --
 ALTER TABLE `member_user`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `member_useractivity`
@@ -2658,6 +2782,7 @@ ALTER TABLE `member_feedback`
 --
 ALTER TABLE `member_governmentrequest`
   ADD CONSTRAINT `member_governmentreq_assigned_to_id_92671ada_fk_member_us` FOREIGN KEY (`assigned_to_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_governmentreq_responded_by_id_23c9c32c_fk_member_us` FOREIGN KEY (`responded_by_id`) REFERENCES `member_user` (`id`),
   ADD CONSTRAINT `member_governmentrequest_citizen_id_0e8ec8f8_fk_member_user_id` FOREIGN KEY (`citizen_id`) REFERENCES `member_user` (`id`);
 
 --
@@ -2727,7 +2852,8 @@ ALTER TABLE `member_progressupdate`
 ALTER TABLE `member_project`
   ADD CONSTRAINT `member_project_category_id_1fedb6ef_fk_member_projectcategory_id` FOREIGN KEY (`category_id`) REFERENCES `member_projectcategory` (`id`),
   ADD CONSTRAINT `member_project_created_by_id_7c1552d2_fk_member_user_id` FOREIGN KEY (`created_by_id`) REFERENCES `member_user` (`id`),
-  ADD CONSTRAINT `member_project_district_id_cfa349e8_fk_member_district_id` FOREIGN KEY (`district_id`) REFERENCES `member_district` (`id`);
+  ADD CONSTRAINT `member_project_district_id_cfa349e8_fk_member_district_id` FOREIGN KEY (`district_id`) REFERENCES `member_district` (`id`),
+  ADD CONSTRAINT `member_project_project_division_id_aa8bed68_fk_member_pr` FOREIGN KEY (`project_division_id`) REFERENCES `member_project_division` (`id`);
 
 --
 -- Constraints for table `member_projectdocument`
@@ -2774,7 +2900,8 @@ ALTER TABLE `member_projectupdate`
 -- Constraints for table `member_project_division`
 --
 ALTER TABLE `member_project_division`
-  ADD CONSTRAINT `member_project_divis_project_type_id_68de0c34_fk_member_pr` FOREIGN KEY (`project_type_id`) REFERENCES `member_project_type` (`id`);
+  ADD CONSTRAINT `member_project_divis_project_type_id_68de0c34_fk_member_pr` FOREIGN KEY (`project_type_id`) REFERENCES `member_project_type` (`id`),
+  ADD CONSTRAINT `member_project_division_head_user_id_9ba7c3ea_fk_member_user_id` FOREIGN KEY (`head_user_id`) REFERENCES `member_user` (`id`);
 
 --
 -- Constraints for table `member_project_division_project_name`

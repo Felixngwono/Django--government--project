@@ -41,10 +41,12 @@
 
 
     <!-- Background Banner -->
-    <div class="relative w-full h-64 bg-cover opacity-80   rounded-lg shadow-lg" style="background-image: url({% static 'images/estate.jpg' %});">
-        <div class="absolute inset-0 bg-black bg-opacity-40 flex  justify-center">
-            <h1 class="text-red text-3xl font-bold text-center">Ongoing Projects</h1>
-            
+    <div class="relative w-full h-64 bg-slate-900 rounded-2xl shadow-lg overflow-hidden flex items-center justify-center text-white">
+        <img src="{% static 'images/estate.jpg' %}" class="absolute inset-0 w-full h-full object-cover opacity-35" alt="Ongoing Projects Banner">
+        <div class="relative z-10 text-center px-4">
+            <span class="inline-block px-3 py-1 bg-blue-600 text-xs font-bold rounded-full uppercase tracking-wider mb-2">Active Infrastructure</span>
+            <h1 class="text-3xl md:text-4xl font-extrabold">Ongoing Government Projects</h1>
+            <p class="text-sm text-slate-200 mt-2 max-w-xl mx-auto">Real-time status monitoring of active public works and infrastructure projects</p>
         </div>
     </div>
 <br>
@@ -52,41 +54,30 @@
     <!-- Project List Container -->
     <div class="">
         <div class="bg-white overflow-hidden">
-            
-            <!-- Table Header -->
-            <di class="p-4 border-b flex justify-between items-center bg-gray-50">
-                <h2 class="text-xl font-semibold text-gray-800">List of Ongoing Projects</h2>
-            
-                <form method="GET" class="flex items-center">
-                    <input type="text" name="q" placeholder="Search projects..." value="{{ request.GET.q }}" class="border rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-r-lg px-4 py-2">
+
+            <!-- Table Header & Search -->
+            <div class="p-5 border-b flex flex-wrap justify-between items-center bg-gray-50 gap-4">
+                <h2 class="text-xl font-bold text-gray-800">List of Ongoing Projects</h2>
+
+                <form method="GET" class="flex flex-wrap items-center gap-3">
+                    <input type="text" name="q" placeholder="Search ongoing projects..." value="{{ q }}" class="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="location" onchange="this.form.submit()" class="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Locations</option>
+                        {% for loc in locations %}
+                            <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl px-5 py-2 transition shadow">
                         Search
                     </button>
+                    {% if q or selected_location %}
+                        <a href="{% url 'ongoing' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-xl transition">Reset</a>
+                    {% endif %}
                 </form>
-                <!-- Filters -->
-        <div class="flex flex-wrap gap-3">
 
-           
-
-            <select class="border rounded-xl px-4 py-3 ">
-                <option>All Counties</option>
-                <option>Nairobi</option>
-                <option>Kisumu</option>
-                <option>Mombasa</option>
-            </select>
-
-            <select class="border rounded-xl px-4 py-3 ">
-                <option>Sort By</option>
-                <option>Latest</option>
-                <option>Budget</option>
-                <option>Progress</option>
-            </select>
-
-         
-        </div>
                 {% if request.user.is_superuser %}
                 <a href="{% url 'createproject' %}"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition duration-300">
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2.5 rounded-xl transition duration-300 shadow">
                     + Add New Project
                 </a>
                 {% endif %}
@@ -103,18 +94,28 @@
             <!-- Projects Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-600 p-8">
-                    <thead class="text-xs uppercase bg-gray-200 text-gray-700">
+                    <thead class="text-xs uppercase bg-gray-100 text-gray-700">
                         <tr>
+                            <th scope="col" class="px-6 py-3">Project Image</th>
                             <th scope="col" class="px-6 py-3">Title</th>
                             <th scope="col" class="px-6 py-3">Description</th>
                             <th scope="col" class="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-100">
                         {% for project in projects %}
-                        <tr class="border-b hover:bg-gray-100 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ project.project_title }}</td>
-                            <td class="px-6 py-4">{{ project.project_description }}</td>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-3 w-28">
+                              {% if project.cover_image %}
+                                <img src="{{ project.cover_image.url }}" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="{{ project.project_title }}">
+                              {% elif project.images %}
+                                <img src="{{ project.images.url }}" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="{{ project.project_title }}">
+                              {% else %}
+                                <img src="https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?q=80&w=400&auto=format&fit=crop" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="Public Project">
+                              {% endif %}
+                            </td>
+                            <td class="px-6 py-4 font-bold text-gray-900">{{ project.project_title }}</td>
+                            <td class="px-6 py-4 text-gray-600 line-clamp-2">{{ project.project_description }}</td>
                             <td class="px-6 py-4 text-right">
                                 <a href="{% url 'Ongoingstatuses' project.id %}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
                                     View

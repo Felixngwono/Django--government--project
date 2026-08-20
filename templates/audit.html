@@ -1,24 +1,20 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-{% load  widget_tweaks %}
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Project Overview — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,64 +22,211 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
-  <div class="content">
+  <div class="max-w-7xl mx-auto space-y-6 p-4 md:p-6">
 
-    <div class="container mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-3xl font-bold text-gray-800">Auditing</h1>
-
-        <table class="min-w-full bg-white border border-gray-300 mt-6">
-            <thead>
-                <tr class="bg-gray-800 text-white">
-                    <th class="py-2 px-4 border">User</th>
-                    <th class="py-2 px-4 border">Action</th>
-                    <th class="py-2 px-4 border">Timestamp</th>
-                    <th class="py-2 px-4 border">Project</th>
-                    {% if request.user.is_superuser %}
-                    <th class="py-2 px-4 border">Actions</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for audit in auditing %}
-                <tr class="border text-gray-700">
-                    <td class="py-2 px-4 border">{{ audit.user }}</td>
-                    <td class="py-2 px-4 border">{{ audit.action }}</td>
-                    <td class="py-2 px-4 border">{{ audit.timestamp }}</td>
-                    <td class="py-2 px-4 border">{{ audit.project }}</td>
-                    {% if request.user.is_superuser %}
-                    <td class="py-2 px-4 border flex space-x-2">
-                        <a href="{% url 'audit_details' audit.id %}" class="text-blue-500 hover:underline">View</a>
-                        <a href="#" class="text-green-500 hover:underline">Edit</a>
-                        <a href="#" class="text-red-500 hover:underline">Delete</a>
-                    </td>
-                    {% endif %}
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-4">No audits reported</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-                    {% if request.user.is_superuser %}
-
-        <!-- Add Audit Button -->
-        <div class="mt-6">
-            <a href="{% url 'add_audit' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow">
-                + Add Audit
-            </a>
+    <!-- HERO / HEADER -->
+    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
+      <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="Audit Security Log">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <span class="inline-block px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-full uppercase tracking-wider mb-2 border border-blue-500/30">Immutable Trail & System Compliance</span>
+          <h1 class="text-2xl md:text-3xl font-extrabold">System Audit & Governance Logs</h1>
+          <p class="text-sm text-slate-300 mt-1 max-w-xl">Comprehensive activity logs tracking user actions, administrative updates, financial entries, and project status changes.</p>
         </div>
-         {% endif %}
-    </div>
-</div>
-</div>
 
-</div>
-</div>
+        {% if request.user.is_superuser %}
+        <a href="{% url 'add_audit' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-sm shrink-0">
+          <iconify-icon icon="solar:shield-keyhole-bold"></iconify-icon> + Record Audit Entry
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- STATS KPI GRID -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Audit Records</p>
+          <h3 class="text-2xl font-black text-slate-900 mt-1">{{ total_audits }}</h3>
+          <span class="text-xs text-slate-500">Tracked operations</span>
+        </div>
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+          <iconify-icon icon="solar:shield-check-bold-duotone" style="font-size:26px;"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Today's Activity</p>
+          <h3 class="text-2xl font-black text-emerald-600 mt-1">{{ today_count }}</h3>
+          <span class="text-xs text-slate-500">Log entries today</span>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+          <iconify-icon icon="solar:clock-circle-bold-duotone" style="font-size:26px;"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Users</p>
+          <h3 class="text-2xl font-black text-indigo-600 mt-1">{{ active_users }}</h3>
+          <span class="text-xs text-slate-500">Distinct actors</span>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+          <iconify-icon icon="solar:users-group-rounded-bold-duotone" style="font-size:26px;"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tracked Actions</p>
+          <h3 class="text-2xl font-black text-purple-600 mt-1">{{ unique_actions }}</h3>
+          <span class="text-xs text-slate-500">Operation types</span>
+        </div>
+        <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+          <iconify-icon icon="solar:list-check-bold-duotone" style="font-size:26px;"></iconify-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH & FILTER BAR -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+      <form method="get" class="flex flex-wrap items-center gap-3">
+        <div class="flex-1 min-w-[240px]">
+          <input type="text" name="q" value="{{ query }}" placeholder="Search audit logs by user, action, model, project, or IP..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:bg-white transition">
+        </div>
+
+        <select name="action" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+          <option value="">All Action Types</option>
+          {% for act in distinct_actions %}
+          <option value="{{ act }}" {% if action_filter == act %}selected{% endif %}>{{ act|title }}</option>
+          {% endfor %}
+        </select>
+
+        <select name="project" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+          <option value="">All Projects</option>
+          {% for pr in projects %}
+          <option value="{{ pr.id }}" {% if project_filter == pr.id|stringformat:"s" %}selected{% endif %}>{{ pr.project_title|truncatechars:25 }}</option>
+          {% endfor %}
+        </select>
+
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+          <iconify-icon icon="solar:magnifer-bold"></iconify-icon> Filter
+        </button>
+
+        {% if query or action_filter or project_filter %}
+        <a href="{% url 'AuditLog' %}" class="bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">Reset</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- AUDIT LOGS TABLE CARD -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:history-bold-duotone" class="text-blue-600"></iconify-icon>
+            System Audit Trail & Event Register
+          </h2>
+          <p class="text-xs text-slate-500">Timestamped record of all user operations and automated workflows</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase text-xs">
+            <tr>
+              <th class="p-3.5 rounded-l-xl">User / Actor</th>
+              <th class="p-3.5">Action & Event</th>
+              <th class="p-3.5">Target Model</th>
+              <th class="p-3.5">Project</th>
+              <th class="p-3.5">Timestamp</th>
+              <th class="p-3.5">IP Address</th>
+              <th class="p-3.5 rounded-r-xl text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for audit in auditing %}
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3.5">
+                {% if audit.user %}
+                <p class="font-bold text-slate-900">{{ audit.user.get_full_name|default:audit.user.username }}</p>
+                <p class="text-xs text-slate-400">@{{ audit.user.username }}</p>
+                {% else %}
+                <span class="font-bold text-slate-400 italic">System / Automated</span>
+                {% endif %}
+              </td>
+              <td class="p-3.5">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
+                  {{ audit.action }}
+                </span>
+              </td>
+              <td class="p-3.5 text-xs font-semibold text-slate-700">
+                {{ audit.model_name|default:"N/A" }}
+                {% if audit.object_id %}<span class="text-slate-400">#{{ audit.object_id }}</span>{% endif %}
+              </td>
+              <td class="p-3.5 text-xs font-medium text-slate-800">
+                {% if audit.project %}
+                <a href="{% url 'project_details' audit.project.id %}" class="text-indigo-600 hover:underline font-bold">
+                  {{ audit.project.project_title|truncatechars:25 }}
+                </a>
+                {% else %}
+                <span class="text-slate-400 italic">General System</span>
+                {% endif %}
+              </td>
+              <td class="p-3.5 text-xs text-slate-500 whitespace-nowrap">
+                {{ audit.timestamp|date:"d M Y &middot; H:i" }}
+              </td>
+              <td class="p-3.5 text-xs font-mono text-slate-500">
+                {{ audit.ip_address|default:"127.0.0.1" }}
+              </td>
+              <td class="p-3.5 text-right">
+                <div class="inline-flex items-center gap-2">
+                  <a href="{% url 'audit_details' audit.id %}" class="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg transition">
+                    View
+                  </a>
+                  {% if request.user.is_superuser %}
+                  <a href="{% url 'delete_audit' audit.id %}" onclick="return confirm('Delete this audit log entry?')" class="text-xs font-bold text-red-600 hover:text-red-800 bg-red-50 px-2.5 py-1 rounded-lg transition">
+                    Delete
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="p-10 text-center text-slate-400">
+                <iconify-icon icon="solar:shield-warning-bold-duotone" style="font-size:40px;" class="mb-2 text-slate-300"></iconify-icon>
+                <p class="font-semibold text-slate-600">No audit log records found.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGINATION -->
+      {% if auditing.has_other_pages %}
+      <div class="flex justify-between items-center pt-5 border-t border-slate-100 text-xs mt-4">
+        <span class="text-slate-500">Page {{ auditing.number }} of {{ auditing.paginator.num_pages }}</span>
+        <div class="flex items-center gap-1">
+          {% if auditing.has_previous %}
+          <a href="?page={{ auditing.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-semibold transition">&larr; Previous</a>
+          {% endif %}
+          {% if auditing.has_next %}
+          <a href="?page={{ auditing.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if action_filter %}&action={{ action_filter }}{% endif %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-semibold transition">Next &rarr;</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
 </main>
+
 {% include "footer.html" %}
-{% endblock content %}

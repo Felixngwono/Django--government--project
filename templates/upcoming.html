@@ -30,7 +30,7 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
+
 
 
     <!-- Title -->
@@ -42,18 +42,26 @@
             <!-- Search & Add Button -->
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 p-6 border-b border-gray-200">
                 <!-- Search Field -->
-                <form method="GET" class="w-full md:w-1/2">
-                    <div class="relative flex items-center">
-                        <input type="text" name="q" placeholder="Search projects..."  class="w-full border border-gray-300 rounded-l-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-r-lg px-4 py-2 text-sm transition">
-                            Search
-                        </button>
-                    </div>
+                <form method="GET" class="w-full md:w-2/3 flex flex-wrap items-center gap-3">
+                    <input type="text" name="q" placeholder="Search upcoming projects..." value="{{ q }}" class="flex-1 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="location" onchange="this.form.submit()" class="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Locations</option>
+                        {% for loc in locations %}
+                            <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-5 py-2 text-sm transition shadow">
+                        Search
+                    </button>
+                    {% if q or selected_location %}
+                        <a href="{% url 'upcoming' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-xl transition">Reset</a>
+                    {% endif %}
                 </form>
-{% if user.request.is_superuser %}
+
+                {% if request.user.is_superuser %}
                 <!-- Add New Button -->
                 <a href="{% url 'createproject' %}"
-                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition duration-200">
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition duration-200 shadow">
                     + Add New Project
                 </a>
                 {% endif %}

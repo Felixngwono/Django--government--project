@@ -1,22 +1,56 @@
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="teamApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Our Team — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+<style>
+/* Team page styles */
+.team-hero{background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 50%,var(--primary) 130%);border-radius:20px;padding:48px 40px;color:#fff;position:relative;overflow:hidden;margin-bottom:28px}
+.team-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06)}
+.team-hero::after{content:'';position:absolute;bottom:-80px;left:30%;width:200px;height:200px;border-radius:50%;background:rgba(252,25,25,.15)}
+.team-hero h1{font-size:2.2rem;font-weight:800;margin-bottom:10px;position:relative;z-index:1}
+.team-hero p{font-size:1rem;opacity:.9;max-width:640px;position:relative;z-index:1;line-height:1.7}
+.team-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);border-radius:999px;padding:6px 16px;font-size:.75rem;font-weight:600;margin-bottom:18px;position:relative;z-index:1}
+.team-stat{background:var(--surface);border-radius:16px;padding:24px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04);border-top:4px solid var(--primary);transition:transform .2s,box-shadow .2s}
+.team-stat:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(252,25,25,.12)}
+.team-stat .stat-num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--primary);line-height:1}
+.team-stat .stat-label{font-size:.78rem;color:var(--text-light);font-weight:600;margin-top:8px;text-transform:uppercase;letter-spacing:.05em}
+.team-stat .stat-icon{width:44px;height:44px;border-radius:12px;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px}
+.team-card{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:transform .2s,box-shadow .2s;text-align:center;position:relative}
+.team-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(252,25,25,.1)}
+.team-card img{width:100%;height:220px;object-fit:cover}
+.team-avatar{width:100%;height:220px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary-10),var(--primary-05));font-size:4rem;font-weight:800;color:var(--primary)}
+.team-card .team-body{padding:20px 16px}
+.team-card .team-name{font-weight:700;color:var(--text);font-size:1.05rem}
+.team-card .team-role{display:inline-block;font-size:.72rem;color:var(--primary);font-weight:700;background:var(--primary-10);padding:4px 12px;border-radius:999px;margin-top:6px;text-transform:uppercase;letter-spacing:.04em}
+.team-card .team-desc{font-size:.8rem;color:var(--text-light);margin-top:10px;line-height:1.5}
+.team-social{display:flex;justify-content:center;gap:8px;margin-top:14px}
+.team-social a{width:34px;height:34px;border-radius:9px;background:var(--bg);color:var(--text-sec);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;text-decoration:none}
+.team-social a:hover{background:var(--primary);color:#fff;transform:translateY(-2px)}
+.team-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light)}
+.team-actions a{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:.75rem;font-weight:600;text-decoration:none;transition:all .2s}
+.team-actions .view-btn{background:var(--primary-10);color:var(--primary)}
+.team-actions .view-btn:hover{background:var(--primary);color:#fff}
+.team-actions .edit-btn{background:rgba(23,162,184,.1);color:var(--info)}
+.team-actions .edit-btn:hover{background:var(--info);color:#fff}
+.team-actions .delete-btn{background:rgba(220,53,69,.1);color:var(--danger)}
+.team-actions .delete-btn:hover{background:var(--danger);color:#fff}
+.alert-success{background:rgba(40,167,69,.1);border:1px solid rgba(40,167,69,.25);color:var(--success);border-radius:12px;padding:14px 18px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-light)}
+.empty-state iconify-icon{font-size:64px;opacity:.2;display:block;margin:0 auto 16px}
+@media(max-width:768px){.team-hero{padding:32px 24px}.team-hero h1{font-size:1.6rem}}
+</style>
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="teamApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -31,98 +65,155 @@
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="content">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <!-- ===== HERO ===== -->
+    <div class="team-hero">
+      <div class="team-badge">
+        <iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon>
+        The People Behind GovTracker
+      </div>
+      <h1>Our Team</h1>
+      <p>
+        Meet the dedicated professionals working to bring transparency and accountability
+        to government projects across Kenya. Our team combines expertise in technology,
+        public administration, and civic engagement.
+      </p>
+    </div>
 
+    <!-- ===== STATS ===== -->
+    <div class="grid-4" style="margin-bottom:28px;">
+      <div class="team-stat">
+        <div class="stat-icon"><iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon></div>
+        <div class="stat-num">{{ total_members }}</div>
+        <div class="stat-label">Team Members</div>
+      </div>
+      <div class="team-stat" style="border-top-color:var(--success);">
+        <div class="stat-icon" style="background:rgba(40,167,69,.1);color:var(--success);"><iconify-icon icon="solar:briefcase-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--success);">{{ total_roles }}</div>
+        <div class="stat-label">Roles</div>
+      </div>
+      <div class="team-stat" style="border-top-color:var(--info);">
+        <div class="stat-icon" style="background:rgba(23,162,184,.1);color:var(--info);"><iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--info);">{{ total_projects }}</div>
+        <div class="stat-label">Projects</div>
+      </div>
+      <div class="team-stat" style="border-top-color:var(--warning);">
+        <div class="stat-icon" style="background:rgba(255,193,7,.1);color:var(--warning);"><iconify-icon icon="solar:user-bold-duotone"></iconify-icon></div>
+        <div class="stat-num" style="color:var(--warning);">{{ total_users }}</div>
+        <div class="stat-label">Users</div>
+      </div>
+    </div>
 
-
-
-
-    <div>
-    <section class="bg-white dark:bg-gray-900">
-        <div class="mx-auto mb-8 max-w-screen-sm lg:mb-16 text-center">
-            <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">Our team</h2>
-            <p class="font-light text-gray-500 sm:text-xl dark:text-gray-400">
-                Explore the whole collection of open-source web components and elements built with the utility classes from Tailwind
-            </p>
+    <!-- ===== SUCCESS MESSAGE ===== -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert-success">
+          <iconify-icon icon="solar:check-circle-bold" style="font-size:20px;"></iconify-icon>
+          {{ message }}
         </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
 
-        <div class="grid gap-8 lg:gap-16 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <!-- ===== TEAM GRID ===== -->
+    <div class="section-header">
+      <div>
+        <div class="section-title" style="font-size:1.2rem;">Team Members</div>
+        <div class="section-sub">All members of the GovTracker team</div>
+      </div>
+      {% if request.user.is_superuser %}
+      <a href="{% url 'add_team' %}" class="btn btn-primary btn-sm">
+        <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+        Add Team Member
+      </a>
+      {% endif %}
+    </div>
 
-            <!-- Static Example Team Member -->
-            <div class="text-center text-gray-500 dark:text-gray-400">
-                <img class="mx-auto mb-4 w-36 h-36 rounded-full" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/bonnie-green.png" alt="Bonnie Avatar">
-                <h3 class="mb-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    <a href="#">Bonnie Green</a>
-                </h3>
-                <p>CEO/Co-founder</p>
-                <ul class="flex justify-center mt-4 space-x-4">
-                    <!-- Social Icons -->
-                    <li>
-                        <a href="#" class="text-[#39569c] hover:text-gray-900 dark:hover:text-white">
-                            <!-- Facebook SVG -->
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="text-[#00acee] hover:text-gray-900 dark:hover:text-white">
-                            <!-- Twitter SVG -->
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="text-gray-900 hover:text-gray-900 dark:hover:text-white dark:text-gray-300">
-                            <!-- GitHub SVG -->
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="text-[#ea4c89] hover:text-gray-900 dark:hover:text-white">
-                            <!-- Instagram SVG -->
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Dynamic Team Members -->
-            {% for t in tim %}
-            <div class="text-center text-gray-500 dark:text-gray-400">
-                <a href="{% url 'teams_details' t.id %}">
-                    <img class="mx-auto mb-4 w-36 h-36 rounded-full" src="{{ t.image.url }}" alt="{{ t.name }} Avatar">
-                    <h3 class="mb-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ t.name }}</h3>
-                    <p class="text-blue-700 bg-gray-400 rounded-full px-4 py-1 text-sm font-bold">{{ t.role }}</p>
-                    <p class="text-gray-500 text-sm">{{ t.description|truncatechars:100 }}</p>
-                    <ul class="flex justify-center mt-4 space-x-4">
-                        <li><a href="{{ t.facebook }}" class="text-[#39569c] hover:text-gray-900 dark:hover:text-white"><!-- FB SVG --></a></li>
-                        <li><a href="{{ t.twitter }}" class="text-[#00acee] hover:text-gray-900 dark:hover:text-white"><!-- Twitter SVG --></a></li>
-                        <li><a href="{{ t.linkedin }}" class="text-gray-900 hover:text-gray-900 dark:hover:text-white dark:text-gray-300"><!-- LinkedIn SVG --></a></li>
-                        <li><a href="{{ t.instagram }}" class="text-[#ea4c89] hover:text-gray-900 dark:hover:text-white"><!-- Instagram SVG --></a></li>
-                        <li><a href="{{ t.whatsapp }}" class="text-[#25D366] hover:text-gray-900 dark:hover:text-white"><!-- WhatsApp SVG --></a></li>
-                    </ul>
-                </a>
-            </div>
-            {% endfor %}
-
-            <!-- Another Static Example -->
-            <div class="text-center text-gray-500 dark:text-gray-400">
-                <img class="mx-auto mb-4 w-36 h-36 rounded-full" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/sofia-mcguire.png" alt="Sofia Avatar">
-                <h3 class="mb-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Lana Byrd</h3>
-                <p>Web Designer</p>
-                <ul class="flex justify-center mt-4 space-x-4">
-                    <!-- Social Icons similar to above -->
-                </ul>
-            </div>
-        </div>
-
-        <div class="text-center mt-14">
-            <a href="{% url 'add_team' %}" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all inline-flex items-center gap-2">
-                ➕ Add Team
+    {% if tim %}
+    <div class="grid-4" style="margin-bottom:28px;">
+      {% for t in tim %}
+      <div class="team-card">
+        {% if t.image %}
+        <img src="{{ t.image.url }}" alt="{{ t.name }}">
+        {% else %}
+        <div class="team-avatar">{{ t.name|slice:":1" }}</div>
+        {% endif %}
+        <div class="team-body">
+          <div class="team-name">{{ t.name }}</div>
+          <div class="team-role">{{ t.role }}</div>
+          {% if t.description %}
+          <div class="team-desc">{{ t.description|truncatechars:100 }}</div>
+          {% endif %}
+          <div class="team-social">
+            {% if t.facebook %}<a href="{{ t.facebook }}" target="_blank" title="Facebook"><iconify-icon icon="solar:facebook-bold"></iconify-icon></a>{% endif %}
+            {% if t.twitter %}<a href="{{ t.twitter }}" target="_blank" title="Twitter"><iconify-icon icon="solar:twitter-bold"></iconify-icon></a>{% endif %}
+            {% if t.instagram %}<a href="{{ t.instagram }}" target="_blank" title="Instagram"><iconify-icon icon="solar:instagram-bold"></iconify-icon></a>{% endif %}
+            {% if t.linkedin %}<a href="{{ t.linkedin }}" target="_blank" title="LinkedIn"><iconify-icon icon="solar:linkedin-bold"></iconify-icon></a>{% endif %}
+            {% if t.whatsapp %}<a href="https://wa.me/{{ t.whatsapp }}" target="_blank" title="WhatsApp"><iconify-icon icon="solar:phone-bold"></iconify-icon></a>{% endif %}
+          </div>
+          {% if request.user.is_superuser %}
+          <div class="team-actions">
+            <a href="{% url 'teams_details' t.id %}" class="view-btn">
+              <iconify-icon icon="solar:eye-bold"></iconify-icon>
+              View
             </a>
+            <a href="{% url 'update_team' t.id %}" class="edit-btn">
+              <iconify-icon icon="solar:pen-bold"></iconify-icon>
+              Edit
+            </a>
+            <a href="{% url 'delete_team' t.id %}" class="delete-btn">
+              <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+              Delete
+            </a>
+          </div>
+          {% endif %}
         </div>
-    </section>
-</div>
-</div>
-<script src="{% static 'js/team.js' %}"></script>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
+        <p style="font-weight:600;color:var(--text);">No team members yet</p>
+        <p style="font-size:.8rem;color:var(--text-light);margin-top:4px;">
+          {% if request.user.is_superuser %}
+          Add your first team member to get started.
+          {% else %}
+          Check back soon — the team is being assembled.
+          {% endif %}
+        </p>
+        {% if request.user.is_superuser %}
+        <a href="{% url 'add_team' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">
+          <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+          Add Team Member
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
 
-
-</div>
+  </div><!-- .content -->
 </main>
-{% include 'footer.html' %}
+
+{% include "footer.html" %}
+
+<script>
+function teamApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    pageTitle: 'Our Team',
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    }
+  }
+}
+</script>
+
+</body>
+</html>

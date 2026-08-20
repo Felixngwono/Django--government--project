@@ -1,24 +1,20 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="member()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Project Overview — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="member()" :class="{ 'dark': darkMode }">
+<body x-data="overviewApp()" :class="{ 'dark': darkMode }" class="bg-gray-50/50 text-gray-800 font-sans antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -27,142 +23,552 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="content p-6 max-w-7xl mx-auto space-y-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <!-- ===== HERO BANNER ===== -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-950 text-white p-8 md:p-10 shadow-xl border border-white/10">
+      <div class="absolute -right-10 -top-10 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-10 -bottom-10 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="flex-1">
-        <!-- Header Actions -->
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                <h2 class="font-bold text-center">Project List</h2>
-                <form method="GET" class="flex items-center">
-                        <input type="text" name="q" placeholder="Search projects..." value="{{ request.GET.q }}" class="border rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-r-lg px-4 py-2">
-                                Search
-                        </button>
-                </form>
-                
-                {% if request.user.is_superuser %}
-                <a href="{% url 'createproject' %}" class="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg px-4 py-2 flex items-center">
-                        <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
-                        </svg>
-                        Add Project
-                </a>
-                {% endif %}
+      <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30 mb-3">
+            <iconify-icon icon="solar:chart-square-bold" class="text-sm"></iconify-icon>
+            Executive Portfolio Overview
+          </span>
+          <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white">Project Overview Dashboard</h1>
+          <p class="text-slate-300 text-sm md:text-base mt-2 max-w-2xl leading-relaxed">
+            Real-time status monitoring, financial tracking, and regional analytics across all government capital projects.
+          </p>
         </div>
-        
- 
+
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="px-4 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-white flex items-center gap-2 shadow-inner">
+            <iconify-icon icon="solar:folder-open-bold-duotone" class="text-blue-400 text-lg"></iconify-icon>
+            <span>{{ total_projects }} Total Projects</span>
+          </div>
+
+          {% if request.user.is_superuser %}
+          <a href="{% url 'createproject' %}"
+             class="px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition duration-200 flex items-center gap-2 shadow-lg shadow-blue-600/30">
+            <iconify-icon icon="solar:add-circle-bold" class="text-base"></iconify-icon>
+            <span>+ New Project</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STAT CARDS ===== -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+
+      <!-- Total -->
+      <a href="{% url 'project' %}" class="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+        <div class="flex items-center justify-between mb-3">
+          <div class="p-2.5 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition">
+            <iconify-icon icon="solar:folder-open-bold-duotone" class="text-xl"></iconify-icon>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Total</span>
+        </div>
+        <div class="text-2xl font-extrabold text-gray-900 font-mono">{{ total_projects }}</div>
+        <div class="text-xs font-medium text-gray-400 mt-1">All Portfolio</div>
+      </a>
+
+      <!-- Ongoing -->
+      <a href="{% url 'ongoing' %}" class="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+        <div class="flex items-center justify-between mb-3">
+          <div class="p-2.5 rounded-xl bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition">
+            <iconify-icon icon="solar:play-circle-bold-duotone" class="text-xl"></iconify-icon>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-600">Active</span>
+        </div>
+        <div class="text-2xl font-extrabold text-cyan-700 font-mono">{{ ongoing_count }}</div>
+        <div class="text-xs font-medium text-cyan-600 mt-1">In Execution</div>
+      </a>
+
+      <!-- Upcoming -->
+      <a href="{% url 'upcoming' %}" class="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+        <div class="flex items-center justify-between mb-3">
+          <div class="p-2.5 rounded-xl bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition">
+            <iconify-icon icon="solar:calendar-bold-duotone" class="text-xl"></iconify-icon>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600">Pipeline</span>
+        </div>
+        <div class="text-2xl font-extrabold text-purple-700 font-mono">{{ upcoming_count }}</div>
+        <div class="text-xs font-medium text-purple-600 mt-1">Scheduled</div>
+      </a>
+
+      <!-- Completed -->
+      <a href="{% url 'completed' %}" class="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+        <div class="flex items-center justify-between mb-3">
+          <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
+            <iconify-icon icon="solar:check-circle-bold-duotone" class="text-xl"></iconify-icon>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Done</span>
+        </div>
+        <div class="text-2xl font-extrabold text-emerald-700 font-mono">{{ completed_count }}</div>
+        <div class="text-xs font-medium text-emerald-600 mt-1">Handed Over</div>
+      </a>
+
+      <!-- Delayed -->
+      <a href="{% url 'delayed' %}" class="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+        <div class="flex items-center justify-between mb-3">
+          <div class="p-2.5 rounded-xl bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition">
+            <iconify-icon icon="solar:alarm-bold-duotone" class="text-xl"></iconify-icon>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-rose-600">Delayed</span>
+        </div>
+        <div class="text-2xl font-extrabold text-rose-700 font-mono">{{ delayed_count }}</div>
+        <div class="text-xs font-medium text-rose-600 mt-1">Behind Schedule</div>
+      </a>
+
+      <!-- Stalled / Suspended -->
+      <div class="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+          <div class="p-2.5 rounded-xl bg-amber-50 text-amber-600">
+            <iconify-icon icon="solar:shield-warning-bold-duotone" class="text-xl"></iconify-icon>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600">Stalled</span>
+        </div>
+        <div class="text-2xl font-extrabold text-amber-700 font-mono">{{ stalled_count }}</div>
+        <div class="text-xs font-medium text-amber-600 mt-1">Requires Intervention</div>
+      </div>
+
+    </div>
+
+    <!-- ===== FINANCIAL & CHART ROW ===== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Budget Panel -->
+      <div class="bg-gradient-to-br from-slate-900 to-blue-950 rounded-3xl p-6 text-white shadow-lg border border-slate-800 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-xs font-bold uppercase tracking-widest text-blue-300">Financial Metrics</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">Fiscal Year</span>
+          </div>
+
+          <p class="text-xs text-slate-400 font-medium">Total Allocated Budget</p>
+          <div class="text-3xl font-extrabold text-white font-mono mt-1">${{ total_budget|floatformat:2 }}</div>
+
+          <div class="space-y-3 mt-6 border-t border-slate-800 pt-4 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Total Spent to Date</span>
+              <span class="font-bold text-rose-400 font-mono">${{ total_spent|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Remaining Balance</span>
+              <span class="font-bold text-emerald-400 font-mono">${{ budget_remaining|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Budget Utilization Rate</span>
+              <span class="font-bold text-blue-300 font-mono">{{ budget_utilization }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-800/80">
+          <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5">
+            <div class="bg-gradient-to-r from-emerald-400 via-blue-400 to-rose-500 h-2 rounded-full transition-all duration-500" style="width: {{ budget_utilization }}%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Chart Card -->
+      <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-gray-800">Project Status Distribution</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Overall status allocation across all active records</p>
+          </div>
+          <span class="p-2 bg-gray-50 text-gray-500 rounded-xl">
+            <iconify-icon icon="solar:chart-2-bold-duotone" class="text-xl"></iconify-icon>
+          </span>
+        </div>
+
+        <div class="relative w-full h-56">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== FILTER & SEARCH BAR ===== -->
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+      <form method="get" action="{% url 'projectoverview' %}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div class="relative flex items-center">
+          <iconify-icon icon="solar:magnifer-bold" class="absolute left-4 text-gray-400 text-base"></iconify-icon>
+          <input type="text" name="q" value="{{ q }}" placeholder="Search project title, agency, reference..."
+                 class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div>
+          <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">All Statuses</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <select name="priority" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">All Priorities</option>
+            {% for value, label in priority_choices %}
+            <option value="{{ value }}" {% if priority_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex gap-2">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition shadow flex items-center justify-center gap-2">
+            <iconify-icon icon="solar:filter-bold" class="text-base"></iconify-icon>
+            <span>Apply</span>
+          </button>
+
+          {% if q or status_filter or priority_filter %}
+          <a href="{% url 'projectoverview' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center">
+            Clear
+          </a>
+          {% endif %}
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ===== ATTENTION PROJECTS ALERT ===== -->
+    {% if attention_projects %}
+    <div class="bg-rose-50 border border-rose-200 rounded-3xl p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4 text-rose-800">
+        <div class="p-2 bg-rose-100 rounded-xl text-rose-600">
+          <iconify-icon icon="solar:shield-warning-bold-duotone" class="text-xl"></iconify-icon>
+        </div>
+        <div>
+          <h3 class="text-base font-bold">Critical Projects Requiring Attention</h3>
+          <p class="text-xs text-rose-600 mt-0.5">Projects currently marked as delayed or past their scheduled completion deadline.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for p in attention_projects %}
+        <a href="{% url 'project_details' p.id %}" class="bg-white p-4 rounded-2xl border border-rose-100 hover:shadow-md transition group flex flex-col justify-between">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700 mb-2">
+              {{ p.project_status|title }}
+            </span>
+            <h4 class="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition line-clamp-1">
+              {{ p.project_title }}
+            </h4>
+          </div>
+          <div class="text-xs text-gray-400 mt-3 border-t pt-2 flex justify-between items-center">
+            <span>Due: {{ p.end_date|date:"M d, Y"|default:"N/A" }}</span>
+            <iconify-icon icon="solar:alt-arrow-right-bold" class="text-gray-400 group-hover:text-blue-600 transition"></iconify-icon>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== PROJECTS TABLE & LOCATION SIDEBAR ===== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Projects Table -->
+      <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between space-y-4">
+        <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+          <div>
+            <h3 class="text-xl font-bold text-gray-800">Project Portfolio</h3>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Showing {{ projects.start_index|default:0 }}–{{ projects.end_index|default:0 }} of {{ projects.paginator.count }} projects
+            </p>
+          </div>
+
+          {% if request.user.is_superuser %}
+          <a href="{% url 'createproject' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow">
+            <iconify-icon icon="solar:add-circle-bold" class="text-sm"></iconify-icon>
+            Add Project
+          </a>
+          {% endif %}
+        </div>
+
         <!-- Table -->
         <div class="overflow-x-auto">
-                <table class="w-full text-left text-gray-700 border rounded-lg">
-                        <thead class="bg-gray-200 text-gray-700">
-                                <tr>
-                                        <th class="px-4 py-3">Image</th>
-                                        <th class="px-4 py-3">Title</th>
-                                        <th class="px-4 py-3">Description</th>
-                                        <th class="px-4 py-3">Location</th>
-                                        <th class="px-4 py-3">Agency</th>
-                                        <th class="px-4 py-3">Start Date</th>
-                                        <th class="px-4 py-3">End Date</th>
-                                        <th class="px-4 py-3">Status</th>
-                                        <th class="px-4 py-3">Budget</th>
-                                        <th class="px-4 py-3 text-center">Actions</th>
-                                </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y">
-                                {% for project in projects %}
-                                <tr>
-                                        <td class="px-4 py-3">
-                                                {% if project.images %}
-                                                <img src="{{ project.images.url }}" alt="Project Image" class="w-20 h-20 object-cover rounded">
-                                                {% else %}
-                                                <span class="text-gray-500 italic">No Image</span>
-                                                {% endif %}
-                                        </td>
-                                        <td class="px-4 py-3 font-medium">{{ project.project_title }}</td>
-                                        <td class="px-4 py-3">{{ project.project_description }}</td>
-                                        <td class="px-4 py-3">{{ project.project_location }}</td>
-                                        <td class="px-4 py-3">{{ project.implementing_agency }}</td>
-                                        <td class="px-4 py-3">{{ project.start_date }}</td>
-                                        <td class="px-4 py-3">{{ project.end_date }}</td>
-                                        <td class="px-4 py-3">{{ project.project_status }}</td>
-                                        <td class="px-4 py-3">{{ project.project_Budgeting }}</td>
-                                        
-                                        <td class="px-4 py-3 text-center">
-                                                <div class="relative inline-block text-left group">
-                                                        <button type="button" class="dropdown-toggle text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center">
-                                                                View
-                                                                <svg class="fill-current h-4 w-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                                        <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"/>
-                                                                </svg>
-                                                        </button>
-                                                        <ul class="dropdown-menu absolute hidden group-hover:block bg-white text-gray-700 mt-2 right-0 shadow-lg rounded-md w-32 z-10">
-                                                                {% if request.user.is_superuser %}
-                                                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'update' project.id %}">Update</a></li>
-                                                                <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delete' project.id %}">Delete</a></li>
-                                                                {% endif %}
+          <table class="w-full text-sm text-left text-gray-600">
+            <thead class="text-xs uppercase bg-gray-50/80 text-gray-400 font-semibold border-b border-gray-100">
+              <tr>
+                <th class="px-4 py-3">Project Title</th>
+                <th class="px-4 py-3">Location</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Priority</th>
+                <th class="px-4 py-3">Budget ($)</th>
+                <th class="px-4 py-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for project in projects %}
+              <tr class="hover:bg-blue-50/40 transition duration-150">
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-3">
+                    {% if project.images %}
+                    <img src="{{ project.images.url }}" alt="{{ project.project_title }}" class="w-10 h-10 rounded-xl object-cover border border-gray-200 shadow-xs">
+                    {% else %}
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                      <iconify-icon icon="solar:folder-bold-duotone" class="text-lg"></iconify-icon>
+                    </div>
+                    {% endif %}
+                    <div>
+                      <a href="{% url 'project_details' project.id %}" class="font-bold text-gray-900 text-sm hover:text-blue-600 transition line-clamp-1">
+                        {{ project.project_title }}
+                      </a>
+                      <p class="text-[11px] text-gray-400 mt-0.5">{{ project.implementing_agency|default:"—" }}</p>
+                    </div>
+                  </div>
+                </td>
 
-                                                                {% if project.project_status == 'ongoing' %}
-                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Ongoingstatuses' project.id %}">Details</a></li>
-                                                                {% elif project.project_status == 'upcoming' %}
-                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'Upcomingstatus' project.id %}">Details</a></li>
-                                                                {% elif project.project_status == 'Delayed' %}
-                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'delayedstatus' project.id %}">Details</a></li>
-                                                                {% elif project.project_status == 'stalled' %}
-                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'stalledstatus' project.id %}">Details</a></li>
-                                                                {% else %}
-                                                                        <li><a class="block px-4 py-2 hover:bg-blue-100" href="{% url 'CompletedStatuses' project.id %}">Details</a></li>
-                                                                {% endif %}
-                                                        </ul>
-                                                </div>
-                                        </td>
-                                </tr>
-                                {% endfor %}
-                        </tbody>
-                </table>
+                <td class="px-4 py-3.5 text-xs text-gray-600 font-medium">
+                  {{ project.project_location|default:"National" }}
+                </td>
+
+                <td class="px-4 py-3.5">
+                  <span class="inline-block px-2.5 py-1 text-[11px] font-bold rounded-full
+                    {% if project.project_status == 'completed' %}bg-emerald-100 text-emerald-800
+                    {% elif project.project_status == 'ongoing' %}bg-blue-100 text-blue-800
+                    {% elif project.project_status == 'delayed' %}bg-rose-100 text-rose-800
+                    {% elif project.project_status == 'upcoming' %}bg-purple-100 text-purple-800
+                    {% else %}bg-amber-100 text-amber-800{% endif %}">
+                    {{ project.get_project_status_display }}
+                  </span>
+                </td>
+
+                <td class="px-4 py-3.5">
+                  <span class="inline-block px-2 py-0.5 text-[10px] font-semibold uppercase rounded-md
+                    {% if project.priority == 'critical' %}bg-red-100 text-red-700
+                    {% elif project.priority == 'high' %}bg-amber-100 text-amber-700
+                    {% elif project.priority == 'medium' %}bg-blue-100 text-blue-700
+                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                    {{ project.priority|title }}
+                  </span>
+                </td>
+
+                <td class="px-4 py-3.5 text-xs font-mono font-bold text-gray-800">
+                  ${{ project.project_Budgeting|default:0|floatformat:0 }}
+                </td>
+
+                <td class="px-4 py-3.5 text-center">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <a href="{% url 'project_details' project.id %}" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition" title="View Details">
+                      <iconify-icon icon="solar:eye-bold" class="text-sm"></iconify-icon>
+                    </a>
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'update' project.id %}" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg transition" title="Edit">
+                      <iconify-icon icon="solar:pen-bold" class="text-sm"></iconify-icon>
+                    </a>
+                    <a href="{% url 'delete' project.id %}" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition" title="Delete">
+                      <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-12 text-gray-400">
+                  <iconify-icon icon="solar:folder-error-bold-duotone" class="text-4xl text-gray-300 mb-2"></iconify-icon>
+                  <p class="font-medium text-sm">No matching projects found</p>
+                  <p class="text-xs text-gray-400 mt-1">Try resetting your active search or filters.</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
 
         <!-- Pagination -->
-        <div class="flex justify-between items-center mt-6">
-                <span class="text-sm text-gray-600">
-                        Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
-                </span>
+        {% if projects.has_other_pages %}
+        <div class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-gray-100 gap-3 text-xs text-gray-500">
+          <span>Page {{ projects.number }} of {{ projects.paginator.num_pages }}</span>
+          <div class="flex gap-1.5 items-center">
+            {% if projects.has_previous %}
+            <a href="?page={{ projects.previous_page_number }}{% if base_query %}&{{ base_query }}{% endif %}"
+               class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition">
+              <iconify-icon icon="solar:alt-arrow-left-bold" class="text-xs"></iconify-icon>
+            </a>
+            {% endif %}
 
-                <div class="flex space-x-2">
-                        {% if projects.has_previous %}
-                        <a href="?page={{ projects.previous_page_number }}&q={{ request.GET.q }}" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-                                Previous
-                        </a>
-                        {% endif %}
+            {% for num in projects.paginator.page_range %}
+              {% if projects.number == num %}
+              <span class="px-3 py-1.5 bg-blue-600 text-white font-bold rounded-lg">{{ num }}</span>
+              {% elif num > projects.number|add:-3 and num < projects.number|add:3 %}
+              <a href="?page={{ num }}{% if base_query %}&{{ base_query }}{% endif %}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
 
-                        {% for num in projects.paginator.page_range %}
-                                {% if projects.number == num %}
-                                        <span class="px-3 py-1 bg-blue-600 text-white rounded">{{ num }}</span>
-                                {% else %}
-                                        <a href="?page={{ num }}&q={{ request.GET.q }}" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">{{ num }}</a>
-                                {% endif %}
-                        {% endfor %}
+            {% if projects.has_next %}
+            <a href="?page={{ projects.next_page_number }}{% if base_query %}&{{ base_query }}{% endif %}"
+               class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition">
+              <iconify-icon icon="solar:alt-arrow-right-bold" class="text-xs"></iconify-icon>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
 
-                        {% if projects.has_next %}
-                        <a href="?page={{ projects.next_page_number }}&q={{ request.GET.q }}" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-                                Next
-                        </a>
-                        {% endif %}
-                </div>
+      <!-- Location Sidebar Widget -->
+      <div class="space-y-6">
+
+        <!-- Location Progress Bars -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
+          <div class="flex items-center gap-2 text-gray-800 font-bold text-base pb-2 border-b border-gray-100">
+            <iconify-icon icon="solar:map-point-bold-duotone" class="text-blue-600 text-xl"></iconify-icon>
+            <span>Top Project Locations</span>
+          </div>
+
+          <div class="space-y-3.5">
+            {% for loc in projects_by_location %}
+            <div>
+              <div class="flex justify-between text-xs font-semibold text-gray-700 mb-1">
+                <span>{{ loc.project_location }}</span>
+                <span class="text-blue-600 font-bold">{{ loc.total }} Projects</span>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                     style="width: {% widthratio loc.total total_projects 100 %}%"></div>
+              </div>
+            </div>
+            {% empty %}
+            <p class="text-xs text-gray-400 italic">No project location data available.</p>
+            {% endfor %}
+          </div>
         </div>
 
-    </div> <!-- End Main Content -->
-</div> <!-- End Wrapper -->
+        <!-- Location Doughnut Chart -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
+          <div class="flex items-center gap-2 text-gray-800 font-bold text-base pb-2 border-b border-gray-100">
+            <iconify-icon icon="solar:chart-pie-bold-duotone" class="text-indigo-600 text-xl"></iconify-icon>
+            <span>Location Share</span>
+          </div>
 
+          <div class="relative w-full h-52">
+            <canvas id="locationChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
 </main>
-</html>
-</body>
-<script src="{% static 'js/projectforms.js' %}"></script>
+
 {% include "footer.html" %}
-{% endblock content %}
+
+<script>
+function overviewApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    pageTitle: 'Project Overview',
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    },
+
+    init() {
+      this.$nextTick(() => this.initCharts());
+    },
+
+    charts: {},
+
+    initCharts() {
+      Object.values(this.charts).forEach(c => { if (c) c.destroy(); });
+      this.charts = {};
+
+      Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+      Chart.defaults.color = this.darkMode ? '#94A3B8' : '#6C757D';
+
+      const isDark = this.darkMode;
+      const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+      const textColor = isDark ? '#CBD5E1' : '#475569';
+
+      // Status bar chart
+      const statusCtx = document.getElementById('statusChart');
+      if (statusCtx) {
+        const statusLabels = [{% for key, value in status_counts.items %}'{{ key|title }}',{% endfor %}];
+        const statusValues = [{% for key, value in status_counts.items %}{{ value }},{% endfor %}];
+
+        this.charts.status = new Chart(statusCtx, {
+          type: 'bar',
+          data: {
+            labels: statusLabels,
+            datasets: [{
+              label: 'Projects',
+              data: statusValues,
+              backgroundColor: ['#64748b','#0284c7','#8b5cf6','#10b981','#f43f5e','#f59e0b','#ec4899'],
+              borderRadius: 10,
+              maxBarThickness: 36,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeOutQuart' },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: { backgroundColor: '#0f172a', titleColor: '#ffffff', bodyColor: '#cbd5e1', borderRadius: 8, padding: 10 }
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: textColor, font: { size: 11, weight: 'bold' } } },
+              y: { beginAtZero: true, grid: { color: gridColor, drawBorder: false }, ticks: { color: textColor, precision: 0 } }
+            }
+          }
+        });
+      }
+
+      // Location doughnut chart
+      const locCtx = document.getElementById('locationChart');
+      if (locCtx) {
+        const locLabels = [{% for loc in projects_by_location %}'{{ loc.project_location }}',{% endfor %}];
+        const locValues = [{% for loc in projects_by_location %}{{ loc.total }},{% endfor %}];
+
+        this.charts.location = new Chart(locCtx, {
+          type: 'doughnut',
+          data: {
+            labels: locLabels,
+            datasets: [{
+              data: locValues,
+              backgroundColor: ['#2563eb','#10b981','#8b5cf6','#f59e0b','#f43f5e','#06b6d4'],
+              borderWidth: 0,
+              hoverOffset: 6,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeOutQuart' },
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: textColor, padding: 12, font: { size: 11 } }
+              },
+              tooltip: { backgroundColor: '#0f172a', titleColor: '#ffffff', bodyColor: '#cbd5e1', borderRadius: 8 }
+            },
+            cutout: '70%',
+          }
+        });
+      }
+    }
+  }
+}
+</script>
+
+</body>
+</html>

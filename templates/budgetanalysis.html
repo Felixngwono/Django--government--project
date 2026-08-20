@@ -1,22 +1,21 @@
+{% extends "heading.html" %}
+{% block content %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Respond to Request — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-gray-50 text-gray-800 antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -24,192 +23,468 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
-
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="max-w-7xl mx-auto space-y-6 p-4 md:p-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-    <div class="page-section" :class="{ active: currentPage==='dashboard' }">
+    <!-- PAGE TITLE HEADER WITH HERO OVERLAY PHOTO -->
+    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md border border-slate-800">
+      <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1400&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="Government Analytics">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2 backdrop-blur-sm border border-emerald-500/30">
+            <iconify-icon icon="solar:chart-square-bold-duotone"></iconify-icon> Public Finance Insights & Analytics
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+            Budget & Financial Allocation Analysis
+          </h1>
+          <p class="text-sm text-slate-300 mt-1 leading-relaxed">
+            Comprehensive financial breakdown: Analyze sector-wise capital distribution, expenditure category breakdown, top-funded public works, and budget absorption rates.
+          </p>
+        </div>
 
-<button data-drawer-target="default-sidebar" data-drawer-toggle="default-sidebar" aria-controls="default-sidebar" type="button" class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
-   <span class="sr-only">Open sidebar</span>
-   <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-   <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
-   </svg>
-</button>
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="{% url 'budget_dashboard' %}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-white/20 flex items-center gap-2 backdrop-blur-sm">
+            <iconify-icon icon="solar:arrow-left-linear"></iconify-icon> Budget Dashboard
+          </a>
+          <a href="{% url 'add_budget' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg transition flex items-center gap-2">
+            <iconify-icon icon="solar:add-circle-bold"></iconify-icon> New Allocation
+          </a>
+        </div>
+      </div>
+    </div>
 
-<aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
-   <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-      <ul class="space-y-2 font-medium">
-         <li>
-            <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-                  <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z"/>
-                  <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z"/>
-               </svg>
-               <span class="ms-3">Dashboard</span>
-            </a>
-         </li>
-         <li>
-            <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
-                  <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/>
-               </svg>
-               <span class="flex-1 ms-3 whitespace-nowrap">Kanban</span>
-               <span class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">Pro</span>
-            </a>
-         </li>
-         <li>
-            <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="m17.418 3.623-.018-.008a6.713 6.713 0 0 0-2.4-.569V2h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2H9.89A6.977 6.977 0 0 1 12 8v5h-2V8A5 5 0 1 0 0 8v6a1 1 0 0 0 1 1h8v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4h6a1 1 0 0 0 1-1V8a5 5 0 0 0-2.582-4.377ZM6 12H4a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2Z"/>
-               </svg>
-               <span class="flex-1 ms-3 whitespace-nowrap">Inbox</span>
-               <span class="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">3</span>
-            </a>
-         </li>
-         <li>
-            <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
-                  <path d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"/>
-               </svg>
-               <span class="flex-1 ms-3 whitespace-nowrap">Users</span>
-            </a>
-         </li>
-         <li>
-            <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
-                  <path d="M17 5.923A1 1 0 0 0 16 5h-3V4a4 4 0 1 0-8 0v1H2a1 1 0 0 0-1 .923L.086 17.846A2 2 0 0 0 2.08 20h13.84a2 2 0 0 0 1.994-2.153L17 5.923ZM7 9a1 1 0 0 1-2 0V7h2v2Zm0-5a2 2 0 1 1 4 0v1H7V4Zm6 5a1 1 0 1 1-2 0V7h2v2Z"/>
-               </svg>
-               <span class="flex-1 ms-3 whitespace-nowrap">Products</span>
-            </a>
-         </li>
-         <li>
-            <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 16">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 8h11m0 0L8 4m4 4-4 4m4-11h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"/>
-               </svg>
-               <span class="flex-1 ms-3 whitespace-nowrap">Sign In</span>
-            </a>
-         </li>
-         <li>
-            <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-               <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.96 2.96 0 0 0 .13 5H5Z"/>
-                  <path d="M6.737 11.061a2.961 2.961 0 0 1 .81-1.515l6.117-6.116A4.839 4.839 0 0 1 16 2.141V2a1.97 1.97 0 0 0-1.933-2H7v5a2 2 0 0 1-2 2H0v11a1.969 1.969 0 0 0 1.933 2h12.134A1.97 1.97 0 0 0 16 18v-3.093l-1.546 1.546c-.413.413-.94.695-1.513.81l-3.4.679a2.947 2.947 0 0 1-1.85-.227 2.96 2.96 0 0 1-1.635-3.257l.681-3.397Z"/>
-                  <path d="M8.961 16a.93.93 0 0 0 .189-.019l3.4-.679a.961.961 0 0 0 .49-.263l6.118-6.117a2.884 2.884 0 0 0-4.079-4.078l-6.117 6.117a.96.96 0 0 0-.263.491l-.679 3.4A.961.961 0 0 0 8.961 16Zm7.477-9.8a.958.958 0 0 1 .68-.281.961.961 0 0 1 .682 1.644l-.315.315-1.36-1.36.313-.318Zm-5.911 5.911 4.236-4.236 1.359 1.359-4.236 4.237-1.7.339.341-1.699Z"/>
-               </svg>
-               <span class="flex-1 ms-3 whitespace-nowrap">Sign Up</span>
-            </a>
-         </li>
-      </ul>
-   </div>
-</aside>
+    <!-- SUMMARY KPI CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Allocation</p>
+            <h3 class="text-2xl font-black text-slate-900 mt-1">KES {{ total_allocated|floatformat:2 }}</h3>
+            <span class="text-xs text-slate-500">Across active & past projects</span>
+          </div>
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+            <iconify-icon icon="solar:wallet-bold-duotone" style="font-size:26px;"></iconify-icon>
+          </div>
+        </div>
+      </div>
 
-<div class="p-4 sm:ml-64">
-   <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700">
-      <div class="grid grid-cols-3 gap-4 mb-4">
-         <div class="flex items-center justify-center h-24 rounded-sm bg-gray-50 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div class="flex items-center justify-center h-24 rounded-sm bg-gray-50 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div class="flex items-center justify-center h-24 rounded-sm bg-gray-50 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Expenditure</p>
+            <h3 class="text-2xl font-black text-red-600 mt-1">KES {{ total_spent|floatformat:2 }}</h3>
+            <span class="text-xs text-slate-500">Disbursed funds</span>
+          </div>
+          <div class="p-3 bg-red-50 text-red-600 rounded-xl">
+            <iconify-icon icon="solar:card-transfer-bold-duotone" style="font-size:26px;"></iconify-icon>
+          </div>
+        </div>
       </div>
-      <div class="flex items-center justify-center h-48 mb-4 rounded-sm bg-gray-50 dark:bg-gray-800">
-         <p class="text-2xl text-gray-400 dark:text-gray-500">
-            <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-            </svg>
-         </p>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Remaining Balance</p>
+            <h3 class="text-2xl font-black text-emerald-600 mt-1">KES {{ total_remaining|floatformat:2 }}</h3>
+            <span class="text-xs text-slate-500">Available liquidity</span>
+          </div>
+          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+            <iconify-icon icon="solar:vault-bold-duotone" style="font-size:26px;"></iconify-icon>
+          </div>
+        </div>
       </div>
-      <div class="grid grid-cols-2 gap-4 mb-4">
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Utilization</p>
+            <h3 class="text-2xl font-black text-purple-600 mt-1">{{ overall_utilization }}%</h3>
+            <span class="text-xs text-slate-500">Average absorption rate</span>
+          </div>
+          <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+            <iconify-icon icon="solar:pie-chart-2-bold-duotone" style="font-size:26px;"></iconify-icon>
+          </div>
+        </div>
       </div>
-      <div class="flex items-center justify-center h-48 mb-4 rounded-sm bg-gray-50 dark:bg-gray-800">
-         <p class="text-2xl text-gray-400 dark:text-gray-500">
-            <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-            </svg>
-         </p>
+    </div>
+
+    <!-- EXECUTIVE FINANCIAL SUMMARY TABLE -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-slate-900 text-emerald-400 rounded-2xl shadow-md">
+            <iconify-icon icon="solar:document-text-bold-duotone" class="text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-extrabold text-slate-900">Executive Financial Summary & Matrix</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Official Portfolio Assessment
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Comprehensive overview of financial commitments, expenditure velocity, and sector capital efficiency</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase flex items-center gap-1.5 shadow-xs {% if overall_utilization >= 75 %}bg-emerald-50 text-emerald-800 border border-emerald-200{% elif overall_utilization >= 50 %}bg-blue-50 text-blue-800 border border-blue-200{% else %}bg-amber-50 text-amber-800 border border-amber-200{% endif %}">
+            <span class="w-2 h-2 rounded-full {% if overall_utilization >= 75 %}bg-emerald-500{% elif overall_utilization >= 50 %}bg-blue-500{% else %}bg-amber-500{% endif %}"></span>
+            Absorption Rate: {{ overall_utilization }}%
+          </span>
+        </div>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
+
+      <!-- Executive Overview Banner -->
+      <div class="bg-slate-900 text-white rounded-2xl p-5 mb-5 relative overflow-hidden shadow-md">
+        <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="relative z-10 flex items-start gap-3.5">
+          <div class="p-2 bg-emerald-500/20 rounded-xl text-emerald-300 border border-emerald-500/30 shrink-0 mt-0.5">
+            <iconify-icon icon="solar:chart-line-up-bold-duotone" class="text-xl"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-emerald-400 mb-1">Executive Financial Directives</h3>
+            <p class="text-sm text-slate-200 leading-relaxed font-normal">
+              Out of the total approved allocation of <strong class="text-white font-bold">KES {{ total_allocated|floatformat:2 }}</strong>, a cumulative expenditure of <strong class="text-white font-bold">KES {{ total_spent|floatformat:2 }}</strong> has been disbursed across capital works, resulting in an overall budget absorption rate of <strong class="text-emerald-300 font-extrabold">{{ overall_utilization }}%</strong>. A liquid reserve balance of <strong class="text-white font-bold">KES {{ total_remaining|floatformat:2 }}</strong> remains available for ongoing project execution and emergency allocations.
             </p>
-         </div>
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
-         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28 dark:bg-gray-800">
-            <p class="text-2xl text-gray-400 dark:text-gray-500">
-               <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
-               </svg>
-            </p>
-         </div>
+          </div>
+        </div>
       </div>
-   </div>
-</div>
+
+      <!-- Executive Summary Table Matrix -->
+      <div class="overflow-x-auto rounded-xl border border-slate-200/80 shadow-xs">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100/70 text-slate-700 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200/80">
+            <tr>
+              <th class="p-3.5">Financial Pillar / Indicator</th>
+              <th class="p-3.5">Total Value (KES)</th>
+              <th class="p-3.5">Portfolio Share</th>
+              <th class="p-3.5">Status & Compliance Flag</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3.5 font-bold text-slate-900 flex items-center gap-2.5">
+                <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                  <iconify-icon icon="solar:wallet-bold" class="text-base"></iconify-icon>
+                </div>
+                <div>
+                  <span>Approved Capital Allocation</span>
+                  <div class="text-[10px] text-slate-400 font-normal">Total Budgeted Funds</div>
+                </div>
+              </td>
+              <td class="p-3.5 font-mono font-extrabold text-slate-900 text-sm">KES {{ total_allocated|floatformat:2 }}</td>
+              <td class="p-3.5 font-bold text-slate-600">100.0%</td>
+              <td class="p-3.5">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-bold text-[11px]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Budget Authorized
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3.5 font-bold text-slate-900 flex items-center gap-2.5">
+                <div class="p-1.5 bg-red-50 text-red-600 rounded-lg">
+                  <iconify-icon icon="solar:card-send-bold" class="text-base"></iconify-icon>
+                </div>
+                <div>
+                  <span>Disbursed Expenditure</span>
+                  <div class="text-[10px] text-slate-400 font-normal">Actual Funds Released</div>
+                </div>
+              </td>
+              <td class="p-3.5 font-mono font-extrabold text-red-600 text-sm">KES {{ total_spent|floatformat:2 }}</td>
+              <td class="p-3.5 font-bold text-slate-600">{{ overall_utilization }}%</td>
+              <td class="p-3.5">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-[11px]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active Disbursement
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3.5 font-bold text-slate-900 flex items-center gap-2.5">
+                <div class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
+                  <iconify-icon icon="solar:vault-bold" class="text-base"></iconify-icon>
+                </div>
+                <div>
+                  <span>Unspent Liquidity Reserves</span>
+                  <div class="text-[10px] text-slate-400 font-normal">Available Balance</div>
+                </div>
+              </td>
+              <td class="p-3.5 font-mono font-extrabold text-emerald-600 text-sm">KES {{ total_remaining|floatformat:2 }}</td>
+              <td class="p-3.5 font-bold text-slate-600">{% if total_allocated > 0 %}{% widthratio total_remaining total_allocated 100 %}%{% else %}0%{% endif %}</td>
+              <td class="p-3.5">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-[11px]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Solvent Reserves
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3.5 font-bold text-slate-900 flex items-center gap-2.5">
+                <div class="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
+                  <iconify-icon icon="solar:danger-triangle-bold" class="text-base"></iconify-icon>
+                </div>
+                <div>
+                  <span>High Utilization & Overrun Warnings</span>
+                  <div class="text-[10px] text-slate-400 font-normal">Projects Near/Over Budget</div>
+                </div>
+              </td>
+              <td class="p-3.5 font-mono font-extrabold text-slate-900 text-sm">{{ at_risk_projects|length }} Flagged Projects</td>
+              <td class="p-3.5 font-bold text-slate-600">Critical Monitor</td>
+              <td class="p-3.5">
+                {% if at_risk_projects %}
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-bold text-[11px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> Overrun Warning
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-[11px]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> No Overrun Warnings
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CHARTS SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Top Funded Projects Bar Chart -->
+      <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <iconify-icon icon="solar:chart-2-bold-duotone" class="text-blue-600"></iconify-icon>
+              Top Funded Projects: Allocated vs Spent
+            </h2>
+            <p class="text-xs text-slate-500">Comparing total allocated funds against spent funds per project</p>
+          </div>
+        </div>
+        <div class="h-72">
+          <canvas id="allocationChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Expense Categories Doughnut Chart -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="mb-4">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:pie-chart-bold-duotone" class="text-emerald-600"></iconify-icon>
+            Expenditure by Category
+          </h2>
+          <p class="text-xs text-slate-500">Breakdown of recorded spending</p>
+        </div>
+        <div class="h-64 flex items-center justify-center">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- AT-RISK / OVERRUN WARNINGS -->
+    {% if at_risk_projects %}
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+      <div class="flex items-center gap-2 text-amber-800 font-bold mb-3">
+        <iconify-icon icon="solar:danger-triangle-bold" style="font-size:22px;" class="text-amber-600"></iconify-icon>
+        High Budget Utilization & Potential Overrun Warnings ({{ at_risk_projects|length }})
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {% for risk in at_risk_projects %}
+        <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm">
+          <div class="flex justify-between items-start gap-2">
+            <h4 class="font-bold text-slate-800 text-sm line-clamp-1">{{ risk.project.project_title }}</h4>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase {% if risk.status == 'Overrun Risk' %}bg-red-100 text-red-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+              {{ risk.status }}
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-slate-600 space-y-1">
+            <p>Allocated: <strong class="text-slate-800">KES {{ risk.project.project_Budgeting|floatformat:2 }}</strong></p>
+            <p>Spent: <strong class="text-red-600">KES {{ risk.project.amount_spent|floatformat:2 }}</strong></p>
+            <p>Utilization: <strong class="text-amber-700">{{ risk.utilization }}%</strong></p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- TOP FUNDED PROJECTS GALLERY -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:star-angle-bold-duotone" class="text-amber-500"></iconify-icon>
+            Highest Allocated Major Projects
+          </h2>
+          <p class="text-xs text-slate-500">Key national & county public investments with highest capital allocation</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for p in top_projects|slice:":4" %}
+        <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 flex flex-col justify-between group hover:shadow-md transition">
+          <div class="relative h-36 bg-slate-200">
+            {% if p.cover_image %}
+              <img src="{{ p.cover_image.url }}" alt="{{ p.project_title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            {% elif p.images %}
+              <img src="{{ p.images.url }}" alt="{{ p.project_title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            {% else %}
+              <img src="https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?q=80&w=600&auto=format&fit=crop" alt="Government Project" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            {% endif %}
+            <span class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900/80 text-white backdrop-blur-sm">
+              {{ p.get_project_status_display|default:p.project_status|title }}
+            </span>
+          </div>
+
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm line-clamp-1 mb-2">{{ p.project_title }}</h4>
+              <div class="space-y-1 text-xs text-slate-600">
+                <div class="flex justify-between">
+                  <span>Budget:</span>
+                  <strong class="text-slate-900">KES {{ p.project_Budgeting|floatformat:2 }}</strong>
+                </div>
+                <div class="flex justify-between">
+                  <span>Spent:</span>
+                  <strong class="text-red-600">KES {{ p.amount_spent|floatformat:2 }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between items-center text-[11px]">
+              <span class="text-slate-500">Utilization</span>
+              <span class="font-extrabold text-emerald-700">{{ p.budget_utilization }}%</span>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-slate-400 text-xs col-span-4 text-center py-4">No major funded projects recorded.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- DIVISION / SECTOR ALLOCATION TABLE -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:layers-bold-duotone" class="text-purple-600"></iconify-icon>
+            Division / Sector Budget Allocations
+          </h2>
+          <p class="text-xs text-slate-500">Resource breakdown by organizational division or sector</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase text-xs">
+            <tr>
+              <th class="p-3.5 rounded-l-xl">Division / Sector</th>
+              <th class="p-3.5">Projects</th>
+              <th class="p-3.5">Allocated (KES)</th>
+              <th class="p-3.5">Spent (KES)</th>
+              <th class="p-3.5">Remaining (KES)</th>
+              <th class="p-3.5 rounded-r-xl">Absorption Rate</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for d in division_data %}
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3.5 font-bold text-slate-800">{{ d.name }}</td>
+              <td class="p-3.5 font-semibold text-slate-600">{{ d.project_count }}</td>
+              <td class="p-3.5 font-semibold text-slate-800">KES {{ d.allocated|floatformat:2 }}</td>
+              <td class="p-3.5 font-semibold text-red-600">KES {{ d.spent|floatformat:2 }}</td>
+              <td class="p-3.5 font-semibold text-emerald-600">KES {{ d.remaining|floatformat:2 }}</td>
+              <td class="p-3.5">
+                <div class="flex items-center gap-3">
+                  <span class="font-bold text-xs w-10 text-right">{{ d.utilization }}%</span>
+                  <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden min-w-[80px]">
+                    <div class="h-2 rounded-full {% if d.utilization > 100 %}bg-red-600{% elif d.utilization > 80 %}bg-amber-500{% else %}bg-emerald-500{% endif %}" style="width:{% if d.utilization > 100 %}100{% else %}{{ d.utilization }}{% endif %}%"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="p-6 text-center text-slate-400">
+                No division allocation data available.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 1. Allocation vs Spent Bar Chart
+    const allocCtx = document.getElementById('allocationChart');
+    if (allocCtx) {
+      new Chart(allocCtx, {
+        type: 'bar',
+        data: {
+          labels: {{ project_labels|safe }},
+          datasets: [
+            {
+              label: 'Allocated (KES)',
+              data: {{ project_allocated|safe }},
+              backgroundColor: '#3b82f6',
+              borderRadius: 6
+            },
+            {
+              label: 'Spent (KES)',
+              data: {{ project_spent|safe }},
+              backgroundColor: '#ef4444',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) { return 'KES ' + value.toLocaleString(); }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 2. Expense Category Doughnut Chart
+    const catCtx = document.getElementById('categoryChart');
+    if (catCtx) {
+      new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+          labels: {{ cat_labels|safe }},
+          datasets: [{
+            data: {{ cat_amounts|safe }},
+            backgroundColor: [
+              '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% include "footer.html" %}
+{% endblock content %}

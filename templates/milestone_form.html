@@ -1,112 +1,139 @@
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+{% load widget_tweaks %}
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>{{ title|default:"Milestone Form" }} — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
-{% load widget_tweaks %}
+
 <!-- ===== HEADER ===== -->
 {% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="max-w-3xl mx-auto space-y-6 p-4 md:p-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <!-- TOP HEADER BAR -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+          <iconify-icon icon="solar:flag-2-bold-duotone" class="text-blue-600"></iconify-icon>
+          {{ title|default:"Milestone Entry" }}
+        </h1>
+        <p class="text-xs text-slate-500 mt-1">Configure milestone deliverable objectives, associated project, status, and deadlines.</p>
+      </div>
 
+      <a href="{% url 'milestone_list' %}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+        &larr; Back to Milestones
+      </a>
+    </div>
 
+    <!-- FORM CARD -->
+    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
 
-<script src="https://cdn.tailwindcss.com"></script>
+      {% if form.errors %}
+      <div class="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+        <p class="font-bold mb-1">Please correct the errors below:</p>
+        <ul class="list-disc list-inside space-y-0.5">
+          {% for field, errors in form.errors.items %}
+          <li><strong>{{ field|capfirst }}:</strong> {{ errors|striptags }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
 
-    <div class="max-w-3xl mx-auto py-8">
+      <form method="POST" class="space-y-6">
+        {% csrf_token %}
 
-    <div class="bg-white shadow-lg rounded-xl p-8">
+        <!-- Milestone Title -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Milestone Title <span class="text-rose-500">*</span></label>
+          {% render_field form.title class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" placeholder="e.g., Phase 1 Environmental Impact Assessment" %}
+          <p class="text-[11px] text-slate-400 mt-1">Provide a concise, descriptive title for this key deliverable.</p>
+        </div>
 
-        <h2 class="text-2xl font-bold mb-6">
-            Milestone Form
-        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Associated Project -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Project <span class="text-rose-500">*</span></label>
+            {% render_field form.project class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+          </div>
 
-        <form method="POST">
-            {% csrf_token %}
+          <!-- Project Stage -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Development Stage <span class="text-slate-400 font-normal">(Optional)</span></label>
+            {% render_field form.stage class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+          </div>
+        </div>
 
-            <div class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Status -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Milestone Status</label>
+            {% render_field form.status class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+          </div>
 
-                <div>
-                    <label class="block mb-2 font-medium">
-                       Project
-                    </label>
+          <!-- Progress Percentage -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Completion Progress (0 - 100%)</label>
+            {% render_field form.progress_percentage class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" placeholder="e.g. 50" %}
+          </div>
+        </div>
 
-                    {{ form.project|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Target Due Date -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Target Due Date</label>
+            {% render_field form.due_date class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+          </div>
 
-                <div>
-                    <label class="block mb-2 font-medium">
-                        Stage
-                    </label>
+          <!-- Actual Completion Date -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Completion Date <span class="text-slate-400 font-normal">(If finished)</span></label>
+            {% render_field form.completion_date class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+          </div>
+        </div>
 
-                    {{ form.stage|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-                </div>
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Detailed Description & Scope</label>
+          {% render_field form.description class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" rows="4" placeholder="Describe key scope requirements, deliverable goals, and criteria for completion..." %}
+        </div>
 
-                <div>
-                    <label class="block mb-2 font-medium">
-                        Description
-                    </label>
+        <!-- Action Buttons -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <a href="{% url 'milestone_list' %}" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition">
+            Cancel
+          </a>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition text-xs flex items-center gap-1.5">
+            <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Save Milestone
+          </button>
+        </div>
 
-                    {{ form.description|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-                </div>
-
-                <div>
-                    <label class="block mb-2 font-medium">
-                        Progress Percentage
-                    </label>
-
-                    {{ form.progress_percentage|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-                </div>
-
-                <div class="flex gap-3">
-
-                    <button type="submit"
-                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg">
-                        Save Milestone
-                    </button>
-
-                    <a href="{% url 'milestone_list' %}"
-                       class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg">
-                        Cancel
-                    </a>
-
-                </div>
-
-            </div>
-
-        </form>
+      </form>
 
     </div>
 
-</div>
-</div>
-
-</div>
+  </div>
 </main>
+
 {% include "footer.html" %}
+
+</body>
+</html>

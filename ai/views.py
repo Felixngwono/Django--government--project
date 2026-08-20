@@ -13,6 +13,8 @@ from rest_framework.response import Response
 from ai.chart_assistant import chat
 from ai.issue_assessor import assess_issue
 from ai.report_generator import generate_project_summary
+from ai.services import generate_ai_portfolio_insights
+from member.ai_services import build_project_intelligence
 from member.models import AIIssueAssessment, AIChatSession, AIReportGeneration, Project, ReportIssue
 
 
@@ -54,6 +56,7 @@ def ai_chatbot(request):
             "chat_sessions": sessions,
             "chat_messages": chat_messages,
             "session": selected_session or SimpleNamespace(id=None),
+            "projects": Project.objects.order_by("project_title"),
         },
     )
 
@@ -88,40 +91,7 @@ def ai_chatbot_api(request):
 @login_required
 def ai_insights(request):
     projects = Project.objects.select_related("category", "district")
-    total_projects = projects.count()
-    ongoing_projects = projects.filter(project_status="ongoing").count()
-    upcoming_projects = projects.filter(project_status="upcoming").count()
-    completed_projects = projects.filter(project_status="completed").count()
-    delayed_projects = projects.filter(project_status="delayed").count()
-    open_issues = ReportIssue.objects.filter(resolved=False).count()
-
-    recommendations = []
-    if delayed_projects:
-        recommendations.append(f"{delayed_projects} projects are delayed and need follow-up.")
-    if open_issues:
-        recommendations.append(f"{open_issues} issues remain unresolved and should be reviewed.")
-    if not recommendations:
-        recommendations.append("Project activity looks healthy. Continue monitoring progress.")
-
-    insights = {
-        "summary": (
-            f"You currently have {total_projects} tracked projects, with {ongoing_projects} ongoing, "
-            f"{upcoming_projects} upcoming, {completed_projects} completed, and {delayed_projects} delayed."
-        ),
-        "ai_assistant_summary": "The assistant can help you review project health, issues, and next actions.",
-        "totals": {
-            "total_projects": total_projects,
-            "ongoing_projects": ongoing_projects,
-            "upcoming_projects": upcoming_projects,
-            "completed_projects": completed_projects,
-            "delayed_projects": delayed_projects,
-            "budget_utilization": round(
-                sum(float(project.amount_spent or 0) / (project.project_Budgeting or 1) * 100 for project in projects) / total_projects if total_projects else 0,
-                2,
-            ),
-        },
-        "recommendations": recommendations,
-    }
+    insights = generate_ai_portfolio_insights(projects)
     return render(request, "ai_insights.html", {"insights": insights})
 
 
@@ -147,7 +117,15 @@ def ai_report_page(request):
             )
         )
 
-    return render(request, "ai_report_page.html", {"reports": reports})
+    return render(request, "ai_report_page.html", {"reports": reports, "projects": Project.objects.order_by("project_title")})
+
+
+@login_required
+@require_POST
+def ai_generate_report(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    generate_project_summary(project, request.user)
+    return redirect("ai_report_page")
 
 
 @login_required
@@ -159,6 +137,7 @@ def ai_issue_dashboard(request):
             {
                 "issue": issue,
                 "assessment": latest_assessment,
+                "category": latest_assessment.category if latest_assessment else "Not assessed",
                 "risk": {
                     "level": "high" if issue.severity in {"high", "critical"} else "medium",
                     "score": 90 if issue.severity == "critical" else 70 if issue.severity == "high" else 50,

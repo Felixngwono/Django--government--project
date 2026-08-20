@@ -3,6 +3,14 @@
 import os
 import sys
 
+# Patch for Python 3.14 compatibility with Django template Context.__copy__
+try:
+    import django.template.context as _dtc
+    if not hasattr(_dtc.BaseContext, '__copy__'):
+        _dtc.BaseContext.__copy__ = lambda self: self.__class__.__new__(self.__class__)
+except Exception:
+    pass
+
 
 def main():
     """Run administrative tasks."""

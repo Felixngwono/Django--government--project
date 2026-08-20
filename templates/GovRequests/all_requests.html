@@ -2,23 +2,20 @@
 {% block content %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>All Public Requests — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-gray-50 text-gray-800 antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,118 +23,189 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content p-6 max-w-7xl mx-auto space-y-6">
 
-<main class="main" x-data="{ openForm: false, openContractorForm: false }">
-<div class="p-6">
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold">My Requests</h2>
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100 gap-4">
+      <div>
+        <h2 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+          <span>Public Government Requests</span>
+          <span class="text-xs font-mono font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+            {{ total_count }} Total
+          </span>
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">
+          Review, assign, and respond to citizen submissions, infrastructure petitions, and service inquiries.
+        </p>
+      </div>
 
-    <!-- Add Request Button -->
-    <button @click="openForm = true"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-        + Add Request
-    </button>
-</div>
-<!-- Modal Overlay -->
-<div x-show="openForm" 
-     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-     x-transition>
-
-    <!-- Modal -->
-    <div @click.away="openForm = false"
-         class="bg-white w-full max-w-lg p-6 rounded-xl shadow-xl">
-
-        <h2 class="text-xl font-bold mb-4">Submit Request</h2>
-
-        <form method="POST" action="{% url 'create_request' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-           
-
-            <!-- Title -->
-            <input type="text" name="title" placeholder="Request Title"
-                class="w-full mb-3 px-3 py-2 border rounded" required>
-
-            <!-- Category -->
-            <select name="category" class="w-full mb-3 px-3 py-2 border rounded">
-                <option value="">Select Category</option>
-                <option value="infrastructure">Infrastructure</option>
-                <option value="water">Water & Sanitation</option>
-                <option value="health">Health</option>
-                <option value="education">Education</option>
-                <option value="security">Security</option>
-                <option value="corruption">Corruption</option>
-                <option value="other">Other</option>
-            </select>
-
-            <!-- Location -->
-            <input type="text" name="location" placeholder="Location"
-                class="w-full mb-3 px-3 py-2 border rounded">
-
-            <!-- Description -->
-            <textarea name="description" placeholder="Describe issue..."
-                class="w-full mb-3 px-3 py-2 border rounded"></textarea>
-
-            <!-- Image -->
-            <input type="file" name="image"
-                class="w-full mb-3">
-
-            <!-- Buttons -->
-            <div class="flex justify-between">
-                <button type="button" @click="openForm = false"
-                    class="px-4 py-2 bg-gray-300 rounded">
-                    Cancel
-                </button>
-
-                <button type="submit"
-                    class="px-4 py-2 bg-blue-600 text-white rounded">
-                    Submit
-                </button>
-            </div>
-        </form>
-
+      <div class="flex gap-3">
+        <a href="{% url 'my_requests' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs px-5 py-3 rounded-2xl transition">
+          My Submissions
+        </a>
+        <a href="{% url 'create_request' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-md transition transform hover:scale-105 flex items-center gap-2">
+          <iconify-icon icon="solar:add-circle-bold" class="text-base"></iconify-icon>
+          <span>+ New Request</span>
+        </a>
+      </div>
     </div>
-</div>
 
-<div class="grid gap-4">
-{% for req in requests %}
-<div class="bg-white p-4 rounded shadow">
-,<!-- image -->
-{% if req.image %}
-    <div class="overflow-hidden rounded-2xl mb-4 border border-gray-200 shadow-sm">
-        <img src="{{ req.image.url }}"
-             alt="{{ req.title }} image"
-             class="w-full h-64 object-cover transition duration-300 ease-in-out hover:scale-105">
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold uppercase text-gray-400">Total Requests</p>
+          <p class="text-2xl font-extrabold text-gray-900 mt-1 font-mono">{{ total_count }}</p>
+        </div>
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+          <iconify-icon icon="solar:folder-open-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold uppercase text-gray-400">Pending Review</p>
+          <p class="text-2xl font-extrabold text-amber-600 mt-1 font-mono">{{ pending_count }}</p>
+        </div>
+        <div class="p-3 bg-amber-50 text-amber-600 rounded-2xl">
+          <iconify-icon icon="solar:clock-circle-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold uppercase text-gray-400">Under Action</p>
+          <p class="text-2xl font-extrabold text-indigo-600 mt-1 font-mono">{{ in_progress_count }}</p>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+          <iconify-icon icon="solar:settings-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold uppercase text-gray-400">Resolved</p>
+          <p class="text-2xl font-extrabold text-emerald-600 mt-1 font-mono">{{ resolved_count }}</p>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+          <iconify-icon icon="solar:check-circle-bold-duotone" class="text-2xl"></iconify-icon>
+        </div>
+      </div>
     </div>
-{% endif %}
-<h3 class="font-bold">{{ req.title }}</h3>
-<p class="text-sm text-gray-500">{{ req.category }}</p>
-<p class="mt-2">{{ req.description }}</p>
 
-<p class="mt-2 text-sm">📍 {{ req.location }}</p>
+    <!-- Filter & Search Toolbar -->
+    <form method="GET" class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <input type="text" name="q" value="{{ query }}" placeholder="Search title, reference, location, citizen..."
+             class="w-full px-4 py-2.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
 
-<p class="mt-2">
-Status:
-<span class="
-{% if req.status == 'resolved' %} text-green-600
-{% elif req.status == 'rejected' %} text-red-600
-{% elif req.status == 'in_progress' %} text-yellow-600
-{% else %} text-blue-600 {% endif %}
-">
-{{ req.get_status_display }}
-</span>
-</p>
+      <select name="category" class="w-full px-4 py-2.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <option value="">All Categories</option>
+        {% for cat_val, cat_label in category_choices %}
+          <option value="{{ cat_val }}" {% if category_filter == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+        {% endfor %}
+      </select>
 
+      <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <option value="">All Statuses</option>
+        {% for stat_val, stat_label in status_choices %}
+          <option value="{{ stat_val }}" {% if status_filter == stat_val %}selected{% endif %}>{{ stat_label }}</option>
+        {% endfor %}
+      </select>
 
-</div>
-{% empty %}
-<p>No requests submitted yet.</p>
-{% endfor %}
-</div>
+      <div class="flex gap-2">
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-5 py-2.5 rounded-2xl transition shadow">
+          Filter
+        </button>
+        {% if query or status_filter or category_filter %}
+          <a href="{% url 'all_requests' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2.5 rounded-2xl transition flex items-center justify-center">
+            Reset
+          </a>
+        {% endif %}
+      </div>
+    </form>
 
-</div>
+    <!-- Requests Table Card -->
+    <div class="bg-white shadow-xl rounded-3xl overflow-hidden border border-gray-100">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-600">
+          <thead class="text-xs uppercase bg-gray-50 text-gray-400 font-semibold border-b border-gray-100">
+            <tr>
+              <th class="px-6 py-4">Reference & Title</th>
+              <th class="px-6 py-4">Citizen</th>
+              <th class="px-6 py-4">Category & Location</th>
+              <th class="px-6 py-4 text-center">Status</th>
+              <th class="px-6 py-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for req in requests %}
+            <tr class="hover:bg-blue-50/40 transition">
+              <!-- Reference & Title -->
+              <td class="px-6 py-4">
+                <div class="font-mono text-xs text-blue-600 font-bold mb-0.5">
+                  {{ req.reference_no|default:"REQ-PENDING" }}
+                </div>
+                <a href="{% url 'request_detail' req.id %}" class="font-bold text-gray-900 text-base hover:text-blue-600 transition line-clamp-1">
+                  {{ req.title }}
+                </a>
+                <p class="text-xs text-gray-400 mt-1">Submitted {{ req.created_at|date:"M d, Y" }}</p>
+              </td>
 
+              <!-- Citizen -->
+              <td class="px-6 py-4">
+                <p class="font-semibold text-gray-800 text-sm">{{ req.citizen.full_name }}</p>
+                <p class="text-xs text-gray-400">{{ req.citizen.email }}</p>
+              </td>
+
+              <!-- Category & Location -->
+              <td class="px-6 py-4">
+                <span class="inline-block bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-0.5 rounded-lg mb-1">
+                  {{ req.get_category_display }}
+                </span>
+                <p class="text-xs text-gray-500">📍 {{ req.location }}</p>
+              </td>
+
+              <!-- Status -->
+              <td class="px-6 py-4 text-center">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-bold
+                  {% if req.status == 'resolved' %}bg-emerald-100 text-emerald-800
+                  {% elif req.status == 'responded' %}bg-blue-100 text-blue-800
+                  {% elif req.status == 'in_progress' %}bg-amber-100 text-amber-800
+                  {% elif req.status == 'rejected' %}bg-rose-100 text-rose-800
+                  {% else %}bg-gray-100 text-gray-700{% endif %}">
+                  {{ req.get_status_display }}
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td class="px-6 py-4 text-center">
+                <div class="flex justify-center gap-2">
+                  <a href="{% url 'request_detail' req.id %}" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-xl transition">
+                    View
+                  </a>
+                  <a href="{% url 'respond_request' req.id %}" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-xl transition">
+                    Respond
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-12 text-gray-400">
+                <iconify-icon icon="solar:folder-error-bold-duotone" class="text-4xl text-gray-300 mb-2"></iconify-icon>
+                <p class="font-medium text-sm">No government requests found.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 </main>
+
 {% include "footer.html" %}
 {% endblock %}

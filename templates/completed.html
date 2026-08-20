@@ -73,30 +73,41 @@
 <div class="max-w-7xl mx-auto px-6 pb-10">
 
 <!-- Search + Actions -->
-<div class="flex flex-col md:flex-row gap-4 mb-6">
+<div class="flex flex-col md:flex-row gap-4 mb-6 items-center justify-between">
 
-<form method="GET" class="flex flex-1 gap-2">
+<form method="GET" class="flex flex-wrap flex-1 gap-3 items-center">
 
 <input
 type="text"
 name="q"
-placeholder="Search projects..."
-value="{{ request.GET.q }}"
-class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+placeholder="Search completed projects..."
+value="{{ q }}"
+class="flex-1 px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
 />
+
+<select name="location" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+    <option value="">All Locations</option>
+    {% for loc in locations %}
+        <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+    {% endfor %}
+</select>
 
 <button
 type="submit"
-class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition shadow"
 >
 Search
 </button>
+
+{% if q or selected_location %}
+    <a href="{% url 'completed' %}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-sm transition">Reset</a>
+{% endif %}
 
 </form>
 
 {% if request.user.is_superuser %}
 <a href="{% url 'createproject' %}"
-class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-center">
+class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold text-center transition shadow">
 + Add Project
 </a>
 {% endif %}

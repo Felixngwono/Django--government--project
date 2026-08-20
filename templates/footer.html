@@ -1,75 +1,100 @@
 {% load static %}
-<div class="ml-64 w-[calc(100%-16rem)]">
+<!-- ===== PLATFORM FOOTER ===== -->
+<footer class="bg-slate-900 text-gray-300 w-full pt-12 pb-8 mt-12 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white w-full py-12 mt-auto   ">
-        <div class="container mx-auto px-6  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Company Info -->
-            <div>
-                <a  class="flex items-center mb-4 space-x-3 rtl:space-x-reverse">
-                    <img src="{% static 'images/GOK.png' %}" class="h-12" alt="FelloMarley Logo" />
-                    <span class="text-2xl font-semibold text-white">FelloMarley</span>
-                </a>
-                <p class="mt-2 text-gray-400">Building innovative tech solutions for a better future.</p>
-            </div>
-
-            <!-- Navigation Links -->
-            <div>
-                <h3 class="text-lg font-semibold text-white">Quick Links</h3>
-                <ul class="mt-4 space-y-3">
-                    <li><a href="{% url 'index' %}" class="text-gray-400 hover:text-white transition duration-300">Home</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Projects</a></li>
-                    <li><a href="{% url 'AboutUs' %}" class="text-gray-400 hover:text-white transition duration-300">About Me</a></li>
-                    <li><a href="{% url 'contactus' %}" class="text-gray-400 hover:text-white transition duration-300">Contact</a></li>
-                </ul>
-            </div>
-
-            <!-- Contact & Socials -->
-            <div>
-                <h3 class="text-lg font-semibold text-white">Contact Me</h3>
-                <p class="mt-4 text-gray-400">Email: felixngwono@gmail.com</p>
-                <p class="text-gray-400">Phone: +254 700 369300</p>
-                <div class="mt-6 flex space-x-6">
-                    <a href="https://facebook.com/felixodhiambo" class="text-gray-400 hover:text-blue-600 transition duration-300" target="_blank">
-                        <i class="fab fa-facebook text-2xl"></i>
-                    </a>
-                    <a href="https://twitter.com/felixodhiambo" class="text-gray-400 hover:text-blue-400 transition duration-300" target="_blank">
-                        <i class="fab fa-twitter text-2xl"></i>
-                    </a>
-                    <a href="https://linkedin.com/in/felixodhiambo" class="text-gray-400 hover:text-blue-700 transition duration-300" target="_blank">
-                        <i class="fab fa-linkedin text-2xl"></i>
-                    </a>
-                    <a href="https://github.com/felixngwono" class="text-gray-400 hover:text-gray-300 transition duration-300" target="_blank">
-                        <i class="fab fa-github text-2xl"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Newsletter Subscription -->
-            <div>
-                <h3 class="text-lg font-semibold text-white">Stay Updated</h3>
-                <p class="mt-4 text-gray-400">Subscribe to my newsletter for the latest updates.</p>
-               
-            </div>
-        </div>
-
-        <!-- Footer Bottom -->
-        <div class="mt-8 text-center text-gray-400 text-sm">
-            <p>© 2025 Felix Odhiambo. All Rights Reserved.</p>
-            <p class="mt-2">
-                <a href="#" class="text-gray-400 hover:text-white transition duration-300">Privacy Policy</a> | 
-                <a href="#" class="text-gray-400 hover:text-white transition duration-300">Terms of Service</a>
+        <!-- Column 1: Brand & Mission -->
+        <div class="space-y-4">
+            <a href="{% url 'index' %}" class="flex items-center space-x-3">
+                <img src="{% static 'images/GOK.png' %}" class="h-10 w-auto object-contain" alt="GovTracker Logo" />
+                <span class="text-2xl font-extrabold tracking-tight text-white">GovTracker</span>
+            </a>
+            <p class="text-xs text-gray-400 leading-relaxed">
+                National Public Works & Infrastructure Project Monitoring Portal. Enhancing transparency, accountability, and citizen participation in government projects.
             </p>
+            <div class="flex items-center space-x-2 text-xs text-gray-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>System Status: <strong class="text-emerald-400">Operational</strong></span>
+            </div>
         </div>
-    </footer>
-</div>
+
+        <!-- Column 2: Core Navigation -->
+        <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4">Quick Navigation</h3>
+            <ul class="space-y-2 text-xs">
+                <li><a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-blue-400 transition">Dashboard & Analytics</a></li>
+                <li><a href="{% url 'projectoverview' %}" class="text-gray-400 hover:text-blue-400 transition">Project Overview</a></li>
+                <li><a href="{% url 'projectstage_list' %}" class="text-gray-400 hover:text-blue-400 transition">Project Stages & Progress</a></li>
+                <li><a href="{% url 'division_details' %}" class="text-gray-400 hover:text-blue-400 transition">Project Divisions</a></li>
+                <li><a href="{% url 'budget_dashboard' %}" class="text-gray-400 hover:text-blue-400 transition">Budget & Financial Tracker</a></li>
+                <li><a href="{% url 'tender_list' %}" class="text-gray-400 hover:text-blue-400 transition">Tenders & Procurement</a></li>
+            </ul>
+        </div>
+
+        <!-- Column 3: Citizen & Public Services -->
+        <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4">Public Services</h3>
+            <ul class="space-y-2 text-xs">
+                <li><a href="{% url 'citizen_portal' %}" class="text-gray-400 hover:text-blue-400 transition">Citizen Portal & Submissions</a></li>
+                <li><a href="{% url 'citizen_evidence' %}" class="text-gray-400 hover:text-blue-400 transition">Citizen Verification & Evidence</a></li>
+                <li><a href="{% url 'issue_list' %}" class="text-gray-400 hover:text-blue-400 transition">Report Project Issues</a></li>
+                <li><a href="{% url 'announcements' %}" class="text-gray-400 hover:text-blue-400 transition">Official Announcements</a></li>
+                <li><a href="{% url 'AboutUs' %}" class="text-gray-400 hover:text-blue-400 transition">About Government Tracker</a></li>
+                <li><a href="{% url 'contactus' %}" class="text-gray-400 hover:text-blue-400 transition">Helpdesk & Contact</a></li>
+            </ul>
+        </div>
+
+        <!-- Column 4: Contact & Social Links -->
+        <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4">Official Contact</h3>
+            <p class="text-xs text-gray-400 leading-relaxed mb-2">Government Public Information Office</p>
+            <p class="text-xs text-gray-300"><strong>Email:</strong> support@govtracker.go.ke</p>
+            <p class="text-xs text-gray-300"><strong>Toll-Free:</strong> +254 (0) 800 720 000</p>
+            <p class="text-xs text-gray-300"><strong>Address:</strong> Capital Complex, Block B, Nairobi</p>
+
+            <div class="mt-4 flex items-center space-x-3 text-lg">
+                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="Facebook">
+                    <iconify-icon icon="solar:letter-bold-duotone"></iconify-icon>
+                </a>
+                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="Twitter / X">
+                    <iconify-icon icon="solar:share-bold-duotone"></iconify-icon>
+                </a>
+                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="LinkedIn">
+                    <iconify-icon icon="solar:user-rounded-bold-duotone"></iconify-icon>
+                </a>
+                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="Global Portal">
+                    <iconify-icon icon="solar:global-bold-duotone"></iconify-icon>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Copyright Bar -->
+    <div class="max-w-7xl mx-auto px-6 border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 gap-4">
+        <p>© {% now "Y" %} Republic Information Portal — GovTracker System. All Rights Reserved.</p>
+        <div class="flex space-x-4">
+            <a href="{% url 'AboutUs' %}" class="hover:text-gray-300 transition">Privacy Policy</a>
+            <span>•</span>
+            <a href="{% url 'contactus' %}" class="hover:text-gray-300 transition">Terms of Use</a>
+            <span>•</span>
+            <a href="{% url 'citizen_portal' %}" class="hover:text-gray-300 transition">Accessibility</a>
+        </div>
+    </div>
+</footer>
+
 {% include "chatbot_widget.html" %}
+
 <script>
-    document.getElementById("sidebarToggle").addEventListener("click", function() {
-        document.getElementById("default-sidebar").classList.toggle("-translate-x-full");
-    });
+    (function() {
+        var toggleBtn = document.getElementById("sidebarToggle");
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", function() {
+                var sidebar = document.getElementById("default-sidebar");
+                if (sidebar) {
+                    sidebar.classList.toggle("-translate-x-full");
+                }
+            });
+        }
+    })();
 </script>
-</div>
-</div>
-</div>
-</div></div>

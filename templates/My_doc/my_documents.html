@@ -1,24 +1,20 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Project Overview — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,10 +22,11 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-
 <div class="max-w-7xl mx-auto px-6 py-8">
 
     <!-- ================= HEADER ================= -->
@@ -344,11 +341,11 @@
 
                 {% if app.proposal_document %}
 
-                <a href="{% url 'view_document' app.id 'proposal' %}"
+                <a href="{{ app.proposal_document.url }}"
                    target="_blank"
-                   class="bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded-xl">
+                   class="bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded-xl block font-semibold">
 
-                    📄 View Proposal
+                    📄 View Proposal Document
 
                 </a>
 
@@ -356,11 +353,11 @@
 
                 {% if app.cover_letter %}
 
-                <a href="{% url 'view_document' app.id 'cover' %}"
+                <a href="{{ app.cover_letter.url }}"
                    target="_blank"
-                   class="bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl">
+                   class="bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl block font-semibold">
 
-                    📄 View Cover Letter
+                    ✉️ View Cover Letter
 
                 </a>
 
@@ -430,4 +427,3 @@
 
 </main>
 {% include "footer.html" %}
-{% endblock content %}

@@ -2,23 +2,20 @@
 {% block content %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Respond to Request — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-gray-50 text-gray-800 antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,87 +23,111 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="max-w-3xl mx-auto my-8 p-4">
 
-<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
 
-<script src="https://cdn.tailwindcss.com"></script>
+      <!-- Top Image Banner -->
+      <div class="relative h-44 bg-slate-900 text-white p-6 flex flex-col justify-end">
+        <img src="https://images.unsplash.com/photo-1450133064473-71024230f91b?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay" alt="Expense Disbursements">
+        <div class="relative z-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2 backdrop-blur-sm border border-emerald-500/30">
+            <iconify-icon icon="solar:bill-check-bold-duotone"></iconify-icon> Disbursement Entry
+          </div>
+          <h1 class="text-2xl font-bold">
+            Log Project Expense
+          </h1>
+          <p class="text-xs text-slate-300 mt-1">
+            Record payment disbursements and attach receipt vouchers against allocated project budgets
+          </p>
+        </div>
+      </div>
 
-<main class="main">
+      <div class="p-6 md:p-8">
 
-<div class="max-w-xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
-
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">
-        Add Expense
-    </h2>
-
-    <form method="POST" class="space-y-4">
+      <form method="POST" enctype="multipart/form-data" class="space-y-5">
         {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="p-4 bg-red-50 text-red-700 border border-red-200 rounded-xl text-sm">
+          <p class="font-bold">Please correct the errors below:</p>
+          <ul class="list-disc list-inside mt-1">
+            {% for field in form %}
+              {% for error in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
 
         <!-- PROJECT -->
         <div>
-            <label class="block text-sm font-medium text-gray-600">
-                Project
-            </label>
-            {{ form.project }}
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Target Project
+          </label>
+          {{ form.project }}
         </div>
 
-        <!-- BUDGET -->
-        <div>
-            <label class="block text-sm font-medium text-gray-600">
-                Budget
-            </label>
-            {{ form.budget }}
-        </div>
-
-        <!-- TITLE -->
-        <div>
-            <label class="block text-sm font-medium text-gray-600">
-                Title
+        <!-- TITLE & CATEGORY -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+              Expense Item Title
             </label>
             {{ form.title }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+              Expense Category
+            </label>
+            {{ form.category }}
+          </div>
         </div>
 
         <!-- AMOUNT -->
         <div>
-            <label class="block text-sm font-medium text-gray-600">
-                Amount (KES)
-            </label>
-            {{ form.amount }}
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Dismitted Amount (KES)
+          </label>
+          {{ form.amount }}
         </div>
 
-        <!-- CATEGORY -->
+        <!-- RECEIPT FILE -->
         <div>
-            <label class="block text-sm font-medium text-gray-600">
-                Category
-            </label>
-            {{ form.category }}
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Attach Receipt / Invoice Voucher
+          </label>
+          {{ form.receipt }}
         </div>
 
         <!-- DESCRIPTION -->
         <div>
-            <label class="block text-sm font-medium text-gray-600">
-                Description
-            </label>
-            {{ form.description }}
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Expense Description & Remarks
+          </label>
+          {{ form.description }}
         </div>
 
         <!-- BUTTONS -->
-        <div class="flex justify-between items-center pt-4">
-            <a href="{% url 'dashboard' %}"
-               class="text-gray-500 hover:underline">
-                Cancel
-            </a>
+        <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+          <a href="{% url 'budget_dashboard' %}" class="text-sm font-semibold text-slate-500 hover:text-slate-800 transition">
+            &larr; Back to Budget Dashboard
+          </a>
 
-            <button type="submit"
-                    class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">
-                Save Expense
-            </button>
+          <button type="submit" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-semibold shadow hover:bg-emerald-700 transition flex items-center gap-2">
+            <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Record Expense
+          </button>
         </div>
 
-    </form>
-</div>
+      </form>
+    </div>
+
+  </div>
 </main>
+
 {% include "footer.html" %}
 {% endblock content %}

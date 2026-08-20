@@ -48,7 +48,7 @@
         </div>
 
         {% if request.user.is_superuser %}
-        <a href="{% url 'projectstage_create' %}" 
+        <a href="{% url 'projectstage_create' %}"
            class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-lg shadow transition duration-200">
            + Add New Stage
         </a>
@@ -57,20 +57,49 @@
 
     <div class="bg-white shadow-xl rounded-2xl p-8 w-full border border-gray-100">
 
+    <!-- Search & Filter Bar -->
+    <form method="get" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+        <div>
+            <input type="text" name="q" value="{{ q }}" placeholder="Search stage or project..." class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+        <div>
+            <select name="project" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <option value="">All Projects</option>
+                {% for proj in projects %}
+                    <option value="{{ proj.id }}" {% if selected_project == proj.id|stringformat:"i" %}selected{% endif %}>{{ proj.project_title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <select name="stage_name" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <option value="">All Stage Types</option>
+                {% for code, label in stage_choices %}
+                    <option value="{{ code }}" {% if selected_stage_name == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition shadow w-full">Filter</button>
+            {% if q or selected_project or selected_stage_name %}
+                <a href="{% url 'projectstage_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg text-sm transition flex items-center justify-center">Reset</a>
+            {% endif %}
+        </div>
+    </form>
+
     {% if stages %}
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
         {% for stage in stages %}
-        <a href="{% url 'projectstage_detail' stage.pk %}" 
+        <a href="{% url 'projectstage_detail' stage.pk %}"
            class="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
 
             <!-- Project Image -->
             <div class="relative w-full h-52 overflow-hidden">
                 {% if stage.project.images %}
-                    <img src="{{ stage.project.images.url }}" 
+                    <img src="{{ stage.project.images.url }}"
                          class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                 {% else %}
-                    <img src="{% static 'images/default_project.jpg' %}" 
+                    <img src="{% static 'images/default_project.jpg' %}"
                          class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                 {% endif %}
 
@@ -139,7 +168,7 @@
             📂 No project stages available
         </div>
         {% if request.user.is_superuser %}
-        <a href="{% url 'projectstage_create' %}" 
+        <a href="{% url 'projectstage_create' %}"
            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-md transition">
            Create First Stage
         </a>
@@ -150,7 +179,7 @@
 </div>
 </div>
 </div>
-{% include "recent_activities.html" %} 
+{% include "recent_activities.html" %}
 </div>
 </div>
 </div>

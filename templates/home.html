@@ -23,9 +23,9 @@
               <span class="ms-3">Dashboard</span>
            </a>
            <ul class="ml-3 space-y-1">
-                  
+
             <li><a href="Project Status" class="text-blue-500 hover:bg-green-500 hover:text-white">Project Status</a></li>
-            <li><a href="Budget Analysis" class="text-blue-500 hover:bg-green-500 hover:text-white">Budget Analysis</a></li>
+            <li><a href="{% url 'BudgetAnalysis' %}" class="text-blue-500 hover:bg-green-500 hover:text-white">Budget Analysis</a></li>
             <li><a href="Perfomance Metrix" class="text-blue-500 hover:bg-green-500 hover:text-white">Performance Metrics</a></li>
         </ul>
         </li>
@@ -75,19 +75,19 @@
            <ul class="ml-3 space-y-1">
             <li><a href="{% url 'division' %}" class="text-blue-500 hover:bg-green-500 hover:text-white">Project Division</a></li>
             <li><a href="{% url 'division_details' %}" class="text-blue-500 hover:bg-green-500 hover:text-white">Project Details</a></li>
-           
+
         </ul>
         </li>
         {% elif request.user.is_enduser %}
         <li>
-             
+
           <a href="" class="block p-2 text-black-500 hover:bg-green-500 hover:text-white">
               <i class="fa fa-diamond" aria-hidden="true"></i> Divisions
           </a>
           <ul class="ml-3 space-y-1">
-              
+
               <li><a href="{% url 'division_details' %}" class="text-blue-500 hover:bg-green-500 hover:text-white">Project Details</a></li>
-             
+
           </ul>
       </li>
       {% endif %}
@@ -107,8 +107,8 @@
     {% endif %}
         <hr>
         </li>
-      
-       
+
+
      </ul>
   </div>
 </aside>

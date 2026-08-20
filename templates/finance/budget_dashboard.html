@@ -2,204 +2,386 @@
 {% block content %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Respond to Request — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-gray-50 text-gray-800 antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
- 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="max-w-7xl mx-auto space-y-6 p-4 md:p-6">
 
-<script src="https://cdn.tailwindcss.com"></script>
+    <!-- Messages -->
+    {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+      <div class="p-4 rounded-xl text-sm font-medium border flex items-center justify-between {% if message.tags == 'error' %}bg-red-50 text-red-700 border-red-200{% elif message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-200{% else %}bg-blue-50 text-blue-700 border-blue-200{% endif %}">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()" class="text-xs opacity-70 hover:opacity-100">&times;</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-<main class="main">
+    <!-- PAGE HEADER / HERO BANNER WITH BACKGROUND IMAGE -->
+    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md border border-slate-800">
+      <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=1400&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Government Infrastructure">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3 backdrop-blur-sm border border-emerald-500/30">
+            <iconify-icon icon="solar:wallet-bold-duotone"></iconify-icon> Public Finance & Budget Transparency
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+            Government Budget Allocation & Spending Tracker
+          </h1>
+          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+            Real-time public financial oversight: Track project allocations, verify disbursement logs, and monitor fund absorption rates across all national & county infrastructure projects.
+          </p>
+        </div>
 
-<div class="max-w-7xl mx-auto space-y-6 p-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="{% url 'BudgetAnalysis' %}" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-sm font-semibold backdrop-blur-sm transition border border-white/20">
+            <iconify-icon icon="solar:chart-2-bold-duotone"></iconify-icon> Budget Analysis
+          </a>
+          <a href="{% url 'add_budget' %}" class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-blue-700 transition">
+            <iconify-icon icon="solar:add-circle-bold-duotone"></iconify-icon> + Allocate Budget
+          </a>
+          <a href="{% url 'add_expense' %}" class="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-emerald-700 transition">
+            <iconify-icon icon="solar:bill-check-bold-duotone"></iconify-icon> + Log Expense
+          </a>
+        </div>
+      </div>
+    </div>
 
-    <!-- ================= HEADER ================= -->
-    <div class="flex justify-between items-center">
+    <!-- SUMMARY KPI CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">
-                Government Budget & Spending Transparency
-            </h1>
-            <p class="text-sm text-gray-500">
-                Track how public funds are allocated and spent
-            </p>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Allocated Budget</p>
+          <p class="text-2xl font-bold text-slate-900 mt-1">KES {{ total_budget|floatformat:2 }}</p>
+          <p class="text-xs text-slate-500 mt-1">Across approved projects</p>
         </div>
-
-        <div class="space-x-2">
-            <a href="{% url 'add_budget' %}"
-               class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
-                + Budget
-            </a>
-
-            <a href="#"
-               class="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700">
-                + Expense
-            </a>
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+          <iconify-icon icon="solar:wallet-money-bold-duotone" style="font-size:28px;"></iconify-icon>
         </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Recorded Spent</p>
+          <p class="text-2xl font-bold text-red-600 mt-1">KES {{ total_spent|floatformat:2 }}</p>
+          <p class="text-xs text-slate-500 mt-1">Verified disbursements</p>
+        </div>
+        <div class="p-3 bg-red-50 text-red-600 rounded-2xl">
+          <iconify-icon icon="solar:card-transfer-bold-duotone" style="font-size:28px;"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Remaining Balance</p>
+          <p class="text-2xl font-bold text-emerald-600 mt-1">KES {{ remaining|floatformat:2 }}</p>
+          <p class="text-xs text-slate-500 mt-1">Available liquidity</p>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+          <iconify-icon icon="solar:vault-bold-duotone" style="font-size:28px;"></iconify-icon>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Overall Utilization</p>
+          <p class="text-2xl font-bold text-purple-600 mt-1">{{ utilization_rate }}%</p>
+          <p class="text-xs text-slate-500 mt-1">Budget absorption rate</p>
+        </div>
+        <div class="p-3 bg-purple-50 text-purple-600 rounded-2xl">
+          <iconify-icon icon="solar:pie-chart-2-bold-duotone" style="font-size:28px;"></iconify-icon>
+        </div>
+      </div>
     </div>
 
-
-    <!-- ================= SUMMARY ================= -->
-    <div class="grid md:grid-cols-3 gap-4">
-
-        <div class="bg-white p-4 rounded-xl shadow">
-            <p class="text-sm text-gray-500">Total Budget</p>
-            <p class="text-xl font-bold">
-                KES {{ total_budget|floatformat:2 }}
-            </p>
+    <!-- FILTER BAR -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+      <form method="GET" class="flex flex-wrap items-center gap-3">
+        <div class="flex-1 min-w-[200px] relative">
+          <input type="text" name="q" placeholder="Search project, notes, expense items..." value="{{ query }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:bg-white transition">
         </div>
-
-        <div class="bg-white p-4 rounded-xl shadow">
-            <p class="text-sm text-gray-500">Total Spent</p>
-            <p class="text-xl font-bold text-red-600">
-                KES {{ total_spent|floatformat:2 }}
-            </p>
+        <div>
+          <input type="date" name="start_date" value="{{ start_date }}" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:bg-white transition">
         </div>
-
-        <div class="bg-white p-4 rounded-xl shadow">
-            <p class="text-sm text-gray-500">Remaining</p>
-            <p class="text-xl font-bold text-green-600">
-                KES {{ remaining|floatformat:2 }}
-            </p>
+        <div>
+          <input type="date" name="end_date" value="{{ end_date }}" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:bg-white transition">
         </div>
-
+        <button type="submit" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition flex items-center gap-2">
+          <iconify-icon icon="solar:magnifer-bold"></iconify-icon> Filter
+        </button>
+        {% if query or start_date or end_date %}
+        <a href="{% url 'budget_dashboard' %}" class="bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">Reset</a>
+        {% endif %}
+      </form>
     </div>
 
-
-    <!-- ================= FILTER ================= -->
-    <div class="bg-white p-4 rounded-xl shadow">
-        <form method="GET" class="flex flex-wrap gap-3">
-
-            <input type="text" name="q" placeholder="Search spending..."
-                   value="{{ request.GET.q }}"
-                   class="border p-2 rounded-lg flex-1">
-
-            <input type="date" name="start_date"
-                   value="{{ request.GET.start_date }}"
-                   class="border p-2 rounded-lg">
-
-            <input type="date" name="end_date"
-                   value="{{ request.GET.end_date }}"
-                   class="border p-2 rounded-lg">
-
-            <button class="bg-gray-800 text-white px-4 py-2 rounded-lg">
-                Filter
-            </button>
-
-        </form>
-    </div>
-
-
-    <!-- ================= BUDGET OVERVIEW ================= -->
-    <div class="grid md:grid-cols-3 gap-4">
-
-        {% for b in budgets %}
-        <div class="bg-white p-4 rounded-xl shadow hover:shadow-md transition">
-
-            <h2 class="font-semibold text-gray-800">
-                {{ b.project.name }}
-            </h2>
-
-            <p class="text-sm text-gray-600">
-                Total: <b>KES {{ b.total_budget|floatformat:2 }}</b>
-            </p>
-
-            <p class="text-sm text-green-600">
-                Spent: KES {{ b.allocated_budget|floatformat:2 }}
-            </p>
-
-            <p class="text-sm {% if b.remaining_budget < 0 %}text-red-700{% else %}text-blue-600{% endif %}">
-                Remaining: KES {{ b.remaining_budget|floatformat:2 }}
-            </p>
-
-            <!-- PROGRESS BAR -->
-            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
-                <div class="bg-green-500 h-2 rounded-full"
-                     style="width: {{ b.percentage_used }}%">
-                </div>
-            </div>
-
-        </div>
-        {% empty %}
-        <div class="col-span-3 text-center text-gray-500">
-            No budgets available.
-            <br>
-            <a href="{% url 'add_budget' %}" class="text-blue-600 underline">
-                Add your first budget
-            </a>
-        </div>
-        {% endfor %}
-
-    </div>
-
-
-    <!-- ================= SPENDING LOG ================= -->
-    <div class="bg-white p-6 rounded-xl shadow">
-
-        <h2 class="text-lg font-semibold mb-4">
-            Recent Spending
+    <!-- BUDGET ALLOCATIONS BY PROJECT -->
+    <div>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <iconify-icon icon="solar:box-minimalistic-bold-duotone" class="text-blue-600"></iconify-icon>
+          Project Budget Allocations & Status
         </h2>
+        <span class="text-xs text-slate-500">{{ budgets|length }} Record(s)</span>
+      </div>
 
-        {% for s in spendings %}
-        <div class="border-b py-3 hover:bg-gray-50 rounded">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {% for b in budgets %}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
 
-            <div class="flex justify-between">
-                <p class="font-semibold">
-                    {{ s.title }}
-                </p>
+          <!-- Card Image Header -->
+          <div class="relative h-40 bg-slate-100 overflow-hidden">
+            {% if b.project.cover_image %}
+              <img src="{{ b.project.cover_image.url }}" alt="{{ b.project.project_title }}" class="w-full h-full object-cover">
+            {% elif b.project.images %}
+              <img src="{{ b.project.images.url }}" alt="{{ b.project.project_title }}" class="w-full h-full object-cover">
+            {% else %}
+              <img src="https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?q=80&w=800&auto=format&fit=crop" alt="Project Infrastructure" class="w-full h-full object-cover">
+            {% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
+            <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end text-white">
+              <span class="text-xs font-bold bg-emerald-600/90 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                {{ b.project.project_division.name|default:"Public Project" }}
+              </span>
+              {% if b.fiscal_year %}
+              <span class="text-[10px] font-semibold bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                {{ b.fiscal_year }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
 
-                <p class="text-sm font-bold text-red-600">
-                    KES {{ s.amount|floatformat:2 }}
-                </p>
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base mb-3 line-clamp-1">
+                {{ b.project.project_title|default:"Unassigned Project" }}
+              </h3>
+
+              <div class="space-y-2 text-sm mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <div class="flex justify-between text-slate-600">
+                  <span>Allocated Budget:</span>
+                  <span class="font-bold text-slate-900">KES {{ b.allocated_amount|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-slate-600">
+                  <span>Total Spent:</span>
+                  <span class="font-bold text-red-600">KES {{ b.spent_amount|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-slate-600 pt-1 border-t border-slate-200">
+                  <span>Balance Remaining:</span>
+                  <span class="font-bold {% if b.remaining_budget < 0 %}text-red-700{% else %}text-emerald-600{% endif %}">
+                    KES {{ b.remaining_budget|floatformat:2 }}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <p class="text-sm text-gray-600">
-                {{ s.description }}
-            </p>
+            <!-- Progress Bar -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-500 font-medium">Fund Absorption</span>
+                <span class="font-bold text-slate-800">{{ b.percentage_used }}%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="h-2 rounded-full transition-all duration-300 {% if b.percentage_used > 100 %}bg-red-600{% elif b.percentage_used > 80 %}bg-amber-500{% else %}bg-emerald-500{% endif %}"
+                     style="width: {% if b.percentage_used > 100 %}100{% else %}{{ b.percentage_used }}{% endif %}%">
+                </div>
+              </div>
 
-            <p class="text-xs text-gray-400 mt-1">
-                {{ s.project.name }} |
-                {{ s.category }} |
-                {{ s.date|date:"M d, Y" }}
-            </p>
+              {% if b.notes %}
+              <p class="text-xs text-slate-500 italic mt-3 line-clamp-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                "{{ b.notes }}"
+              </p>
+              {% endif %}
+            </div>
+          </div>
 
         </div>
         {% empty %}
-        <p class="text-gray-500">
-            No spending records found.
-            <a href="#" class="text-green-600 underline">
-                Add expense
-            </a>
-        </p>
+        <div class="col-span-3 bg-white p-8 rounded-2xl text-center text-slate-500 border border-slate-100">
+          <iconify-icon icon="solar:folder-empty-bold-duotone" style="font-size:40px;" class="text-slate-300 mb-2"></iconify-icon>
+          <p class="font-medium">No budget allocations found.</p>
+          <a href="{% url 'add_budget' %}" class="inline-block mt-3 text-sm text-emerald-600 font-semibold hover:underline">
+            + Allocate first project budget
+          </a>
+        </div>
         {% endfor %}
-
+      </div>
     </div>
 
-</div>
+    <!-- SPENDING / EXPENSE LOG -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:history-bold-duotone" class="text-emerald-600"></iconify-icon>
+            Recent Expense & Spending Records
+          </h2>
+          <p class="text-xs text-slate-500">Verified payment disbursements against project budgets</p>
+        </div>
+        <a href="{% url 'add_expense' %}" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+          + Add New Expense &rarr;
+        </a>
+      </div>
 
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase text-xs">
+            <tr>
+              <th class="p-3 rounded-l-xl">Expense Title</th>
+              <th class="p-3">Project</th>
+              <th class="p-3">Category</th>
+              <th class="p-3">Date</th>
+              <th class="p-3">Amount</th>
+              <th class="p-3 rounded-r-xl">Receipt</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for s in spendings %}
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3 font-semibold text-slate-800">
+                {{ s.title|default:"Expense Record" }}
+                {% if s.description %}
+                <p class="text-xs font-normal text-slate-500 line-clamp-1">{{ s.description }}</p>
+                {% endif %}
+              </td>
+              <td class="p-3 text-slate-700 font-medium">
+                {{ s.project.project_title|default:"Unspecified" }}
+              </td>
+              <td class="p-3">
+                <span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 capitalize">
+                  {{ s.get_category_display|default:s.category }}
+                </span>
+              </td>
+              <td class="p-3 text-xs text-slate-500">
+                {{ s.date|date:"M d, Y" }}
+              </td>
+              <td class="p-3 font-bold text-red-600">
+                KES {{ s.amount|floatformat:2 }}
+              </td>
+              <td class="p-3">
+                {% if s.receipt %}
+                <a href="{{ s.receipt.url }}" target="_blank" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                  <iconify-icon icon="solar:document-bold"></iconify-icon> Receipt
+                </a>
+                {% else %}
+                <span class="text-xs text-slate-400">N/A</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="p-8 text-center text-slate-400">
+                No recent expense logs recorded yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROJECT SITE INSPECTIONS & MEDIA HIGHLIGHTS -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:videocamera-record-bold-duotone" class="text-blue-600"></iconify-icon>
+            Project Site Inspections & Media Showcase
+          </h2>
+          <p class="text-xs text-slate-500">Visual progress verification & government project site video tours</p>
+        </div>
+        <a href="{% url 'media_list' %}" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+          View All Media &rarr;
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Media Item 1 -->
+        <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 group">
+          <div class="relative h-44 bg-slate-900 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90" alt="Highways Inspection">
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <span class="w-12 h-12 rounded-full bg-white/90 text-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                <iconify-icon icon="solar:play-bold" style="font-size:24px;"></iconify-icon>
+              </span>
+            </div>
+            <span class="absolute bottom-3 right-3 text-[10px] font-bold bg-black/70 text-white px-2 py-0.5 rounded backdrop-blur-sm">
+              HD Video Tour
+            </span>
+          </div>
+          <div class="p-4">
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-700">Infrastructure</span>
+            <h4 class="font-bold text-slate-800 text-sm mt-2">National Expressway & Highway Extension</h4>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2">Site audit inspecting asphalt quality, bridge pillars, and budgetary milestone compliance.</p>
+          </div>
+        </div>
+
+        <!-- Media Item 2 -->
+        <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 group">
+          <div class="relative h-44 bg-slate-900 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90" alt="Hospital Facility Inspection">
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <span class="w-12 h-12 rounded-full bg-white/90 text-emerald-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                <iconify-icon icon="solar:play-bold" style="font-size:24px;"></iconify-icon>
+              </span>
+            </div>
+            <span class="absolute bottom-3 right-3 text-[10px] font-bold bg-black/70 text-white px-2 py-0.5 rounded backdrop-blur-sm">
+              3D Walkthrough
+            </span>
+          </div>
+          <div class="p-4">
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Health Sector</span>
+            <h4 class="font-bold text-slate-800 text-sm mt-2">Level 5 Regional Referral Hospital Complex</h4>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2">Facility wing inspection covering medical equipment installations and emergency ward capacity.</p>
+          </div>
+        </div>
+
+        <!-- Media Item 3 -->
+        <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 group">
+          <div class="relative h-44 bg-slate-900 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90" alt="County Educational Facility">
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <span class="w-12 h-12 rounded-full bg-white/90 text-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                <iconify-icon icon="solar:play-bold" style="font-size:24px;"></iconify-icon>
+              </span>
+            </div>
+            <span class="absolute bottom-3 right-3 text-[10px] font-bold bg-black/70 text-white px-2 py-0.5 rounded backdrop-blur-sm">
+              Drone Inspection
+            </span>
+          </div>
+          <div class="p-4">
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-700">Education</span>
+            <h4 class="font-bold text-slate-800 text-sm mt-2">Polytechnic Vocational Training Institute</h4>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2">Aerial drone survey evaluating campus block roofing, computer labs, and solar power installations.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </main>
+
 {% include "footer.html" %}
 {% endblock content %}

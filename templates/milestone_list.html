@@ -1,235 +1,555 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="milestoneApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Project Milestones — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-
-
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="milestoneApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="max-w-7xl mx-auto space-y-6 p-4 md:p-6">
 
-
-<div class="container mx-auto px-4 py-8">
-
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
+    <!-- HERO / HEADER -->
+    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
+      <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="GovTracker Milestones">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-            <h2 class="text-3xl font-bold text-gray-800">
-                Project Milestones
-            </h2>
-            <p class="text-gray-500">
-                Manage and track project progress.
-            </p>
+          <span class="inline-block px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-full uppercase tracking-wider mb-2 border border-blue-500/30">Delivery & Execution Roadmap</span>
+          <h1 class="text-2xl md:text-3xl font-extrabold">Project Milestones & Key Deliverables</h1>
+          <p class="text-sm text-slate-300 mt-1 max-w-2xl">Monitor critical project timelines, track progress percentages across development stages, and manage target deadlines across government initiatives.</p>
         </div>
 
-        <a href="{% url 'milestone_create'  %}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg shadow">
-            + Add Milestone
-        </a>
+        <div class="flex items-center gap-3 shrink-0">
+          <button @click="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-4 py-2.5 rounded-xl border border-slate-700 shadow text-xs transition flex items-center gap-2">
+            <iconify-icon icon="solar:printer-bold"></iconify-icon> Print Report
+          </button>
+          <a href="{% url 'milestone_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-xs">
+            <iconify-icon icon="solar:add-circle-bold"></iconify-icon> + Add Milestone
+          </a>
+        </div>
+      </div>
     </div>
 
-    <!-- Milestones Table -->
-    <div class="bg-white rounded-xl shadow overflow-hidden">
+    <!-- MESSAGES -->
+    {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+      <div class="p-4 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-between">
+        <span>{{ message }}</span>
+        <button type="button" @click="$el.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">&times;</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-        <div class="overflow-x-auto">
+    <!-- STATS KPI GRID -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</p>
+          <div class="p-2 bg-slate-100 text-slate-600 rounded-lg">
+            <iconify-icon icon="solar:flag-2-bold-duotone" class="text-lg"></iconify-icon>
+          </div>
+        </div>
+        <div class="mt-2">
+          <h3 class="text-2xl font-black text-slate-800">{{ stats.total }}</h3>
+          <span class="text-[11px] text-slate-500">Milestones registered</span>
+        </div>
+      </div>
 
-            <table class="min-w-full divide-y divide-gray-200">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-emerald-500 uppercase tracking-wider">Completed</p>
+          <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+            <iconify-icon icon="solar:check-circle-bold-duotone" class="text-lg"></iconify-icon>
+          </div>
+        </div>
+        <div class="mt-2">
+          <h3 class="text-2xl font-black text-emerald-600">{{ stats.completed }}</h3>
+          <span class="text-[11px] text-emerald-600 font-semibold">{{ stats.completion_rate }}% completion rate</span>
+        </div>
+      </div>
 
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                            Title
-                        </th>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-blue-500 uppercase tracking-wider">In Progress</p>
+          <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+            <iconify-icon icon="solar:restart-bold-duotone" class="text-lg"></iconify-icon>
+          </div>
+        </div>
+        <div class="mt-2">
+          <h3 class="text-2xl font-black text-blue-600">{{ stats.in_progress }}</h3>
+          <span class="text-[11px] text-slate-500">Active execution</span>
+        </div>
+      </div>
 
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                            Stage
-                        </th>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-amber-500 uppercase tracking-wider">Pending</p>
+          <div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+            <iconify-icon icon="solar:clock-circle-bold-duotone" class="text-lg"></iconify-icon>
+          </div>
+        </div>
+        <div class="mt-2">
+          <h3 class="text-2xl font-black text-amber-600">{{ stats.pending }}</h3>
+          <span class="text-[11px] text-slate-500">Scheduled / Queued</span>
+        </div>
+      </div>
 
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                            Progress
-                        </th>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-rose-500 uppercase tracking-wider">Overdue / Missed</p>
+          <div class="p-2 bg-rose-50 text-rose-600 rounded-lg">
+            <iconify-icon icon="solar:danger-triangle-bold-duotone" class="text-lg"></iconify-icon>
+          </div>
+        </div>
+        <div class="mt-2">
+          <h3 class="text-2xl font-black text-rose-600">{{ stats.overdue }}</h3>
+          <span class="text-[11px] text-rose-500 font-semibold">Requires attention</span>
+        </div>
+      </div>
 
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                            Date
-                        </th>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-indigo-500 uppercase tracking-wider">Avg Progress</p>
+          <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+            <iconify-icon icon="solar:chart-square-bold-duotone" class="text-lg"></iconify-icon>
+          </div>
+        </div>
+        <div class="mt-2">
+          <h3 class="text-2xl font-black text-indigo-600">{{ stats.avg_progress }}%</h3>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+            <div class="bg-indigo-600 h-full rounded-full" style="width: {{ stats.avg_progress }}%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                        <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase">
-                            Actions
-                        </th>
-                    </tr>
-                </thead>
+    <!-- CHARTS SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Status Doughnut Chart -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1 flex flex-col justify-between">
+        <div class="mb-4">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:pie-chart-2-bold-duotone" class="text-blue-600"></iconify-icon>
+            Status Breakdown
+          </h3>
+          <p class="text-xs text-slate-500">Distribution of milestone statuses</p>
+        </div>
+        <div class="relative flex justify-center items-center h-48">
+          <canvas id="milestoneStatusChart"></canvas>
+        </div>
+      </div>
 
-                <tbody class="divide-y divide-gray-100">
+      <!-- Completion Trend / Stage Progress -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col justify-between">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <iconify-icon icon="solar:graph-bold-duotone" class="text-blue-600"></iconify-icon>
+              Milestone Progress Trajectory
+            </h3>
+            <p class="text-xs text-slate-500">Average completion progress by milestone status</p>
+          </div>
+        </div>
+        <div class="relative h-48">
+          <canvas id="milestoneProgressChart"></canvas>
+        </div>
+      </div>
+    </div>
 
-                    {% for milestone in milestones %}
-
-                    <tr class="hover:bg-gray-50">
-
-                        <td class="px-6 py-4">
-                            <h4 class="font-semibold text-gray-800">
-                                {{ milestone.title }}
-                            </h4>
-
-                            <p class="text-sm text-gray-500">
-                                {{ milestone.description|truncatechars:60 }}
-                            </p>
-                        </td>
-
-                        <td class="px-6 py-4">
-                            {% if milestone.stage %}
-                                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                                    {{ milestone.stage.name }}
-                                </span>
-                            {% else %}
-                                <span class="text-gray-400">
-                                    No Stage
-                                </span>
-                            {% endif %}
-                        </td>
-
-                        <td class="px-6 py-4 w-72">
-
-                            <div class="flex justify-between mb-1">
-                                <span class="text-sm text-gray-600">
-                                    Progress
-                                </span>
-
-                                <span class="text-sm font-bold">
-                                    {{ milestone.progress_percentage }}%
-                                </span>
-                            </div>
-
-                            <div class="w-full bg-gray-200 rounded-full h-3">
-
-                                <div
-                                    class="bg-green-500 h-3 rounded-full"
-                                    style="width: {{ milestone.progress_percentage }}%;">
-                                </div>
-
-                            </div>
-
-                        </td>
-
-                        <td class="px-6 py-4 text-gray-600">
-                            {{ milestone.completion_date }}
-                        </td>
-
-                        <td class="px-6 py-4">
-
-                            <div class="flex justify-center gap-2">
-
-                                <a href="{% url 'milestone_update' milestone.id %}"
-                                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm">
-                                    Edit
-                                </a>
-
-                                <a href="{% url 'milestone_delete' milestone.id %}"
-                                   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
-                                    Delete
-                                </a>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-                    {% empty %}
-
-                    <tr>
-                        <td colspan="5" class="text-center py-10 text-gray-500">
-                            No milestones available.
-                        </td>
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
+    <!-- SEARCH & FILTER BAR -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+      <form method="get" class="flex flex-wrap items-center gap-3">
+        <div class="flex-1 min-w-[240px]">
+          <input type="text" name="q" value="{{ query }}" placeholder="Search milestones by title, project name, or stage..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition">
         </div>
 
+        <select name="project" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-blue-500">
+          <option value="">All Projects</option>
+          {% for pr in projects %}
+          <option value="{{ pr.id }}" {% if selected_project == pr.id|stringformat:"s" %}selected{% endif %}>{{ pr.project_title|truncatechars:28 }}</option>
+          {% endfor %}
+        </select>
+
+        <select name="status" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-blue-500">
+          <option value="">All Statuses</option>
+          <option value="pending" {% if selected_status == "pending" %}selected{% endif %}>Pending</option>
+          <option value="in_progress" {% if selected_status == "in_progress" %}selected{% endif %}>In Progress</option>
+          <option value="completed" {% if selected_status == "completed" %}selected{% endif %}>Completed</option>
+          <option value="missed" {% if selected_status == "missed" %}selected{% endif %}>Missed</option>
+        </select>
+
+        <select name="stage" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-blue-500">
+          <option value="">All Stages</option>
+          {% for st in stages %}
+          <option value="{{ st.id }}" {% if selected_stage == st.id|stringformat:"s" %}selected{% endif %}>{{ st.name }}</option>
+          {% endfor %}
+        </select>
+
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
+          <iconify-icon icon="solar:magnifer-bold"></iconify-icon> Filter
+        </button>
+
+        {% if query or selected_project or selected_status or selected_stage %}
+        <a href="{% url 'milestone_list' %}" class="bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-200 transition">Reset</a>
+        {% endif %}
+      </form>
     </div>
 
-</div>
+    <!-- MAIN CONTENT VIEW TABS (Table View vs Interactive Timeline Roadmap) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <!-- VIEW HEADER & TAB TROW -->
+      <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:list-bold-duotone" class="text-blue-600"></iconify-icon>
+            Milestones Register
+          </h2>
+          <p class="text-xs text-slate-500">Manage deliverables, track status updates, and review completion dates</p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl shrink-0">
+          <button @click="activeTab = 'table'" :class="{ 'bg-white shadow text-blue-600 font-bold': activeTab === 'table', 'text-slate-600 font-medium': activeTab !== 'table' }" class="px-3.5 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5">
+            <iconify-icon icon="solar:hamburger-menu-linear"></iconify-icon> List View
+          </button>
+          <button @click="activeTab = 'timeline'" :class="{ 'bg-white shadow text-blue-600 font-bold': activeTab === 'timeline', 'text-slate-600 font-medium': activeTab !== 'timeline' }" class="px-3.5 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5">
+            <iconify-icon icon="solar:route-bold-duotone"></iconify-icon> Visual Roadmap
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: TABLE VIEW -->
+      <div x-show="activeTab === 'table'" class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-bold text-[11px] border-b border-slate-100">
+            <tr>
+              <th class="p-4">Milestone Deliverable</th>
+              <th class="p-4">Associated Project & Stage</th>
+              <th class="p-4">Completion Progress</th>
+              <th class="p-4">Target Due Date</th>
+              <th class="p-4">Status</th>
+              <th class="p-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for milestone in milestones %}
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="p-4">
+                <a href="{% url 'milestone_detail' milestone.id %}" class="font-bold text-slate-900 hover:text-blue-600 text-sm block">
+                  {{ milestone.title }}
+                </a>
+                <p class="text-slate-500 mt-1 line-clamp-1 max-w-xs">
+                  {{ milestone.description|default:"No description provided." }}
+                </p>
+              </td>
+
+              <td class="p-4">
+                <a href="{% url 'project_details' milestone.project.id %}" class="font-bold text-blue-600 hover:underline block">
+                  {{ milestone.project.project_title|truncatechars:30 }}
+                </a>
+                {% if milestone.stage %}
+                <span class="inline-block mt-1 bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md font-semibold text-[10px]">
+                  Stage: {{ milestone.stage.name }}
+                </span>
+                {% else %}
+                <span class="inline-block mt-1 text-slate-400 text-[10px] italic">General Milestone</span>
+                {% endif %}
+              </td>
+
+              <td class="p-4 w-52">
+                <div class="flex justify-between items-center mb-1 text-[11px]">
+                  <span class="font-semibold text-slate-600">Progress</span>
+                  <span class="font-bold text-slate-900">{{ milestone.progress_percentage }}%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-300 {% if milestone.progress_percentage == 100 %}bg-emerald-500{% elif milestone.progress_percentage > 50 %}bg-blue-600{% elif milestone.progress_percentage > 0 %}bg-amber-500{% else %}bg-slate-300{% endif %}" style="width: {{ milestone.progress_percentage }}%;"></div>
+                </div>
+              </td>
+
+              <td class="p-4">
+                {% if milestone.due_date %}
+                <span class="font-semibold text-slate-800 block">{{ milestone.due_date|date:"M d, Y" }}</span>
+                {% if milestone.is_overdue %}
+                <span class="text-rose-600 font-bold text-[10px] flex items-center gap-1 mt-0.5">
+                  <iconify-icon icon="solar:danger-triangle-bold"></iconify-icon> Overdue
+                </span>
+                {% elif milestone.days_left is not None %}
+                <span class="text-slate-400 text-[10px]">
+                  {% if milestone.days_left == 0 %}Due today{% elif milestone.days_left > 0 %}{{ milestone.days_left }} days left{% endif %}
+                </span>
+                {% endif %}
+                {% else %}
+                <span class="text-slate-400 italic">No due date</span>
+                {% endif %}
+              </td>
+
+              <td class="p-4">
+                {% if milestone.status == 'completed' %}
+                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-bold text-[10px] uppercase tracking-wider inline-flex items-center gap-1">
+                  <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Completed
+                </span>
+                {% elif milestone.status == 'in_progress' %}
+                <span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full font-bold text-[10px] uppercase tracking-wider inline-flex items-center gap-1">
+                  <iconify-icon icon="solar:restart-bold"></iconify-icon> In Progress
+                </span>
+                {% elif milestone.status == 'missed' %}
+                <span class="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full font-bold text-[10px] uppercase tracking-wider inline-flex items-center gap-1">
+                  <iconify-icon icon="solar:close-circle-bold"></iconify-icon> Missed
+                </span>
+                {% else %}
+                <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full font-bold text-[10px] uppercase tracking-wider inline-flex items-center gap-1">
+                  <iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Pending
+                </span>
+                {% endif %}
+              </td>
+
+              <td class="p-4 text-center">
+                <div class="flex items-center justify-center gap-1.5">
+                  <a href="{% url 'milestone_detail' milestone.id %}" title="View Details" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">
+                    <iconify-icon icon="solar:eye-bold" class="text-sm"></iconify-icon>
+                  </a>
+                  <button type="button" @click="openQuickUpdate({{ milestone.id }}, '{{ milestone.status }}', {{ milestone.progress_percentage }}, '{{ milestone.title|escapejs }}')" title="Quick Update Status" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg font-bold transition">
+                    <iconify-icon icon="solar:pen-new-square-bold" class="text-sm"></iconify-icon>
+                  </button>
+                  <a href="{% url 'milestone_update' milestone.id %}" title="Edit Full Milestone" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-bold transition">
+                    <iconify-icon icon="solar:settings-bold" class="text-sm"></iconify-icon>
+                  </a>
+                  <a href="{% url 'milestone_delete' milestone.id %}" title="Delete" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition">
+                    <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="p-12 text-center text-slate-400">
+                <iconify-icon icon="solar:flag-2-bold-duotone" style="font-size:48px;" class="mb-2 text-slate-300"></iconify-icon>
+                <p class="font-bold text-slate-700 text-sm">No milestones found.</p>
+                <p class="text-xs text-slate-400 mt-1">Try adjusting your filters or click "+ Add Milestone" to create one.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TAB 2: VISUAL ROADMAP / TIMELINE -->
+      <div x-show="activeTab === 'timeline'" class="p-6">
+        <div class="space-y-8">
+          {% for milestone in milestones %}
+          <div class="relative flex gap-4 items-start group">
+            <!-- Timeline Marker Line -->
+            <div class="flex flex-col items-center">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-sm shrink-0 {% if milestone.status == 'completed' %}bg-emerald-500{% elif milestone.status == 'in_progress' %}bg-blue-600{% elif milestone.status == 'missed' %}bg-rose-500{% else %}bg-amber-500{% endif %}">
+                {% if milestone.status == 'completed' %}
+                <iconify-icon icon="solar:check-circle-bold" class="text-xl"></iconify-icon>
+                {% elif milestone.status == 'in_progress' %}
+                <iconify-icon icon="solar:restart-bold" class="text-xl"></iconify-icon>
+                {% elif milestone.status == 'missed' %}
+                <iconify-icon icon="solar:close-circle-bold" class="text-xl"></iconify-icon>
+                {% else %}
+                <iconify-icon icon="solar:clock-circle-bold" class="text-xl"></iconify-icon>
+                {% endif %}
+              </div>
+              {% if not forloop.last %}
+              <div class="w-0.5 bg-slate-200 h-full my-2"></div>
+              {% endif %}
+            </div>
+
+            <!-- Content Card -->
+            <div class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-5 hover:bg-white hover:shadow-md transition">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <div>
+                  <a href="{% url 'milestone_detail' milestone.id %}" class="font-extrabold text-slate-900 text-base hover:text-blue-600 transition">
+                    {{ milestone.title }}
+                  </a>
+                  <p class="text-xs text-slate-500">
+                    Project: <a href="{% url 'project_details' milestone.project.id %}" class="text-blue-600 font-bold hover:underline">{{ milestone.project.project_title }}</a>
+                    {% if milestone.stage %} &bull; Stage: <span class="font-semibold text-slate-700">{{ milestone.stage.name }}</span>{% endif %}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">
+                    {{ milestone.progress_percentage }}% Complete
+                  </span>
+                  <a href="{% url 'milestone_detail' milestone.id %}" class="text-xs font-bold text-blue-600 hover:underline">View Details &rarr;</a>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                {{ milestone.description|default:"No description provided." }}
+              </p>
+
+              <!-- Progress bar & Date info -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-200 text-xs">
+                <div>
+                  <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full {% if milestone.progress_percentage == 100 %}bg-emerald-500{% elif milestone.progress_percentage > 50 %}bg-blue-600{% else %}bg-amber-500{% endif %}" style="width: {{ milestone.progress_percentage }}%;"></div>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between text-slate-500 text-[11px]">
+                  <span>Due Date: <strong class="text-slate-800">{{ milestone.due_date|date:"d M Y"|default:"Not specified" }}</strong></span>
+                  {% if milestone.completion_date %}
+                  <span>Completed: <strong class="text-emerald-700">{{ milestone.completion_date|date:"d M Y" }}</strong></span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-10 text-slate-400">
+            <p class="text-sm font-semibold">No visual roadmap milestones to display.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
 </main>
 
-<!-- ================================================= -->
-<!-- CHART SCRIPT -->
-<!-- ================================================= -->
+<!-- QUICK UPDATE STATUS MODAL -->
+<div x-show="quickModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-cloak>
+  <div @click.away="quickModalOpen = false" class="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-md w-full p-6 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+        <iconify-icon icon="solar:pen-new-square-bold" class="text-blue-600"></iconify-icon> Quick Status Update
+      </h3>
+      <button @click="quickModalOpen = false" class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
+    </div>
 
-<script>
-const ctx = document.getElementById('milestoneChart');
+    <form :action="'/milestones/quick-update/' + currentId + '/'" method="post" class="space-y-4 text-xs">
+      {% csrf_token %}
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Milestone Title</label>
+        <p x-text="currentTitle" class="bg-slate-50 p-2.5 rounded-xl font-semibold text-slate-800 border border-slate-200"></p>
+      </div>
 
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Jan','Feb','Mar','Apr','May','Jun'],
-        datasets: [{
-            label: 'Milestone Progress',
-            data: [10, 25, 40, 55, 75, 95],
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59,130,246,0.2)',
-            tension: 0.4,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                labels: {
-                    color: '#fff'
-                }
-            }
-        },
-        scales: {
-            x: {
-                ticks: {
-                    color: '#94a3b8'
-                },
-                grid: {
-                    color: 'rgba(255,255,255,0.05)'
-                }
-            },
-            y: {
-                ticks: {
-                    color: '#94a3b8'
-                },
-                grid: {
-                    color: 'rgba(255,255,255,0.05)'
-                }
-            }
-        }
-    }
-});
-</script>
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Update Status</label>
+        <select name="status" x-model="currentStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold outline-none focus:border-blue-500">
+          <option value="pending">Pending</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="missed">Missed</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Progress Percentage (%)</label>
+        <input type="number" min="0" max="100" name="progress_percentage" x-model="currentProgress" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold outline-none focus:border-blue-500">
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" @click="quickModalOpen = false" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 {% include "footer.html" %}
 
-{% endblock %}
+<script>
+function milestoneApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 768,
+    activeTab: 'table',
+    quickModalOpen: false,
+    currentId: null,
+    currentStatus: 'pending',
+    currentProgress: 0,
+    currentTitle: '',
+    openQuickUpdate(id, status, progress, title) {
+      this.currentId = id;
+      this.currentStatus = status;
+      this.currentProgress = progress;
+      this.currentTitle = title;
+      this.quickModalOpen = true;
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Chart 1: Status Doughnut Chart
+  const statusCtx = document.getElementById('milestoneStatusChart');
+  if (statusCtx) {
+    new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'In Progress', 'Pending', 'Missed'],
+        datasets: [{
+          data: [{{ stats.completed }}, {{ stats.in_progress }}, {{ stats.pending }}, {{ stats.missed }}],
+          backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', size: 11 } }
+          }
+        },
+        cutout: '70%'
+      }
+    });
+  }
+
+  // Chart 2: Milestone Progress Bar Chart
+  const progressCtx = document.getElementById('milestoneProgressChart');
+  if (progressCtx) {
+    new Chart(progressCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Total Rate', 'Avg Completion %', 'Completed Rate'],
+        datasets: [{
+          label: 'Percentage (%)',
+          data: [100, {{ stats.avg_progress }}, {{ stats.completion_rate }}],
+          backgroundColor: ['#94a3b8', '#6366f1', '#10b981'],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, max: 100 }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+});
+</script>
+
+</body>
+</html>

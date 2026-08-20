@@ -1,25 +1,33 @@
-
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+{% load widget_tweaks %}
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="teamFormApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Update Team Member — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+<style>
+/* Team form styles */
+.team-form-hero{background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 50%,var(--primary) 130%);border-radius:20px;padding:36px 32px;color:#fff;position:relative;overflow:hidden;margin-bottom:24px}
+.team-form-hero h1{font-size:1.8rem;font-weight:800;margin-bottom:6px;position:relative;z-index:1}
+.team-form-hero p{font-size:.9rem;opacity:.9;position:relative;z-index:1}
+.team-form-card{background:var(--surface);border-radius:16px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.team-form-label{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:6px;display:block}
+.team-form-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:.9rem;color:var(--text);background:var(--surface);font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:all .2s}
+.team-form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-10)}
+.team-form-input::placeholder{color:var(--text-light)}
+.alert-success{background:rgba(40,167,69,.1);border:1px solid rgba(40,167,69,.25);color:var(--success);border-radius:12px;padding:14px 18px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.current-photo{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-10)}
+</style>
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="teamFormApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -28,15 +36,141 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="content">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-update team member
-    </main>
-    {% include "footer.html" %}
-  {% endblock content %}
+    <!-- ===== HERO ===== -->
+    <div class="team-form-hero">
+      <h1>Update Team Member</h1>
+      <p>Edit the details of {{ tim.name }}.</p>
+    </div>
+
+    <!-- ===== SUCCESS MESSAGE ===== -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert-success">
+          <iconify-icon icon="solar:check-circle-bold" style="font-size:20px;"></iconify-icon>
+          {{ message }}
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <!-- ===== FORM ===== -->
+    <div class="team-form-card">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Current Photo Preview -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;background:var(--bg);border-radius:12px;">
+          {% if tim.image %}
+          <img src="{{ tim.image.url }}" alt="{{ tim.name }}" class="current-photo">
+          {% else %}
+          <div style="width:80px;height:80px;border-radius:50%;background:var(--primary-10);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;">{{ tim.name|slice:":1" }}</div>
+          {% endif %}
+          <div>
+            <div style="font-weight:700;color:var(--text);">{{ tim.name }}</div>
+            <div style="font-size:.8rem;color:var(--text-light);">{{ tim.role }}</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:0;">
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.name.id_for_label }}">Full Name</label>
+            {% render_field form.name class="team-form-input" %}
+            {% if form.name.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.name.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.role.id_for_label }}">Role</label>
+            {% render_field form.role class="team-form-input" %}
+            {% if form.role.errors %}
+            <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.role.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="team-form-label" for="{{ form.image.id_for_label }}">Profile Image</label>
+          <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;background:var(--bg);">
+            {{ form.image }}
+          </div>
+          {% if form.image.errors %}
+          <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.image.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="team-form-label" for="{{ form.description.id_for_label }}">Description</label>
+          {% render_field form.description class="team-form-input" %}
+          {% if form.description.errors %}
+          <p style="color:var(--danger);font-size:.75rem;margin-top:4px;">{{ form.description.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="grid-2" style="margin-bottom:0;">
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.facebook.id_for_label }}">Facebook URL</label>
+            {% render_field form.facebook class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.instagram.id_for_label }}">Instagram URL</label>
+            {% render_field form.instagram class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.twitter.id_for_label }}">Twitter URL</label>
+            {% render_field form.twitter class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.linkedin.id_for_label }}">LinkedIn URL</label>
+            {% render_field form.linkedin class="team-form-input" %}
+          </div>
+          <div class="form-group">
+            <label class="team-form-label" for="{{ form.whatsapp.id_for_label }}">WhatsApp Number</label>
+            {% render_field form.whatsapp class="team-form-input" %}
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:20px;border-top:1px solid var(--border-light);">
+          <a href="{% url 'team' %}" class="btn btn-outline">
+            <iconify-icon icon="solar:arrow-left-bold"></iconify-icon>
+            Back
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <iconify-icon icon="solar:check-circle-bold"></iconify-icon>
+            Update Member
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div><!-- .content -->
+</main>
+
+{% include "footer.html" %}
+
+<script>
+function teamFormApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+    pageTitle: 'Update Team Member',
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    }
+  }
+}
+</script>
+
+</body>
+</html>

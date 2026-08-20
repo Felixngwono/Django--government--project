@@ -1,24 +1,21 @@
-{% extends "heading.html" %}
-{% block content %}
+
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Project Overview — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -27,98 +24,240 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="container mx-auto px-4 py-6 bg-white rounded-lg shadow">
 
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">
-        {{ tender.title|default:"Tender Details" }}
-    </h1>
+  <div class="max-w-7xl mx-auto space-y-6 p-4 md:p-6">
 
-    <div class="space-y-3 text-gray-700">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+      <div class="p-4 rounded-xl text-sm font-medium border flex items-center justify-between {% if message.tags == 'error' %}bg-red-50 text-red-700 border-red-200{% elif message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-200{% else %}bg-blue-50 text-blue-700 border-blue-200{% endif %}">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()" class="text-xs opacity-70 hover:opacity-100">&times;</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-        <p><strong>Project:</strong> {{ tender.project.project_title|default:"Unassigned" }}</p>
-
-        <p><strong>Reference Number:</strong> {{ tender.reference_number }}</p>
-
-        <p><strong>Description:</strong> {{ tender.description }}</p>
-
-        <p><strong>Procurement Method:</strong> {{ tender.get_procurement_method_display }}</p>
-
-        <p><strong>Estimated Budget:</strong> 
-            {% if tender.estimated_budget %}
-                KES {{ tender.estimated_budget }}
-            {% else %}
-                Not specified
-            {% endif %}
-        </p>
-
-        <p><strong>Opening Date:</strong> {{ tender.opening_date }}</p>
-
-        <p><strong>Closing Date:</strong> {{ tender.closing_date }}</p>
-
-        <p><strong>Status:</strong> 
-            <span class="px-2 py-1 rounded bg-blue-100 text-blue-700">
-                {{ tender.get_status_display }}
+    <!-- HERO / HEADER BANNER -->
+    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
+      <img src="https://images.unsplash.com/photo-1450133064473-71024230f91b?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Tender Details">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              {{ tender.get_procurement_method_display|default:tender.procurement_method }}
             </span>
-        </p>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {% if tender.status == 'awarded' %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/30{% elif tender.status == 'published' or tender.status == 'open' %}bg-blue-500/20 text-blue-300 border border-blue-500/30{% else %}bg-amber-500/20 text-amber-300 border border-amber-500/30{% endif %}">
+              {{ tender.get_status_display }}
+            </span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold">
+            {{ tender.title|default:tender.reference_number }}
+          </h1>
+          <p class="text-sm text-slate-300 mt-1 flex items-center gap-2">
+            <iconify-icon icon="solar:folder-bold-duotone"></iconify-icon>
+            Project: <strong class="text-white">{{ tender.project.project_title|default:"Unassigned Project" }}</strong>
+            &middot; Ref: <strong class="text-slate-200">{{ tender.reference_number }}</strong>
+          </p>
+        </div>
 
-        <p><strong>Eligibility Criteria:</strong><br>
-            {{ tender.eligibility_criteria|linebreaks }}
-        </p>
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="{% url 'tender_list' %}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-white/20 flex items-center gap-1.5 backdrop-blur-sm">
+            &larr; Tender List
+          </a>
+          {% if tender.status != 'closed' and tender.status != 'awarded' %}
+          <a href="{% url 'apply_tender' tender.id %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg transition flex items-center gap-2">
+            <iconify-icon icon="solar:pen-new-square-bold"></iconify-icon> Submit Bid Application
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 
-        <p><strong>Evaluation Criteria:</strong><br>
-            {{ tender.evaluation_criteria|linebreaks }}
-        </p>
+    <!-- AWARDED CONTRACTOR CARD (IF AWARDED) -->
+    {% if tender.awarded_to or tender.status == 'awarded' %}
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-emerald-600 text-white rounded-2xl shadow-sm">
+            <iconify-icon icon="solar:medal-ribbon-star-bold" style="font-size:32px;"></iconify-icon>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Contract Awarded Winner</span>
+            <h2 class="text-xl font-extrabold text-slate-900 mt-0.5">
+              {{ tender.awarded_to.company|default:tender.awarded_to.name|default:"Awarded Contractor" }}
+            </h2>
+            <p class="text-xs text-slate-600 mt-1">
+              📍 {{ tender.awarded_to.location|default:"Registered Contractor" }}
+              &middot; 📞 {{ tender.awarded_to.phone|default:"Phone available" }}
+              &middot; ✉️ {{ tender.awarded_to.email|default:"Email available" }}
+            </p>
+          </div>
+        </div>
 
-        <p><strong>Created By:</strong> {{ tender.created_by }}</p>
+        <div class="text-left md:text-right bg-white p-4 rounded-xl border border-emerald-200">
+          <p class="text-xs text-slate-500 font-semibold uppercase">Awarded Contract Value</p>
+          <p class="text-2xl font-black text-emerald-700">KES {{ tender.award_amount|floatformat:2 }}</p>
+          <p class="text-xs text-slate-500 mt-0.5">Award Date: {{ tender.award_date|date:"d M Y"|default:"Recently" }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
-        <p><strong>Published:</strong> 
-            {{ tender.is_published|yesno:"Yes,No" }}
-        </p>
+    <!-- TENDER DETAILS & SPECIFICATIONS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 mb-2">Scope & Tender Description</h2>
+          <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{{ tender.description|default:"No detailed description provided." }}</p>
+        </div>
 
-        <p><strong>Created At:</strong> {{ tender.created_at }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+              <iconify-icon icon="solar:check-square-bold-duotone" class="text-blue-600"></iconify-icon> Eligibility Criteria
+            </h3>
+            <div class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100 whitespace-pre-line">
+              {{ tender.eligibility_criteria|default:"Standard NCA Registration and Statutory Compliance required." }}
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+              <iconify-icon icon="solar:clipboard-check-bold-duotone" class="text-purple-600"></iconify-icon> Evaluation Matrix
+            </h3>
+            <div class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100 whitespace-pre-line">
+              {{ tender.evaluation_criteria|default:"70% Technical Evaluation Score + 30% Financial Bid Price Score." }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR SUMMARY -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4 h-fit">
+        <h3 class="text-base font-bold text-slate-800 border-b pb-3">Procurement Summary</h3>
+
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between items-center text-slate-600">
+            <span>Estimated Budget:</span>
+            <span class="font-bold text-slate-900">KES {{ tender.estimated_budget|floatformat:2|default:"N/A" }}</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-600">
+            <span>Opening Date:</span>
+            <span class="font-semibold text-slate-800">{{ tender.opening_date|date:"d M Y"|default:"Immediate" }}</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-600">
+            <span>Closing Date:</span>
+            <span class="font-semibold text-red-600">{{ tender.closing_date|date:"d M Y"|default:"Open" }}</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-600">
+            <span>Submitted Bids:</span>
+            <span class="font-bold text-indigo-600">{{ applications_count }} Applications</span>
+          </div>
+        </div>
 
         {% if tender.document %}
-        <p>
-            <strong>Document:</strong>
-            <a href="{{ tender.document.url }}" 
-               class="text-blue-600 hover:underline" download>
-               Download Tender Document
-            </a>
-        </p>
+        <div class="pt-3 border-t">
+          <a href="{{ tender.document.url }}" download class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition">
+            <iconify-icon icon="solar:document-bold" class="text-blue-600"></iconify-icon> Download Tender Document
+          </a>
+        </div>
         {% endif %}
 
+        {% if is_officer and tender.status != 'awarded' %}
+        <div class="pt-3 border-t space-y-2">
+          <a href="{% url 'evaluate_tender' tender.id %}" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow transition">
+            <iconify-icon icon="solar:calculator-bold"></iconify-icon> Evaluate Applications & Scores
+          </a>
+        </div>
+        {% endif %}
+      </div>
     </div>
 
-    <!-- ACTION BUTTONS -->
-    {% if request.user.is_superuser %}
-    <div class="mt-6 flex gap-4">
-        <a href="{% url 'update_tender' tender.id %}" 
-           class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-           Edit
-        </a>
+    <!-- CONTRACTOR SUBMITTED BIDS & APPLICATIONS TABLE -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <iconify-icon icon="solar:users-group-rounded-bold-duotone" class="text-indigo-600"></iconify-icon>
+            Submitted Bids & Contractor Applications ({{ applications_count }})
+          </h2>
+          <p class="text-xs text-slate-500">Contractor submissions, bid amounts, technical/financial scores, and status</p>
+        </div>
+      </div>
 
-        <a href="{% url 'delete_tender' tender.id %}" 
-           class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-           Delete
-        </a>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase text-xs">
+            <tr>
+              <th class="p-3.5 rounded-l-xl">Contractor / Company</th>
+              <th class="p-3.5">Bid Amount</th>
+              <th class="p-3.5">Scores (Tech / Fin)</th>
+              <th class="p-3.5">Total Score</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5 rounded-r-xl text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for app in applications %}
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3.5">
+                <p class="font-bold text-slate-900">{{ app.company_name|default:app.applicant.username }}</p>
+                <p class="text-xs text-slate-400">📞 {{ app.company_phone|default:"N/A" }} &middot; ✉️ {{ app.company_email|default:"N/A" }}</p>
+              </td>
+              <td class="p-3.5 font-bold text-slate-900">
+                KES {{ app.bid_amount|floatformat:2 }}
+              </td>
+              <td class="p-3.5 text-xs">
+                <span class="text-slate-600">Tech: {{ app.technical_score }}</span> |
+                <span class="text-slate-600">Fin: {{ app.financial_score }}</span>
+              </td>
+              <td class="p-3.5 font-extrabold text-purple-600">
+                {{ app.total_score|floatformat:1 }}%
+              </td>
+              <td class="p-3.5">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold capitalize {% if app.status == 'awarded' %}bg-emerald-100 text-emerald-700{% elif app.status == 'rejected' %}bg-red-100 text-red-700{% elif app.status == 'shortlisted' %}bg-blue-100 text-blue-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                  {{ app.get_status_display }}
+                </span>
+              </td>
+              <td class="p-3.5 text-right">
+                <div class="inline-flex items-center gap-2">
+                  {% if app.proposal_document %}
+                  <a href="{{ app.proposal_document.url }}" target="_blank" class="text-xs font-bold text-blue-600 hover:underline">
+                    Proposal
+                  </a>
+                  {% endif %}
+
+                  {% if is_officer and tender.status != 'awarded' %}
+                  <form method="post" action="{% url 'award_tender' tender.id %}" onsubmit="return confirm('Award tender to {{ app.company_name }}?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="application_id" value="{{ app.id }}">
+                    <button type="submit" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-700 transition">
+                      Award Contract
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="p-8 text-center text-slate-400">
+                No contractor bids or applications submitted yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-    {% endif %}
 
-    {%if request.user.is_authenticated and not request.user.is_superuser %}
-    <div class="mt-6">
-
-        <a href="{% url 'apply_tender' tender.id %}"
-           class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-            Apply for Tender
-        </a>
-    </div>
-    {% endif %}
-
-
-</div>
+  </div>
 </main>
+
 {% include "footer.html" %}
-{% endblock %}
