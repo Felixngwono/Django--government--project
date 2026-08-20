@@ -152,6 +152,7 @@ class Project(models.Model):
         ('delayed',   'Delayed'),
         ('suspended', 'Suspended'),
         ('cancelled', 'Cancelled'),
+        ('stalled',   'Stalled'),
     ]
 
     PRIORITY_CHOICES = [

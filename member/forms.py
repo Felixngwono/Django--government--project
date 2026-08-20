@@ -198,10 +198,16 @@ class MilestoneForm(forms.ModelForm):
             }),
         }
 
-class MediaForm(ModelForm):
+class MediaForm(forms.ModelForm):
     class Meta:
         model = Media
-        fields = '__all__'
+        fields = ['project', 'media_type', 'file', 'caption']
+        widgets = {
+            'project': forms.Select(attrs={'class': 'w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 font-sans text-sm'}),
+            'media_type': forms.Select(attrs={'class': 'w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 font-sans text-sm'}),
+            'caption': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 font-sans text-sm', 'placeholder': 'Brief description (e.g., Drone survey of Phase 1 site)'}),
+            'file': forms.FileInput(attrs={'class': 'w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'}),
+        }
 
 class NotificationForm(ModelForm):
 

@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Avg, Count, Q, Sum
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import Coalesce, TruncDate, TruncMonth
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils.timesince import timesince
 from django.views.decorators.http import require_GET, require_POST
@@ -173,11 +173,11 @@ def Notifications(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    ongoingcount=Project.objects.filter(project_status='ongoing').count()
-    upcomingcount=Project.objects.filter(project_status='upcoming').count()
-    completedcount=Project.objects.filter(project_status='completed').count()
-    delayedcount=Project.objects.filter(project_status='delayed').count()
-    stalledcount=Project.objects.filter(project_status='stalled').count()
+    ongoingcount=Project.objects.filter(project_status__iexact='ongoing').count()
+    upcomingcount=Project.objects.filter(project_status__iexact='upcoming').count()
+    completedcount=Project.objects.filter(project_status__iexact='completed').count()
+    delayedcount=Project.objects.filter(project_status__iexact='delayed').count()
+    stalledcount=Project.objects.filter(project_status__iexact='stalled').count()
     allproject=Project.objects.all().count()
     users=User.objects.all().count()
     people=User.objects.all()
@@ -192,14 +192,23 @@ def dashboard(request):
     )
     pro = Project.objects.all().order_by('-start_date')[:5]
 
-    # Aggregate project counts by status for the chart
+    # Aggregate project counts by status for the chart (case-insensitive mapping)
     status_labels = [choice[1] for choice in Project.STATUS_CHOICES]
     status_counts = [0] * len(status_labels)
-    status_lookup = {choice[0]: choice[1] for choice in Project.STATUS_CHOICES}
+    status_index_map = {choice[0].lower(): idx for idx, choice in enumerate(Project.STATUS_CHOICES)}
+
+    unspecified_count = 0
     for item in projects:
-        status_key = item['project_status']
-        if status_key in status_lookup:
-            status_counts[list(status_lookup.keys()).index(status_key)] = item['total']
+        raw_key = (item['project_status'] or '').strip()
+        key_lower = raw_key.lower()
+        if key_lower in status_index_map:
+            status_counts[status_index_map[key_lower]] += item['total']
+        else:
+            unspecified_count += item['total']
+
+    if unspecified_count > 0:
+        status_labels.append('Other / Unspecified')
+        status_counts.append(unspecified_count)
 
     # Aggregate budget per month using actual project records
     months = []
@@ -221,8 +230,9 @@ def dashboard(request):
 
     monthly_projects = (
         Project.objects
-        .filter(start_date__isnull=False, start_date__gte=today.replace(day=1) - timedelta(days=365))
-        .annotate(month=TruncMonth('start_date'))
+        .annotate(eff_date=Coalesce('start_date', TruncDate('created_at')))
+        .filter(eff_date__isnull=False, eff_date__gte=(today - timedelta(days=365)).date())
+        .annotate(month=TruncMonth('eff_date'))
         .values('month')
         .annotate(
             total_budget=Sum('project_Budgeting'),
@@ -231,30 +241,38 @@ def dashboard(request):
         .order_by('month')
     )
 
-    monthly_map = {(item['month'].year, item['month'].month): {'allocated': item['total_budget'] or 0, 'used': item['used_budget'] or 0} for item in monthly_projects}
+    monthly_map = {(item['month'].year, item['month'].month): {'allocated': float(item['total_budget'] or 0), 'used': float(item['used_budget'] or 0)} for item in monthly_projects if item['month']}
     for idx, month_key in enumerate(months):
-        month_data = monthly_map.get(month_key, {'allocated': 0, 'used': 0})
+        month_data = monthly_map.get(month_key, {'allocated': 0.0, 'used': 0.0})
         allocated[idx] = month_data['allocated']
         used[idx] = month_data['used']
 
     # Count projects started during the last twelve months for the dashboard line chart.
     project_months = (
-        Project.objects.filter(start_date__isnull=False, start_date__gte=(today - timedelta(days=365)).date())
-        .annotate(month=TruncMonth('start_date'))
+        Project.objects
+        .annotate(eff_date=Coalesce('start_date', TruncDate('created_at')))
+        .filter(eff_date__isnull=False, eff_date__gte=(today - timedelta(days=365)).date())
+        .annotate(month=TruncMonth('eff_date'))
         .values('month')
         .annotate(count=Count('id'))
     )
-    project_counts_by_month = {item['month'].month: item['count'] for item in project_months}
-    project_counts = [project_counts_by_month.get(month, 0) for month in months]
+    project_counts_by_month = {(item['month'].year, item['month'].month): item['count'] for item in project_months if item['month']}
+    project_counts = [project_counts_by_month.get(month_key, 0) for month_key in months]
 
     participants = get_participants_for_request(request, limit=5)
     attention_projects = Project.objects.filter(
-        Q(project_status__in=['delayed', 'suspended']) |
-        Q(end_date__lt=today.date(), project_status__in=['ongoing', 'upcoming'])
+        Q(project_status__iexact='delayed') |
+        Q(project_status__iexact='suspended') |
+        Q(project_status__iexact='stalled') |
+        Q(end_date__lt=today.date(), project_status__in=['ongoing', 'Ongoing', 'upcoming', 'Upcoming'])
     ).order_by('end_date')[:4]
     open_issues = ReportIssue.objects.exclude(status__in=['resolved', 'dismissed'])
     recent_issues = open_issues.select_related('project').order_by('-created_at')[:4]
     recent_projects = Project.objects.order_by('-created_at')[:4]
+
+    total_budget_allocated = Project.objects.aggregate(total=Sum('project_Budgeting'))['total'] or 0
+    total_budget_spent = Project.objects.aggregate(total=Sum('amount_spent'))['total'] or 0
+    budget_utilization = round((float(total_budget_spent) / float(total_budget_allocated)) * 100, 1) if total_budget_allocated else 0
 
     context={'ongoingcount':ongoingcount,
              'upcomingcount':upcomingcount,
@@ -281,7 +299,10 @@ def dashboard(request):
              'recent_issues': recent_issues,
              'recent_projects': recent_projects,
              'project_status_labels': status_labels,
-             'pro':pro
+             'pro':pro,
+             'total_budget_allocated': total_budget_allocated,
+             'total_budget_spent': total_budget_spent,
+             'budget_utilization': budget_utilization
              }
     return render(request, 'dashboard.html',context)
 
@@ -1718,15 +1739,58 @@ def api_mark_all_read(request):
     return JsonResponse({'status': 'success'})
 
 
+@login_required(login_url='login')
 def media_list(request):
-    media_files = Media.objects.all().order_by('-id')
+    if request.method == 'POST':
+        form = MediaForm(request.POST, request.FILES)
+        if form.is_valid():
+            media_item = form.save(commit=False)
+            if request.user.is_authenticated:
+                media_item.uploaded_by = request.user
+            media_item.save()
+            messages.success(request, 'Media asset uploaded successfully.')
+            return redirect('media_list')
+    else:
+        form = MediaForm()
+
+    media_files = Media.objects.select_related('project', 'uploaded_by').all().order_by('-uploaded_at', '-id')
+
+    project_id = request.GET.get('project')
+    media_type = request.GET.get('type')
+    search_query = request.GET.get('q')
+
+    if project_id:
+        media_files = media_files.filter(project_id=project_id)
+    if media_type and media_type != 'all':
+        media_files = media_files.filter(media_type__iexact=media_type)
+    if search_query:
+        media_files = media_files.filter(
+            Q(caption__icontains=search_query) |
+            Q(file__icontains=search_query) |
+            Q(project__project_title__icontains=search_query)
+        )
+
+    projects = Project.objects.all().order_by('project_title')
+
+    all_media = Media.objects.all()
+    total_media = all_media.count()
+    total_images = all_media.filter(media_type__iexact='image').count()
+    total_videos = all_media.filter(media_type__iexact='video').count()
+    total_docs = all_media.filter(Q(media_type__iexact='pdf') | Q(media_type__iexact='document')).count()
+    projects_count = all_media.exclude(project__isnull=True).values('project').distinct().count()
 
     context = {
         "media_files": media_files,
-        "total_media": media_files.count(),
-        "total_images": media_files.filter(media_type='image').count(),
-        "total_videos": media_files.filter(media_type='video').count(),
-        "total_docs": media_files.filter(media_type='document').count(),
+        "form": form,
+        "projects": projects,
+        "total_media": total_media,
+        "total_images": total_images,
+        "total_videos": total_videos,
+        "total_docs": total_docs,
+        "projects_count": projects_count,
+        "selected_project": int(project_id) if project_id and project_id.isdigit() else None,
+        "selected_type": media_type or 'all',
+        "search_query": search_query or '',
     }
 
     return render(request, "media_list.html", context)
