@@ -3,13 +3,14 @@ from decimal import Decimal
 from urllib.parse import quote
 from xml.dom import ValidationErr
 
+from django.db import models
 import pdfkit
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db import transaction
-from django.db.models import Avg, Count, Q, Sum
+from django.db import models, transaction
+from django.db.models import Avg, Count, FloatField, Q, Sum
 from django.db.models.functions import Coalesce, TruncDate, TruncMonth
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils.timesince import timesince
@@ -786,7 +787,7 @@ def completed(request):
     q = request.GET.get('q', '').strip()
     location = request.GET.get('location', '').strip()
 
-    projects_qs = Project.objects.filter(project_status='completed').select_related('district', 'category', 'project_division')
+    projects_qs = Project.objects.filter(project_status__iexact='completed').select_related('district', 'category', 'project_division')
 
     if q:
         projects_qs = projects_qs.filter(
@@ -806,6 +807,21 @@ def completed(request):
         project_location__isnull=True
     ).exclude(project_location='').values_list('project_location', flat=True).distinct()
 
+    from django.db.models import DecimalField
+    dec = DecimalField(max_digits=15, decimal_places=2)
+    completed_aggs = Project.objects.filter(project_status='completed').aggregate(
+        total_budget=Coalesce(Sum('project_Budgeting'), models.Value(0, output_field=dec)),
+        total_spent=Coalesce(Sum('amount_spent'), models.Value(0, output_field=dec)),
+        overdue=Count('id', filter=Q(end_date__lt=django_timezone.now().date(), actual_end_date__isnull=True)),
+        featured=Count('id', filter=Q(is_featured=True)),
+    )
+    total_budget = completed_aggs['total_budget']
+    total_spent = completed_aggs['total_spent']
+    budget_utilization = round((total_spent / total_budget) * 100, 1) if total_budget else 0
+    overdue_count = completed_aggs['overdue']
+    featured_count = completed_aggs['featured']
+    today = django_timezone.now().date()
+
     paginator = Paginator(projects_qs, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -817,6 +833,12 @@ def completed(request):
         'locations': locations,
         'selected_location': location,
         'total_count': paginator.count,
+        'total_budget': total_budget,
+        'total_spent': total_spent,
+        'budget_utilization': budget_utilization,
+        'overdue_count': overdue_count,
+        'featured_count': featured_count,
+        'today': today,
     }
     return render(request, 'completed.html', context)
 
@@ -826,7 +848,7 @@ def delayed(request):
     q = request.GET.get('q', '').strip()
     location = request.GET.get('location', '').strip()
 
-    delaying_qs = Project.objects.filter(project_status='delayed').select_related('district', 'category', 'project_division')
+    delaying_qs = Project.objects.filter(project_status__iexact='delayed').select_related('district', 'category', 'project_division')
 
     if q:
         delaying_qs = delaying_qs.filter(
@@ -1082,11 +1104,12 @@ def project_details(request,pk):
     return render(request,'project_details.html', context)
 
 @login_required(login_url='login')
+@login_required(login_url='login')
 def ongoing(request):
     q = request.GET.get('q', '').strip()
     location = request.GET.get('location', '').strip()
 
-    projects_qs = Project.objects.filter(project_status='ongoing').select_related('district', 'category', 'project_division')
+    projects_qs = Project.objects.filter(project_status__iexact='ongoing').select_related('district', 'category', 'project_division')
 
     if q:
         projects_qs = projects_qs.filter(
@@ -1126,7 +1149,7 @@ def upcoming(request):
     q = request.GET.get('q', '').strip()
     location = request.GET.get('location', '').strip()
 
-    projects_qs = Project.objects.filter(project_status='upcoming').select_related('district', 'category', 'project_division')
+    projects_qs = Project.objects.filter(project_status__iexact='upcoming').select_related('district', 'category', 'project_division')
 
     if q:
         projects_qs = projects_qs.filter(
@@ -1159,6 +1182,82 @@ def upcoming(request):
         'total_count': paginator.count,
     }
     return render(request, 'upcoming.html', context)
+
+
+@login_required(login_url='login')
+def stalled(request):
+    return _render_status_page(request, 'stalled', 'Stalled Projects Dashboard')
+
+
+@login_required(login_url='login')
+def cancelled(request):
+    return _render_status_page(request, 'cancelled', 'Cancelled Projects Dashboard')
+
+
+@login_required(login_url='login')
+def suspended(request):
+    return _render_status_page(request, 'suspended', 'Suspended Projects Dashboard')
+
+
+@login_required(login_url='login')
+def draft(request):
+    return _render_status_page(request, 'draft', 'Draft Projects Dashboard')
+
+
+def _render_status_page(request, status_code, title_text):
+    q = request.GET.get('q', '').strip()
+    location = request.GET.get('location', '').strip()
+
+    projects_qs = Project.objects.filter(project_status__iexact=status_code).select_related('district', 'category', 'project_division')
+
+    if q:
+        projects_qs = projects_qs.filter(
+            Q(project_title__icontains=q) |
+            Q(project_description__icontains=q) |
+            Q(project_location__icontains=q) |
+            Q(implementing_agency__icontains=q) |
+            Q(reference_code__icontains=q)
+        )
+
+    if location:
+        projects_qs = projects_qs.filter(project_location__icontains=location)
+
+    projects_qs = projects_qs.order_by('-start_date', '-id')
+
+    # ── Aggregate statistics for the dashboard header ──
+    from datetime import date
+    base_qs = Project.objects.filter(project_status__iexact=status_code)
+    fin = base_qs.aggregate(
+        total_budget=Sum('project_Budgeting'),
+        total_spent=Sum('amount_spent'),
+    )
+    total_budget = fin['total_budget'] or 0
+    total_spent = fin['total_spent'] or 0
+    budget_utilization = round(float(total_spent) / float(total_budget) * 100, 1) if total_budget else 0
+    overdue_count = base_qs.filter(end_date__lt=date.today()).exclude(
+        project_status__in=['completed', 'cancelled']).count()
+    featured_count = base_qs.filter(is_featured=True).count()
+
+    locations = Project.objects.filter(project_status__iexact=status_code).exclude(
+        project_location__isnull=True
+    ).exclude(project_location='').values_list('project_location', flat=True).distinct()
+
+    paginator = Paginator(projects_qs, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'projects': page_obj,
+        'q': q,
+        'query': q,
+        'locations': locations,
+        'selected_location': location,
+        'total_count': paginator.count,
+        'project_status': status_code,
+        'status_code': status_code,
+        'status_title': title_text
+    }
+    return render(request, 'statuses.html', context)
 
 @login_required(login_url='login')
 def project(request):
@@ -1228,6 +1327,7 @@ def UpcomingStatuses(request, pk):
         'project': target_project,
         'project_status': target_project.project_status,
         'Participants': participants,
+        'today': django_timezone.now().date(),
         'form': form
     }
     return render(request, 'statuses.html', context)
@@ -1250,11 +1350,31 @@ def CompletedStatuses(request, pk):
             messages.success(request, f"Feedback submitted for '{target_project.project_title}'.")
             return redirect('completed')
 
+    completed_qs = Project.objects.filter(project_status='completed')
+    total_budget = completed_qs.aggregate(t=Sum('project_Budgeting'))['t'] or 0
+    total_spent = completed_qs.aggregate(t=Sum('amount_spent'))['t'] or 0
+    budget_utilization = round((total_spent / total_budget) * 100, 1) if total_budget else 0
+    overdue_count = completed_qs.filter(
+        end_date__lt=django_timezone.now().date(),
+        actual_end_date__isnull=True,
+    ).count()
+    locations = completed_qs.exclude(project_location__isnull=True).exclude(
+        project_location=''
+    ).values_list('project_location', flat=True).distinct()
+
     context = {
         'projects': projects,
         'project': target_project,
         'project_status': target_project.project_status,
+        'status_title': 'Completed Projects',
+        'total_count': 1,
+        'total_budget': total_budget,
+        'total_spent': total_spent,
+        'budget_utilization': budget_utilization,
+        'overdue_count': overdue_count,
+        'locations': locations,
         'Participants': participants,
+        'today': django_timezone.now().date(),
         'form': form
     }
     return render(request, 'statuses.html', context)
@@ -1282,6 +1402,7 @@ def OngoingStatuses(request, pk):
         'project': target_project,
         'project_status': target_project.project_status,
         'Participants': participants,
+        'today': django_timezone.now().date(),
         'form': form
     }
     return render(request, 'statuses.html', context)
@@ -2452,26 +2573,174 @@ def regional_analysis(request):
     region1 = request.GET.get('region1')
     region2 = request.GET.get('region2')
 
-    def get_data(region):
-        projects = Project.objects.filter(project_location=region)
-        total = projects.count()
+    # Default to top regions if not specified
+    if not region1 and len(regions) > 0:
+        region1 = regions[0]
+    if not region2 and len(regions) > 1:
+        region2 = regions[1]
+
+    def get_region_data(region_name):
+        if region_name:
+            projects = Project.objects.filter(project_location=region_name)
+        else:
+            projects = Project.objects.all()
+
+        total_projects = projects.count()
+        if total_projects == 0:
+            return {
+                "name": region_name or "National Average",
+                "total": 0,
+                "completed": 0,
+                "ongoing": 0,
+                "delayed": 0,
+                "upcoming": 0,
+                "stalled": 0,
+                "suspended": 0,
+                "cancelled": 0,
+                "completion_rate": 0.0,
+                "total_allocated": 0.0,
+                "total_spent": 0.0,
+                "budget_remaining": 0.0,
+                "budget_utilization": 0.0,
+                "avg_project_budget": 0.0,
+                "avg_risk_score": 0.0,
+                "high_risk_count": 0,
+                "reported_issues": 0,
+                "open_issues": 0,
+                "resolved_issues": 0,
+                "citizen_requests": 0,
+                "comments_count": 0,
+                "top_projects": [],
+                "sector_labels": [],
+                "sector_values": [],
+                "projects_list": [],
+            }
+
         completed = projects.filter(project_status='completed').count()
         ongoing = projects.filter(project_status='ongoing').count()
         delayed = projects.filter(project_status='delayed').count()
+        upcoming = projects.filter(project_status='upcoming').count()
+        stalled = projects.filter(project_status='stalled').count()
+        suspended = projects.filter(project_status='suspended').count()
+        cancelled = projects.filter(project_status='cancelled').count()
+
+        financials = projects.aggregate(
+            allocated=Coalesce(Sum('project_Budgeting'), 0.0, output_field=FloatField()),
+            spent=Coalesce(Sum('amount_spent'), 0.0, output_field=FloatField()),
+            avg_risk=Coalesce(Avg('ai_risk_score'), 0.0, output_field=FloatField()),
+        )
+
+        total_allocated = float(financials['allocated'] or 0)
+        total_spent = float(financials['spent'] or 0)
+        budget_remaining = max(0.0, total_allocated - total_spent)
+        budget_utilization = round((total_spent / total_allocated * 100), 1) if total_allocated > 0 else 0.0
+        completion_rate = round((completed / total_projects * 100), 1) if total_projects > 0 else 0.0
+        avg_project_budget = round(total_allocated / total_projects, 2) if total_projects > 0 else 0.0
+
+        high_risk_count = projects.filter(
+            Q(priority='critical') | Q(priority='high') | Q(ai_risk_score__gte=7.0)
+        ).count()
+
+        # Issues & Engagement
+        issues = ReportIssue.objects.filter(project__in=projects)
+        total_issues = issues.count()
+        resolved_issues = issues.filter(Q(status='resolved') | Q(resolved=True)).count()
+        open_issues = total_issues - resolved_issues
+
+        if region_name:
+            requests_count = GovernmentRequest.objects.filter(location__icontains=region_name).count()
+        else:
+            requests_count = GovernmentRequest.objects.count()
+
+        comments_count = Comment.objects.filter(project__in=projects).count()
+
+        # Sector / Category distribution
+        category_qs = projects.values('category__name').annotate(count=Count('id')).order_by('-count')[:6]
+        sector_labels = [c['category__name'] or 'General' for c in category_qs]
+        sector_values = [c['count'] for c in category_qs]
+
+        # Top projects
+        top_projects = list(projects.select_related('category').order_by('-project_Budgeting')[:5])
+        projects_list = list(projects.select_related('category').order_by('-created_at')[:8])
+
         return {
-            "total": total,
+            "name": region_name or "National Average",
+            "total": total_projects,
             "completed": completed,
             "ongoing": ongoing,
             "delayed": delayed,
-            "completion_rate": round((completed / total) * 100, 1) if total else 0,
+            "upcoming": upcoming,
+            "stalled": stalled,
+            "suspended": suspended,
+            "cancelled": cancelled,
+            "completion_rate": completion_rate,
+            "total_allocated": total_allocated,
+            "total_spent": total_spent,
+            "budget_remaining": budget_remaining,
+            "budget_utilization": budget_utilization,
+            "avg_project_budget": avg_project_budget,
+            "avg_risk_score": round(float(financials['avg_risk'] or 0), 1),
+            "high_risk_count": high_risk_count,
+            "reported_issues": total_issues,
+            "open_issues": open_issues,
+            "resolved_issues": resolved_issues,
+            "citizen_requests": requests_count,
+            "comments_count": comments_count,
+            "top_projects": top_projects,
+            "sector_labels": sector_labels,
+            "sector_values": sector_values,
+            "projects_list": projects_list,
         }
+
+    data1 = get_region_data(region1) if region1 else None
+    data2 = get_region_data(region2) if region2 else None
+    national_data = get_region_data(None)
+
+    all_regions_summary = []
+    total_regional_capital = 0.0
+    for reg in regions:
+        reg_projects = Project.objects.filter(project_location=reg)
+        c_tot = reg_projects.count()
+        if c_tot == 0:
+            continue
+        c_comp = reg_projects.filter(project_status='completed').count()
+        c_del = reg_projects.filter(project_status='delayed').count()
+        c_fin = reg_projects.aggregate(
+            alloc=Coalesce(Sum('project_Budgeting'), 0.0, output_field=FloatField()),
+            spent=Coalesce(Sum('amount_spent'), 0.0, output_field=FloatField())
+        )
+        alloc_val = float(c_fin['alloc'] or 0)
+        spent_val = float(c_fin['spent'] or 0)
+        total_regional_capital += alloc_val
+        rate = round((c_comp / c_tot) * 100, 1)
+        util = round((spent_val / alloc_val * 100), 1) if alloc_val > 0 else 0.0
+        iss_count = ReportIssue.objects.filter(project__in=reg_projects).count()
+
+        all_regions_summary.append({
+            'region': reg,
+            'total': c_tot,
+            'completed': c_comp,
+            'ongoing': reg_projects.filter(project_status='ongoing').count(),
+            'delayed': c_del,
+            'completion_rate': rate,
+            'allocated': alloc_val,
+            'spent': spent_val,
+            'utilization': util,
+            'issues_count': iss_count,
+        })
+
+    all_regions_summary.sort(key=lambda x: (x['completion_rate'], x['allocated']), reverse=True)
 
     context = {
         "regions": regions,
         "region1": region1,
         "region2": region2,
-        "data1": get_data(region1) if region1 else None,
-        "data2": get_data(region2) if region2 else None,
+        "data1": data1,
+        "data2": data2,
+        "national_data": national_data,
+        "all_regions_summary": all_regions_summary,
+        "total_tracked_regions": len(regions),
+        "total_regional_capital": total_regional_capital,
     }
 
     return render(request, "regional_analytics/regional_analysis.html", context)
@@ -2531,11 +2800,61 @@ def announcements(request):
 @login_required(login_url='login')
 def citizen_portal(request):
     submissions = CitizenSubmission.objects.filter(user=request.user).order_by('-created_at')
-    proje=Project.objects.all()
+    proje = Project.objects.all()
+
+    # Stats for the citizen dashboard
+    total_submissions = submissions.count()
+    pending_count = submissions.filter(status='pending').count()
+    reviewed_count = submissions.filter(status='reviewed').count()
+    approved_count = submissions.filter(status='approved').count()
+    rejected_count = submissions.filter(status='rejected').count()
+    resolved_count = submissions.filter(status='resolved').count()
+
+    # Category breakdown
+    suggestions = submissions.filter(category='suggestion').count()
+    complaints = submissions.filter(category='complaint').count()
+    reports = submissions.filter(category='report').count()
+    commendations = submissions.filter(category='commendation').count()
+
+    # Recent activity
+    recent_submissions = submissions[:5]
+
+    # Public projects for participation
+    public_projects = Project.objects.filter(is_public=True).order_by('-created_at')[:6]
+
+    # Active participations
+    participations = Participation.objects.filter(user=request.user).order_by('-joined_at')[:5]
+    total_participations = Participation.objects.filter(user=request.user).count()
+
+    # Evidence submitted by user
+    evidence = CitizenEvidence.objects.filter(user=request.user).order_by('-created_at')
+    total_evidence = evidence.count()
+    verified_evidence = evidence.filter(is_verified=True).count()
+
+    # Announcements
+    announcements = Announcement.objects.all().order_by('-created_at')[:5]
 
     return render(request, 'public_participation/citizen.html', {
         'submissions': submissions,
-        'proje': proje
+        'proje': proje,
+        'total_submissions': total_submissions,
+        'pending_count': pending_count,
+        'reviewed_count': reviewed_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+        'resolved_count': resolved_count,
+        'suggestions': suggestions,
+        'complaints': complaints,
+        'reports': reports,
+        'commendations': commendations,
+        'recent_submissions': recent_submissions,
+        'public_projects': public_projects,
+        'participations': participations,
+        'total_participations': total_participations,
+        'evidence': evidence,
+        'total_evidence': total_evidence,
+        'verified_evidence': verified_evidence,
+        'announcements': announcements,
     })
 
 @login_required(login_url='login')
@@ -2545,17 +2864,21 @@ def submit_issue(request):
         title = request.POST.get('title')
         message = request.POST.get('message')
         category = request.POST.get('category')
+        project_id = request.POST.get('project')
 
         if not title or not message:
+            messages.error(request, "Please provide both a title and message.")
             return redirect('citizen_portal')
 
-        CitizenSubmission.objects.create(
+        submission = CitizenSubmission.objects.create(
             user=request.user,
             title=title,
             message=message,
-            category=category
+            category=category or 'suggestion',
+            project_id=project_id if project_id else None
         )
-        messages.success(request, "Your submission has been received successfully!")
+        audit(request, 'citizen_submission', submission, changes={'title': title, 'category': category})
+        messages.success(request, "Your submission has been received successfully! An official will review it soon.")
 
         return redirect('citizen_portal')
 
@@ -3017,20 +3340,378 @@ def account_settings(request):
 
 
 def system_reports(request):
+    # ── Projects ──
     projects = Project.objects.all()
-    tenders = TenderApplication.objects.all()
+    total_projects = projects.count()
+    completed_projects = projects.filter(project_status='completed').count()
+    ongoing_projects = projects.filter(project_status='ongoing').count()
+    upcoming_projects = projects.filter(project_status='upcoming').count()
+    delayed_projects = projects.filter(project_status='delayed').count()
+    stalled_projects = projects.filter(project_status='stalled').count()
+    draft_projects = projects.filter(project_status='draft').count()
+    cancelled_projects = projects.filter(project_status='cancelled').count()
+    suspended_projects = projects.filter(project_status='suspended').count()
+
+    # ── Budget & Finance ──
+    total_budget_allocated = projects.aggregate(total=Sum('project_Budgeting'))['total'] or 0
+    total_budget_spent = projects.aggregate(total=Sum('amount_spent'))['total'] or 0
+    total_budget_remaining = total_budget_allocated - total_budget_spent
+    budget_utilization = round(float(total_budget_spent / total_budget_allocated * 100), 1) if total_budget_allocated else 0
+
+    budgets = Budget.objects.all()
+    total_budget_records = budgets.count()
+    total_allocated_budget = budgets.aggregate(total=Sum('allocated_amount'))['total'] or 0
+    total_spent_budget = budgets.aggregate(total=Sum('spent_amount'))['total'] or 0
+
+    expenses = ProjectExpense.objects.all()
+    total_expenses = expenses.count()
+    total_expense_amount = expenses.aggregate(total=Sum('amount'))['total'] or 0
+
+    # ── Users ──
+    users = User.objects.all()
+    total_users = users.count()
+    verified_users = users.filter(is_verified=True).count()
+    unverified_users = users.filter(is_verified=False).count()
+    superusers = users.filter(is_superuser=True).count()
+    citizens = users.filter(role='citizen').count()
+    officials = users.filter(role__in=['official', 'staff', 'admin', 'auditor', 'manager']).count()
+    contractors = users.filter(role='contractor').count()
+
+    # ── Tenders ──
+    tenders = Tender.objects.all()
+    total_tenders = tenders.count()
+    published_tenders = tenders.filter(status='published').count()
+    closed_tenders = tenders.filter(status='closed').count()
+    evaluating_tenders = tenders.filter(status='evaluating').count()
+    awarded_tenders = tenders.filter(status='awarded').count()
+    cancelled_tenders = tenders.filter(status='cancelled').count()
+    draft_tenders = tenders.filter(status='draft').count()
+
+    tender_applications = TenderApplication.objects.all()
+    total_applications = tender_applications.count()
+    submitted_apps = tender_applications.filter(status='submitted').count()
+    under_review_apps = tender_applications.filter(status='under_review').count()
+    shortlisted_apps = tender_applications.filter(status='shortlisted').count()
+    rejected_apps = tender_applications.filter(status='rejected').count()
+    awarded_apps = tender_applications.filter(status='awarded').count()
+
+    # ── Government Requests ──
     requests = GovernmentRequest.objects.all()
+    total_requests = requests.count()
+    pending_requests = requests.filter(status='pending').count()
+    in_progress_requests = requests.filter(status='in_progress').count()
+    responded_requests = requests.filter(status='responded').count()
+    resolved_requests = requests.filter(status='resolved').count()
+    rejected_requests = requests.filter(status='rejected').count()
+    closed_requests = requests.filter(status='closed').count()
+
+    # ── Issues ──
+    issues = ReportIssue.objects.all()
+    total_issues = issues.count()
+    pending_issues = issues.filter(status='pending').count()
+    investigating_issues = issues.filter(status='investigating').count()
+    resolved_issues = issues.filter(status='resolved').count()
+    dismissed_issues = issues.filter(status='dismissed').count()
+    critical_issues = issues.filter(severity='critical').count()
+    high_issues = issues.filter(severity='high').count()
+
+    # ── Milestones & Stages ──
+    milestones = Milestone.objects.all()
+    total_milestones = milestones.count()
+    completed_milestones = milestones.filter(status='completed').count()
+    pending_milestones = milestones.filter(status='pending').count()
+    in_progress_milestones = milestones.filter(status='in_progress').count()
+    missed_milestones = milestones.filter(status='missed').count()
+
+    stages = ProjectStage.objects.all()
+    total_stages = stages.count()
+
+    # ── Feedback & Testimonials ──
+    feedbacks = Feedback.objects.all()
+    total_feedback = feedbacks.count()
+
+    testimonials = Testimonial.objects.all()
+    total_testimonials = testimonials.count()
+    approved_testimonials = testimonials.filter(is_approved=True).count()
+    pending_testimonials = testimonials.filter(is_approved=False).count()
+
+    # ── Comments & Participation ──
+    comments = Comment.objects.all()
+    total_comments = comments.count()
+
+    participations = Participation.objects.all()
+    total_participations = participations.count()
+
+    # ── Media & Documents ──
+    media_files = Media.objects.all()
+    total_media = media_files.count()
+
+    # ── Audit Logs ──
+    audit_logs = AuditLog.objects.all()
+    total_audit_logs = audit_logs.count()
+
+    # ── Notifications ──
+    notifications = Notification.objects.all()
+    total_notifications = notifications.count()
+
+    # ── Announcements ──
+    announcements = Announcement.objects.all()
+    total_announcements = announcements.count()
+
+    # ── Citizen Submissions & Evidence ──
+    citizen_submissions = CitizenSubmission.objects.all()
+    total_citizen_submissions = citizen_submissions.count()
+    pending_submissions = citizen_submissions.filter(status='pending').count()
+    reviewed_submissions = citizen_submissions.filter(status='reviewed').count()
+    approved_submissions = citizen_submissions.filter(status='approved').count()
+    rejected_submissions = citizen_submissions.filter(status='rejected').count()
+    resolved_submissions = citizen_submissions.filter(status='resolved').count()
+    suggestion_submissions = citizen_submissions.filter(category='suggestion').count()
+    complaint_submissions = citizen_submissions.filter(category='complaint').count()
+    report_submissions = citizen_submissions.filter(category='report').count()
+    commendation_submissions = citizen_submissions.filter(category='commendation').count()
+
+    citizen_evidence = CitizenEvidence.objects.all()
+    total_citizen_evidence = citizen_evidence.count()
+    verified_evidence = citizen_evidence.filter(is_verified=True).count()
+    unverified_evidence = citizen_evidence.filter(is_verified=False).count()
+
+    # ── Participation Activity ──
+    active_participations = participations.filter(is_active=True).count()
+    inactive_participations = participations.filter(is_active=False).count()
+    recent_participations = participations.order_by('-joined_at')[:5]
+
+    # ── Comments Activity ──
+    flagged_comments = comments.filter(is_flagged=True).count()
+    recent_comments = comments.order_by('-created_at')[:5]
+
+    # ── Feedback & Testimonials ──
+    recent_feedback = feedbacks.order_by('-created_at')[:5]
+    recent_testimonials = testimonials.order_by('-created_at')[:5]
+
+    # ── Contractors ──
+    contractors_list = Contractor.objects.all()
+    total_contractors = contractors_list.count()
+
+    # ── Teams ──
+    teams = Team.objects.all()
+    total_teams = teams.count()
+
+    # ── Project Risks ──
+    risks = ProjectRisk.objects.all()
+    total_risks = risks.count()
+    high_risks = risks.filter(risk_level__in=['high', 'critical']).count()
+
+    # ── Recent activity ──
+    recent_projects = projects.order_by('-created_at')[:5]
+    recent_requests = requests.order_by('-created_at')[:5]
+    recent_issues = issues.order_by('-created_at')[:5]
+
+    # ── Analytics & Charts Data ──
+    # Project status distribution (for pie/donut chart)
+    status_labels = [choice[1] for choice in Project.STATUS_CHOICES]
+    status_counts = []
+    for status, label in Project.STATUS_CHOICES:
+        status_counts.append(projects.filter(project_status=status).count())
+
+    # Category distribution of citizen submissions
+    submission_category_labels = [choice[1] for choice in CitizenSubmission.CATEGORY_CHOICES]
+    submission_category_counts = []
+    for cat, label in CitizenSubmission.CATEGORY_CHOICES:
+        submission_category_counts.append(citizen_submissions.filter(category=cat).count())
+
+    # Monthly project starts (last 6 months)
+    monthly_labels = []
+    monthly_project_counts = []
+    monthly_budget = []
+    monthly_spent = []
+    today = date.today()
+    for i in range(5, -1, -1):
+        # Calculate month start
+        month_start = today.replace(day=1)
+        if i > 0:
+            month_start = datetime(today.year, today.month, 1) - timedelta(days=30 * i)
+        month_start = month_start.replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        monthly_labels.append(month_start.strftime('%b %Y'))
+
+        month_projects = Project.objects.filter(created_at__date__gte=month_start, created_at__date__lte=month_end)
+        monthly_project_counts.append(month_projects.count())
+        monthly_budget.append(float(month_projects.aggregate(total=Sum('project_Budgeting'))['total'] or 0))
+        monthly_spent.append(float(month_projects.aggregate(total=Sum('amount_spent'))['total'] or 0))
+
+    # Completion rate
+    completion_rate = round((completed_projects / total_projects * 100), 1) if total_projects else 0
+
+    # Request resolution rate
+    resolution_rate = round((resolved_requests / total_requests * 100), 1) if total_requests else 0
+
+    # Issue resolution rate
+    issue_resolution_rate = round((resolved_issues / total_issues * 100), 1) if total_issues else 0
+
+    # Testimonial approval rate
+    testimonial_approval_rate = round((approved_testimonials / total_testimonials * 100), 1) if total_testimonials else 0
+
+    # Submission approval rate
+    submission_approval_rate = round((approved_submissions / total_citizen_submissions * 100), 1) if total_citizen_submissions else 0
+
+    # Participation engagement rate
+    participation_rate = round((active_participations / total_participations * 100), 1) if total_participations else 0
+
+    # Evidence verification rate
+    evidence_verification_rate = round((verified_evidence / total_citizen_evidence * 100), 1) if total_citizen_evidence else 0
+
+    # Budget analysis for chart
+    budget_labels = [p.project_title[:15] + '...' if len(p.project_title) > 15 else p.project_title for p in projects.order_by('-project_Budgeting')[:5]]
+    budget_values = [float(p.project_Budgeting or 0) for p in projects.order_by('-project_Budgeting')[:5]]
+    spent_values = [float(p.amount_spent or 0) for p in projects.order_by('-project_Budgeting')[:5]]
 
     context = {
-        'total_projects': projects.count(),
-        'completed_projects': projects.filter(project_status='completed').count(),
-        'ongoing_projects': projects.filter(project_status='ongoing').count(),
+        'today': django_timezone.now(),
+        # Projects
+        'total_projects': total_projects,
+        'completed_projects': completed_projects,
+        'ongoing_projects': ongoing_projects,
+        'upcoming_projects': upcoming_projects,
+        'delayed_projects': delayed_projects,
+        'stalled_projects': stalled_projects,
+        'draft_projects': draft_projects,
+        'cancelled_projects': cancelled_projects,
+        'suspended_projects': suspended_projects,
 
-        'total_tenders': tenders.count(),
-        'awarded_tenders': tenders.filter(status='awarded').count(),
+        # Budget & Finance
+        'total_budget_allocated': total_budget_allocated,
+        'total_budget_spent': total_budget_spent,
+        'total_budget_remaining': total_budget_remaining,
+        'budget_utilization': budget_utilization,
+        'total_budget_records': total_budget_records,
+        'total_allocated_budget': total_allocated_budget,
+        'total_spent_budget': total_spent_budget,
+        'total_expenses': total_expenses,
+        'total_expense_amount': total_expense_amount,
 
-        'total_requests': requests.count(),
-        'resolved_requests': requests.filter(status='resolved').count(),
+        # Users
+        'total_users': total_users,
+        'verified_users': verified_users,
+        'unverified_users': unverified_users,
+        'superusers': superusers,
+        'citizens': citizens,
+        'officials': officials,
+        'contractors': contractors,
+
+        # Tenders
+        'total_tenders': total_tenders,
+        'published_tenders': published_tenders,
+        'closed_tenders': closed_tenders,
+        'evaluating_tenders': evaluating_tenders,
+        'awarded_tenders': awarded_tenders,
+        'cancelled_tenders': cancelled_tenders,
+        'draft_tenders': draft_tenders,
+        'total_applications': total_applications,
+        'submitted_apps': submitted_apps,
+        'under_review_apps': under_review_apps,
+        'shortlisted_apps': shortlisted_apps,
+        'rejected_apps': rejected_apps,
+        'awarded_apps': awarded_apps,
+
+        # Government Requests
+        'total_requests': total_requests,
+        'pending_requests': pending_requests,
+        'in_progress_requests': in_progress_requests,
+        'responded_requests': responded_requests,
+        'resolved_requests': resolved_requests,
+        'rejected_requests': rejected_requests,
+        'closed_requests': closed_requests,
+
+        # Issues
+        'total_issues': total_issues,
+        'pending_issues': pending_issues,
+        'investigating_issues': investigating_issues,
+        'resolved_issues': resolved_issues,
+        'dismissed_issues': dismissed_issues,
+        'critical_issues': critical_issues,
+        'high_issues': high_issues,
+
+        # Milestones & Stages
+        'total_milestones': total_milestones,
+        'completed_milestones': completed_milestones,
+        'pending_milestones': pending_milestones,
+        'in_progress_milestones': in_progress_milestones,
+        'missed_milestones': missed_milestones,
+        'total_stages': total_stages,
+
+        # Feedback & Testimonials
+        'total_feedback': total_feedback,
+        'total_testimonials': total_testimonials,
+        'approved_testimonials': approved_testimonials,
+        'pending_testimonials': pending_testimonials,
+
+        # Comments & Participation
+        'total_comments': total_comments,
+        'total_participations': total_participations,
+
+        # Media & Documents
+        'total_media': total_media,
+
+        # Audit & Notifications
+        'total_audit_logs': total_audit_logs,
+        'total_notifications': total_notifications,
+        'total_announcements': total_announcements,
+
+        # Citizen Engagement
+        'total_citizen_submissions': total_citizen_submissions,
+        'pending_submissions': pending_submissions,
+        'reviewed_submissions': reviewed_submissions,
+        'approved_submissions': approved_submissions,
+        'rejected_submissions': rejected_submissions,
+        'resolved_submissions': resolved_submissions,
+        'suggestion_submissions': suggestion_submissions,
+        'complaint_submissions': complaint_submissions,
+        'report_submissions': report_submissions,
+        'commendation_submissions': commendation_submissions,
+        'total_citizen_evidence': total_citizen_evidence,
+        'verified_evidence': verified_evidence,
+        'unverified_evidence': unverified_evidence,
+        'active_participations': active_participations,
+        'inactive_participations': inactive_participations,
+        'recent_participations': recent_participations,
+        'flagged_comments': flagged_comments,
+        'recent_comments': recent_comments,
+        'recent_feedback': recent_feedback,
+        'recent_testimonials': recent_testimonials,
+
+        # Contractors & Teams
+        'total_contractors': total_contractors,
+        'total_teams': total_teams,
+
+        # Risks
+        'total_risks': total_risks,
+        'high_risks': high_risks,
+
+        # Recent activity
+        'recent_projects': recent_projects,
+        'recent_requests': recent_requests,
+        'recent_issues': recent_issues,
+
+        # Analytics & Charts
+        'status_labels': status_labels,
+        'status_counts': status_counts,
+        'submission_category_labels': submission_category_labels,
+        'submission_category_counts': submission_category_counts,
+        'monthly_labels': monthly_labels,
+        'monthly_project_counts': monthly_project_counts,
+        'monthly_budget': monthly_budget,
+        'monthly_spent': monthly_spent,
+        'completion_rate': completion_rate,
+        'resolution_rate': resolution_rate,
+        'issue_resolution_rate': issue_resolution_rate,
+        'testimonial_approval_rate': testimonial_approval_rate,
+        'submission_approval_rate': submission_approval_rate,
+        'participation_rate': participation_rate,
+        'evidence_verification_rate': evidence_verification_rate,
+        'budget_labels': budget_labels,
+        'budget_values': budget_values,
+        'spent_values': spent_values,
     }
 
     return render(request, 'Reports/system_reports.html', context)
@@ -3043,36 +3724,139 @@ def export_pdf(request):
     doc = SimpleDocTemplate(response)
     styles = getSampleStyleSheet()
 
-    # ✅ Build context DIRECTLY (not from another view)
+    # ── Projects ──
     total_projects = Project.objects.count()
     completed_projects = Project.objects.filter(project_status='completed').count()
     ongoing_projects = Project.objects.filter(project_status='ongoing').count()
+    upcoming_projects = Project.objects.filter(project_status='upcoming').count()
+    delayed_projects = Project.objects.filter(project_status='delayed').count()
+    stalled_projects = Project.objects.filter(project_status='stalled').count()
+    draft_projects = Project.objects.filter(project_status='draft').count()
+    cancelled_projects = Project.objects.filter(project_status='cancelled').count()
+    suspended_projects = Project.objects.filter(project_status='suspended').count()
 
-    total_tenders = TenderApplication.objects.count()
-    awarded_tenders = TenderApplication.objects.filter(status='awarded').count()
+    # ── Budget & Finance ──
+    total_budget_allocated = Project.objects.aggregate(total=Sum('project_Budgeting'))['total'] or 0
+    total_budget_spent = Project.objects.aggregate(total=Sum('amount_spent'))['total'] or 0
+    total_budget_remaining = total_budget_allocated - total_budget_spent
+    budget_utilization = round(float(total_budget_spent / total_budget_allocated * 100), 1) if total_budget_allocated else 0
+    total_expenses = ProjectExpense.objects.count()
+    total_expense_amount = ProjectExpense.objects.aggregate(total=Sum('amount'))['total'] or 0
 
+    # ── Users ──
+    total_users = User.objects.count()
+    verified_users = User.objects.filter(is_verified=True).count()
+    citizens = User.objects.filter(role='citizen').count()
+    officials = User.objects.filter(role__in=['official', 'staff', 'admin', 'auditor', 'manager']).count()
+    contractors = User.objects.filter(role='contractor').count()
+
+    # ── Tenders ──
+    total_tenders = Tender.objects.count()
+    published_tenders = Tender.objects.filter(status='published').count()
+    awarded_tenders = Tender.objects.filter(status='awarded').count()
+    total_applications = TenderApplication.objects.count()
+    awarded_apps = TenderApplication.objects.filter(status='awarded').count()
+
+    # ── Government Requests ──
     total_requests = GovernmentRequest.objects.count()
+    pending_requests = GovernmentRequest.objects.filter(status='pending').count()
     resolved_requests = GovernmentRequest.objects.filter(status='resolved').count()
+    in_progress_requests = GovernmentRequest.objects.filter(status='in_progress').count()
+
+    # ── Issues ──
+    total_issues = ReportIssue.objects.count()
+    resolved_issues = ReportIssue.objects.filter(status='resolved').count()
+    critical_issues = ReportIssue.objects.filter(severity='critical').count()
+
+    # ── Milestones ──
+    total_milestones = Milestone.objects.count()
+    completed_milestones = Milestone.objects.filter(status='completed').count()
+    missed_milestones = Milestone.objects.filter(status='missed').count()
+
+    # ── Engagement ──
+    total_feedback = Feedback.objects.count()
+    total_testimonials = Testimonial.objects.count()
+    approved_testimonials = Testimonial.objects.filter(is_approved=True).count()
+    total_comments = Comment.objects.count()
+    total_participations = Participation.objects.count()
+    total_citizen_submissions = CitizenSubmission.objects.count()
+    total_citizen_evidence = CitizenEvidence.objects.count()
+
+    # ── System ──
+    total_media = Media.objects.count()
+    total_audit_logs = AuditLog.objects.count()
+    total_notifications = Notification.objects.count()
+    total_announcements = Announcement.objects.count()
+    total_contractors = Contractor.objects.count()
+    total_teams = Team.objects.count()
+    total_risks = ProjectRisk.objects.count()
+    high_risks = ProjectRisk.objects.filter(risk_level__in=['high', 'critical']).count()
 
     # 📄 Content
     content = []
 
-    content.append(Paragraph("GovTracker System Report", styles['Title']))
-    content.append(Spacer(1, 10))
+    content.append(Paragraph("GovTracker Comprehensive System Report", styles['Title']))
+    content.append(Paragraph(f"Generated: {django_timezone.now().strftime('%B %d, %Y %H:%M')}", styles['Normal']))
+    content.append(Spacer(1, 20))
 
+    # Projects
+    content.append(Paragraph("1. PROJECTS", styles['Heading2']))
     content.append(Paragraph(f"Total Projects: {total_projects}", styles['Normal']))
-    content.append(Paragraph(f"Completed Projects: {completed_projects}", styles['Normal']))
-    content.append(Paragraph(f"Ongoing Projects: {ongoing_projects}", styles['Normal']))
-
+    content.append(Paragraph(f"Ongoing: {ongoing_projects} | Completed: {completed_projects} | Upcoming: {upcoming_projects}", styles['Normal']))
+    content.append(Paragraph(f"Delayed: {delayed_projects} | Stalled: {stalled_projects} | Draft: {draft_projects}", styles['Normal']))
+    content.append(Paragraph(f"Cancelled: {cancelled_projects} | Suspended: {suspended_projects}", styles['Normal']))
     content.append(Spacer(1, 10))
 
-    content.append(Paragraph(f"Total Tenders: {total_tenders}", styles['Normal']))
-    content.append(Paragraph(f"Awarded Tenders: {awarded_tenders}", styles['Normal']))
-
+    # Budget
+    content.append(Paragraph("2. BUDGET & FINANCE", styles['Heading2']))
+    content.append(Paragraph(f"Total Allocated: KSh {total_budget_allocated:,.0f}", styles['Normal']))
+    content.append(Paragraph(f"Total Spent: KSh {total_budget_spent:,.0f}", styles['Normal']))
+    content.append(Paragraph(f"Remaining: KSh {total_budget_remaining:,.0f}", styles['Normal']))
+    content.append(Paragraph(f"Budget Utilization: {budget_utilization}%", styles['Normal']))
+    content.append(Paragraph(f"Total Expenses: {total_expenses} (KSh {total_expense_amount:,.0f})", styles['Normal']))
     content.append(Spacer(1, 10))
 
+    # Users
+    content.append(Paragraph("3. USERS & ROLES", styles['Heading2']))
+    content.append(Paragraph(f"Total Users: {total_users} | Verified: {verified_users}", styles['Normal']))
+    content.append(Paragraph(f"Citizens: {citizens} | Officials: {officials} | Contractors: {contractors}", styles['Normal']))
+    content.append(Spacer(1, 10))
+
+    # Tenders
+    content.append(Paragraph("4. TENDERS & PROCUREMENT", styles['Heading2']))
+    content.append(Paragraph(f"Total Tenders: {total_tenders} | Published: {published_tenders} | Awarded: {awarded_tenders}", styles['Normal']))
+    content.append(Paragraph(f"Total Applications: {total_applications} | Awarded Apps: {awarded_apps}", styles['Normal']))
+    content.append(Spacer(1, 10))
+
+    # Requests
+    content.append(Paragraph("5. GOVERNMENT REQUESTS", styles['Heading2']))
     content.append(Paragraph(f"Total Requests: {total_requests}", styles['Normal']))
-    content.append(Paragraph(f"Resolved Requests: {resolved_requests}", styles['Normal']))
+    content.append(Paragraph(f"Pending: {pending_requests} | In Progress: {in_progress_requests} | Resolved: {resolved_requests}", styles['Normal']))
+    content.append(Spacer(1, 10))
+
+    # Issues
+    content.append(Paragraph("6. REPORTED ISSUES", styles['Heading2']))
+    content.append(Paragraph(f"Total Issues: {total_issues} | Resolved: {resolved_issues} | Critical: {critical_issues}", styles['Normal']))
+    content.append(Spacer(1, 10))
+
+    # Milestones
+    content.append(Paragraph("7. MILESTONES", styles['Heading2']))
+    content.append(Paragraph(f"Total Milestones: {total_milestones} | Completed: {completed_milestones} | Missed: {missed_milestones}", styles['Normal']))
+    content.append(Spacer(1, 10))
+
+    # Engagement
+    content.append(Paragraph("8. CITIZEN ENGAGEMENT", styles['Heading2']))
+    content.append(Paragraph(f"Feedback: {total_feedback} | Testimonials: {total_testimonials} (Approved: {approved_testimonials})", styles['Normal']))
+    content.append(Paragraph(f"Comments: {total_comments} | Participations: {total_participations}", styles['Normal']))
+    content.append(Paragraph(f"Citizen Submissions: {total_citizen_submissions} | Evidence: {total_citizen_evidence}", styles['Normal']))
+    content.append(Spacer(1, 10))
+
+    # System
+    content.append(Paragraph("9. SYSTEM & ADMINISTRATION", styles['Heading2']))
+    content.append(Paragraph(f"Media Files: {total_media} | Audit Logs: {total_audit_logs}", styles['Normal']))
+    content.append(Paragraph(f"Notifications: {total_notifications} | Announcements: {total_announcements}", styles['Normal']))
+    content.append(Paragraph(f"Contractors: {total_contractors} | Team Members: {total_teams}", styles['Normal']))
+    content.append(Paragraph(f"Project Risks: {total_risks} (High/Critical: {high_risks})", styles['Normal']))
 
     doc.build(content)
 
@@ -3084,17 +3868,95 @@ def export_excel(request):
         return HttpResponse('Excel export is unavailable. Install openpyxl.', status=503)
     wb = Workbook()
     ws = wb.active
-    ws.title = "Report"
+    ws.title = "System Report"
 
-    ws.append(["Category", "Value"])
+    # ── Projects ──
+    ws.append(["PROJECTS"])
     ws.append(["Total Projects", Project.objects.count()])
-    ws.append(["Completed Projects", Project.objects.filter(project_status='completed').count()])
+    ws.append(["Ongoing", Project.objects.filter(project_status='ongoing').count()])
+    ws.append(["Completed", Project.objects.filter(project_status='completed').count()])
+    ws.append(["Upcoming", Project.objects.filter(project_status='upcoming').count()])
+    ws.append(["Delayed", Project.objects.filter(project_status='delayed').count()])
+    ws.append(["Stalled", Project.objects.filter(project_status='stalled').count()])
+    ws.append(["Draft", Project.objects.filter(project_status='draft').count()])
+    ws.append(["Cancelled", Project.objects.filter(project_status='cancelled').count()])
+    ws.append(["Suspended", Project.objects.filter(project_status='suspended').count()])
+    ws.append([])
+
+    # ── Budget ──
+    ws.append(["BUDGET & FINANCE"])
+    ws.append(["Total Allocated", Project.objects.aggregate(total=Sum('project_Budgeting'))['total'] or 0])
+    ws.append(["Total Spent", Project.objects.aggregate(total=Sum('amount_spent'))['total'] or 0])
+    ws.append(["Total Expenses", ProjectExpense.objects.count()])
+    ws.append(["Expense Amount", ProjectExpense.objects.aggregate(total=Sum('amount'))['total'] or 0])
+    ws.append([])
+
+    # ── Users ──
+    ws.append(["USERS"])
+    ws.append(["Total Users", User.objects.count()])
+    ws.append(["Verified", User.objects.filter(is_verified=True).count()])
+    ws.append(["Citizens", User.objects.filter(role='citizen').count()])
+    ws.append(["Officials", User.objects.filter(role__in=['official', 'staff', 'admin', 'auditor', 'manager']).count()])
+    ws.append(["Contractors", User.objects.filter(role='contractor').count()])
+    ws.append([])
+
+    # ── Tenders ──
+    ws.append(["TENDERS"])
+    ws.append(["Total Tenders", Tender.objects.count()])
+    ws.append(["Published", Tender.objects.filter(status='published').count()])
+    ws.append(["Awarded", Tender.objects.filter(status='awarded').count()])
+    ws.append(["Total Applications", TenderApplication.objects.count()])
+    ws.append(["Awarded Applications", TenderApplication.objects.filter(status='awarded').count()])
+    ws.append([])
+
+    # ── Requests ──
+    ws.append(["GOVERNMENT REQUESTS"])
     ws.append(["Total Requests", GovernmentRequest.objects.count()])
+    ws.append(["Pending", GovernmentRequest.objects.filter(status='pending').count()])
+    ws.append(["In Progress", GovernmentRequest.objects.filter(status='in_progress').count()])
+    ws.append(["Resolved", GovernmentRequest.objects.filter(status='resolved').count()])
+    ws.append([])
+
+    # ── Issues ──
+    ws.append(["REPORTED ISSUES"])
+    ws.append(["Total Issues", ReportIssue.objects.count()])
+    ws.append(["Resolved", ReportIssue.objects.filter(status='resolved').count()])
+    ws.append(["Critical", ReportIssue.objects.filter(severity='critical').count()])
+    ws.append([])
+
+    # ── Milestones ──
+    ws.append(["MILESTONES"])
+    ws.append(["Total Milestones", Milestone.objects.count()])
+    ws.append(["Completed", Milestone.objects.filter(status='completed').count()])
+    ws.append(["Missed", Milestone.objects.filter(status='missed').count()])
+    ws.append([])
+
+    # ── Engagement ──
+    ws.append(["CITIZEN ENGAGEMENT"])
+    ws.append(["Feedback", Feedback.objects.count()])
+    ws.append(["Testimonials", Testimonial.objects.count()])
+    ws.append(["Approved Testimonials", Testimonial.objects.filter(is_approved=True).count()])
+    ws.append(["Comments", Comment.objects.count()])
+    ws.append(["Participations", Participation.objects.count()])
+    ws.append(["Citizen Submissions", CitizenSubmission.objects.count()])
+    ws.append(["Citizen Evidence", CitizenEvidence.objects.count()])
+    ws.append([])
+
+    # ── System ──
+    ws.append(["SYSTEM & ADMINISTRATION"])
+    ws.append(["Media Files", Media.objects.count()])
+    ws.append(["Audit Logs", AuditLog.objects.count()])
+    ws.append(["Notifications", Notification.objects.count()])
+    ws.append(["Announcements", Announcement.objects.count()])
+    ws.append(["Contractors", Contractor.objects.count()])
+    ws.append(["Team Members", Team.objects.count()])
+    ws.append(["Project Risks", ProjectRisk.objects.count()])
+    ws.append(["High/Critical Risks", ProjectRisk.objects.filter(risk_level__in=['high', 'critical']).count()])
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename=report.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=system_report.xlsx'
 
     wb.save(response)
     return response

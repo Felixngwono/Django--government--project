@@ -1,0 +1,183 @@
+{% load static status_theme_tags %}
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Overview — GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+</head>
+<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+{% comment %} Card for a single Project — themed per-card by project.project_status (no page-level theme dependency) {% endcomment %}
+{% status_theme project.project_status as th %}
+
+<article class="project-card bg-white rounded-2xl shadow border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group"
+         x-data="{ utilization: null }"
+         x-init="utilization = Math.min(Math.round(({{ project.amount_spent|num }} / {{ project.project_Budgeting|num }}) * 100) || 0, 100)">
+  <div class="flex flex-col lg:flex-row">
+
+    <!-- ===== COVER IMAGE ===== -->
+    <div class="relative lg:w-64 h-48 lg:h-auto flex-shrink-0 bg-gray-100 overflow-hidden">
+      {% if project.cover_image %}
+        <img src="{{ project.cover_image.url }}" alt="{{ project.project_title }}"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+      {% elif project.images %}
+        <img src="{{ project.images.url }}" alt="{{ project.project_title }}"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+      {% else %}
+        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+          <iconify-icon icon="mdi:city-variant-outline" class="text-5xl text-gray-300"></iconify-icon>
+        </div>
+      {% endif %}
+      <!-- status badge overlay (per-card theme) -->
+      <span class="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold capitalize shadow ring-1 {{ th.ring }} {{ th.bg }} {{ th.text }}">
+        <iconify-icon icon="{{ th.icon }}" class="text-sm"></iconify-icon>
+        {{ project.project_status|default:'draft' }}
+      </span>
+      <!-- OVERDUE badge -->
+      {% if project.end_date and project.project_status != 'completed' and project.project_status != 'cancelled' and project.end_date < today %}
+        <span class="absolute bottom-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-600 text-white shadow">
+          <iconify-icon icon="mdi:alarm-light-outline"></iconify-icon> Overdue
+        </span>
+      {% endif %}
+      {% if project.is_featured %}
+        <span class="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-400 text-yellow-900 shadow">
+          <iconify-icon icon="mdi:star"></iconify-icon> Featured
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- ===== BODY ===== -->
+    <div class="flex-1 p-6">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-2">
+        <div>
+          <p class="text-xs font-mono text-gray-400 mb-1">
+            {% if project.reference_code %}{{ project.reference_code }}{% else %}#{{ project.pk }}{% endif %}
+            {% if project.category %} · <span class="font-sans font-semibold text-blue-700">{{ project.category }}</span>{% endif %}
+          </p>
+          <h3 class="text-lg font-extrabold text-gray-900 group-hover:text-blue-700 transition">
+            {{ project.project_title|default:"Untitled Project" }}
+          </h3>
+        </div>
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide flex-shrink-0
+                     {% if project.priority == 'critical' %}bg-red-100 text-red-700
+                     {% elif project.priority == 'high' %}bg-orange-100 text-orange-700
+                     {% elif project.priority == 'medium' %}bg-amber-100 text-amber-700
+                     {% else %}bg-gray-100 text-gray-600{% endif %}">
+          <iconify-icon icon="mdi:flag-outline"></iconify-icon> {{ project.priority }}
+        </span>
+      </div>
+
+      <p class="text-sm text-gray-600 line-clamp-2 mb-4">
+        {{ project.project_description|default:"No description provided yet." }}
+      </p>
+
+      <!-- meta grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-4">
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:map-marker-outline" class="text-base text-blue-500 flex-shrink-0"></iconify-icon>
+          <span class="truncate">{{ project.project_location|default:"—" }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:office-building-outline" class="text-base text-blue-500 flex-shrink-0"></iconify-icon>
+          <span class="truncate">{{ project.implementing_agency|default:"—" }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:calendar-start" class="text-base text-blue-500 flex-shrink-0"></iconify-icon>
+          <span>{{ project.start_date|date:"M d, Y"|default:"—" }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:calendar-end" class="text-base text-blue-500 flex-shrink-0"></iconify-icon>
+          <span>{{ project.end_date|date:"M d, Y"|default:"—" }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:account-cash-outline" class="text-base text-blue-500 flex-shrink-0"></iconify-icon>
+          <span class="truncate">Funding: {{ project.funding_source|default:"—" }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:eye-check-outline" class="text-base text-blue-500 flex-shrink-0"></iconify-icon>
+          <span class="truncate">Supervising: {{ project.supervising_agency|default:"—" }}</span>
+        </div>
+        {% if project.project_status == 'completed' and project.actual_end_date %}
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:calendar-check" class="text-base text-green-500 flex-shrink-0"></iconify-icon>
+          <span>Completed: {{ project.actual_end_date|date:"M d, Y" }}</span>
+        </div>
+        {% endif %}
+        {% if project.district or project.beneficiaries %}
+        <div class="flex items-center gap-2 text-gray-600">
+          <iconify-icon icon="mdi:account-group-outline" class="text-base text-blue-500 flex-shrink-0"></iconify-icon>
+          <span class="truncate">{% if project.district %}{{ project.district.name }}{% if project.beneficiaries %} · {% endif %}{% endif %}{{ project.beneficiaries|truncatechars:40 }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- progress / remarks -->
+      {% if project.progress or project.remarks %}
+      <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 mb-4">
+        <p class="text-[11px] uppercase tracking-wide text-gray-500 font-semibold mb-1 flex items-center gap-1">
+          <iconify-icon icon="mdi:chart-line"></iconify-icon> Progress &amp; Remarks
+        </p>
+        {% if project.progress %}<p class="text-xs text-gray-700 mb-1 line-clamp-2">{{ project.progress }}</p>{% endif %}
+        {% if project.remarks %}<p class="text-xs text-gray-500 italic line-clamp-2">“{{ project.remarks }}”</p>{% endif %}
+      </div>
+      {% endif %}
+
+      <!-- budget + AI risk -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+          <p class="text-[11px] uppercase tracking-wide text-gray-500 font-semibold mb-1">Budget Utilization</p>
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span class="font-bold text-gray-800">{{ project.amount_spent|floatformat:0|default:"0" }} <span class="text-gray-400 font-normal">of {{ project.project_Budgeting|floatformat:0|default:"0" }}</span></span>
+            <span class="font-extrabold {{ th.text }}"><span x-text="utilization"></span>%</span>
+          </div>
+          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r {{ th.grad }} transition-all duration-700"
+                 :style="'width:' + (utilization || 0) + '%'"></div>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center gap-3">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white bg-gradient-to-br {{ th.grad }}">
+            <iconify-icon icon="{{ th.icon }}" class="text-lg"></iconify-icon>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] uppercase tracking-wide text-gray-500 font-semibold">AI Risk Score</p>
+            <p class="text-sm font-extrabold {{ th.text }}">
+              {{ project.ai_risk_score|floatformat:1|default:"N/A" }}
+              {% if project.ai_completion_estimate %}· ETA {{ project.ai_completion_estimate|date:"M Y" }}{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- footer -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-gray-100">
+        <p class="text-xs text-gray-400 flex items-center gap-1.5">
+          <iconify-icon icon="mdi:update"></iconify-icon>
+          Last update: {{ project.progress_update|date:"M d, Y H:i"|default:"—" }}
+        </p>
+        <a href="{% url 'project_details' project.pk %}"
+           class="inline-flex items-center justify-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition">
+          View Details <iconify-icon icon="mdi:arrow-right"></iconify-icon>
+        </a>
+      </div>
+    </div>
+  </div>
+</article>

@@ -3,157 +3,806 @@
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
-</head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
+<style>
+  .regional-hero {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 20px;
+    padding: 28px 32px;
+    color: var(--text, #4560a0);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  }
+  .regional-hero::after {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: var(--primary-05, rgba(59,130,246,0.04));
+  }
+  .regional-hero h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+  .regional-hero p { font-size: 0.95rem; opacity: 0.75; max-width: 700px; color: var(--text-sec, #475569); }
 
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
- 
-<div class="max-w-6xl mx-auto space-y-8">
+  .hero-stats-row {
+    display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;
+  }
+  .hero-pill {
+    background: transparent;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--text, #0f172a);
+  }
 
-    <!-- HEADER -->
-    <div>
-        <h1 class="text-2xl font-bold text-gray-800">Regional Comparison</h1>
-        <p class="text-gray-500 text-sm">Compare development across regions/counties</p>
+  .compare-card {
+    background: var(--surface, #ffffff);
+    border-radius: 16px;
+    padding: 22px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.2s ease-in-out;
+  }
+  .compare-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  }
+
+  .metric-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .metric-sub-card {
+    background: transparent;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .metric-sub-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-light, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .metric-sub-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text, #0f172a);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .progress-track {
+    width: 100%; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 6px;
+  }
+  .progress-fill-blue { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 999px; }
+  .progress-fill-emerald { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 999px; }
+
+  .matrix-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .matrix-table thead th {
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 14px 18px;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .matrix-table thead th:first-child { border-radius: 12px 0 0 0; }
+  .matrix-table thead th:last-child { border-radius: 0 12px 0 0; }
+  .matrix-table tbody td {
+    padding: 14px 18px; font-size: 0.88rem; color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+  }
+  .matrix-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+  .matrix-table tbody tr:hover td {
+    background: #eff6ff;
+  }
+  .matrix-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .matrix-table tbody tr:last-child td:first-child { border-radius: 0 0 0 12px; }
+  .matrix-table tbody tr:last-child td:last-child { border-radius: 0 0 12px 0; }
+  .matrix-table tbody td:first-child {
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .matrix-table tbody td:nth-child(2),
+  .matrix-table tbody td:nth-child(3) {
+    font-weight: 700;
+  }
+
+  .leaderboard-table th {
+    background: transparent;
+    color: var(--text-light, #64748b);
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    padding: 12px 16px; border-bottom: 1px solid var(--border-light, #e2e8f0);
+  }
+  .leaderboard-table td {
+    padding: 14px 16px; font-size: 0.88rem;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+  }
+</style>
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }" x-data="{ activeTab: 'comparison', searchRegion: '' }">
+  <div class="content space-y-6">
+
+    <!-- ===== HERO HEADER ===== -->
+    <div class="regional-hero">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1>🗺️ Regional Capital & Development Analytics</h1>
+          <p>Comparative intelligence dashboard across administrative counties & regions. Evaluate capital deployment, project execution speed, risk exposure, and public engagement.</p>
+        </div>
+      </div>
+
+      <div class="hero-stats-row">
+        <div class="hero-pill">
+          <iconify-icon icon="solar:map-point-bold-duotone" class="text-blue-600 text-lg"></iconify-icon>
+          <span>{{ total_tracked_regions }} Regions Tracked</span>
+        </div>
+        <div class="hero-pill">
+          <iconify-icon icon="solar:wallet-money-bold-duotone" class="text-emerald-600 text-lg"></iconify-icon>
+          <span>Total Capital: KSh {{ total_regional_capital|floatformat:0 }}</span>
+        </div>
+        <div class="hero-pill">
+          <iconify-icon icon="solar:chart-2-bold-duotone" class="text-indigo-600 text-lg"></iconify-icon>
+          <span>National Avg Completion: {{ national_data.completion_rate }}%</span>
+        </div>
+        <div class="hero-pill">
+          <iconify-icon icon="solar:shield-warning-bold-duotone" class="text-amber-500 text-lg"></iconify-icon>
+          <span>National Avg Risk Score: {{ national_data.avg_risk_score }}/10</span>
+        </div>
+      </div>
     </div>
 
-    <!-- FILTER FORM -->
-    <div class="bg-white p-6 rounded-xl shadow">
-        <form method="GET" class="grid md:grid-cols-3 gap-4">
+    <!-- ===== NAVIGATION TABS & FILTER BAR ===== -->
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl w-full md:w-auto">
+        <button @click="activeTab = 'comparison'" :class="{ 'bg-white dark:bg-slate-800 shadow-sm text-blue-600 font-bold': activeTab === 'comparison', 'text-slate-600 dark:text-slate-400 font-medium': activeTab !== 'comparison' }" class="px-5 py-2 rounded-lg text-sm transition-all flex items-center gap-2">
+          <iconify-icon icon="solar:tuning-square-2-bold-duotone" class="text-lg"></iconify-icon>
+          <span>Side-by-Side Comparison</span>
+        </button>
+        <button @click="activeTab = 'leaderboard'" :class="{ 'bg-white dark:bg-slate-800 shadow-sm text-blue-600 font-bold': activeTab === 'leaderboard', 'text-slate-600 dark:text-slate-400 font-medium': activeTab !== 'leaderboard' }" class="px-5 py-2 rounded-lg text-sm transition-all flex items-center gap-2">
+          <iconify-icon icon="solar:ranking-bold-duotone" class="text-lg"></iconify-icon>
+          <span>National Regional Ranking</span>
+        </button>
+      </div>
 
-            <select name="region1" class="p-3 border rounded-lg">
-                <option value="">Select Region 1</option>
-                {% for r in regions %}
-                <option value="{{ r }}" {% if r == region1 %}selected{% endif %}>{{ r }}</option>
-                {% endfor %}
+      <!-- Quick Preset Controls -->
+      <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+        <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider hidden sm:inline">Presets:</span>
+        <a href="?region1={{ regions.0 }}&region2={{ regions.1 }}" class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-semibold transition">
+          Top 2 Regions
+        </a>
+        <a href="?region1={{ region1 }}" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 text-xs font-semibold transition">
+          vs National Benchmark
+        </a>
+      </div>
+    </div>
+
+    <!-- TAB 1: SIDE-BY-SIDE COMPARISON -->
+    <div x-show="activeTab === 'comparison'" class="space-y-6">
+
+      <!-- FILTER FORM CARD -->
+      <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+
+          <div class="md:col-span-5 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Region 1 (Primary)
+            </label>
+            <select name="region1" class="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">Select Region 1</option>
+              {% for r in regions %}
+              <option value="{{ r }}" {% if r == region1 %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
             </select>
+          </div>
 
-            <select name="region2" class="p-3 border rounded-lg">
-                <option value="">Select Region 2</option>
-                {% for r in regions %}
-                <option value="{{ r }}" {% if r == region2 %}selected{% endif %}>{{ r }}</option>
-                {% endfor %}
+          <div class="md:col-span-5 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Region 2 (Comparator)
+            </label>
+            <select name="region2" class="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="">Select Region 2 (Or Leave Empty for National Avg)</option>
+              {% for r in regions %}
+              <option value="{{ r }}" {% if r == region2 %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
             </select>
+          </div>
 
-            <button class="bg-blue-600 text-white rounded-lg px-4">
-                Compare
+          <div class="md:col-span-2">
+            <button type="submit" class="w-full p-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+              <iconify-icon icon="solar:chart-line-up-bold" class="text-lg"></iconify-icon>
+              <span>Analyze</span>
             </button>
+          </div>
 
         </form>
-    </div>
+      </div>
+      <!-- EXECUTIVE COMPARISON CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-    {% if data1 and data2 %}
-
-    <!-- COMPARISON CARDS -->
-    <div class="grid md:grid-cols-2 gap-6">
-
-        <!-- REGION 1 -->
-        <div class="bg-white p-6 rounded-xl shadow space-y-4">
-            <h2 class="text-lg font-bold text-blue-600">{{ region1 }}</h2>
-
-            <div class="space-y-2">
-                <p>Total Projects: <b>{{ data1.total }}</b></p>
-                <p>Completed: <b>{{ data1.completed }}</b></p>
-                <p>Ongoing: <b>{{ data1.ongoing }}</b></p>
-                <p>Delayed: <b>{{ data1.delayed }}</b></p>
-            </div>
-
-            <!-- PROGRESS -->
+        <!-- REGION 1 CARD -->
+        {% if data1 %}
+        <div class="compare-card space-y-5 border-l-4 border-l-blue-500">
+          <div class="flex items-start justify-between">
             <div>
-                <p class="text-sm text-gray-500">Completion Rate</p>
-                <div class="w-full bg-gray-200 h-3 rounded-full">
-                    <div class="bg-blue-600 h-3 rounded-full"
-                         style="width: {{ data1.completion_rate }}%">
-                    </div>
-                </div>
-                <p class="text-sm mt-1">{{ data1.completion_rate }}%</p>
+              <span class="text-xs font-extrabold uppercase text-blue-600 tracking-wider">Region 1 Benchmark</span>
+              <h2 class="text-2xl font-black text-slate-800 dark:text-slate-100 mt-0.5">{{ data1.name }}</h2>
             </div>
+            <div class="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+              {{ data1.total }} Project{{ data1.total|pluralize }}
+            </div>
+          </div>
+
+          <!-- KPI GRID -->
+          <div class="metric-kpi-grid">
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Completion</div>
+              <div class="metric-sub-value text-blue-600">{{ data1.completion_rate }}%</div>
+              <div class="progress-track"><div class="progress-fill-blue" style="width: {{ data1.completion_rate }}%;"></div></div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Allocated Budget</div>
+              <div class="metric-sub-value text-slate-800">KSh {{ data1.total_allocated|floatformat:0 }}</div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Amount Spent</div>
+              <div class="metric-sub-value text-emerald-600">KSh {{ data1.total_spent|floatformat:0 }}</div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Utilization</div>
+              <div class="metric-sub-value text-amber-600">{{ data1.budget_utilization }}%</div>
+              <div class="progress-track"><div class="progress-fill-emerald" style="width: {{ data1.budget_utilization }}%;"></div></div>
+            </div>
+          </div>
+
+          <!-- STATUS PILLS -->
+          <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
+            <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+              <div class="text-xs text-emerald-600 font-bold">Completed</div>
+              <div class="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">{{ data1.completed }}</div>
+            </div>
+            <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+              <div class="text-xs text-blue-600 font-bold">Ongoing</div>
+              <div class="text-lg font-extrabold text-blue-700 dark:text-blue-400">{{ data1.ongoing }}</div>
+            </div>
+            <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl">
+              <div class="text-xs text-red-600 font-bold">Delayed</div>
+              <div class="text-lg font-extrabold text-red-700 dark:text-red-400">{{ data1.delayed }}</div>
+            </div>
+            <div class="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+              <div class="text-xs text-amber-600 font-bold">Issues</div>
+              <div class="text-lg font-extrabold text-amber-700 dark:text-amber-400">{{ data1.reported_issues }}</div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- REGION 2 CARD -->
+        {% if data2 %}
+        <div class="compare-card space-y-5 border-l-4 border-l-emerald-500">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-xs font-extrabold uppercase text-emerald-600 tracking-wider">Region 2 Benchmark</span>
+              <h2 class="text-2xl font-black text-slate-800 dark:text-slate-100 mt-0.5">{{ data2.name }}</h2>
+            </div>
+            <div class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+              {{ data2.total }} Project{{ data2.total|pluralize }}
+            </div>
+          </div>
+
+          <!-- KPI GRID -->
+          <div class="metric-kpi-grid">
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Completion</div>
+              <div class="metric-sub-value text-emerald-600">{{ data2.completion_rate }}%</div>
+              <div class="progress-track"><div class="progress-fill-emerald" style="width: {{ data2.completion_rate }}%;"></div></div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Allocated Budget</div>
+              <div class="metric-sub-value text-slate-800">KSh {{ data2.total_allocated|floatformat:0 }}</div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Amount Spent</div>
+              <div class="metric-sub-value text-emerald-600">KSh {{ data2.total_spent|floatformat:0 }}</div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Utilization</div>
+              <div class="metric-sub-value text-amber-600">{{ data2.budget_utilization }}%</div>
+              <div class="progress-track"><div class="progress-fill-emerald" style="width: {{ data2.budget_utilization }}%;"></div></div>
+            </div>
+          </div>
+
+          <!-- STATUS PILLS -->
+          <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
+            <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+              <div class="text-xs text-emerald-600 font-bold">Completed</div>
+              <div class="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">{{ data2.completed }}</div>
+            </div>
+            <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+              <div class="text-xs text-blue-600 font-bold">Ongoing</div>
+              <div class="text-lg font-extrabold text-blue-700 dark:text-blue-400">{{ data2.ongoing }}</div>
+            </div>
+            <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl">
+              <div class="text-xs text-red-600 font-bold">Delayed</div>
+              <div class="text-lg font-extrabold text-red-700 dark:text-red-400">{{ data2.delayed }}</div>
+            </div>
+            <div class="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+              <div class="text-xs text-amber-600 font-bold">Issues</div>
+              <div class="text-lg font-extrabold text-amber-700 dark:text-amber-400">{{ data2.reported_issues }}</div>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <!-- NATIONAL BENCHMARK CARD IF REGION 2 NOT SELECTED -->
+        <div class="compare-card space-y-5 border-l-4 border-l-indigo-500">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-xs font-extrabold uppercase text-indigo-600 tracking-wider">National Average Benchmark</span>
+              <h2 class="text-2xl font-black text-slate-800 dark:text-slate-100 mt-0.5">National Summary</h2>
+            </div>
+            <div class="px-3 py-1 rounded-full text-xs font-extrabold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+              {{ national_data.total }} Total Projects
+            </div>
+          </div>
+
+          <div class="metric-kpi-grid">
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Completion</div>
+              <div class="metric-sub-value text-indigo-600">{{ national_data.completion_rate }}%</div>
+              <div class="progress-track"><div class="progress-fill-blue" style="width: {{ national_data.completion_rate }}%;"></div></div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Avg Budget / Region</div>
+              <div class="metric-sub-value text-slate-800">KSh {{ national_data.avg_project_budget|floatformat:0 }}</div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">National Spent</div>
+              <div class="metric-sub-value text-emerald-600">KSh {{ national_data.total_spent|floatformat:0 }}</div>
+            </div>
+
+            <div class="metric-sub-card">
+              <div class="metric-sub-label">Avg Risk Score</div>
+              <div class="metric-sub-value text-amber-600">{{ national_data.avg_risk_score }}/10</div>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500 leading-relaxed italic pt-2">
+            Tip: Select a second region in the form above to conduct a direct regional head-to-head evaluation.
+          </p>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- ANALYTICS CHARTS GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- STATUS DISTRIBUTION CHART -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <iconify-icon icon="solar:chart-2-bold-duotone" class="text-blue-500 text-xl"></iconify-icon>
+              <span>Project Execution Breakdown</span>
+            </h3>
+            <span class="text-xs text-slate-400 font-semibold">Grouped Bar</span>
+          </div>
+          <div style="height: 280px;">
+            <canvas id="statusComparisonChart"></canvas>
+          </div>
         </div>
 
-        <!-- REGION 2 -->
-        <div class="bg-white p-6 rounded-xl shadow space-y-4">
-            <h2 class="text-lg font-bold text-green-600">{{ region2 }}</h2>
-
-            <div class="space-y-2">
-                <p>Total Projects: <b>{{ data2.total }}</b></p>
-                <p>Completed: <b>{{ data2.completed }}</b></p>
-                <p>Ongoing: <b>{{ data2.ongoing }}</b></p>
-                <p>Delayed: <b>{{ data2.delayed }}</b></p>
-            </div>
-
-            <!-- PROGRESS -->
-            <div>
-                <p class="text-sm text-gray-500">Completion Rate</p>
-                <div class="w-full bg-gray-200 h-3 rounded-full">
-                    <div class="bg-green-600 h-3 rounded-full"
-                         style="width: {{ data2.completion_rate }}%">
-                    </div>
-                </div>
-                <p class="text-sm mt-1">{{ data2.completion_rate }}%</p>
-            </div>
+        <!-- BUDGET VS SPEND CHART -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <iconify-icon icon="solar:wallet-money-bold-duotone" class="text-emerald-500 text-xl"></iconify-icon>
+              <span>Capital Allocation & Expenditure (KSh)</span>
+            </h3>
+            <span class="text-xs text-slate-400 font-semibold">Financials</span>
+          </div>
+          <div style="height: 280px;">
+            <canvas id="budgetComparisonChart"></canvas>
+          </div>
         </div>
 
+      </div>
+      <!-- COMPREHENSIVE VARIANCE MATRIX TABLE -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+          <h3 class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <iconify-icon icon="solar:sort-from-bottom-to-top-bold-duotone" class="text-indigo-500 text-xl"></iconify-icon>
+            <span>Detailed Comparative Variance Matrix</span>
+          </h3>
+          <span class="text-xs text-slate-400 font-semibold">Side-by-side indicator analysis</span>
+        </div>
+
+        <div class="overflow-x-auto bg-white dark:bg-slate-800 p-2">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th class="text-left">Performance Indicator</th>
+                <th class="text-center font-bold text-blue-600">{{ data1.name }}</th>
+                <th class="text-center font-bold text-emerald-600">{% if data2 %}{{ data2.name }}{% else %}{{ national_data.name }}{% endif %}</th>
+                <th class="text-right">Comparative Context</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-semibold">Total Capital Projects</td>
+                <td class="text-center font-bold text-slate-800">{{ data1.total }}</td>
+                <td class="text-center font-bold text-slate-800">{% if data2 %}{{ data2.total }}{% else %}{{ national_data.total }}{% endif %}</td>
+                <td class="text-right text-xs text-slate-500">Total volume of active/historical projects</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Project Completion Rate %</td>
+                <td class="text-center font-bold text-blue-600">{{ data1.completion_rate }}%</td>
+                <td class="text-center font-bold text-emerald-600">{% if data2 %}{{ data2.completion_rate }}%{% else %}{{ national_data.completion_rate }}%{% endif %}</td>
+                <td class="text-right">
+                  {% if data2 %}
+                    {% if data1.completion_rate > data2.completion_rate %}
+                      <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">{{ data1.name }} leads in completion</span>
+                    {% elif data2.completion_rate > data1.completion_rate %}
+                      <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">{{ data2.name }} ahead</span>
+                    {% else %}
+                      <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">Parity</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-xs text-slate-500">Benchmark against national average</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Delayed / Overdue Projects</td>
+                <td class="text-center font-bold text-red-600">{{ data1.delayed }}</td>
+                <td class="text-center font-bold text-red-600">{% if data2 %}{{ data2.delayed }}{% else %}{{ national_data.delayed }}{% endif %}</td>
+                <td class="text-right text-xs text-slate-500">Projects past target timeline</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Total Allocated Capital</td>
+                <td class="text-center font-bold text-slate-800">KSh {{ data1.total_allocated|floatformat:0 }}</td>
+                <td class="text-center font-bold text-slate-800">{% if data2 %}KSh {{ data2.total_allocated|floatformat:0 }}{% else %}KSh {{ national_data.total_allocated|floatformat:0 }}{% endif %}</td>
+                <td class="text-right text-xs text-slate-500">Total approved budget</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Total Amount Expended</td>
+                <td class="text-center font-bold text-emerald-600">KSh {{ data1.total_spent|floatformat:0 }}</td>
+                <td class="text-center font-bold text-emerald-600">{% if data2 %}KSh {{ data2.total_spent|floatformat:0 }}{% else %}KSh {{ national_data.total_spent|floatformat:0 }}{% endif %}</td>
+                <td class="text-right text-xs text-slate-500">Disorded funds</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Budget Utilization %</td>
+                <td class="text-center font-bold text-amber-600">{{ data1.budget_utilization }}%</td>
+                <td class="text-center font-bold text-amber-600">{% if data2 %}{{ data2.budget_utilization }}%{% else %}{{ national_data.budget_utilization }}%{% endif %}</td>
+                <td class="text-right text-xs text-slate-500">Expenditure relative to budget</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Average Risk Score</td>
+                <td class="text-center font-bold text-slate-800">{{ data1.avg_risk_score }}/10</td>
+                <td class="text-center font-bold text-slate-800">{% if data2 %}{{ data2.avg_risk_score }}/10{% else %}{{ national_data.avg_risk_score }}/10{% endif %}</td>
+                <td class="text-right text-xs text-slate-500">AI-computed execution risk</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Citizen Reported Issues</td>
+                <td class="text-center font-bold text-slate-800">{{ data1.reported_issues }} ({{ data1.open_issues }} open)</td>
+                <td class="text-center font-bold text-slate-800">{% if data2 %}{{ data2.reported_issues }} ({{ data2.open_issues }} open){% else %}{{ national_data.reported_issues }} open{% endif %}</td>
+                <td class="text-right text-xs text-slate-500">Public complaints & concerns logged</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KEY REGIONAL PROJECTS BREAKDOWN -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- REGION 1 PROJECTS -->
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+          <div class="flex items-center justify-between border-b pb-3 border-slate-100 dark:border-slate-700">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+              <iconify-icon icon="solar:folder-open-bold-duotone" class="text-blue-500 text-lg"></iconify-icon>
+              <span>{{ data1.name }} Projects Directory</span>
+            </h3>
+            <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2.5 py-1 rounded-lg">Top Capital Work</span>
+          </div>
+
+          <div class="space-y-3">
+            {% for p in data1.projects_list %}
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 hover:border-blue-400 transition-colors">
+              <div class="space-y-1 min-w-0 flex-1">
+                <a href="{% url 'project_details' p.id %}" class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:text-blue-600 truncate block">
+                  {{ p.project_title }}
+                </a>
+                <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                  <span class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-semibold">{{ p.category.name|default:"General" }}</span>
+                  <span>&middot; KSh {{ p.project_Budgeting|floatformat:0|default:"—" }}</span>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-white uppercase tracking-wider
+                {% if p.project_status == 'completed' %}bg-emerald-500
+                {% elif p.project_status == 'ongoing' %}bg-blue-500
+                {% elif p.project_status == 'delayed' %}bg-red-500
+                {% else %}bg-slate-500{% endif %}">
+                {{ p.project_status }}
+              </span>
+            </div>
+            {% empty %}
+            <p class="text-xs text-slate-400 py-4 text-center">No projects registered for this region.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- REGION 2 PROJECTS -->
+        {% if data2 %}
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+          <div class="flex items-center justify-between border-b pb-3 border-slate-100 dark:border-slate-700">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+              <iconify-icon icon="solar:folder-open-bold-duotone" class="text-emerald-500 text-lg"></iconify-icon>
+              <span>{{ data2.name }} Projects Directory</span>
+            </h3>
+            <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg">Top Capital Work</span>
+          </div>
+
+          <div class="space-y-3">
+            {% for p in data2.projects_list %}
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 hover:border-emerald-400 transition-colors">
+              <div class="space-y-1 min-w-0 flex-1">
+                <a href="{% url 'project_details' p.id %}" class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:text-emerald-600 truncate block">
+                  {{ p.project_title }}
+                </a>
+                <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                  <span class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-semibold">{{ p.category.name|default:"General" }}</span>
+                  <span>&middot; KSh {{ p.project_Budgeting|floatformat:0|default:"—" }}</span>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-white uppercase tracking-wider
+                {% if p.project_status == 'completed' %}bg-emerald-500
+                {% elif p.project_status == 'ongoing' %}bg-blue-500
+                {% elif p.project_status == 'delayed' %}bg-red-500
+                {% else %}bg-slate-500{% endif %}">
+                {{ p.project_status }}
+              </span>
+            </div>
+            {% empty %}
+            <p class="text-xs text-slate-400 py-4 text-center">No projects registered for this region.</p>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
     </div>
 
-    <!-- SIMPLE BAR CHART -->
-    <div class="bg-white p-6 rounded-xl shadow">
-        <h2 class="text-lg font-semibold mb-4">Comparison Chart</h2>
+    <!-- TAB 2: NATIONAL REGIONAL LEADERBOARD TABLE -->
+    <div x-show="activeTab === 'leaderboard'" class="space-y-6">
 
-        <canvas id="comparisonChart" height="100"></canvas>
+      <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2">
+              <iconify-icon icon="solar:ranking-bold-duotone" class="text-amber-500 text-2xl"></iconify-icon>
+              <span>National Regional Execution & Capital Leaderboard</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">Ranking of all {{ total_tracked_regions }} tracked administrative regions ordered by completion efficiency and total investment.</p>
+          </div>
+
+          <div class="w-full md:w-64">
+            <input type="text" x-model="searchRegion" placeholder="Search region or county..." class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="leaderboard-table w-full">
+            <thead>
+              <tr>
+                <th class="text-center w-12"># Rank</th>
+                <th class="text-left">Region / County</th>
+                <th class="text-center">Total Projects</th>
+                <th class="text-center">Completion Rate %</th>
+                <th class="text-right">Allocated Capital</th>
+                <th class="text-right">Amount Expended</th>
+                <th class="text-center">Utilization</th>
+                <th class="text-center">Reported Issues</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in all_regions_summary %}
+              <tr x-show="!searchRegion || '{{ r.region|lower }}'.includes(searchRegion.toLowerCase())" class="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                <td class="text-center font-black text-xs text-slate-400">#{{ forloop.counter }}</td>
+                <td class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">
+                  {{ r.region }}
+                </td>
+                <td class="text-center font-bold text-slate-700">{{ r.total }}</td>
+                <td class="text-center">
+                  <div class="inline-flex items-center gap-2">
+                    <span class="font-black text-xs {% if r.completion_rate >= 50 %}text-emerald-600{% else %}text-amber-600{% endif %}">{{ r.completion_rate }}%</span>
+                    <div class="w-16 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden hidden sm:block">
+                      <div class="h-2 {% if r.completion_rate >= 50 %}bg-emerald-500{% else %}bg-amber-500{% endif %}" style="width: {{ r.completion_rate }}%;"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-right font-mono font-bold text-xs text-slate-800 dark:text-slate-200">KSh {{ r.allocated|floatformat:0 }}</td>
+                <td class="text-right font-mono font-bold text-xs text-emerald-600">KSh {{ r.spent|floatformat:0 }}</td>
+                <td class="text-center font-bold text-xs text-slate-700">{{ r.utilization }}%</td>
+                <td class="text-center">
+                  {% if r.issues_count > 0 %}
+                    <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-bold">{{ r.issues_count }}</span>
+                  {% else %}
+                    <span class="text-xs text-slate-400">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <a href="?region1={{ r.region }}" class="px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-bold transition inline-flex items-center gap-1">
+                    <span>Select</span>
+                    <iconify-icon icon="solar:alt-arrow-right-bold"></iconify-icon>
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="9" class="text-center py-8 text-xs text-slate-400">No regional summary data available.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
-    {% endif %}
-
-</div>
-
-<!-- CHART SCRIPT -->
+  </div>
+</main>
+<!-- CHART INITIALIZATION SCRIPTS -->
 <script>
-const ctx = document.getElementById('comparisonChart');
+document.addEventListener('DOMContentLoaded', function() {
 
-if (ctx) {
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Completed', 'Ongoing', 'Delayed'],
-            datasets: [
-                {
-                    label: "{{ region1 }}",
-                    data: [{{ data1.completed|default:0 }}, {{ data1.ongoing|default:0 }}, {{ data1.delayed|default:0 }}]
-                },
-                {
-                    label: "{{ region2 }}",
-                    data: [{{ data2.completed|default:0 }}, {{ data2.ongoing|default:0 }}, {{ data2.delayed|default:0 }}]
-                }
-            ]
+  // STATUS COMPARISON CHART
+  const statusCtx = document.getElementById('statusComparisonChart');
+  if (statusCtx) {
+    new Chart(statusCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Completed', 'Ongoing', 'Delayed', 'Upcoming', 'Stalled'],
+        datasets: [
+          {
+            label: "{{ data1.name|escapejs }}",
+            data: [
+              {{ data1.completed|default:0 }},
+              {{ data1.ongoing|default:0 }},
+              {{ data1.delayed|default:0 }},
+              {{ data1.upcoming|default:0 }},
+              {{ data1.stalled|default:0 }}
+            ],
+            backgroundColor: '#3b82f6',
+            borderRadius: 6
+          },
+          {% if data2 %}
+          {
+            label: "{{ data2.name|escapejs }}",
+            data: [
+              {{ data2.completed|default:0 }},
+              {{ data2.ongoing|default:0 }},
+              {{ data2.delayed|default:0 }},
+              {{ data2.upcoming|default:0 }},
+              {{ data2.stalled|default:0 }}
+            ],
+            backgroundColor: '#10b981',
+            borderRadius: 6
+          }
+          {% else %}
+          {
+            label: "National Avg",
+            data: [
+              {{ national_data.completed|default:0 }},
+              {{ national_data.ongoing|default:0 }},
+              {{ national_data.delayed|default:0 }},
+              {{ national_data.upcoming|default:0 }},
+              {{ national_data.stalled|default:0 }}
+            ],
+            backgroundColor: '#6366f1',
+            borderRadius: 6
+          }
+          {% endif %}
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: { beginAtZero: true }
         }
+      }
     });
-}
+  }
+
+  // BUDGET COMPARISON CHART
+  const budgetCtx = document.getElementById('budgetComparisonChart');
+  if (budgetCtx) {
+    new Chart(budgetCtx, {
+      type: 'bar',
+      data: {
+        labels: ["Allocated Capital", "Amount Expended"],
+        datasets: [
+          {
+            label: "{{ data1.name|escapejs }}",
+            data: [
+              {{ data1.total_allocated|default:0 }},
+              {{ data1.total_spent|default:0 }}
+            ],
+            backgroundColor: ['#3b82f6', '#2563eb'],
+            borderRadius: 8
+          },
+          {% if data2 %}
+          {
+            label: "{{ data2.name|escapejs }}",
+            data: [
+              {{ data2.total_allocated|default:0 }},
+              {{ data2.total_spent|default:0 }}
+            ],
+            backgroundColor: ['#10b981', '#059669'],
+            borderRadius: 8
+          }
+          {% else %}
+          {
+            label: "National Avg",
+            data: [
+              {{ national_data.total_allocated|default:0 }},
+              {{ national_data.total_spent|default:0 }}
+            ],
+            backgroundColor: ['#8b5cf6', '#6d28d9'],
+            borderRadius: 8
+          }
+          {% endif %}
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+});
 </script>
 
-<!-- CHART CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-</main>
 {% include "footer.html" %}
 {% endblock content %}

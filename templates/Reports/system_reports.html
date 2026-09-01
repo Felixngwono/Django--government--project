@@ -3,105 +3,591 @@
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
-</head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
+<style>
+  .report-hero {
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+    border-radius: 20px;
+    padding: 28px 32px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .report-hero::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .report-hero h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 6px; position: relative; z-index: 1; }
+  .report-hero p { font-size: 0.95rem; opacity: 0.8; position: relative; z-index: 1; }
+  .report-hero .hero-badge {
+    position: absolute; top: 24px; right: 28px;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+    border-radius: 999px; padding: 8px 18px; font-size: 0.8rem;
+    font-weight: 600; z-index: 1; display: flex; align-items: center; gap: 8px;
+  }
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  .report-section {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 20px;
+  }
+  .report-section-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1rem; font-weight: 700; color: var(--text);
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .report-section-title .sec-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: var(--primary-10); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
 
-<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .metric-item {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid var(--border-light);
+    transition: all 0.2s;
+  }
+  .metric-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(252,25,25,0.08);
+  }
+  .metric-label {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .metric-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .metric-value.success { color: var(--success); }
+  .metric-value.warning { color: var(--warning); }
+  .metric-value.danger { color: var(--danger); }
+  .metric-value.info { color: var(--info); }
 
-<h2 class="text-2xl font-bold mb-6">📊 System Reports</h2>
+  .export-btns {
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .export-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 10px;
+    font-weight: 600; font-size: 0.85rem;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .export-btn.pdf { background: var(--danger); color: #fff; }
+  .export-btn.pdf:hover { box-shadow: 0 4px 12px rgba(220,53,69,0.3); }
+  .export-btn.excel { background: var(--success); color: #fff; }
+  .export-btn.excel:hover { box-shadow: 0 4px 12px rgba(40,167,69,0.3); }
 
-<div class="flex gap-4 mb-6">
-    <a href="{% url 'export_pdf' %}" class="bg-red-600 text-white px-4 py-2 rounded">
+  .recent-list {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .recent-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border-light);
+  }
+  .recent-item .recent-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--primary-10); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .recent-item .recent-title {
+    font-size: 0.82rem; font-weight: 600; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .recent-item .recent-sub {
+    font-size: 0.7rem; color: var(--text-light); margin-top: 2px;
+  }
+
+  .progress-bar {
+    height: 8px; background: var(--border);
+    border-radius: 999px; overflow: hidden; margin-top: 8px;
+  }
+  .progress-bar .fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary), #ff6b6b);
+  }
+</style>
+
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content">
+
+    <!-- ===== HERO ===== -->
+    <div class="report-hero">
+      <h1>📊 Comprehensive System Report</h1>
+      <p>Complete overview of all government project activities, finances, and citizen engagement</p>
+      <div class="hero-badge">
+        <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
+        Generated {{ today|date:"M d, Y" }}
+      </div>
+    </div>
+
+    <!-- ===== EXPORT BUTTONS ===== -->
+    <div class="export-btns" style="margin-bottom: 24px;">
+      <a href="{% url 'export_pdf' %}" class="export-btn pdf">
+        <iconify-icon icon="solar:file-download-bold"></iconify-icon>
         Export PDF
-    </a>
-    <a href="{% url 'export_excel' %}" class="bg-green-600 text-white px-4 py-2 rounded">
+      </a>
+      <a href="{% url 'export_excel' %}" class="export-btn excel">
+        <iconify-icon icon="solar:file-download-bold"></iconify-icon>
         Export Excel
-    </a>
-</div>
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="font-semibold">Projects</h3>
-        <p>Total: {{ total_projects }}</p>
-        <p>Completed: {{ completed_projects }}</p>
-        <p>Ongoing: {{ ongoing_projects }}</p>
+      </a>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="font-semibold">Tenders</h3>
-        <p>Total: {{ total_tenders }}</p>
-        <p>Awarded: {{ awarded_tenders }}</p>
-        <p>All tenders: {{ tenders|length }}</p>
+    <!-- ===== PERFORMANCE KPIs ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:chart-2-bold-duotone"></iconify-icon></div>
+        Performance Metrics & Rates
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Project Completion</div><div class="metric-value {% if completion_rate >= 50 %}success{% else %}warning{% endif %}">{{ completion_rate }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Request Resolution</div><div class="metric-value {% if resolution_rate >= 50 %}success{% else %}warning{% endif %}">{{ resolution_rate }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Issue Resolution</div><div class="metric-value {% if issue_resolution_rate >= 50 %}success{% else %}warning{% endif %}">{{ issue_resolution_rate }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Testimonial Approval</div><div class="metric-value info">{{ testimonial_approval_rate }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Submission Approval</div><div class="metric-value info">{{ submission_approval_rate }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Participation Rate</div><div class="metric-value {% if participation_rate >= 50 %}success{% else %}warning{% endif %}">{{ participation_rate }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Evidence Verified</div><div class="metric-value success">{{ evidence_verification_rate }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Budget Utilization</div><div class="metric-value {% if budget_utilization >= 80 %}danger{% elif budget_utilization >= 50 %}warning{% else %}success{% endif %}">{{ budget_utilization }}%</div></div>
+      </div>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="font-semibold">Requests</h3>
-        <p>Total: {{ total_requests }}</p>
-        <p>Resolved: {{ resolved_requests }}</p>
-        <p>All requests: {{ requests|length }}</p>
-    </div>
-</div>
+    <!-- ===== ANALYTICS CHARTS ===== -->
+    <div class="grid-2" style="grid-template-columns:1.2fr 1fr; gap:20px;">
+      <div class="report-section">
+        <div class="report-section-title">
+          <div class="sec-icon"><iconify-icon icon="solar:chart-2-bold-duotone"></iconify-icon></div>
+          Monthly Project & Budget Trends
+        </div>
+        <div class="chart-wrap-tall">
+          <canvas id="monthlyTrendChart"></canvas>
+        </div>
+      </div>
 
-<div class="mt-8 grid gap-6">
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="font-semibold mb-4">All Tenders</h3>
-        <ul class="list-disc pl-5">
-            {% for tender in tenders %}
-                <li>{{ tender }}</li>
-            {% empty %}
-                <li>No tenders available.</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="font-semibold mb-4">All Requests</h3>
-        <ul class="list-disc pl-5">
-            {% for request in requests %}
-                <li>{{ request }}</li>
-            {% empty %}
-                <li>No requests available.</li>
-            {% endfor %}
-        </ul>
+      <div class="report-section">
+        <div class="report-section-title">
+          <div class="sec-icon"><iconify-icon icon="solar:pie-chart-2-bold-duotone"></iconify-icon></div>
+          Project Status Distribution
+        </div>
+        <div class="chart-wrap-tall">
+          <canvas id="statusPieChart"></canvas>
+        </div>
+      </div>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="font-semibold mb-4">All Other Items</h3>
-        <ul class="list-disc pl-5">
-            {% for item in other_items %}
-                <li>{{ item }}</li>
-            {% empty %}
-                <li>No other items available.</li>
-            {% endfor %}
-        </ul>
+    <div class="grid-2" style="grid-template-columns:1fr 1.2fr; gap:20px;">
+      <div class="report-section">
+        <div class="report-section-title">
+          <div class="sec-icon"><iconify-icon icon="solar:documents-bold-duotone"></iconify-icon></div>
+          Submission Categories
+        </div>
+        <div class="chart-wrap-tall">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">
+          <div class="sec-icon"><iconify-icon icon="solar:wallet-bold-duotone"></iconify-icon></div>
+          Top 5 Project Budgets
+        </div>
+        <div class="chart-wrap-tall">
+          <canvas id="budgetChart"></canvas>
+        </div>
+      </div>
     </div>
-</div>
 
-</div>
+    <!-- ===== PROJECTS SECTION ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon></div>
+        Projects Overview
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Total Projects</div><div class="metric-value">{{ total_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Ongoing</div><div class="metric-value success">{{ ongoing_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Completed</div><div class="metric-value success">{{ completed_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Upcoming</div><div class="metric-value info">{{ upcoming_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Delayed</div><div class="metric-value danger">{{ delayed_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Stalled</div><div class="metric-value warning">{{ stalled_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Draft</div><div class="metric-value">{{ draft_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Cancelled</div><div class="metric-value danger">{{ cancelled_projects }}</div></div>
+        <div class="metric-item"><div class="metric-label">Suspended</div><div class="metric-value warning">{{ suspended_projects }}</div></div>
+      </div>
+    </div>
 
+    <!-- ===== BUDGET & FINANCE ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:wallet-bold-duotone"></iconify-icon></div>
+        Budget & Finance
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Total Allocated</div><div class="metric-value">KSh {{ total_budget_allocated|floatformat:0 }}</div></div>
+        <div class="metric-item"><div class="metric-label">Total Spent</div><div class="metric-value danger">KSh {{ total_budget_spent|floatformat:0 }}</div></div>
+        <div class="metric-item"><div class="metric-label">Remaining</div><div class="metric-value success">KSh {{ total_budget_remaining|floatformat:0 }}</div></div>
+        <div class="metric-item"><div class="metric-label">Utilization</div><div class="metric-value warning">{{ budget_utilization }}%</div></div>
+        <div class="metric-item"><div class="metric-label">Budget Records</div><div class="metric-value">{{ total_budget_records }}</div></div>
+        <div class="metric-item"><div class="metric-label">Budget Allocated</div><div class="metric-value">KSh {{ total_allocated_budget|floatformat:0 }}</div></div>
+        <div class="metric-item"><div class="metric-label">Budget Spent</div><div class="metric-value danger">KSh {{ total_spent_budget|floatformat:0 }}</div></div>
+        <div class="metric-item"><div class="metric-label">Expenses</div><div class="metric-value">{{ total_expenses }}</div></div>
+        <div class="metric-item"><div class="metric-label">Expense Amount</div><div class="metric-value">KSh {{ total_expense_amount|floatformat:0 }}</div></div>
+      </div>
+      <div class="progress-bar">
+        <div class="fill" style="width: {{ budget_utilization }}%;"></div>
+      </div>
+    </div>
+
+    <!-- ===== USERS ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon></div>
+        Users & Roles
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Total Users</div><div class="metric-value">{{ total_users }}</div></div>
+        <div class="metric-item"><div class="metric-label">Verified</div><div class="metric-value success">{{ verified_users }}</div></div>
+        <div class="metric-item"><div class="metric-label">Unverified</div><div class="metric-value warning">{{ unverified_users }}</div></div>
+        <div class="metric-item"><div class="metric-label">Admins</div><div class="metric-value">{{ superusers }}</div></div>
+        <div class="metric-item"><div class="metric-label">Citizens</div><div class="metric-value info">{{ citizens }}</div></div>
+        <div class="metric-item"><div class="metric-label">Officials</div><div class="metric-value">{{ officials }}</div></div>
+        <div class="metric-item"><div class="metric-label">Contractors</div><div class="metric-value">{{ contractors }}</div></div>
+      </div>
+    </div>
+
+    <!-- ===== TENDERS ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:bag-bold-duotone"></iconify-icon></div>
+        Tenders & Procurement
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Total Tenders</div><div class="metric-value">{{ total_tenders }}</div></div>
+        <div class="metric-item"><div class="metric-label">Published</div><div class="metric-value info">{{ published_tenders }}</div></div>
+        <div class="metric-item"><div class="metric-label">Closed</div><div class="metric-value">{{ closed_tenders }}</div></div>
+        <div class="metric-item"><div class="metric-label">Evaluating</div><div class="metric-value warning">{{ evaluating_tenders }}</div></div>
+        <div class="metric-item"><div class="metric-label">Awarded</div><div class="metric-value success">{{ awarded_tenders }}</div></div>
+        <div class="metric-item"><div class="metric-label">Cancelled</div><div class="metric-value danger">{{ cancelled_tenders }}</div></div>
+        <div class="metric-item"><div class="metric-label">Draft</div><div class="metric-value">{{ draft_tenders }}</div></div>
+        <div class="metric-item"><div class="metric-label">Applications</div><div class="metric-value">{{ total_applications }}</div></div>
+        <div class="metric-item"><div class="metric-label">Submitted</div><div class="metric-value">{{ submitted_apps }}</div></div>
+        <div class="metric-item"><div class="metric-label">Under Review</div><div class="metric-value info">{{ under_review_apps }}</div></div>
+        <div class="metric-item"><div class="metric-label">Shortlisted</div><div class="metric-value">{{ shortlisted_apps }}</div></div>
+        <div class="metric-item"><div class="metric-label">Rejected</div><div class="metric-value danger">{{ rejected_apps }}</div></div>
+        <div class="metric-item"><div class="metric-label">Awarded Apps</div><div class="metric-value success">{{ awarded_apps }}</div></div>
+      </div>
+    </div>
+
+    <!-- ===== GOVERNMENT REQUESTS ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:note-bold-duotone"></iconify-icon></div>
+        Government Requests
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Total Requests</div><div class="metric-value">{{ total_requests }}</div></div>
+        <div class="metric-item"><div class="metric-label">Pending</div><div class="metric-value warning">{{ pending_requests }}</div></div>
+        <div class="metric-item"><div class="metric-label">In Progress</div><div class="metric-value info">{{ in_progress_requests }}</div></div>
+        <div class="metric-item"><div class="metric-label">Responded</div><div class="metric-value">{{ responded_requests }}</div></div>
+        <div class="metric-item"><div class="metric-label">Resolved</div><div class="metric-value success">{{ resolved_requests }}</div></div>
+        <div class="metric-item"><div class="metric-label">Rejected</div><div class="metric-value danger">{{ rejected_requests }}</div></div>
+        <div class="metric-item"><div class="metric-label">Closed</div><div class="metric-value">{{ closed_requests }}</div></div>
+      </div>
+    </div>
+
+    <!-- ===== ISSUES ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:shield-warning-bold-duotone"></iconify-icon></div>
+        Reported Issues
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Total Issues</div><div class="metric-value">{{ total_issues }}</div></div>
+        <div class="metric-item"><div class="metric-label">Pending</div><div class="metric-value warning">{{ pending_issues }}</div></div>
+        <div class="metric-item"><div class="metric-label">Investigating</div><div class="metric-value info">{{ investigating_issues }}</div></div>
+        <div class="metric-item"><div class="metric-label">Resolved</div><div class="metric-value success">{{ resolved_issues }}</div></div>
+        <div class="metric-item"><div class="metric-label">Dismissed</div><div class="metric-value">{{ dismissed_issues }}</div></div>
+        <div class="metric-item"><div class="metric-label">Critical</div><div class="metric-value danger">{{ critical_issues }}</div></div>
+        <div class="metric-item"><div class="metric-label">High Severity</div><div class="metric-value danger">{{ high_issues }}</div></div>
+      </div>
+    </div>
+
+    <!-- ===== MILESTONES & STAGES ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:flag-bold-duotone"></iconify-icon></div>
+        Milestones & Stages
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Total Milestones</div><div class="metric-value">{{ total_milestones }}</div></div>
+        <div class="metric-item"><div class="metric-label">Completed</div><div class="metric-value success">{{ completed_milestones }}</div></div>
+        <div class="metric-item"><div class="metric-label">Pending</div><div class="metric-value warning">{{ pending_milestones }}</div></div>
+        <div class="metric-item"><div class="metric-label">In Progress</div><div class="metric-value info">{{ in_progress_milestones }}</div></div>
+        <div class="metric-item"><div class="metric-label">Missed</div><div class="metric-value danger">{{ missed_milestones }}</div></div>
+        <div class="metric-item"><div class="metric-label">Total Stages</div><div class="metric-value">{{ total_stages }}</div></div>
+      </div>
+    </div>
+
+    <!-- ===== ENGAGEMENT ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:chat-round-bold-duotone"></iconify-icon></div>
+        Citizen Engagement & Feedback
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Feedback</div><div class="metric-value">{{ total_feedback }}</div></div>
+        <div class="metric-item"><div class="metric-label">Testimonials</div><div class="metric-value">{{ total_testimonials }}</div></div>
+        <div class="metric-item"><div class="metric-label">Approved</div><div class="metric-value success">{{ approved_testimonials }}</div></div>
+        <div class="metric-item"><div class="metric-label">Pending</div><div class="metric-value warning">{{ pending_testimonials }}</div></div>
+        <div class="metric-item"><div class="metric-label">Comments</div><div class="metric-value">{{ total_comments }}</div></div>
+        <div class="metric-item"><div class="metric-label">Flagged</div><div class="metric-value danger">{{ flagged_comments }}</div></div>
+        <div class="metric-item"><div class="metric-label">Participations</div><div class="metric-value">{{ total_participations }}</div></div>
+        <div class="metric-item"><div class="metric-label">Active</div><div class="metric-value success">{{ active_participations }}</div></div>
+        <div class="metric-item"><div class="metric-label">Inactive</div><div class="metric-value warning">{{ inactive_participations }}</div></div>
+        <div class="metric-item"><div class="metric-label">Submissions</div><div class="metric-value">{{ total_citizen_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Pending</div><div class="metric-value warning">{{ pending_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Reviewed</div><div class="metric-value info">{{ reviewed_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Approved</div><div class="metric-value success">{{ approved_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Rejected</div><div class="metric-value danger">{{ rejected_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Resolved</div><div class="metric-value success">{{ resolved_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Suggestions</div><div class="metric-value info">{{ suggestion_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Complaints</div><div class="metric-value warning">{{ complaint_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Reports</div><div class="metric-value danger">{{ report_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Commendations</div><div class="metric-value success">{{ commendation_submissions }}</div></div>
+        <div class="metric-item"><div class="metric-label">Evidence</div><div class="metric-value">{{ total_citizen_evidence }}</div></div>
+        <div class="metric-item"><div class="metric-label">Verified</div><div class="metric-value success">{{ verified_evidence }}</div></div>
+        <div class="metric-item"><div class="metric-label">Unverified</div><div class="metric-value warning">{{ unverified_evidence }}</div></div>
+      </div>
+    </div>
+
+    <!-- ===== SYSTEM & ADMIN ===== -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <div class="sec-icon"><iconify-icon icon="solar:settings-bold-duotone"></iconify-icon></div>
+        System & Administration
+      </div>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-label">Media Files</div><div class="metric-value">{{ total_media }}</div></div>
+        <div class="metric-item"><div class="metric-label">Audit Logs</div><div class="metric-value">{{ total_audit_logs }}</div></div>
+        <div class="metric-item"><div class="metric-label">Notifications</div><div class="metric-value">{{ total_notifications }}</div></div>
+        <div class="metric-item"><div class="metric-label">Announcements</div><div class="metric-value">{{ total_announcements }}</div></div>
+        <div class="metric-item"><div class="metric-label">Contractors</div><div class="metric-value">{{ total_contractors }}</div></div>
+        <div class="metric-item"><div class="metric-label">Team Members</div><div class="metric-value">{{ total_teams }}</div></div>
+        <div class="metric-item"><div class="metric-label">Project Risks</div><div class="metric-value">{{ total_risks }}</div></div>
+        <div class="metric-item"><div class="metric-label">High Risks</div><div class="metric-value danger">{{ high_risks }}</div></div>
+      </div>
+    </div>
+
+    <!-- ===== RECENT ACTIVITY ===== -->
+    <div class="grid-3" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+      <div class="report-section">
+        <div class="report-section-title">
+          <div class="sec-icon"><iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon></div>
+          Recent Projects
+        </div>
+        <div class="recent-list">
+          {% for p in recent_projects %}
+          <div class="recent-item">
+            <div class="recent-icon"><iconify-icon icon="solar:folder-bold-duotone"></iconify-icon></div>
+            <div style="min-width:0;flex:1;">
+              <div class="recent-title">{{ p.project_title }}</div>
+              <div class="recent-sub">{{ p.project_status|title }} &middot; {{ p.start_date|date:"M d, Y"|default:"—" }}</div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="font-size:.85rem;color:var(--text-light);text-align:center;padding:20px 0;">No recent projects</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">
+          <div class="sec-icon"><iconify-icon icon="solar:note-bold-duotone"></iconify-icon></div>
+          Recent Requests
+        </div>
+        <div class="recent-list">
+          {% for r in recent_requests %}
+          <div class="recent-item">
+            <div class="recent-icon"><iconify-icon icon="solar:note-bold-duotone"></iconify-icon></div>
+            <div style="min-width:0;flex:1;">
+              <div class="recent-title">{{ r.title }}</div>
+              <div class="recent-sub">{{ r.status|title }} &middot; {{ r.created_at|date:"M d, Y" }}</div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="font-size:.85rem;color:var(--text-light);text-align:center;padding:20px 0;">No recent requests</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="report-section">
+        <div class="report-section-title">
+          <div class="sec-icon"><iconify-icon icon="solar:shield-warning-bold-duotone"></iconify-icon></div>
+          Recent Issues
+        </div>
+        <div class="recent-list">
+          {% for i in recent_issues %}
+          <div class="recent-item">
+            <div class="recent-icon"><iconify-icon icon="solar:bug-bold-duotone"></iconify-icon></div>
+            <div style="min-width:0;flex:1;">
+              <div class="recent-title">{{ i.title }}</div>
+              <div class="recent-sub">{{ i.status|title }} &middot; {{ i.created_at|date:"M d, Y" }}</div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="font-size:.85rem;color:var(--text-light);text-align:center;padding:20px 0;">No recent issues</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Monthly Trend Chart
+  const monthlyCtx = document.getElementById('monthlyTrendChart');
+  if (monthlyCtx) {
+    new Chart(monthlyCtx, {
+      type: 'line',
+      data: {
+        labels: {{ monthly_labels|safe }},
+        datasets: [
+          {
+            label: 'Projects Started',
+            data: {{ monthly_project_counts|safe }},
+            borderColor: '#fc1919',
+            backgroundColor: 'rgba(252,25,25,0.1)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Budget (KSh)',
+            data: {{ monthly_budget|safe }},
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16,185,129,0.1)',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true },
+          y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+  }
+
+  // Status Pie Chart
+  const statusCtx = document.getElementById('statusPieChart');
+  if (statusCtx) {
+    new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: {{ status_labels|safe }},
+        datasets: [{
+          data: {{ status_counts|safe }},
+          backgroundColor: ['#fc1919', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#6b7280', '#8b5cf6', '#ec4899', '#14b8a6'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+
+  // Submission Category Chart
+  const catCtx = document.getElementById('categoryChart');
+  if (catCtx) {
+    new Chart(catCtx, {
+      type: 'bar',
+      data: {
+        labels: {{ submission_category_labels|safe }},
+        datasets: [{
+          label: 'Submissions',
+          data: {{ submission_category_counts|safe }},
+          backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444', '#10b981'],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  // Budget Chart
+  const budgetCtx = document.getElementById('budgetChart');
+  if (budgetCtx) {
+    new Chart(budgetCtx, {
+      type: 'bar',
+      data: {
+        labels: {{ budget_labels|safe }},
+        datasets: [
+          {
+            label: 'Allocated',
+            data: {{ budget_values|safe }},
+            backgroundColor: 'rgba(252,25,25,0.7)',
+            borderRadius: 8
+          },
+          {
+            label: 'Spent',
+            data: {{ spent_values|safe }},
+            backgroundColor: 'rgba(16,185,129,0.7)',
+            borderRadius: 8
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+});
+</script>
+
 {% include "footer.html" %}
 {% endblock %}

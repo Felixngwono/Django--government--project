@@ -24,8 +24,12 @@
       <span class="nav-text">Dashboard</span>
       </a>
       <a href="{% url 'all_requests' %}" class="nav-item">
-      <iconify-icon icon="solar:note-bold-duotone"></iconify-icon>
+      <iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon>
       <span class="nav-text">Government Requests</span>
+      </a>
+      <a href="{% url 'my_requests' %}" class="nav-item">
+      <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
+      <span class="nav-text">My Requests</span>
       </a>
       <a href="{% url 'track_application' %}" class="nav-item">
       <iconify-icon icon="solar:route-bold-duotone"></iconify-icon>
@@ -58,11 +62,18 @@
 
       <div class="nav-section-title" style="margin-top:12px;">PROJECTS</div>
 
-      <a href="{% url 'projectoverview' %}" class="nav-item">
-      <iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon>
-      <span class="nav-text">Overview</span>
+
+      <a href="{% url 'project' %}" class="nav-item">
+      <iconify-icon icon="solar:buildings-bold-duotone"></iconify-icon>
+      <span class="nav-text">All Projects</span>
       </a>
-       <a href="{% url 'ongoing' %}" class="nav-item">
+      {% if request.user.is_superuser  %}
+      <a href="{% url 'createproject' %}" class="nav-item">
+      <iconify-icon icon="solar:add-circle-bold-duotone"></iconify-icon>
+      <span class="nav-text">Create Project</span>
+      </a>
+      {% endif %}
+      <a href="{% url 'ongoing' %}" class="nav-item">
       <iconify-icon icon="solar:play-bold-duotone"></iconify-icon>
       <span class="nav-text">Ongoing</span>
       </a>
@@ -78,6 +89,24 @@
       <iconify-icon icon="solar:check-circle-bold-duotone"></iconify-icon>
       <span class="nav-text">Completed</span>
       </a>
+      <a href="{% url 'stalled' %}" class="nav-item">
+      <iconify-icon icon="solar:danger-triangle-bold-duotone"></iconify-icon>
+      <span class="nav-text">Stalled</span>
+      </a>
+      <a href="{% url 'suspended' %}" class="nav-item">
+      <iconify-icon icon="solar:pause-circle-bold-duotone"></iconify-icon>
+      <span class="nav-text">Suspended</span>
+      </a>
+      <a href="{% url 'cancelled' %}" class="nav-item">
+      <iconify-icon icon="solar:close-circle-bold-duotone"></iconify-icon>
+      <span class="nav-text">Cancelled</span>
+      </a>
+      {% if request.user.is_superuser or request.user.is_staff or request.user.is_government %}
+      <a href="{% url 'draft' %}" class="nav-item">
+      <iconify-icon icon="solar:file-bold-duotone"></iconify-icon>
+      <span class="nav-text">Drafts</span>
+      </a>
+      {% endif %}
 
       <div class="nav-section-title" style="margin-top:12px;">STAGES & MILESTONES</div>
 
@@ -96,10 +125,13 @@
       <iconify-icon icon="solar:chart-bold-duotone"></iconify-icon>
       <span class="nav-text">Progress Report</span>
       </a>
+      <a href="{% url 'metrix' %}" class="nav-item">
+      <iconify-icon icon="solar:chart-square-bold-duotone"></iconify-icon>
+      <span class="nav-text">Performance Matrix</span>
+      </a>
 
       <div class="nav-section-title" style="margin-top:12px;">DIVISION</div>
       {% if request.user.is_superuser %}
-
       <a href="{% url 'ProjectTypes' %}" class="nav-item">
       <iconify-icon icon="solar:tag-bold-duotone"></iconify-icon>
       <span class="nav-text">Project Type</span>
@@ -109,6 +141,12 @@
       <iconify-icon icon="solar:info-circle-bold-duotone"></iconify-icon>
       <span class="nav-text">Project Details</span>
       </a>
+      {% if request.user.is_superuser or request.user.role == 'manager' %}
+      <a href="{% url 'division' %}" class="nav-item">
+      <iconify-icon icon="solar:add-square-bold-duotone"></iconify-icon>
+      <span class="nav-text">Add Division</span>
+      </a>
+      {% endif %}
 
       <div class="nav-section-title" style="margin-top:12px;">PROCUREMENT</div>
 
@@ -116,6 +154,12 @@
       <iconify-icon icon="solar:bag-bold-duotone"></iconify-icon>
       <span class="nav-text">Tenders</span>
       </a>
+      {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'manager' %}
+      <a href="{% url 'add_tender' %}" class="nav-item">
+      <iconify-icon icon="solar:card-send-bold-duotone"></iconify-icon>
+      <span class="nav-text">Post Tender</span>
+      </a>
+      {% endif %}
       <a href="{% url 'my_bids' %}" class="nav-item">
       <iconify-icon icon="solar:box-bold-duotone"></iconify-icon>
       <span class="nav-text">Bids & Proposals</span>
@@ -144,11 +188,11 @@
 
       <div class="nav-section-title" style="margin-top:12px;">SERVICES</div>
 
-      <a href="#" class="nav-item">
+      <a href="{% url 'my_documents' %}" class="nav-item">
       <iconify-icon icon="solar:card-bold-duotone"></iconify-icon>
       <span class="nav-text">Licenses & Permits</span>
       </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'budget_dashboard' %}" class="nav-item">
       <iconify-icon icon="solar:wallet-bold-duotone"></iconify-icon>
       <span class="nav-text">Payments</span>
       </a>
@@ -159,32 +203,32 @@
 
       <div class="nav-section-title" style="margin-top:12px;">FEEDBACK & ISSUES</div>
 
-      <a href="#" class="nav-item">
+      <a href="{% url 'issue_list' %}" class="nav-item">
       <iconify-icon icon="solar:bug-bold-duotone"></iconify-icon>
       <span class="nav-text">Reported Issues</span>
+      </a>
+      <a href="{% url 'add_report_issue' %}" class="nav-item">
+      <iconify-icon icon="solar:shield-warning-bold-duotone"></iconify-icon>
+      <span class="nav-text">Report Issue / Corruption</span>
       </a>
       <a href="{% url 'feedback' %}" class="nav-item">
       <iconify-icon icon="solar:chat-round-bold-duotone"></iconify-icon>
       <span class="nav-text">Feedback</span>
       </a>
+      <a href="{% url 'comment_list' %}" class="nav-item">
+      <iconify-icon icon="solar:chat-square-code-bold-duotone"></iconify-icon>
+      <span class="nav-text">Community Discussion</span>
+      </a>
+      <a href="{% url 'testimonials' %}" class="nav-item">
+      <iconify-icon icon="solar:user-speak-bold-duotone"></iconify-icon>
+      <span class="nav-text">Testimonials</span>
+      </a>
 
-      <div class="nav-section-title" style="margin-top:12px;">REPORTS</div>
+      <div class="nav-section-title" style="margin-top:12px;">REPORTS & ENGAGEMENT</div>
 
       <a href="{% url 'citizen_evidence' %}" class="nav-item">
       <iconify-icon icon="solar:report-bold-duotone"></iconify-icon>
       <span class="nav-text">Citizen Evidencing</span>
-      </a>
-      <a href="#" class="nav-item">
-      <iconify-icon icon="solar:shield-check-bold-duotone"></iconify-icon>
-      <span class="nav-text">Report Corruption</span>
-      </a>
-      <a href="{% url 'budget_dashboard' %}" class="nav-item">
-      <iconify-icon icon="solar:money-bold-duotone"></iconify-icon>
-      <span class="nav-text">Budget & Spending</span>
-      </a>
-      <a href="{% url 'BudgetAnalysis' %}" class="nav-item">
-      <iconify-icon icon="solar:pie-chart-2-bold-duotone"></iconify-icon>
-      <span class="nav-text">Budget Analysis</span>
       </a>
       <a href="{% url 'contractor_performance' %}" class="nav-item">
       <iconify-icon icon="solar:building-bold-duotone"></iconify-icon>
@@ -207,9 +251,8 @@
       <span class="nav-text">SMS Integration</span>
       </a>
 
-
       {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'manager' or request.user.role == 'auditor' %}
-      <div class="nav-section-title" style="margin-top:12px;">WORKSPACE</div>
+      <div class="nav-section-title" style="margin-top:12px;">WORKSPACE & TEAM</div>
 
       <a href="{% url 'AuditLog' %}" class="nav-item">
       <iconify-icon icon="solar:shield-check-bold-duotone"></iconify-icon>
@@ -223,18 +266,24 @@
       <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
       <span class="nav-text">Reports</span>
       </a>
+      <a href="{% url 'team' %}" class="nav-item">
+      <iconify-icon icon="solar:users-group-two-rounded-bold-duotone"></iconify-icon>
+      <span class="nav-text">Team & Staff</span>
+      </a>
+      <a href="{% url 'user' %}" class="nav-item">
+      <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
+      <span class="nav-text">User Directory</span>
+      </a>
       {% endif %}
 
-      <div class="nav-section-title" style="margin-top:12px;">ACCOUNT</div>
+      {% if request.user.is_superuser %}
+      <a href="{% url 'adminview' %}" class="nav-item">
+      <iconify-icon icon="solar:key-minimalistic-square-bold-duotone"></iconify-icon>
+      <span class="nav-text">Admin Console</span>
+      </a>
+      {% endif %}
 
-      <a href="{% url 'account_settings' %}" class="nav-item">
-      <iconify-icon icon="solar:settings-bold-duotone"></iconify-icon>
-      <span class="nav-text">Settings</span>
-      </a>
-      <a href="{% url 'logout' %}" class="nav-item" style="color:var(--danger);">
-      <iconify-icon icon="solar:logout-2-bold-duotone" style="color:var(--danger)"></iconify-icon>
-      <span class="nav-text">Logout</span>
-      </a>
+
       </nav>
 
       <div class="p-4 border-t border-slate-700">
@@ -242,7 +291,7 @@
       <img src="{{ request.user.profile.url }}?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full border-2 border-blue-500">
       <div class="flex-1 min-w-0">
       <p class="text-sm font-semibold text-black truncate">{{ user.name }}</p>
-      <p class="text-xs text-slate-400 truncate">{{user.role }}</p>
+      <p class="text-xs text-slate-400 truncate">{{ user.role }}</p>
       </div>
       </a>
       </div>

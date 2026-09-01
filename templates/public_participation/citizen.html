@@ -3,113 +3,373 @@
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
-</head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
+<style>
+  .citizen-hero {
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+    border-radius: 20px;
+    padding: 28px 32px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .citizen-hero::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .citizen-hero h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 6px; position: relative; z-index: 1; }
+  .citizen-hero p { font-size: 0.95rem; opacity: 0.9; position: relative; z-index: 1; }
 
-<!-- ===== MAIN ===== -->
+  .stat-card {
+    border-radius: 16px;
+    padding: 18px 20px;
+    border-left-width: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-value { font-size: 1.7rem; }
+
+  .widget-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 20px;
+  }
+  .widget-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.95rem; font-weight: 700; color: var(--text);
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .widget-title .widget-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: var(--primary-10); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  }
+  .status-badge.pending { background: rgba(245,158,11,0.12); color: #d97706; }
+  .status-badge.reviewed { background: rgba(59,130,246,0.12); color: #2563eb; }
+  .status-badge.approved { background: rgba(16,185,129,0.12); color: #059669; }
+  .status-badge.rejected { background: rgba(239,68,68,0.12); color: #dc2626; }
+  .status-badge.resolved { background: rgba(16,185,129,0.12); color: #059669; }
+
+  .category-badge {
+    display: inline-flex; padding: 3px 10px; border-radius: 6px;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  }
+  .category-badge.suggestion { background: rgba(59,130,246,0.1); color: #2563eb; }
+  .category-badge.complaint { background: rgba(245,158,11,0.12); color: #d97706; }
+  .category-badge.report { background: rgba(239,68,68,0.12); color: #dc2626; }
+  .category-badge.commendation { background: rgba(16,185,129,0.12); color: #059669; }
+
+  .submission-item {
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    background: var(--bg);
+    transition: all 0.2s;
+  }
+  .submission-item:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(252,25,25,0.08); }
+
+  .announcement-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border-light);
+    margin-bottom: 8px;
+  }
+  .announcement-item .ann-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--primary-10); color: var(--primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  .form-input {
+    width: 100%; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-size: 0.9rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.2s; outline: none;
+  }
+  .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-10); }
+</style>
+
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content">
 
+    <!-- ===== HERO ===== -->
+    <div class="citizen-hero">
+      <h1>🏛️ Citizen Participation & Civic Engagement</h1>
+      <p>Voice your opinion, report concerns, submit suggestions, and engage with public officials on government projects.</p>
+    </div>
 
-<div class="max-w-6xl mx-auto space-y-8 p-4">
-
-    <!-- HERO HEADER BANNER WITH IMAGE -->
-    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
-      <img src="https://images.unsplash.com/photo-1577495508048-b635879837f1?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Public Participation">
-      <div class="relative z-10">
-        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full uppercase tracking-wider mb-2 border border-emerald-500/30">Civic Engagement Portal</span>
-        <h1 class="text-2xl md:text-3xl font-extrabold">Citizen Participation & Feedback</h1>
-        <p class="text-sm text-slate-300 mt-1 max-w-xl">Voice your opinion, report site concerns, submit project suggestions, and engage with public officials.</p>
+    <!-- ===== STAT CARDS ===== -->
+    <div class="grid-6" style="margin-bottom: 24px;">
+      <div class="stat-card">
+        <div class="stat-icon"><iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon></div>
+        <span class="stat-label">Total Submissions</span>
+        <div class="stat-value">{{ total_submissions }}</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-icon"><iconify-icon icon="solar:clock-circle-bold-duotone"></iconify-icon></div>
+        <span class="stat-label">Pending</span>
+        <div class="stat-value">{{ pending_count }}</div>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-icon"><iconify-icon icon="solar:eye-bold-duotone"></iconify-icon></div>
+        <span class="stat-label">Reviewed</span>
+        <div class="stat-value">{{ reviewed_count }}</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-icon"><iconify-icon icon="solar:check-circle-bold-duotone"></iconify-icon></div>
+        <span class="stat-label">Approved</span>
+        <div class="stat-value">{{ approved_count }}</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-icon"><iconify-icon icon="solar:check-square-bold-duotone"></iconify-icon></div>
+        <span class="stat-label">Resolved</span>
+        <div class="stat-value">{{ resolved_count }}</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-icon"><iconify-icon icon="solar:shield-warning-bold-duotone"></iconify-icon></div>
+        <span class="stat-label">Rejected</span>
+        <div class="stat-value">{{ rejected_count }}</div>
       </div>
     </div>
 
-    <!-- SUBMISSION FORM -->
-    <div class="bg-white p-6 rounded-xl shadow">
-
-        <h2 class="text-lg font-semibold mb-4">📝 Submit an Issue / Suggestion</h2>
-
-        <form method="POST" action="{% url 'submit_issue' %}" class="space-y-4">
-            {% csrf_token %}
-
-            <select name="project" class="w-full text-black p-3 border rounded-lg" required>
-                <option value="">Select a project</option>
-                {% for project in proje %}
-                <option value="{{ project.project_title }}">{{ project.project_title }}</option>
-                {% endfor %}
-            </select>
-
-            <textarea name="message" placeholder="Describe the issue..."
-                      class="w-full p-3 border rounded-lg"></textarea>
-
-            <select name="category" class="w-full p-3 border rounded-lg">
-                <option value="suggestion">Suggestion</option>
-                <option value="complaint">Complaint</option>
-                <option value="report">Report Issue</option>
-            </select>
-
-            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg">
-                Submit
-            </button>
-        </form>
-
+    <!-- ===== CATEGORY BREAKDOWN ===== -->
+    <div class="widget-card">
+      <div class="widget-title">
+        <div class="widget-icon"><iconify-icon icon="solar:pie-chart-2-bold-duotone"></iconify-icon></div>
+        Your Engagement by Category
+      </div>
+      <div class="metric-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+        <div class="metric-item" style="background:var(--bg);border-radius:12px;padding:14px;border:1px solid var(--border-light);">
+          <div class="metric-label" style="font-size:0.7rem;color:var(--text-light);font-weight:600;text-transform:uppercase;">Suggestions</div>
+          <div class="metric-value" style="font-size:1.3rem;font-weight:700;color:#2563eb;font-family:'JetBrains Mono',monospace;">{{ suggestions }}</div>
+        </div>
+        <div class="metric-item" style="background:var(--bg);border-radius:12px;padding:14px;border:1px solid var(--border-light);">
+          <div class="metric-label" style="font-size:0.7rem;color:var(--text-light);font-weight:600;text-transform:uppercase;">Complaints</div>
+          <div class="metric-value" style="font-size:1.3rem;font-weight:700;color:#d97706;font-family:'JetBrains Mono',monospace;">{{ complaints }}</div>
+        </div>
+        <div class="metric-item" style="background:var(--bg);border-radius:12px;padding:14px;border:1px solid var(--border-light);">
+          <div class="metric-label" style="font-size:0.7rem;color:var(--text-light);font-weight:600;text-transform:uppercase;">Reports</div>
+          <div class="metric-value" style="font-size:1.3rem;font-weight:700;color:#dc2626;font-family:'JetBrains Mono',monospace;">{{ reports }}</div>
+        </div>
+        <div class="metric-item" style="background:var(--bg);border-radius:12px;padding:14px;border:1px solid var(--border-light);">
+          <div class="metric-label" style="font-size:0.7rem;color:var(--text-light);font-weight:600;text-transform:uppercase;">Commendations</div>
+          <div class="metric-value" style="font-size:1.3rem;font-weight:700;color:#059669;font-family:'JetBrains Mono',monospace;">{{ commendations }}</div>
+        </div>
+      </div>
     </div>
 
-    <!-- USER SUBMISSIONS -->
-    <div class="bg-white p-6 rounded-xl shadow">
+    <!-- ===== SUBMISSION FORM ===== -->
+    <div class="widget-card">
+      <div class="widget-title">
+        <div class="widget-icon"><iconify-icon icon="solar:add-circle-bold-duotone"></iconify-icon></div>
+        Submit an Issue / Suggestion
+      </div>
+      <form method="POST" action="{% url 'submit_issue' %}" class="space-y-4">
+        {% csrf_token %}
+        <div class="grid-2" style="grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <label class="form-label">Title</label>
+            <input type="text" name="title" placeholder="Enter a title for your submission" class="form-input" required>
+          </div>
+          <div>
+            <label class="form-label">Category</label>
+            <select name="category" class="form-input">
+              <option value="suggestion">💡 Suggestion</option>
+              <option value="complaint">⚠️ Complaint</option>
+              <option value="report">🚨 Report Issue</option>
+              <option value="commendation">🌟 Commendation</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Related Project (Optional)</label>
+          <select name="project" class="form-input">
+            <option value="">Select a project (optional)</option>
+            {% for project in proje %}
+            <option value="{{ project.id }}">{{ project.project_title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Message</label>
+          <textarea name="message" placeholder="Describe your issue, suggestion, or feedback in detail..." class="form-input" style="min-height:100px;" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <iconify-icon icon="solar:send-bold"></iconify-icon>
+          Submit
+        </button>
+      </form>
+    </div>
 
-        <h2 class="text-lg font-semibold mb-4">📌 Your Submissions</h2>
+    <!-- ===== MY SUBMISSIONS ===== -->
+    <div class="widget-card">
+      <div class="widget-title">
+        <div class="widget-icon"><iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon></div>
+        My Submissions
+      </div>
+      {% for s in submissions %}
+      <div class="submission-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h3 style="font-weight:600;color:var(--text);">{{ s.title }}</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="category-badge {{ s.category }}">{{ s.category }}</span>
+            <span class="status-badge {{ s.status }}">{{ s.status }}</span>
+          </div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-sec);margin-top:8px;">{{ s.message }}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:0.7rem;color:var(--text-light);">
+            <iconify-icon icon="solar:calendar-bold-duotone" style="font-size:12px;"></iconify-icon>
+            {{ s.created_at|date:"M d, Y H:i" }}
+          </span>
+          {% if s.project %}
+          <span style="font-size:0.7rem;color:var(--text-light);">
+            <iconify-icon icon="solar:folder-bold-duotone" style="font-size:12px;"></iconify-icon>
+            {{ s.project.project_title }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <p style="font-size:0.85rem;color:var(--text-light);text-align:center;padding:20px 0;">No submissions yet. Submit your first one above!</p>
+      {% endfor %}
+    </div>
 
-        {% for s in submissions %}
-        <div class="border p-4 rounded-lg mb-3">
+    <!-- ===== MY PARTICIPATIONS ===== -->
+    <div class="widget-card">
+      <div class="widget-title">
+        <div class="widget-icon"><iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon></div>
+        My Participations ({{ total_participations }})
+      </div>
+      {% for p in participations %}
+      <div class="submission-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h3 style="font-weight:600;color:var(--text);">{{ p.project.project_title }}</h3>
+          <span class="status-badge {% if p.is_active %}approved{% else %}rejected{% endif %}">
+            {% if p.is_active %}Active{% else %}Inactive{% endif %}
+          </span>
+        </div>
+        {% if p.content %}
+        <p style="font-size:0.85rem;color:var(--text-sec);margin-top:8px;">{{ p.content }}</p>
+        {% endif %}
+        <span style="font-size:0.7rem;color:var(--text-light);display:block;margin-top:8px;">
+          <iconify-icon icon="solar:calendar-bold-duotone" style="font-size:12px;"></iconify-icon>
+          Joined: {{ p.joined_at|date:"M d, Y" }}
+        </span>
+      </div>
+      {% empty %}
+      <p style="font-size:0.85rem;color:var(--text-light);text-align:center;padding:20px 0;">You haven't participated in any projects yet.</p>
+      {% endfor %}
+    </div>
 
-            <div class="flex justify-between">
-                <h3 class="font-semibold">{{ s.title }}</h3>
+    <!-- ===== MY EVIDENCE ===== -->
+    <div class="widget-card">
+      <div class="widget-title">
+        <div class="widget-icon"><iconify-icon icon="solar:camera-bold-duotone"></iconify-icon></div>
+        My Evidence ({{ total_evidence }} · {{ verified_evidence }} Verified)
+      </div>
+      {% for e in evidence %}
+      <div class="submission-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h3 style="font-weight:600;color:var(--text);">{{ e.title }}</h3>
+          <span class="status-badge {% if e.is_verified %}approved{% else %}pending{% endif %}">
+            {% if e.is_verified %}Verified{% else %}Pending{% endif %}
+          </span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-sec);margin-top:8px;">{{ e.description }}</p>
+        <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
+          <span style="font-size:0.7rem;color:var(--text-light);">
+            <iconify-icon icon="solar:map-point-bold-duotone" style="font-size:12px;"></iconify-icon>
+            {{ e.location }}
+          </span>
+          <span style="font-size:0.7rem;color:var(--text-light);">
+            <iconify-icon icon="solar:folder-bold-duotone" style="font-size:12px;"></iconify-icon>
+            {{ e.project.project_title }}
+          </span>
+          <span style="font-size:0.7rem;color:var(--text-light);">
+            <iconify-icon icon="solar:layers-bold-duotone" style="font-size:12px;"></iconify-icon>
+            {{ e.stage.stage_name }}
+          </span>
+        </div>
+        {% if e.image %}
+        <img src="{{ e.image.url }}" class="mt-2 rounded-lg" style="max-height:200px;object-fit:cover;width:100%;">
+        {% endif %}
+      </div>
+      {% empty %}
+      <p style="font-size:0.85rem;color:var(--text-light);text-align:center;padding:20px 0;">No evidence submitted yet.</p>
+      {% endfor %}
+    </div>
 
-                <span class="text-xs px-2 py-1 rounded-full
-                    {% if s.status == 'pending' %}bg-yellow-100 text-yellow-600
-                    {% elif s.status == 'reviewed' %}bg-blue-100 text-blue-600
-                    {% elif s.status == 'approved' %}bg-green-100 text-green-600
-                    {% else %}bg-red-100 text-red-600{% endif %}
-                ">
-                    {{ s.status }}
-                </span>
-            </div>
+    <!-- ===== ANNOUNCEMENTS ===== -->
+    <div class="widget-card">
+      <div class="widget-title">
+        <div class="widget-icon"><iconify-icon icon="solar:megaphone-bold-duotone"></iconify-icon></div>
+        Government Announcements
+      </div>
+      {% for a in announcements %}
+      <div class="announcement-item">
+        <div class="ann-icon"><iconify-icon icon="solar:megaphone-bold-duotone"></iconify-icon></div>
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:0.82rem;font-weight:600;color:var(--text);">{{ a.title }}</div>
+          <div style="font-size:0.7rem;color:var(--text-light);margin-top:2px;">{{ a.message }}</div>
+        </div>
+        <span class="status-badge {{ a.level }}">{{ a.level }}</span>
+      </div>
+      {% empty %}
+      <p style="font-size:0.85rem;color:var(--text-light);text-align:center;padding:20px 0;">No announcements at this time.</p>
+      {% endfor %}
+    </div>
 
-            <p class="text-sm text-gray-600 mt-2">{{ s.message }}</p>
-
-            <p class="text-xs text-gray-400 mt-2">
-                Category: {{ s.category }} | {{ s.created_at }}
-            </p>
-
+    <!-- ===== PUBLIC PROJECTS ===== -->
+    <div class="widget-card">
+      <div class="widget-title">
+        <div class="widget-icon"><iconify-icon icon="solar:folder-open-bold-duotone"></iconify-icon></div>
+        Public Projects You Can Engage With
+      </div>
+      <div class="grid-3" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;">
+        {% for p in public_projects %}
+        <div class="submission-item" style="margin-bottom:0;">
+          <h3 style="font-weight:600;color:var(--text);">{{ p.project_title }}</h3>
+          <p style="font-size:0.8rem;color:var(--text-sec);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ p.project_description|truncatechars:100 }}</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+            <span class="status-badge {{ p.project_status }}">{{ p.project_status }}</span>
+            <span style="font-size:0.7rem;color:var(--text-light);">
+              <iconify-icon icon="solar:map-point-bold-duotone" style="font-size:12px;"></iconify-icon>
+              {{ p.project_location|default:"—" }}
+            </span>
+          </div>
         </div>
         {% empty %}
-        <p class="text-gray-500">No submissions yet.</p>
+        <p style="font-size:0.85rem;color:var(--text-light);text-align:center;padding:20px 0;">No public projects available.</p>
         {% endfor %}
-
+      </div>
     </div>
 
-</div>
-
+  </div>
 </main>
+
 {% include "footer.html" %}
-{% endblock content %}
+{% endblock %}
