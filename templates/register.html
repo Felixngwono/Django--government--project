@@ -80,6 +80,11 @@
 
                 </div>
                 <div>
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">Phone number</label>
+                  {% render_field form.phone_number class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="+254 700 000 000" %}
+                  {% if form.phone_number.errors %}<p class="mt-2 text-sm text-red-600">{{ form.phone_number.errors|striptags }}</p>{% endif %}
+                </div>
+                <div>
                   <label class="mb-2 block text-sm font-semibold text-slate-700">Role</label>
                   {% render_field form.role class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" required="" %}
                   {% if form.role.errors %}<p class="mt-2 text-sm text-red-600">{{ form.role.errors|striptags }}</p>{% endif %}

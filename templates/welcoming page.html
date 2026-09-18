@@ -1,227 +1,411 @@
 {% load static %}
-{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GovTracker Kenya | Transparent Government Services</title>
+  <meta name="description" content="GovTracker makes government development projects easier to discover, understand, and follow.">
+  <meta property="og:title" content="GovTracker — See what is being built">
+  <meta property="og:description" content="Track budgets, progress and delivery of public projects across Kenya. Free for every citizen.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="{% static 'images/county-banner-kisumu.jpg' %}">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+  <title>GovTracker | Tracking Government Development Projects</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f8fafc 0%, #eef8f2 100%);
-    }
-    .hero-glow {
-      background: linear-gradient(90deg, rgba(6, 95, 70, 0.95), rgba(4, 120, 87, 0.82));
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/welcome.css' %}"
+
 </head>
-<body class="min-h-screen text-slate-800">
-  <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-    <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-      <a href="#" class="flex items-center gap-3">
-        <img src="{% static 'images/GOK.png' %}" alt="GovTracker logo" class="h-12 w-12 rounded-full object-cover" />
-        <div>
-          <p class="text-lg font-semibold text-slate-900">GovTracker</p>
-          <p class="text-sm text-slate-500">Government Engagement Platform</p>
-        </div>
+<body>
+  <header class="sticky top-0 z-50 border-b border-white/10 bg-[#10252a]/95 text-white backdrop-blur">
+    <nav class="mx-auto flex   justify-between px-5 py-4 lg:px-8" aria-label="Main navigation">
+      <a href="{% url 'welcoming_page' %}" class="flex  gap-3">
+        <span class="flex h-10 w-10  justify-center rounded-xl bg-[#ef6c45] text-lg font-bold text-white">G</span>
+        <span><strong class="display block text-base">GovTracker</strong><small class="block text-[10px] uppercase tracking-[.22em] text-[#c9dfcf]">Public progress</small></span>
       </a>
-      <div class="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
-        <a href="#services" class="transition hover:text-emerald-700">Services</a>
-        <a href="#initiatives" class="transition hover:text-emerald-700">Initiatives</a>
-        <a href="#contact" class="transition hover:text-emerald-700">Contact</a>
+      <div id="mobile-menu" class="hidden  gap-7 text-sm font-medium text-white/75 md:flex">
+        <a href="#projects" class="transition hover:text-white">Projects</a>
+        <a href="#how-it-works" class="transition hover:text-white">How it works</a>
+        <a href="#voices" class="transition hover:text-white">Community voices</a>
       </div>
-      <div class="flex items-center gap-3">
-        <a href="{% url 'login' %}" class="rounded-full border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50">Sign in</a>
-        <a href="{% url 'registrationpage' %}" class="rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800">Register</a>
+      <div class="flex  gap-2 sm:gap-3">
+        <a href="{% url 'login' %}" class="hidden px-3 py-2 text-sm font-semibold text-white/80 transition hover:text-white sm:block">Sign in</a>
+        <a href="{% url 'registrationpage' %}" class="rounded-lg bg-[#ef6c45] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#db5735]">Join GovTracker</a>
+        <button type="button" id="menu-toggle" class="ml-1 flex h-10 w-10  justify-center rounded-lg border border-white/20 text-white md:hidden" aria-label="Open menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
       </div>
     </nav>
+    <div id="mobile-menu-panel" class="hidden border-t border-white/10 px-5 py-4 md:hidden">
+      <a href="#projects" class="block py-2 text-sm text-white/80">Projects</a>
+      <a href="#how-it-works" class="block py-2 text-sm text-white/80">How it works</a>
+      <a href="#voices" class="block py-2 text-sm text-white/80">Community voices</a>
+      <a href="{% url 'login' %}" class="block py-2 text-sm text-white/80">Sign in</a>
+    </div>
   </header>
 
   <main>
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-0">
-        <video class="h-full w-full object-cover" autoplay muted loop playsinline poster="{% static 'images/wel.jpg' %}">
-          <source src="{% static 'videos/live.mp4' %}" type="video/mp4">
-        </video>
-      </div>
-      <div class="absolute inset-0 hero-glow"></div>
-      <div class="absolute inset-0 bg-slate-950/20"></div>
-      <div class="relative mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-28">
-        <div class="max-w-3xl text-white">
-          <span class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur">
-            <i class="fas fa-shield-alt mr-2"></i>
-            Trusted public service monitoring
-          </span>
-          <h1 class="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
-            A modern gateway for transparent government delivery.
-          </h1>
-          <p class="mt-5 max-w-2xl text-lg text-emerald-50 sm:text-xl">
-            Follow national and county projects, review budgets, and stay connected with public services in a single digital experience.
-          </p>
-          <div class="mt-8 flex flex-wrap gap-4">
-            <a href="{% url 'registrationpage' %}" class="rounded-full bg-white px-6 py-3 font-semibold text-emerald-800 transition hover:bg-emerald-50">Create account</a>
-            <a href="#services" class="rounded-full border border-white/40 px-6 py-3 font-semibold text-white transition hover:bg-white/10">Explore services</a>
+    <section class="hero-art relative overflow-hidden text-white">
+      <div class="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/10"></div>
+      <div class="absolute bottom-0 right-16 hidden h-40 w-px bg-white/20 lg:block"></div>
+      <div class="relative mx-auto grid min-h-[650px]   gap-12 px-5 py-16 lg:grid-cols-[.9fr_1.1fr] lg:px-8 lg:py-20">
+        <div class="rise max-w-3xl">
+          <div class="mb-7 flex  gap-3 text-xs font-bold uppercase tracking-[.25em] text-[#c9dfcf]"><span class="h-px w-10 bg-[#ef6c45]"></span> Kenya's public project register</div>
+          <h1 class="display max-w-3xl text-5xl font-bold leading-[.98] sm:text-6xl lg:text-7xl">See what is being built. <span class="text-[#ef6c45]">Follow what matters.</span></h1>
+          <p class="mt-7 max-w-xl text-lg leading-8 text-white/75">GovTracker turns government development projects into clear, searchable stories about budgets, progress, locations, and community impact.</p>
+          <div class="mt-9 flex flex-wrap gap-3">
+            <a href="#projects" class="rounded-lg bg-[#ef6c45] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#db5735]">Explore live projects <i class="fas fa-arrow-right ml-2"></i></a>
+            <a href="{% url 'registrationpage' %}" class="rounded-lg border border-white/30 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/10">Create your account</a>
           </div>
-          <div class="mt-8 grid gap-4 sm:grid-cols-3">
-            <div class="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-              <p class="text-2xl font-semibold">120+</p>
-              <p class="mt-1 text-sm text-emerald-50">Active projects</p>
-            </div>
-            <div class="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-              <p class="text-2xl font-semibold">24/7</p>
-              <p class="mt-1 text-sm text-emerald-50">Citizen updates</p>
-            </div>
-            <div class="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-              <p class="text-2xl font-semibold">100%</p>
-              <p class="mt-1 text-sm text-emerald-50">Public access</p>
-            </div>
-          </div>
+          <div class="mt-12 flex  gap-4 text-sm text-white/65"><span class="flex -space-x-2"><span class="flex h-8 w-8  justify-center rounded-full border-2 border-[#233f40] bg-[#c9dfcf] text-xs font-bold text-[#10252a]">C</span><span class="flex h-8 w-8  justify-center rounded-full border-2 border-[#233f40] bg-[#ef6c45] text-xs font-bold">P</span><span class="flex h-8 w-8  justify-center rounded-full border-2 border-[#233f40] bg-white text-xs font-bold text-[#10252a]">+</span></span><span>Built for citizens, officials, and delivery partners.</span></div>
+          {% if rating_stats.count %}<div class="mt-4 flex  gap-2 text-sm text-white/65"><span class="flex gap-1 text-[#ef6c45]">{% for star in '12345'|make_list %}<i class="fas fa-star text-xs"></i>{% endfor %}</span><span><strong class="text-white">{{ rating_stats.avg|floatformat:1 }}</strong> from {{ rating_stats.count }} community review{{ rating_stats.count|pluralize }}</span></div>{% endif %}
         </div>
-
-        <div class="relative overflow-hidden rounded-[2rem] border border-white/20 bg-slate-950/70 p-6 text-white shadow-2xl backdrop-blur">
-          <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{% static 'images/kenya.jpeg' %}');"></div>
-          <div class="absolute inset-0 bg-slate-950/70"></div>
-          <div class="relative">
-            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">Quick access</p>
-            <h2 class="mt-3 text-2xl font-semibold">Everything citizens need in one place</h2>
-            <div class="mt-6 space-y-3">
-            <a href="{% url 'login' %}" class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 transition hover:bg-white/20">
-              <span><i class="fas fa-user-shield mr-2"></i> Secure sign in</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-            <a href="{% url 'comment_list' %}" class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 transition hover:bg-white/20">
-              <span><i class="fas fa-comment-dots mr-2"></i> Citizen feedback</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-            <a href="#initiatives" class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 transition hover:bg-white/20">
-              <span><i class="fas fa-chart-line mr-2"></i> Government initiatives</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-            <div class="mt-6 rounded-2xl bg-emerald-600/80 p-4">
-              <p class="text-sm font-medium text-emerald-50">Public engagement is now easier, faster, and more transparent.</p>
+        <div class="rise-delay relative lg:pl-4">
+          <div class="hero-media-grid">
+            <div class="hero-media-card featured">
+              <img src="{% static 'images/county-banner-kisumu.jpg' %}" alt="Public development work in Kisumu" loading="eager">
+              <div class="hero-media-label"><span class="text-[10px] font-bold uppercase tracking-[.22em] text-[#c9dfcf]">On the ground</span><p class="display mt-1 text-xl font-bold">Development you can see.</p></div>
+            </div>
+            <div class="hero-media-card">
+              <img src="{% static 'images/tran.webp' %}" alt="Transport infrastructure project" loading="eager">
+              <div class="hero-media-label"><span class="text-[10px] font-bold uppercase tracking-[.22em] text-[#c9dfcf]">Infrastructure</span><p class="mt-1 text-sm font-bold">Connecting communities</p></div>
+            </div>
+            <div class="hero-media-card">
+              <video autoplay muted loop playsinline preload="metadata" poster="{% static 'images/live.jpg' %}" aria-label="Field update video">
+                <source src="{% static 'videos/live.mp4' %}" type="video/mp4">
+              </video>
+              <div class="hero-media-label"><span class="inline-flex  gap-2 text-[10px] font-bold uppercase tracking-[.22em] text-[#c9dfcf]"><span class="h-2 w-2 rounded-full bg-[#ef6c45]"></span> Field update</span><p class="mt-1 text-sm font-bold">Progress in motion</p></div>
             </div>
           </div>
+          <div class="mt-3 overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-3 shadow-2xl backdrop-blur">
+            <div class="overflow-hidden rounded-xl bg-[#f6f5ef] text-[#10252a]">
+              <div class="flex  justify-between border-b border-[#10252a]/10 px-5 py-4"><div><p class="text-[10px] font-bold uppercase tracking-[.2em] text-[#ef6c45]">Live public view</p><h2 class="display mt-1 text-xl font-bold">Project pulse</h2></div><span class="flex  gap-2 text-xs font-semibold text-emerald-700"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> Updated today</span></div>
+              <div class="grid grid-cols-2 gap-px bg-[#10252a]/10"><div class="bg-[#f6f5ef] p-5"><p class="text-3xl font-bold">{{ project_metrics.total }}</p><p class="mt-1 text-xs text-slate-500">public projects</p></div><div class="bg-[#f6f5ef] p-5"><p class="text-3xl font-bold">{{ project_metrics.ongoing }}</p><p class="mt-1 text-xs text-slate-500">currently active</p></div><div class="bg-[#f6f5ef] p-5"><p class="text-3xl font-bold">{{ project_metrics.locations }}</p><p class="mt-1 text-xs text-slate-500">locations covered</p></div><div class="bg-[#f6f5ef] p-5"><p class="text-3xl font-bold">{{ project_metrics.completed }}</p><p class="mt-1 text-xs text-slate-500">completed projects</p></div></div>
+              <div class="p-5"><div class="mb-3 flex  justify-between text-xs font-semibold"><span>Public visibility</span><span class="text-[#ef6c45]">Always on</span></div><div class="h-2 overflow-hidden rounded-full bg-[#c9dfcf]"><div class="h-full w-[78%] rounded-full bg-[#ef6c45]"></div></div><p class="mt-4 text-sm leading-6 text-slate-600">Follow milestones, spending, and delivery updates from one shared source of truth.</p></div>
+            </div>
+          </div>
+          <div class="absolute -bottom-5 -left-1 hidden rounded-xl bg-[#ef6c45] px-4 py-3 text-xs font-bold text-white shadow-xl sm:block"><i class="fas fa-location-dot mr-2"></i>Every county has a story</div>
+          {% if featured_project %}
+          <a href="#projects" class="absolute -top-8 -right-2 hidden rounded-xl border border-white/25 bg-[#10252a] px-4 py-3 text-xs font-bold text-white shadow-xl transition hover:bg-[#1c3b40] lg:block"><span class="text-[#c9dfcf]">Spotlight</span> · {{ featured_project.project_title|truncatechars:32 }}</a>
+          {% endif %}
         </div>
       </div>
     </section>
 
-    <section id="services" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div class="flex flex-col gap-3 text-center">
-        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Core services</p>
-        <h2 class="text-3xl font-bold text-slate-900 sm:text-4xl">Modern tools for government transparency</h2>
-        <p class="mx-auto max-w-2xl text-lg text-slate-600">From service tracking to public reporting, the platform provides clear digital access for citizens and partners.</p>
+    <!-- Trust strip -->
+    <section class="border-b border-[#10252a]/10 bg-white px-5 py-4 lg:px-8">
+      <div class="mx-auto flex  flex-wrap gap-x-8 gap-y-2 text-xs font-semibold text-slate-500">
+        <span><i class="fas fa-shield-halved mr-2 text-[#ef6c45]"></i>Verified public data</span>
+        <span><i class="fas fa-clock mr-2 text-[#ef6c45]"></i>{% if latest_update %}Last updated {{ latest_update|timesince }} ago{% else %}Updated regularly{% endif %}</span>
+        <span><i class="fas fa-users mr-2 text-[#ef6c45]"></i>Free for every citizen</span>
+        <span><i class="fas fa-map-location-dot mr-2 text-[#ef6c45]"></i>{{ project_metrics.locations }} locations covered</span>
       </div>
-      <div class="mt-10 grid gap-6 md:grid-cols-3">
-        <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-            <i class="fas fa-project-diagram text-xl"></i>
+    </section>
+
+    <!-- Stats band with animated count-up -->
+    <section class="border-b border-[#10252a]/10 bg-[#c9dfcf]">
+      <div class="mx-auto grid  grid-cols-2 divide-x divide-[#10252a]/15 px-5 py-7 sm:grid-cols-4 lg:px-8">
+        <div class="px-4 first:pl-0"><p class="display text-3xl font-bold count-up" data-count="{{ project_metrics.total }}">0</p><p class="mt-1 text-xs font-semibold uppercase tracking-wider text-[#10252a]/60">Projects tracked</p></div>
+        <div class="px-4"><p class="display text-3xl font-bold count-up" data-count="{{ project_metrics.ongoing }}">0</p><p class="mt-1 text-xs font-semibold uppercase tracking-wider text-[#10252a]/60">In progress</p></div>
+        <div class="px-4"><p class="display text-3xl font-bold count-up" data-count="{{ project_metrics.completed }}">0</p><p class="mt-1 text-xs font-semibold uppercase tracking-wider text-[#10252a]/60">Delivered</p></div>
+        <div class="px-4"><p class="display text-3xl font-bold count-up" data-count="{{ project_metrics.locations }}">0</p><p class="mt-1 text-xs font-semibold uppercase tracking-wider text-[#10252a]/60">Places reached</p></div>
+      </div>
+    </section>
+
+    <!-- Live update ticker -->
+    {% if recent_updates %}
+    <section class="ticker overflow-hidden border-b border-[#10252a]/10 bg-[#10252a] py-3 text-white" aria-label="Latest project updates">
+      <div class="ticker-track">
+        {% for i in '12'|make_list %}{% for u in recent_updates %}
+        <a href="#projects" class="flex  gap-2 whitespace-nowrap text-sm text-white/80 transition hover:text-white">
+          <span class="h-2 w-2 rounded-full bg-[#ef6c45]"></span>
+          <strong class="text-white">{{ u.project.project_title|default:'Public project'|truncatechars:40 }}</strong>
+          <span class="text-white/50">{{ u.progress_percentage }}% · {{ u.date_reported|timesince }} ago</span>
+        </a>
+        {% endfor %}{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="bg-[#10252a] px-5 py-6 lg:px-8">
+      <div class="mx-auto grid  gap-3 sm:grid-cols-3">
+        <a href="#projects" class="media-tile rounded-xl">
+          <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?auto=format&fit=crop&w=900&q=85" alt="Construction workers delivering a public infrastructure project" loading="lazy" onerror="this.src='{% static 'images/project.webp' %}'">
+          <div class="media-tile-content"><p class="text-[10px] font-bold uppercase tracking-[.2em] text-[#c9dfcf]">On the ground</p><p class="display mt-1 text-lg font-bold">See delivery in motion</p></div>
+        </a>
+        <a href="#how-it-works" class="media-tile rounded-xl">
+          <img src="https://images.unsplash.com/photo-1504159506876-f8338247a14a?auto=format&fit=crop&w=900&q=85" alt="Community members gathered in a public space" loading="lazy" onerror="this.src='{% static 'images/team.jpg' %}'">
+          <div class="media-tile-content"><p class="text-[10px] font-bold uppercase tracking-[.2em] text-[#c9dfcf]">For communities</p><p class="display mt-1 text-lg font-bold">Your voice belongs here</p></div>
+        </a>
+        <a href="{% url 'registrationpage' %}" class="media-tile rounded-xl">
+          <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=85" alt="A bright civic workspace for collaboration" loading="lazy" onerror="this.src='{% static 'images/future.jpg' %}'">
+          <div class="media-tile-content"><p class="text-[10px] font-bold uppercase tracking-[.2em] text-[#c9dfcf]">Join the network</p><p class="display mt-1 text-lg font-bold">Make progress visible</p></div>
+        </a>
+      </div>
+    </section>
+
+    <section id="projects" class="paper-grid px-5 py-20 lg:px-8 lg:py-28">
+      <div class="mx-auto ">
+        <div class="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">The public record</p><h2 class="display mt-3 max-w-2xl text-4xl font-bold leading-tight sm:text-5xl">Projects worth paying attention to.</h2></div><a href="{% url 'registrationpage' %}" class="text-sm font-bold text-[#10252a] underline decoration-[#ef6c45] decoration-2 underline-offset-4">Open the full project register <i class="fas fa-arrow-up-right-from-square ml-1 text-xs"></i></a></div>
+
+        <!-- Search + category filters -->
+        <div class="mt-8 flex flex-col gap-4">
+          <div class="relative max-w-xl">
+            <i class="fas fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+            <input id="project-search" type="search" placeholder="Search your county or project…" class="w-full rounded-xl border border-[#10252a]/15 bg-white py-3.5 pl-11 pr-4 text-sm shadow-sm outline-none transition focus:border-[#ef6c45] focus:ring-2 focus:ring-[#ef6c45]/20">
           </div>
-          <h3 class="mt-5 text-xl font-semibold text-slate-900">Project monitoring</h3>
-          <p class="mt-3 text-slate-600">Track the progress of roads, health, education, and housing initiatives across the country.</p>
+          {% if categories %}
+          <div class="flex flex-wrap gap-2" id="category-chips">
+            <button type="button" class="cat-chip active" data-cat="all"><i class="fas fa-border-all text-xs"></i> All</button>
+            {% for cat in categories %}
+            <button type="button" class="cat-chip" data-cat="{{ cat.name|lower }}" {% if cat.color %}style="--chip: {{ cat.color }}"{% endif %}><i class="{{ cat.icon|default:'fas fa-folder' }} text-xs"></i> {{ cat.name }}</button>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
-        <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-            <i class="fas fa-file-contract text-xl"></i>
-          </div>
-          <h3 class="mt-5 text-xl font-semibold text-slate-900">Budget transparency</h3>
-          <p class="mt-3 text-slate-600">Understand allocations, spending priorities, and public finance updates with confidence.</p>
-        </div>
-        <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-            <i class="fas fa-comments text-xl"></i>
-          </div>
-          <h3 class="mt-5 text-xl font-semibold text-slate-900">Citizen engagement</h3>
-          <p class="mt-3 text-slate-600">Share feedback, report concerns, and participate in a stronger public dialogue.</p>
+
+        <p id="no-results" class="hidden mt-6 rounded-2xl border border-dashed border-[#10252a]/20 bg-white p-8 text-center text-slate-500">No projects match your search yet — try a different county or category.</p>
+        <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3" id="project-grid">
+          {% for project in projects %}
+          <article class="project-card overflow-hidden rounded-2xl border border-[#10252a]/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl reveal" data-category="{{ project.category.name|lower|default:'all' }}">
+            <div class="relative h-48 w-auto shrink-0 overflow-hidden bg-[#dce9df]">{% if project.images %}<img src="{{ project.images.url }}" alt="{{ project.project_title }}" class="absolute inset-0 h-full w-full object-cover">{% elif project.cover_image %}<img src="{{ project.cover_image.url }}" alt="{{ project.project_title }}" class="absolute inset-0 h-full w-full object-cover">{% else %}<img src="{% static 'images/project.webp' %}" alt="Government project" class="absolute inset-0 h-full w-full object-cover">{% endif %}<span class="absolute left-4 top-4 rounded-md bg-[#f6f5ef] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#10252a]">{{ project.get_project_status_display|default:'Project update' }}</span></div>
+            <div class="p-5"><div class="flex items-start justify-between gap-3"><h3 class="display text-xl font-bold leading-tight">{{ project.project_title|default:'Untitled public project' }}</h3><i class="fas fa-arrow-up-right-from-square mt-1 text-sm text-[#ef6c45]"></i></div><p class="mt-2 text-sm text-slate-500"><i class="fas fa-location-dot mr-1 text-[#ef6c45]"></i>{{ project.project_location|default:'Location to be confirmed' }}</p><p class="mt-4 line-clamp-2 text-sm leading-6 text-slate-600">{{ project.project_description|default:'A public development project being tracked through GovTracker.' }}</p>
+              {% if project.stage_progress %}
+              <div class="mt-4"><div class="mb-1.5 flex  justify-between text-[11px] font-bold"><span class="uppercase tracking-wider text-slate-400">Progress</span><span class="text-[#ef6c45]">{{ project.stage_progress }}%</span></div><div class="progress-track"><div class="progress-fill" style="--w: {{ project.stage_progress }}%" data-w="{{ project.stage_progress }}"></div></div></div>
+              {% endif %}
+              <div class="mt-5 flex  justify-between border-t border-[#10252a]/10 pt-4 text-xs"><span class="font-semibold text-slate-500">{{ project.implementing_agency|default:'Public delivery agency' }}</span><span class="font-bold text-[#10252a]">{% if project.project_Budgeting %}KES {{ project.project_Budgeting|floatformat:0 }}{% else %}Budget pending{% endif %}</span></div></div>
+          </article>
+          {% empty %}
+          <div class="rounded-2xl border border-dashed border-[#10252a]/20 bg-white p-10 text-center md:col-span-2 lg:col-span-3"><i class="fas fa-folder-open text-3xl text-[#ef6c45]"></i><h3 class="display mt-4 text-xl font-bold">The register is being prepared.</h3><p class="mt-2 text-sm text-slate-500">Public projects will appear here as they are published.</p></div>
+          {% endfor %}
         </div>
       </div>
     </section>
 
-    <section id="initiatives" class="bg-slate-900 py-16 text-white">
-      <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">Featured initiatives</p>
-          <h2 class="mt-3 text-3xl font-bold sm:text-4xl">Driving national progress through clear priorities</h2>
-          <p class="mt-5 text-lg text-slate-300">GovTracker brings essential development stories and public sector programs into a modern, accessible experience.</p>
-          <div class="mt-8 grid gap-4 sm:grid-cols-2">
-            <div class="rounded-2xl border border-white/10 bg-white/10 p-5">
-              <h3 class="font-semibold">Universal education</h3>
-              <p class="mt-2 text-sm text-slate-300">Expanding access and improving learning outcomes across communities.</p>
+    <!-- Project spotlight -->
+    {% if featured_project %}
+    <section class="px-5 pb-20 lg:px-8 lg:pb-28">
+      <div class="mx-auto  overflow-hidden rounded-3xl border border-[#10252a]/10 bg-white shadow-xl reveal">
+        <div class="grid lg:grid-cols-2">
+          <div class="relative min-h-[280px] bg-[#dce9df]">
+            {% if featured_project.cover_image %}<img src="{{ featured_project.cover_image.url }}" alt="{{ featured_project.project_title }}" class="absolute inset-0 h-full w-full object-cover">{% elif featured_project.images %}<img src="{{ featured_project.images.url }}" alt="{{ featured_project.project_title }}" class="absolute inset-0 h-full w-full object-cover">{% else %}<img src="{% static 'images/project.webp' %}" alt="Featured public project" class="absolute inset-0 h-full w-full object-cover">{% endif %}
+            <span class="absolute left-5 top-5 rounded-md bg-[#ef6c45] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">★ Project spotlight</span>
+          </div>
+          <div class="flex flex-col justify-center p-8 lg:p-12">
+            <p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">Currently in the field</p>
+            <h3 class="display mt-3 text-3xl font-bold leading-tight">{{ featured_project.project_title }}</h3>
+            <p class="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">{{ featured_project.project_description|default:'Follow this project for regular progress and spending updates.' }}</p>
+            <div class="mt-6 grid grid-cols-3 gap-4 border-y border-[#10252a]/10 py-5 text-sm">
+              <div><p class="text-xs uppercase tracking-wider text-slate-400">Status</p><p class="mt-1 font-bold capitalize">{{ featured_project.project_status|default:'Active' }}</p></div>
+              <div><p class="text-xs uppercase tracking-wider text-slate-400">Location</p><p class="mt-1 font-bold">{{ featured_project.project_location|default:'—' }}</p></div>
+              <div><p class="text-xs uppercase tracking-wider text-slate-400">Budget</p><p class="mt-1 font-bold">{% if featured_project.project_Budgeting %}KES {{ featured_project.project_Budgeting|floatformat:0 }}{% else %}Pending{% endif %}</p></div>
             </div>
-            <div class="rounded-2xl border border-white/10 bg-white/10 p-5">
-              <h3 class="font-semibold">Affordable healthcare</h3>
-              <p class="mt-2 text-sm text-slate-300">Strengthening service delivery and access to essential care.</p>
-            </div>
-            <div class="rounded-2xl border border-white/10 bg-white/10 p-5">
-              <h3 class="font-semibold">Infrastructure growth</h3>
-              <p class="mt-2 text-sm text-slate-300">Supporting roads, energy, and digital growth nationwide.</p>
-            </div>
-            <div class="rounded-2xl border border-white/10 bg-white/10 p-5">
-              <h3 class="font-semibold">Climate resilience</h3>
-              <p class="mt-2 text-sm text-slate-300">Building safer communities with sustainable development programs.</p>
-            </div>
+            <div class="mt-6"><a href="{% url 'registrationpage' %}" class="inline-flex rounded-lg bg-[#10252a] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1c3b40]">Follow this project <i class="fas fa-bell ml-2 text-xs"></i></a></div>
           </div>
         </div>
-        <div class="grid gap-6 md:grid-cols-2">
-          <div class="overflow-hidden rounded-3xl border border-white/10 bg-white/10">
-            <img src="{% static 'images/educ.jpg' %}" alt="Education initiative" class="h-48 w-full object-cover" />
-            <div class="p-5">
-              <h3 class="font-semibold text-white">Education for all</h3>
-              <p class="mt-2 text-sm text-slate-300">Supporting school access, digital learning, and improved facilities.</p>
-            </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Map of Kenya -->
+    <section class="px-5 pb-20 lg:px-8 lg:pb-28">
+      <div class="mx-auto ">
+        <p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">Where the work is</p>
+        <h2 class="display mt-3 max-w-2xl text-4xl font-bold leading-tight sm:text-5xl">Projects across the country.</h2>
+        <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {% for c in county_projects %}
+          <div class="reveal group flex  justify-between rounded-2xl border border-[#10252a]/10 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+            <div class="flex  gap-3"><span class="flex h-9 w-9  justify-center rounded-full bg-[#c9dfcf] text-sm font-bold text-[#10252a]"><i class="fas fa-location-dot text-xs"></i></span><span class="font-semibold">{{ c.project_location|truncatechars:22 }}</span></div>
+            <span class="rounded-full bg-[#10252a] px-2.5 py-1 text-[11px] font-bold text-white">{{ c.n }}</span>
           </div>
-          <div class="overflow-hidden rounded-3xl border border-white/10 bg-white/10">
-            <img src="{% static 'images/nhif.jpg' %}" alt="Healthcare initiative" class="h-48 w-full object-cover" />
-            <div class="p-5">
-              <h3 class="font-semibold text-white">Healthy communities</h3>
-              <p class="mt-2 text-sm text-slate-300">Connecting citizens with better healthcare coverage and services.</p>
-            </div>
-          </div>
-          <div class="overflow-hidden rounded-3xl border border-white/10 bg-white/10 md:col-span-2">
-            <img src="{% static 'images/tran.webp' %}" alt="Infrastructure initiative" class="h-56 w-full object-cover" />
-            <div class="p-5">
-              <h3 class="font-semibold text-white">Connected infrastructure</h3>
-              <p class="mt-2 text-sm text-slate-300">Building reliable transport, utilities, and digital access for all regions.</p>
-            </div>
-          </div>
+          {% empty %}
+          <div class="rounded-2xl border border-dashed border-[#10252a]/20 p-8 text-slate-500 sm:col-span-2 lg:col-span-5">Locations will appear here as projects are published.</div>
+          {% endfor %}
         </div>
       </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div class="rounded-[2rem] bg-gradient-to-r from-emerald-700 to-teal-700 p-8 text-white shadow-2xl sm:p-10 lg:p-12">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-100">Public trust starts here</p>
-            <h2 class="mt-3 text-3xl font-bold sm:text-4xl">Join a more open and modern government experience.</h2>
-            <p class="mt-4 max-w-2xl text-lg text-emerald-50">Create an account, explore current priorities, and stay informed about the work shaping your community.</p>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <a href="{% url 'registrationpage' %}" class="rounded-full bg-white px-6 py-3 font-semibold text-emerald-800 transition hover:bg-emerald-50">Register now</a>
-            <a href="{% url 'login' %}" class="rounded-full border border-white/40 px-6 py-3 font-semibold text-white transition hover:bg-white/10">Log in</a>
-          </div>
+    <section id="how-it-works" class="bg-[#10252a] px-5 py-20 text-white lg:px-8 lg:py-28">
+      <div class="mx-auto grid  gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-start"><div><p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">A clearer way to participate</p><h2 class="display mt-4 text-4xl font-bold leading-tight sm:text-5xl">From public money to public meaning.</h2><p class="mt-5 max-w-md text-base leading-7 text-white/65">GovTracker gives each audience a useful next step, whether you are checking a local project, sharing evidence, or delivering the work.</p><a href="{% url 'registrationpage' %}" class="mt-8 inline-flex rounded-lg bg-[#c9dfcf] px-5 py-3 text-sm font-bold text-[#10252a] transition hover:bg-white">Get started <i class="fas fa-arrow-right ml-2"></i></a></div><div class="grid gap-4 sm:grid-cols-2"><div class="rounded-2xl border border-white/15 bg-white/5 p-6"><span class="text-2xl text-[#ef6c45]">01</span><h3 class="display mt-8 text-xl font-bold">Discover</h3><p class="mt-2 text-sm leading-6 text-white/60">Search projects by place, status, agency, and the kind of change they promise.</p></div><div class="rounded-2xl border border-white/15 bg-white/5 p-6"><span class="text-2xl text-[#ef6c45]">02</span><h3 class="display mt-8 text-xl font-bold">Understand</h3><p class="mt-2 text-sm leading-6 text-white/60">See the budget, milestones, delivery partners, and progress in one view.</p></div><div class="rounded-2xl border border-white/15 bg-white/5 p-6"><span class="text-2xl text-[#ef6c45]">03</span><h3 class="display mt-8 text-xl font-bold">Participate</h3><p class="mt-2 text-sm leading-6 text-white/60">Share feedback, report issues, and join public conversations around delivery.</p></div><div class="rounded-2xl border border-white/15 bg-white/5 p-6"><span class="text-2xl text-[#ef6c45]">04</span><h3 class="display mt-8 text-xl font-bold">Deliver</h3><p class="mt-2 text-sm leading-6 text-white/60">Contractors and teams can follow tenders, submit updates, and keep work visible.</p></div></div></div>
+    </section>
+
+    <section id="voices" class="px-5 py-20 lg:px-8 lg:py-28">
+      <div class="mx-auto "><div class="flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">Community signal</p><h2 class="display mt-3 text-4xl font-bold sm:text-5xl">A platform that listens back.</h2></div><a href="{% url 'registrationpage' %}" class="text-sm font-bold underline decoration-[#ef6c45] decoration-2 underline-offset-4">Join the conversation</a></div><div class="mt-10 grid gap-5 md:grid-cols-3">{% for item in testimonials|slice:':3' %}<blockquote class="rounded-2xl border border-[#10252a]/10 bg-white p-6 shadow-sm"><div class="flex gap-1 text-[#ef6c45]">{% for star in '12345'|make_list %}<i class="fas fa-star text-xs"></i>{% endfor %}</div><p class="mt-5 text-base leading-7 text-slate-600">“{{ item.content|truncatechars:180 }}”</p><footer class="mt-6 flex  items-center gap-3 border-t border-[#10252a]/10 pt-4">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.name }}" class="h-9 w-9 shrink-0 rounded-full object-cover">{% else %}<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#c9dfcf] text-sm font-bold">{{ item.name|slice:':1'|upper }}</div>{% endif %}<div><p class="text-sm font-bold">{{ item.name }}</p><p class="text-xs text-slate-500">GovTracker community</p></div></footer></blockquote>{% empty %}<div class="rounded-2xl border border-dashed border-[#10252a]/20 p-8 text-slate-500 md:col-span-3">Community testimonials will appear here as people share their experience.</div>{% endfor %}</div></div>
+    </section>
+
+    <!-- Before / After slider -->
+    <section class="px-5 pb-20 lg:px-8 lg:pb-28">
+      <div class="mx-auto grid   gap-10 lg:grid-cols-[1fr_.8fr]">
+        <div class="ba-wrap reveal shadow-2xl" id="ba-slider">
+          <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?auto=format&fit=crop&w=1100&q=85" alt="Project site during construction" onerror="this.src='{% static 'images/project.webp' %}'">
+          <div class="ba-after" id="ba-after"><img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?auto=format&fit=crop&w=1100&q=85" alt="Completed project" onerror="this.src='{% static 'images/future.jpg' %}'"></div>
+          <div class="ba-handle" id="ba-handle" style="left: 50%"></div>
+          <span class="absolute left-4 top-4 rounded-md bg-[#10252a]/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">Before</span>
+          <span class="absolute right-4 top-4 rounded-md bg-[#ef6c45] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">After</span>
+        </div>
+        <div class="reveal">
+          <p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">Proof of delivery</p>
+          <h2 class="display mt-3 text-4xl font-bold leading-tight">Drag to see the change.</h2>
+          <p class="mt-5 text-base leading-7 text-slate-600">Every completed project keeps its record — the plan, the spending, the photos, and the people behind it. Drag the slider to compare where a project started and where it stands today.</p>
+          <ul class="mt-6 space-y-3 text-sm font-semibold">
+            <li class="flex  gap-3"><i class="fas fa-circle-check text-[#ef6c45]"></i> Field photos from every stage</li>
+            <li class="flex  gap-3"><i class="fas fa-circle-check text-[#ef6c45]"></i> Budget vs. actual spending, side by side</li>
+            <li class="flex  gap-3"><i class="fas fa-circle-check text-[#ef6c45]"></i> Verified by community reports</li>
+          </ul>
         </div>
       </div>
     </section>
+
+    <!-- FAQ -->
+    <section class="bg-[#f6f5ef] paper-grid px-5 py-20 lg:px-8 lg:py-28">
+      <div class="mx-auto">
+        <p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">Good to know</p>
+        <h2 class="display mt-3 text-4xl font-bold sm:text-5xl">Questions people ask.</h2>
+        <div class="mt-10 space-y-3" id="faq-list">
+          <div class="faq-item rounded-2xl border border-[#10252a]/10 bg-white shadow-sm"><button type="button" class="faq-q flex w-full  justify-between p-5 text-left text-sm font-bold">Is GovTracker free to use?<i class="fas fa-chevron-down faq-chevron text-[#ef6c45]"></i></button><div class="faq-answer"><p class="px-5 pb-5 text-sm leading-6 text-slate-600">Yes — creating an account, following projects, and reporting issues is completely free for all citizens.</p></div></div>
+          <div class="faq-item rounded-2xl border border-[#10252a]/10 bg-white shadow-sm"><button type="button" class="faq-q flex w-full  justify-between p-5 text-left text-sm font-bold">Where does the data come from?<i class="fas fa-chevron-down faq-chevron text-[#ef6c45]"></i></button><div class="faq-answer"><p class="px-5 pb-5 text-sm leading-6 text-slate-600">Project records are published by implementing agencies and delivery teams, and cross-checked with reports from the community.</p></div></div>
+          <div class="faq-item rounded-2xl border border-[#10252a]/10 bg-white shadow-sm"><button type="button" class="faq-q flex w-full  justify-between p-5 text-left text-sm font-bold">How do I report a problem with a project?<i class="fas fa-chevron-down faq-chevron text-[#ef6c45]"></i></button><div class="faq-answer"><p class="px-5 pb-5 text-sm leading-6 text-slate-600">Create a free account, open the project, and submit a report with photos and a location. Officials review and respond to every report.</p></div></div>
+          <div class="faq-item rounded-2xl border border-[#10252a]/10 bg-white shadow-sm"><button type="button" class="faq-q flex w-full  justify-between p-5 text-left text-sm font-bold">Can contractors and officials use GovTracker?<i class="fas fa-chevron-down faq-chevron text-[#ef6c45]"></i></button><div class="faq-answer"><p class="px-5 pb-5 text-sm leading-6 text-slate-600">Absolutely. Contractors follow tenders and submit stage reports, while officials publish updates and respond to citizen feedback — all in one place.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter / alerts -->
+    <section class="px-5 pb-20 lg:px-8 lg:pb-28">
+      <div class="mx-auto  rounded-3xl border border-[#10252a]/10 bg-white p-8 shadow-sm sm:p-12 reveal">
+        <div class="grid  gap-8 lg:grid-cols-2">
+          <div><p class="text-xs font-bold uppercase tracking-[.25em] text-[#ef6c45]">Stay in the loop</p><h2 class="display mt-3 text-3xl font-bold">Get project alerts for your county.</h2><p class="mt-3 text-sm leading-6 text-slate-600">A quick update whenever a project near you starts, progresses, or is completed. No spam — just the work that matters to you.</p></div>
+          <form method="post" action="{% url 'contactus' %}" class="flex flex-col gap-3 sm:flex-row">
+            <input type="email" name="email" required placeholder="you@example.com" class="w-full rounded-xl border border-[#10252a]/15 px-4 py-3.5 text-sm outline-none transition focus:border-[#ef6c45] focus:ring-2 focus:ring-[#ef6c45]/20">
+            <button type="submit" class="shrink-0 rounded-xl bg-[#ef6c45] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#db5735]">Notify me <i class="fas fa-bell ml-1 text-xs"></i></button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 pb-20 lg:px-8 lg:pb-28"><div class="mx-auto  overflow-hidden rounded-2xl bg-[#ef6c45] px-7 py-12 text-white sm:px-12 lg:flex lg: lg:justify-between"><div><p class="text-xs font-bold uppercase tracking-[.25em] text-white/70">Your view matters</p><h2 class="display mt-3 max-w-2xl text-3xl font-bold sm:text-4xl">Make the work around you easier to see.</h2><p class="mt-3 max-w-xl text-base text-white/80">Create your free account to follow projects, send feedback, and stay close to delivery.</p></div><div class="mt-7 flex flex-wrap gap-3 lg:mt-0"><a href="{% url 'registrationpage' %}" class="rounded-lg bg-[#10252a] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1c3b40]">Create account</a><a href="{% url 'login' %}" class="rounded-lg border border-white/50 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">Sign in</a></div></div></section>
   </main>
 
-  <footer id="contact" class="border-t border-slate-200 bg-white/80">
-    <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-sm text-slate-600 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-      <p>© 2026 GovTracker Kenya. Designed for transparent public service.</p>
-      <div class="flex flex-wrap gap-4">
-        <a href="#" class="transition hover:text-emerald-700">About</a>
-        <a href="#services" class="transition hover:text-emerald-700">Services</a>
-        <a href="#contact" class="transition hover:text-emerald-700">Contact</a>
-      </div>
-    </div>
-  </footer>
+  <footer class="relative z-10 border-t border-[#10252a]/10 bg-[#10252a] px-5 py-10 text-white lg:px-8"><div class="mx-auto flex  flex-col gap-8 md:flex-row md:items-end md:justify-between"><div><div class="flex  gap-3"><span class="flex h-9 w-9  justify-center rounded-lg bg-[#ef6c45] font-bold">G</span><strong class="display text-lg">GovTracker</strong></div><p class="mt-3 max-w-sm text-sm leading-6 text-white/55">A shared public record for understanding and participating in government development.</p></div><div class="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/65"><a href="#projects" class="hover:text-white">Projects</a><a href="{% url 'comment_list' %}" class="hover:text-white">Feedback</a><a href="{% url 'contactus' %}" class="hover:text-white">Contact</a><a href="{% url 'login' %}" class="hover:text-white">Sign in</a></div></div><div class="mx-auto mt-8  border-t border-white/10 pt-5 text-xs text-white/40">© 2026 GovTracker Kenya. Built for clearer public service.</div></footer>
+
+  <div class="sticky-cta fixed inset-x-3 bottom-3 z-50 md:hidden" id="sticky-cta">
+    <a href="{% url 'registrationpage' %}" class="flex  justify-between rounded-2xl bg-[#10252a] px-5 py-4 text-white shadow-2xl">
+      <span class="text-sm font-bold">Create your free account <span class="block text-[11px] font-normal text-white/60">Follow projects near you</span></span>
+      <span class="rounded-lg bg-[#ef6c45] px-4 py-2 text-xs font-bold">Join now</span>
+    </a>
+  </div>
+
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu-panel');
+    menuToggle.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('menu-open');
+      menuToggle.setAttribute('aria-expanded', isOpen);
+      menuToggle.innerHTML = isOpen ? '<i class="fas fa-xmark"></i>' : '<i class="fas fa-bars"></i>';
+    });
+    mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => mobileMenu.classList.remove('menu-open')));
+
+    /* Scroll reveal */
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('revealed'); revealObserver.unobserve(entry.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
+
+    /* Animated count-up */
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = parseInt(el.dataset.count, 10) || 0;
+        const start = performance.now();
+        const dur = 1200;
+        const step = (now) => {
+          const p = Math.min((now - start) / dur, 1);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString();
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+        countObserver.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.count-up').forEach((el) => countObserver.observe(el));
+
+    /* Project search + category filter */
+    const searchInput = document.getElementById('project-search');
+    const projectCards = document.querySelectorAll('#project-grid .project-card');
+    const noResults = document.getElementById('no-results');
+    let activeCat = 'all';
+    function applyFilter() {
+      const q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+      let visible = 0;
+      projectCards.forEach((card) => {
+        const text = card.textContent.toLowerCase();
+        const cat = (card.dataset.category || 'all');
+        const ok = text.includes(q) && (activeCat === 'all' || cat === activeCat);
+        card.style.display = ok ? '' : 'none';
+        if (ok) visible++;
+      });
+      if (noResults) noResults.classList.toggle('hidden', visible > 0 || projectCards.length === 0);
+    }
+    if (searchInput) searchInput.addEventListener('input', applyFilter);
+    document.querySelectorAll('#category-chips .cat-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('#category-chips .cat-chip').forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCat = chip.dataset.cat || 'all';
+        applyFilter();
+      });
+    });
+
+    /* Animate progress bars on scroll */
+    const progressObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.style.setProperty('--w', entry.target.dataset.w + '%');
+          entry.target.classList.add('go');
+          progressObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    document.querySelectorAll('.progress-fill').forEach((el) => progressObserver.observe(el));
+
+    /* Before/after slider */
+    const baWrap = document.getElementById('ba-slider');
+    if (baWrap) {
+      const after = document.getElementById('ba-after');
+      const handle = document.getElementById('ba-handle');
+      const setPos = (clientX) => {
+        const rect = baWrap.getBoundingClientRect();
+        let pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+        after.style.clipPath = `inset(0 0 0 ${pct}%)`;
+        handle.style.left = pct + '%';
+      };
+      let dragging = false;
+      baWrap.addEventListener('pointerdown', (e) => { dragging = true; setPos(e.clientX); });
+      window.addEventListener('pointermove', (e) => { if (dragging) setPos(e.clientX); });
+      window.addEventListener('pointerup', () => { dragging = false; });
+    }
+
+    /* FAQ accordion */
+    document.querySelectorAll('.faq-q').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach((i) => i.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+      });
+    });
+
+    /* Sticky mobile CTA */
+    const stickyCta = document.getElementById('sticky-cta');
+    const hero = document.querySelector('.hero-art');
+    if (stickyCta && hero) {
+      window.addEventListener('scroll', () => {
+        stickyCta.classList.toggle('show', window.scrollY > hero.offsetHeight * 0.8);
+      }, { passive: true });
+    }
+  </script>
 </body>
 </html>
-{% endblock %}
-

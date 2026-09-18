@@ -785,16 +785,48 @@ class ReportIssue(models.Model):
 
 
 class CitizenEvidence(models.Model):
-    user        = models.ForeignKey(User, on_delete=models.CASCADE)
-    project     = models.ForeignKey(Project, on_delete=models.CASCADE)
-    stage       = models.ForeignKey(ProjectStage, on_delete=models.CASCADE)
-    title       = models.CharField(max_length=255)
-    description = models.TextField()
-    location    = models.CharField(max_length=255)
-    image       = models.ImageField(upload_to='citizen_evidence/', blank=True, null=True)
-    is_verified = models.BooleanField(default=False)
-    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_evidence')
-    created_at  = models.DateTimeField(auto_now_add=True)
+    CATEGORY_CHOICES = [
+        ('infrastructure', 'Infrastructure'),
+        ('water', 'Water & Sanitation'),
+        ('health', 'Health'),
+        ('education', 'Education'),
+        ('security', 'Security'),
+        ('environment', 'Environment'),
+        ('corruption', 'Corruption'),
+        ('other', 'Other'),
+    ]
+
+    SEVERITY_CHOICES = [
+        ('low', 'Low'),
+        ('moderate', 'Moderate'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
+
+    EVIDENCE_TYPE_CHOICES = [
+        ('photo', 'Photo'),
+        ('video', 'Video'),
+        ('document', 'Document'),
+        ('audio', 'Audio'),
+        ('other', 'Other'),
+    ]
+
+    user            = models.ForeignKey(User, on_delete=models.CASCADE)
+    project         = models.ForeignKey(Project, on_delete=models.CASCADE)
+    stage           = models.ForeignKey(ProjectStage, on_delete=models.CASCADE)
+    category        = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='other')
+    severity        = models.CharField(max_length=20, choices=SEVERITY_CHOICES, default='moderate')
+    evidence_type   = models.CharField(max_length=20, choices=EVIDENCE_TYPE_CHOICES, default='photo')
+    title           = models.CharField(max_length=255)
+    description     = models.TextField()
+    location        = models.CharField(max_length=255)
+    coordinates     = models.CharField(max_length=255, blank=True, null=True)
+    observed_at     = models.DateField(null=True, blank=True)
+    notes           = models.TextField(blank=True, null=True)
+    image           = models.ImageField(upload_to='citizen_evidence/', blank=True, null=True)
+    is_verified     = models.BooleanField(default=False)
+    verified_by     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_evidence')
+    created_at      = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
@@ -830,11 +862,52 @@ class Comment(models.Model):
         return f"Comment by {self.user.username} on {self.project.project_title}"
 
 
+class DiscussionTopic(models.Model):
+    TOPIC_TAGS = [
+        ('general',    'General'),
+        ('project',    'Project talk'),
+        ('question',   'Question'),
+        ('corruption', 'Corruption watch'),
+        ('success',    'Success story'),
+    ]
+    title      = models.CharField(max_length=200)
+    tag        = models.CharField(max_length=20, choices=TOPIC_TAGS, default='general')
+    body       = models.TextField(null=True, blank=True)
+    project    = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True, related_name='discussions')
+    author     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='discussion_topics')
+    is_pinned  = models.BooleanField(default=False)
+    is_closed  = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        ordering = ['-is_pinned', '-created_at']
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def reply_count(self):
+        return self.replies.count()
+
+
+class DiscussionReply(models.Model):
+    topic      = models.ForeignKey(DiscussionTopic, on_delete=models.CASCADE, related_name='replies', null=True)
+    author     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='discussion_replies', null=True)
+    content    = models.TextField( null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Reply by {self.author.username} on {self.topic.title}"
+
+
 class Feedback(models.Model):
     RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]
 
     full_name    = models.CharField(max_length=50, null=True)
-    email        = models.EmailField()
+    email        = models.EmailField(null=True, blank=True)
     phone_number = models.CharField(max_length=15, null=True)
     feedback     = models.TextField(null=True)
     rating       = models.IntegerField(choices=RATING_CHOICES, null=True, blank=True)
@@ -1075,7 +1148,7 @@ class Team(models.Model):
 
 class AIChatSession(models.Model):
     user       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_chat_sessions')
-    title      = models.CharField(max_length=120, default='New Conversation')
+    title      = models.CharField(max_length=255, default='New Conversation')
     context    = models.JSONField(default=dict, blank=True)  # pinned project, filters, etc.
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1093,9 +1166,9 @@ class AIChatMessage(models.Model):
     session    = models.ForeignKey(AIChatSession, on_delete=models.CASCADE, related_name='messages')
     role       = models.CharField(max_length=12, choices=ROLE_CHOICES)
     content    = models.TextField()
-    model      = models.CharField(max_length=100, blank=True)
+    model      = models.CharField(max_length=255, blank=True)
     tokens     = models.IntegerField(null=True, blank=True)
-    feedback   = models.CharField(max_length=10, choices=[('good', 'Good'), ('bad', 'Bad')], null=True, blank=True)
+    feedback   = models.CharField(max_length=255, choices=[('good', 'Good'), ('bad', 'Bad')], null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1110,14 +1183,14 @@ class AIIssueAssessment(models.Model):
     ]
 
     issue              = models.ForeignKey(ReportIssue, on_delete=models.CASCADE, related_name='ai_assessments')
-    category           = models.CharField(max_length=50)
-    urgency            = models.CharField(max_length=20)
+    category           = models.CharField(max_length=255)
+    urgency            = models.CharField(max_length=255)
     confidence         = models.PositiveSmallIntegerField(default=0)
     summary            = models.TextField()
     recommended_action = models.TextField()
-    model              = models.CharField(max_length=100, blank=True)
-    provider           = models.CharField(max_length=30, default='heuristic')
-    review_status      = models.CharField(max_length=20, choices=REVIEW_CHOICES, default='pending')
+    model              = models.CharField(max_length=255, blank=True)
+    provider           = models.CharField(max_length=255, default='heuristic')
+    review_status      = models.CharField(max_length=255, choices=REVIEW_CHOICES, default='pending')
     reviewed_by        = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_ai_assessments')
     reviewed_at        = models.DateTimeField(null=True, blank=True)
     created_at         = models.DateTimeField(auto_now_add=True)
@@ -1178,11 +1251,11 @@ class AIReportGeneration(models.Model):
 
     project      = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='ai_reports', null=True)
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    report_type  = models.CharField(max_length=50)
+    report_type  = models.CharField(max_length=255)
     prompt       = models.TextField(blank=True)
     output       = models.TextField(blank=True)
-    status       = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    model        = models.CharField(max_length=100, blank=True)
+    status       = models.CharField(max_length=255, choices=STATUS_CHOICES, default='pending')
+    model        = models.CharField(max_length=255, blank=True)
     created_at   = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -1322,3 +1395,95 @@ class Project_Division(models.Model):
         if not allocated:
             return 0.0
         return round((spent / allocated) * 100, 1)
+
+
+# ─────────────────────────────────────────────
+# GOVTRACKER AI INTELLIGENCE ENGINE
+# ─────────────────────────────────────────────
+
+class AIFinding(models.Model):
+    """An explainable, auditable AI finding with a human-in-the-loop review trail."""
+
+    CATEGORY_CHOICES = [
+        ('financial_progress', 'Financial/Physical Progress Mismatch'),
+        ('progress_jump',      'Unusual Progress Change'),
+        ('progress_inactivity','Project Inactivity'),
+        ('cost_anomaly',       'Cost Anomaly vs Peers'),
+        ('peer_outlier',       'Statistical Peer Outlier'),
+        ('duplicate',          'Possible Duplicate Project'),
+        ('relationship',       'Relationship Anomaly'),
+        ('contractor',         'Contractor Behaviour'),
+        ('procurement',        'Procurement Anomaly'),
+        ('reporting',          'Reporting Inconsistency'),
+        ('complaints',         'Citizen Complaint Signal'),
+        ('delay_prediction',   'Delay Prediction'),
+        ('cost_overrun',       'Cost Overrun Prediction'),
+        ('data_quality',       'Data Quality'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending',     'Pending Human Review'),
+        ('investigating', 'Under Investigation'),
+        ('confirmed',   'Confirmed Anomaly'),
+        ('false_positive', 'False Positive'),
+    ]
+
+    SEVERITY_CHOICES = [
+        ('low',      'Low'),
+        ('medium',   'Medium'),
+        ('high',     'High'),
+        ('critical', 'Critical'),
+    ]
+
+    finding_code   = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    project        = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='ai_findings', null=True, blank=True)
+    contractor     = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True, blank=True, related_name='ai_findings')
+    tender         = models.ForeignKey(Tender, on_delete=models.SET_NULL, null=True, blank=True, related_name='ai_findings')
+    category       = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+    title          = models.CharField(max_length=255)
+    finding        = models.TextField()
+    reason         = models.TextField(blank=True)
+    confidence     = models.FloatField(default=0)          # 0-100
+    severity       = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='medium')
+    priority_score = models.FloatField(default=0)          # 0-100 ranking score
+    evidence       = models.JSONField(default=list, blank=True)   # list of evidence strings
+    data           = models.JSONField(default=dict, blank=True)   # structured metrics
+    status         = models.CharField(max_length=255, choices=STATUS_CHOICES, default='pending')
+    reviewed_by    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_ai_findings')
+    reviewed_at    = models.DateTimeField(null=True, blank=True)
+    review_notes   = models.TextField(null=True, blank=True)
+    model          = models.CharField(max_length=100, blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+    is_active      = models.BooleanField(default=True)      # latest run's findings
+
+    class Meta:
+        ordering = ['-priority_score', '-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.finding_code:
+            self.finding_code = f"AN-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.finding_code} — {self.title}"
+
+    @property
+    def severity_color(self):
+        return {'critical': 'rose', 'high': 'orange', 'medium': 'amber', 'low': 'emerald'}.get(self.severity, 'slate')
+
+
+class AIEngineRun(models.Model):
+    """Audit record for each full engine sweep."""
+    projects_scanned = models.IntegerField(default=0)
+    findings_created = models.IntegerField(default=0)
+    findings_active  = models.IntegerField(default=0)
+    model            = models.CharField(max_length=100, default='govtracker-engine-v1')
+    duration_ms      = models.IntegerField(null=True, blank=True)
+    created_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Engine run {self.created_at:%Y-%m-%d %H:%M} — {self.findings_created} findings"

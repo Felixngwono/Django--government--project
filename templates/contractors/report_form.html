@@ -1,0 +1,67 @@
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+{% load widget_tweaks %}<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wider text-blue-700">Project Progress</p>
+        <h1 class="mt-1 text-2xl font-bold">Submit Stage Report</h1>
+      </div>
+      <a href="{% url 'contractor_performance' %}" class="text-sm font-semibold text-blue-700 hover:underline">Back to dashboard</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="mt-6 space-y-4">
+      {% csrf_token %}
+      <label class="block text-sm font-semibold">Project
+        <select name="project" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" required>
+          <option value="">Select project</option>
+          {% for project in projects %}<option value="{{ project.id }}">{{ project.project_title }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block text-sm font-semibold">Stage
+        <select name="stage" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" required>
+          <option value="">Select stage</option>
+          {% for stage in stages %}<option value="{{ stage.id }}">{{ stage.project.project_title }} - {{ stage.get_stage_name_display }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block text-sm font-semibold">Contractor
+        <select name="contractor" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+          <option value="">Select contractor</option>
+          {% for contractor in contractors %}<option value="{{ contractor.id }}">{{ contractor.company|default:contractor.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <input name="location" required class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Location">
+      <input type="number" name="progress_percentage" min="0" max="100" required class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Progress percentage">
+      <textarea name="description" required rows="5" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Describe the work completed"></textarea>
+      <input type="file" name="photo" accept="image/*" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2">
+      <button type="submit" class="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800">Submit Stage Report</button>
+    </form>
+  </main>
+</body>
+{% include "footer.html" %}

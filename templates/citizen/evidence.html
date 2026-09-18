@@ -58,25 +58,38 @@
         {% for e in evidence %}
         <div class="bg-white p-4 rounded-xl shadow">
 
-            <h2 class="font-semibold text-gray-800">{{ e.title }}</h2>
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <h2 class="font-semibold text-gray-800">{{ e.title }}</h2>
+                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide
+                    {% if e.severity == 'critical' %}bg-red-100 text-red-700
+                    {% elif e.severity == 'high' %}bg-orange-100 text-orange-700
+                    {% elif e.severity == 'moderate' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ e.get_severity_display }}
+                </span>
+            </div>
 
-            <p class="text-sm text-gray-600 mt-1">
-                {{ e.description }}
-            </p>
+            <p class="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1">{{ e.get_category_display }}</p>
+            <p class="text-sm text-gray-600 mt-1">{{ e.description }}</p>
 
-            <p class="text-xs text-gray-400 mt-2">
-                📍 {{ e.location }}
-            </p>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-500">
+                <div>📍 {{ e.location }}</div>
+                <div>🗓 {{ e.observed_at|default:'Not specified' }}</div>
+                <div>🏗 {{ e.project.project_title }}</div>
+                <div>📌 {{ e.stage.get_stage_name_display }}</div>
+                <div>📎 {{ e.get_evidence_type_display }}</div>
+                <div>🧭 {{ e.coordinates|default:'No coordinates' }}</div>
+            </div>
 
-            <p class="text-xs text-gray-400">
-                🏗 {{ e.project.name }} | Stage: {{ e.stage.name }}
-            </p>
-
-            {% if e.image %}
-            <img src="{{ e.image.url }}" class="mt-2 rounded-lg w-full h-48 object-cover">
+            {% if e.notes %}
+            <p class="text-xs text-gray-600 mt-2 italic">{{ e.notes }}</p>
             {% endif %}
 
-            <p class="text-xs mt-2">
+            {% if e.image %}
+            <img src="{{ e.image.url }}" class="mt-3 rounded-lg w-full h-48 object-cover">
+            {% endif %}
+
+            <p class="text-xs mt-3">
                 {% if e.is_verified %}
                 <span class="text-green-600 font-semibold">Verified</span>
                 {% else %}
@@ -108,45 +121,98 @@
         <form method="POST" action="{% url 'submit_evidence' %}" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
 
-            <!-- PROJECT -->
-            <select name="project" class="w-full border p-2 rounded" required>
-                <option value="">Select Project</option>
-                {% for p in projects %}
-                <option value="{{ p.id }}">{{ p.project_title }}</option>
-                {% endfor %}
-            </select>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
+                    <select name="project" class="w-full border p-2 rounded" required>
+                        <option value="">Select Project</option>
+                        {% for p in projects %}
+                        <option value="{{ p.id }}">{{ p.project_title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <!-- STAGE -->
-            <select name="stage" class="w-full border p-2 rounded" required>
-                <option value="">Select Stage</option>
-                {% for s in stages %}
-                <option value="{{ s.id }}">{{ s.stage_name }}</option>
-                {% endfor %}
-            </select>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Stage</label>
+                    <select name="stage" class="w-full border p-2 rounded" required>
+                        <option value="">Select Stage</option>
+                        {% for s in stages %}
+                        <option value="{{ s.id }}">{{ s.get_stage_name_display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <!-- TITLE -->
-            <input type="text" name="title"
-                   placeholder="Evidence Title"
-                   class="w-full border p-2 rounded"
-                   required>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select name="category" class="w-full border p-2 rounded" required>
+                        <option value="infrastructure">Infrastructure</option>
+                        <option value="water">Water & Sanitation</option>
+                        <option value="health">Health</option>
+                        <option value="education">Education</option>
+                        <option value="security">Security</option>
+                        <option value="environment">Environment</option>
+                        <option value="corruption">Corruption</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
 
-            <!-- DESCRIPTION -->
-            <textarea name="description"
-                      placeholder="Describe issue or observation..."
-                      class="w-full border p-2 rounded"
-                      required></textarea>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+                    <select name="severity" class="w-full border p-2 rounded" required>
+                        <option value="low">Low</option>
+                        <option value="moderate" selected>Moderate</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
 
-            <!-- LOCATION -->
-            <input type="text" name="location"
-                   placeholder="Location"
-                   class="w-full border p-2 rounded"
-                   required>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Evidence Type</label>
+                    <select name="evidence_type" class="w-full border p-2 rounded" required>
+                        <option value="photo" selected>Photo</option>
+                        <option value="video">Video</option>
+                        <option value="document">Document</option>
+                        <option value="audio">Audio</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
 
-            <!-- IMAGE -->
-            <input type="file" name="image"
-                   class="w-full border p-2 rounded">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Observed Date</label>
+                    <input type="date" name="observed_at" class="w-full border p-2 rounded">
+                </div>
 
-            <!-- SUBMIT -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Evidence Title</label>
+                    <input type="text" name="title" placeholder="Evidence Title" class="w-full border p-2 rounded" required>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" placeholder="Describe issue or observation..." class="w-full border p-2 rounded" rows="4" required></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input type="text" name="location" placeholder="Location" class="w-full border p-2 rounded" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Coordinates</label>
+                    <input type="text" name="coordinates" placeholder="Latitude, Longitude" class="w-full border p-2 rounded">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                    <textarea name="notes" placeholder="Additional notes for officials or reviewers" class="w-full border p-2 rounded" rows="3"></textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
+                    <input type="file" name="image" class="w-full border p-2 rounded">
+                </div>
+            </div>
+
             <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
                 Submit Evidence
             </button>

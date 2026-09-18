@@ -1,0 +1,230 @@
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+
+  <a href="{% url 'ai_intelligence' %}?focus=anomalies" class="text-sm font-bold text-emerald-700 hover:underline">&larr; Back to AI Intelligence</a>
+
+  <!-- Header -->
+  <header class="rounded-3xl bg-slate-950 p-8 text-white shadow-xl">
+    <p class="text-xs font-bold uppercase tracking-[.25em] text-emerald-300">AI Investigation</p>
+    <h1 class="mt-3 text-3xl font-black">{{ project.project_title }}</h1>
+    <p class="mt-2 text-sm text-slate-300">
+      {{ project.project_location|default:'Location pending' }} &middot;
+      {{ project.project_status|default:'Status pending'|title }} &middot;
+      Contractor: {{ project.project_contractor|default:'Unassigned' }}
+    </p>
+    <div class="mt-6 flex flex-wrap gap-8">
+      <div>
+        <p class="text-3xl font-black {% if risk.data.level == 'high' %}text-rose-400{% elif risk.data.level == 'medium' %}text-orange-400{% else %}text-emerald-400{% endif %}">{{ risk.data.score }}/100</p>
+        <p class="text-[10px] font-bold uppercase text-slate-400">Risk score ({{ risk.data.level|upper }})</p>
+      </div>
+      <div>
+        <p class="text-3xl font-black {% if risk.data.anomaly_score >= 80 %}text-rose-400{% elif risk.data.anomaly_score >= 50 %}text-orange-400{% else %}text-emerald-400{% endif %}">{{ risk.data.anomaly_score }}/100</p>
+        <p class="text-[10px] font-bold uppercase text-slate-400">Anomaly score</p>
+      </div>
+      <div>
+        <p class="text-3xl font-black {% if risk.data.financial_health < 60 %}text-rose-400{% elif risk.data.financial_health < 80 %}text-orange-400{% else %}text-emerald-400{% endif %}">{{ risk.data.financial_health }}/100</p>
+        <p class="text-[10px] font-bold uppercase text-slate-400">Financial health</p>
+      </div>
+      <div>
+        <p class="text-3xl font-black {% if risk.data.schedule_health < 60 %}text-rose-400{% elif risk.data.schedule_health < 80 %}text-orange-400{% else %}text-emerald-400{% endif %}">{{ risk.data.schedule_health }}/100</p>
+        <p class="text-[10px] font-bold uppercase text-slate-400">Schedule health</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Why flagged -->
+  <section class="rounded-3xl bg-white p-6 shadow-sm">
+    <h2 class="text-xl font-black">Why was this project flagged?</h2>
+    <div class="mt-5 space-y-3">
+      {% for reason in risk.data.reasons %}
+        <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50 p-4 text-sm text-rose-900">{{ reason }}</div>
+      {% empty %}
+        <p class="text-sm text-slate-500">No major automated risk reason was detected.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Early warnings -->
+  {% if risk.data.early_warnings %}
+  <section class="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+    <h2 class="text-xl font-black text-amber-900">Early warnings</h2>
+    <ul class="mt-4 space-y-2 text-sm text-amber-900">
+      {% for warning in risk.data.early_warnings %}
+        <li class="flex gap-2"><span aria-hidden="true">&#9888;</span><span>{{ warning }}</span></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <!-- Evidence + Recommended action -->
+  <section class="grid gap-6 md:grid-cols-2">
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-black">Evidence used</h2>
+      <ul class="mt-4 space-y-2 text-sm text-slate-600">
+        {% for evidence in risk.data.evidence_chain %}
+          <li>&#10003; {{ evidence }}</li>
+        {% endfor %}
+      </ul>
+      {% if risk.data.duplicate_candidates %}
+        <h3 class="mt-6 text-sm font-black uppercase tracking-wide text-slate-500">Possible duplicate records</h3>
+        <ul class="mt-2 space-y-2 text-sm text-slate-600">
+          {% for dup in risk.data.duplicate_candidates %}
+            <li>
+              <a href="{% url 'ai_investigation' dup.project_id %}" class="font-bold text-emerald-700 hover:underline">{{ dup.project }}</a>
+              &mdash; {{ dup.similarity }}% similarity
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-black">Recommended action</h2>
+      <dl class="mt-4 space-y-4 text-sm leading-6 text-slate-600">
+        <div>
+          <dt class="text-xs font-black uppercase tracking-wide text-slate-400">What happened</dt>
+          <dd class="mt-1">{{ risk.data.investigation.what_happened }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-black uppercase tracking-wide text-slate-400">Why it is unusual</dt>
+          <dd class="mt-1">{{ risk.data.investigation.why_unusual }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-black uppercase tracking-wide text-slate-400">What to check</dt>
+          <dd class="mt-1">{{ risk.data.investigation.what_to_check }}</dd>
+        </div>
+      </dl>
+      <p class="mt-4 rounded-xl bg-amber-50 p-3 text-xs font-bold uppercase text-amber-700">Priority: {{ risk.data.investigation.priority|upper }}</p>
+    </div>
+  </section>
+
+  <!-- AI analysis details -->
+  <section class="rounded-3xl bg-white p-6 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="text-xl font-black">AI analysis details</h2>
+      <form method="post" action="{% url 'ai_generate_analysis' project.id %}">
+        {% csrf_token %}
+        <button type="submit" class="rounded-full bg-emerald-600 px-4 py-2 text-xs font-black uppercase tracking-wide text-white shadow hover:bg-emerald-700">
+          Regenerate AI analysis
+        </button>
+      </form>
+    </div>
+    <div class="mt-5 grid gap-4 md:grid-cols-2">
+      {% for analysis in analyses %}
+        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+          <p class="text-xs font-black uppercase tracking-wide text-emerald-700">{{ analysis.analysis_type|title }}</p>
+          <p class="mt-2 text-sm leading-6 text-slate-600">{{ analysis.summary }}</p>
+
+          {% if analysis.analysis_type == 'completion' and analysis.data.predicted_completion %}
+            <p class="mt-2 text-xs text-slate-500">Predicted completion: {{ analysis.data.predicted_completion|date:"M d, Y" }}</p>
+          {% endif %}
+
+          {% if analysis.analysis_type == 'budget' %}
+            <ul class="mt-2 space-y-1 text-xs text-slate-500">
+              <li>Utilization: {{ analysis.data.utilization }}%</li>
+              <li>Remaining: KES {{ analysis.data.remaining|floatformat:2 }}</li>
+              <li>Budget revisions: {{ analysis.data.budget_revisions }}</li>
+              <li>Expenses after deadline: {{ analysis.data.expenses_after_deadline }}</li>
+            </ul>
+          {% endif %}
+
+          {% if analysis.analysis_type == 'performance' %}
+            <ul class="mt-2 space-y-1 text-xs text-slate-500">
+              <li>Milestones: {{ analysis.data.milestones_completed }}/{{ analysis.data.milestones_total }} complete</li>
+              <li>Stages: {{ analysis.data.stages }}</li>
+              <li>Contractor score: {{ analysis.data.contractor_score|default:'N/A' }}</li>
+            </ul>
+          {% endif %}
+
+          {% if analysis.analysis_type == 'sentiment' %}
+            <ul class="mt-2 space-y-1 text-xs text-slate-500">
+              <li>Open issues: {{ analysis.data.open_issues }}</li>
+              <li>Feedback entries: {{ analysis.data.feedback_count }}</li>
+              <li>Citizen satisfaction: {{ analysis.data.citizen_satisfaction|default:'N/A' }}</li>
+            </ul>
+          {% endif %}
+
+          <p class="mt-3 text-xs font-bold text-slate-400">Confidence {{ analysis.confidence }}%</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Indicators -->
+  <section class="grid gap-6 md:grid-cols-3">
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h3 class="text-sm font-black uppercase tracking-wide text-rose-600">Financial anomaly indicators</h3>
+      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+        {% for indicator in risk.data.anomaly_indicators %}
+          <li>&bull; {{ indicator }}</li>
+        {% empty %}
+          <li class="text-slate-400">None detected.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h3 class="text-sm font-black uppercase tracking-wide text-orange-600">Procurement indicators</h3>
+      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+        {% for indicator in risk.data.procurement_indicators %}
+          <li>&bull; {{ indicator }}</li>
+        {% empty %}
+          <li class="text-slate-400">None detected.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h3 class="text-sm font-black uppercase tracking-wide text-amber-600">Data integrity flags</h3>
+      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+        {% for flag in risk.data.data_integrity_flags %}
+          <li>&bull; {{ flag }}</li>
+        {% empty %}
+          <li class="text-slate-400">None detected.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Recommendations -->
+  <section class="rounded-3xl bg-slate-950 p-6 text-white shadow-sm">
+    <h2 class="text-xl font-black">AI recommendations</h2>
+    <ol class="mt-4 space-y-3 text-sm text-slate-200">
+      {% for recommendation in risk.data.recommendations %}
+        <li class="flex gap-3"><span class="font-black text-emerald-400">{{ forloop.counter }}.</span><span>{{ recommendation }}</span></li>
+      {% endfor %}
+    </ol>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a href="{% url 'ai_chatbot' %}?project_id={{ project.id }}" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-950 hover:bg-emerald-400">Ask the AI agent about this project</a>
+      <a href="{% url 'project_details' project.id %}" class="rounded-full border border-slate-600 px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-200 hover:bg-slate-800">Open project record</a>
+    </div>
+  </section>
+
+</main>
+{% include "footer.html" %}

@@ -91,6 +91,50 @@ class AIInsightsTest(TestCase):
         self.assertEqual(model, 'govtracker-intelligence-v2')
 
 
+class CitizenEvidenceSubmissionTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email='citizen@example.com', username='citizen', password='password123')
+        self.project = Project.objects.create(
+            project_title='Road Repair Project',
+            project_description='Rehabilitate city roads',
+            project_location='Kisumu',
+            project_status='ongoing',
+            project_Budgeting=500000,
+            amount_spent=100000,
+        )
+        self.stage = self.project.stages.create(
+            stage_name='construction',
+            description='Road repair works',
+            progress_percentage=45,
+            order=1,
+        )
+
+    def test_submit_evidence_captures_full_context(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('submit_evidence'), {
+            'project': self.project.id,
+            'stage': self.stage.id,
+            'category': 'infrastructure',
+            'severity': 'high',
+            'evidence_type': 'photo',
+            'title': 'Cracked bridge support',
+            'description': 'A major support beam is visibly cracked and unsafe.',
+            'location': 'Nairobi Road junction',
+            'coordinates': '-1.286389,36.817223',
+            'observed_at': '2026-01-15',
+            'notes': 'This is near the contractor work area and has become a risk to pedestrians.',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        evidence = CitizenEvidence.objects.get(user=self.user, project=self.project)
+        self.assertEqual(evidence.category, 'infrastructure')
+        self.assertEqual(evidence.severity, 'high')
+        self.assertEqual(evidence.evidence_type, 'photo')
+        self.assertEqual(evidence.coordinates, '-1.286389,36.817223')
+        self.assertEqual(evidence.observed_at.strftime('%Y-%m-%d'), '2026-01-15')
+        self.assertIn('risk to pedestrians', evidence.notes)
+
+
 class ProjectOverviewTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(email='overview_user@example.com', username='overviewuser', password='password123')

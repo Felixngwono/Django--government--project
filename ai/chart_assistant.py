@@ -11,7 +11,7 @@ tender information, progress reports, and budgets.
 Be factual, concise, and professional. If you lack data, say so clearly.
 """
 
-def _openai_reply(user_message, history, context, project_context):
+def _openai_reply(user_message, history, context, project_context, persona):
     """Return an API response when configured, otherwise signal a local fallback."""
     api_key = getattr(settings, "OPENAI_API_KEY", "")
     if not api_key:
@@ -31,7 +31,14 @@ def _openai_reply(user_message, history, context, project_context):
                 f"Contractor: {project_context.project_contractor or 'N/A'}; "
                 f"Progress: {getattr(project_context, 'progress', 0) or 0}%."
             )
-        instructions = SYSTEM_PROMPT + (
+        persona_instructions = {
+            'general': 'Act as a clear GovTracker project assistant.',
+            'project_analyst': 'Act as a project monitoring analyst. Focus on delivery status, milestones, risk, and completion forecasts.',
+            'finance': 'Act as a public finance analyst. Focus on budgets, expenditure, anomalies, and evidence that should be reviewed.',
+            'procurement': 'Act as a procurement specialist. Focus on tenders, bids, awards, contractor patterns, and fair-review indicators.',
+            'citizen_support': 'Act as a patient citizen support agent. Explain findings plainly and suggest the correct way to report an issue or request help.',
+        }.get(persona, 'Act as a clear GovTracker project assistant.')
+        instructions = SYSTEM_PROMPT + f"\n{persona_instructions}\n" + (
             "\nUse only the supplied GovTracker platform information below to answer the query accurately and helpfully. "
             "Do not invent project facts, and do not claim to approve or modify database records.\n\n"
             f"GovTracker System Database Context:\n{context['summary']}\n"
@@ -72,7 +79,7 @@ def _openai_reply(user_message, history, context, project_context):
         return None, None, None
 
 
-def chat(session: AIChatSession, user_message: str, project_context: Project = None) -> str:
+def chat(session: AIChatSession, user_message: str, project_context: Project = None, persona='general') -> str:
     # Build message history
     history = list(session.messages.order_by('created_at').values('role', 'content'))
 
@@ -81,9 +88,12 @@ def chat(session: AIChatSession, user_message: str, project_context: Project = N
 
     projects = Project.objects.filter(id=project_context.id) if project_context else Project.objects.all()
     context = build_project_intelligence(projects)
-    reply, model_name, tokens = _openai_reply(user_message, history, context, project_context)
+    reply, model_name, tokens = _openai_reply(user_message, history, context, project_context, persona)
     if reply is None:
         reply, model_name = generate_chatbot_reply(user_message, history, context)
+
+    if persona == 'citizen_support' and reply:
+        reply = f"**Citizen Support Agent**\n\n{reply}"
 
     AIChatMessage.objects.create(
         session=session,

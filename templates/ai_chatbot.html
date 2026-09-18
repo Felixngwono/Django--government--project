@@ -34,9 +34,7 @@
           <iconify-icon icon="solar:chat-round-dots-bold-duotone" class="text-purple-600 text-3xl"></iconify-icon>
           <span>AI Assistant Conversation Hub</span>
         </h2>
-        <p class="text-sm text-gray-500 mt-1">
-          Query project records, budget utilization, risk profiles, or contractor performance using Natural AI.
-        </p>
+        <p class="text-sm text-gray-500 mt-1">Choose an AI specialist, ask a question in plain language, and receive an answer grounded in GovTracker records.</p>
       </div>
 
       <a href="{% url 'ai_chatbot' %}?new=1" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-5 py-2.5 rounded-2xl shadow transition flex items-center gap-2">
@@ -116,6 +114,17 @@
         <input type="hidden" name="session_id" value="{{ session.id|default_if_none:'' }}">
 
         <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2" for="persona">Ask an AI specialist</label>
+          <select id="persona" name="persona" class="w-full border border-gray-200 rounded-2xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+            <option value="general">GovTracker Assistant</option>
+            <option value="project_analyst">Project Monitoring Analyst</option>
+            <option value="finance">Public Finance Analyst</option>
+            <option value="procurement">Procurement Specialist</option>
+            <option value="citizen_support">Citizen Support Agent</option>
+          </select>
+        </div>
+
+        <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2" for="project_id">
             Project Context <span class="font-normal text-gray-400">(Optional scope)</span>
           </label>
@@ -131,7 +140,7 @@
           <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2" for="ai-message">
             Your Question / Prompt
           </label>
-          <textarea id="ai-message" name="message" rows="3" maxlength="3000" required class="w-full border border-gray-200 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none" placeholder="e.g. Which projects are delayed, and what should we review first?"></textarea>
+          <textarea id="ai-message" name="message" rows="3" maxlength="3000" required class="w-full border border-gray-200 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none" placeholder="Ask the selected agent a question, e.g. Which delayed projects need review first?"></textarea>
         </div>
 
         <div class="flex justify-end">

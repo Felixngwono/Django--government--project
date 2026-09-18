@@ -70,7 +70,7 @@
           <a href="{% url 'tender_list' %}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-white/20 flex items-center gap-1.5 backdrop-blur-sm">
             &larr; Tender List
           </a>
-          {% if tender.status != 'closed' and tender.status != 'awarded' %}
+          {% if tender.status == 'published' or tender.status == 'open' %}
           <a href="{% url 'apply_tender' tender.id %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg transition flex items-center gap-2">
             <iconify-icon icon="solar:pen-new-square-bold"></iconify-icon> Submit Bid Application
           </a>

@@ -1,11 +1,33 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-{% load widget_tweaks %}
 
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
+{% load widget_tweaks %}<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
-<main class="main" x-data="{ openForm: false, openContractorForm: false }">
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
 
 <div class="max-w-6xl mx-auto space-y-6 p-4">
 
@@ -20,12 +42,12 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <button @click="openContractorForm = true" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow transition border border-slate-700 flex items-center gap-2">
+          <a href="{% url 'register_contractor' %}" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow transition border border-slate-700 flex items-center gap-2">
             <iconify-icon icon="solar:user-plus-bold"></iconify-icon> + Register Contractor
-          </button>
-          <button @click="openForm = true" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+          </a>
+          <a href="{% url 'submit_stage_report' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
             <iconify-icon icon="solar:document-add-bold"></iconify-icon> + Submit Stage Report
-          </button>
+          </a>
         </div>
       </div>
     </div>
@@ -185,10 +207,10 @@
             </select>
 
             <!-- STAGE -->
-            <select name="stage" class="w-full border p-2 rounded" required>
+            <select name="stage" id="stage-select" class="w-full border p-2 rounded" required>
                 <option value="">Select Stage</option>
                 {% for st in stages %}
-                <option value="{{ st.id }}">{{ st.stage_name }}</option>
+              <option value="{{ st.id }}" data-project-id="{{ st.project_id }}">{{ st.stage_name }}</option>
                 {% endfor %}
             </select>
 
@@ -226,6 +248,19 @@
             </button>
 
         </form>
+
+        <script>
+          const projectSelect = document.querySelector('select[name="project"]');
+          const stageSelect = document.getElementById('stage-select');
+          const stageOptions = Array.from(stageSelect.options);
+          projectSelect.addEventListener('change', () => {
+            const projectId = projectSelect.value;
+            stageOptions.forEach((option) => {
+              option.hidden = option.value && option.dataset.projectId !== projectId;
+            });
+            stageSelect.value = '';
+          });
+        </script>
 
     </div>
 </div>
@@ -319,4 +354,4 @@
 
 </main>
 
-{% endblock content %}
+{% include "footer.html" %}

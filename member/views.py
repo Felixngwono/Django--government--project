@@ -1,19 +1,25 @@
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from urllib.parse import quote
-from xml.dom import ValidationErr
+from django.core.exceptions import ValidationError
 
 from django.db import models
 import pdfkit
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db import models, transaction
-from django.db.models import Avg, Count, FloatField, Q, Sum
+from django.db.models import Avg, Count, FloatField, Max, Q, Sum, Subquery, OuterRef, Value
 from django.db.models.functions import Coalesce, TruncDate, TruncMonth
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils.timesince import timesince
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
@@ -22,9 +28,37 @@ from openpyxl import Workbook
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-from .forms import ( AuditLogForm, BudgetForm, CommentForm, ContactUsForm, FeedbackForm, GovernmentRequestForm, MediaForm, MilestoneForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
-from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ReportIssue,StageReport,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
+from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, FeedbackForm, GovernmentRequestForm, MediaForm, MilestoneForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
+from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,ProjectCategory,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ReportIssue,StageReport,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
 from .workflow import OFFICER_ROLES, audit, notify, role_required
+
+
+def _send_password_reset_sms(phone_number, otp):
+    """Send an OTP through Twilio when SMS settings are configured."""
+    import base64
+    from urllib.parse import urlencode
+    from urllib.request import Request, urlopen
+
+    account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', '')
+    auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
+    from_number = getattr(settings, 'TWILIO_FROM_NUMBER', '')
+    if not all((account_sid, auth_token, from_number)):
+        return False
+
+    endpoint = f'https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json'
+    payload = urlencode({
+        'To': phone_number,
+        'From': from_number,
+        'Body': f'Your GovTracker password reset code is {otp}. It expires in 10 minutes.',
+    }).encode()
+    request = Request(endpoint, data=payload, method='POST')
+    credentials = f'{account_sid}:{auth_token}'.encode()
+    request.add_header('Authorization', f'Basic {base64.b64encode(credentials).decode()}')
+    try:
+        with urlopen(request, timeout=10):
+            return True
+    except Exception:
+        return False
 
 
 def get_participants_for_request(request, limit=None):
@@ -511,14 +545,75 @@ def welcomingpage(request):
     projects = (
         Project.objects
         .filter(is_public=True)
-        .only('project_title', 'project_description', 'images', 'project_status')
+        .only('project_title', 'project_description', 'images', 'cover_image', 'project_status', 'project_location', 'project_Budgeting', 'implementing_agency', 'category')
+        .select_related('category')
+        .annotate(
+            stage_progress=Coalesce(
+                Subquery(
+                    ProgressUpdate.objects.filter(project=OuterRef('pk')).order_by('-date_reported').values('progress_percentage')[:1]
+                ),
+                Value(0),
+            )
+        )
         .order_by('-created_at')[:6]
     )
     testimonials = Testimonial.objects.filter(is_approved=True).only('name', 'content', 'image', 'rating', 'is_featured').order_by('-is_featured', '-created_at')[:5]
+    public_projects = Project.objects.filter(is_public=True)
+    project_metrics = {
+        'total': public_projects.count(),
+        'ongoing': public_projects.filter(project_status='ongoing').count(),
+        'completed': public_projects.filter(project_status='completed').count(),
+        'locations': public_projects.exclude(project_location__isnull=True).exclude(project_location='').values('project_location').distinct().count(),
+        'budget': public_projects.aggregate(total=Sum('project_Budgeting'))['total'] or 0,
+    }
+
+    # Categories with icons for the quick-filter chips
+    categories = ProjectCategory.objects.all()[:8]
+
+    # Featured project spotlight (most recently updated ongoing project with media)
+    featured_project = (
+        Project.objects
+        .filter(is_public=True, project_status__in=['ongoing', 'delayed'])
+        .exclude(project_title__isnull=True)
+        .order_by('-progress_update')
+        .first()
+    )
+
+    # Latest update ticker items
+    recent_updates = (
+        ProgressUpdate.objects
+        .select_related('project')
+        .order_by('-date_reported')[:8]
+    )
+
+    # Approved testimonials count + average rating for social proof
+    rating_stats = Testimonial.objects.filter(is_approved=True).aggregate(
+        count=Count('id'), avg=Avg('rating')
+    )
+
+    # Counties for the map pins
+    county_projects = (
+        Project.objects
+        .filter(is_public=True)
+        .exclude(project_location__isnull=True)
+        .exclude(project_location='')
+        .values('project_location')
+        .annotate(n=Count('id'))
+        .order_by('-n')[:10]
+    )
+
+    latest_update = public_projects.aggregate(latest=Max('progress_update'))['latest']
+
     return render(
         request,
         'welcoming page.html',
-        context={'projects': projects, 'comment': comment, 'testimonials': testimonials},
+        context={
+            'projects': projects, 'comment': comment, 'testimonials': testimonials,
+            'project_metrics': project_metrics, 'categories': categories,
+            'featured_project': featured_project, 'recent_updates': recent_updates,
+            'rating_stats': rating_stats, 'county_projects': county_projects,
+            'latest_update': latest_update,
+        },
     )
 
 def loginpage(request):
@@ -543,6 +638,86 @@ def loginpage(request):
         else:
             messages.warning(request, 'Wrong username or password')
     return render(request, 'login.html', {'next': next_url})
+
+
+def password_reset_request(request):
+    if request.method == 'POST':
+        method = request.POST.get('method')
+        identifier = request.POST.get('identifier', '').strip()
+        user = User.objects.filter(email__iexact=identifier).first() if method == 'email' else User.objects.filter(phone_number=identifier).first()
+
+        if method == 'email' and user:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = request.build_absolute_uri(f'/reset-password/{uid}/{token}/')
+            send_mail(
+                'Reset your GovTracker password',
+                f'Use this link to set a new password: {reset_url}',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+        elif method == 'sms' and user and user.phone_number:
+            import secrets
+            otp = f'{secrets.randbelow(1000000):06d}'
+            if _send_password_reset_sms(user.phone_number, otp):
+                request.session['password_reset_sms'] = {
+                    'user_id': user.pk,
+                    'otp': make_password(otp),
+                    'expires_at': (django_timezone.now() + timedelta(minutes=10)).timestamp(),
+                }
+                return redirect('password_reset_sms')
+
+        messages.info(request, 'If the details match an account, recovery instructions have been sent.')
+        return redirect('password_reset_done')
+
+    return render(request, 'password_reset_request.html')
+
+
+def password_reset_done(request):
+    return render(request, 'password_reset_done.html')
+
+
+def password_reset_confirm(request, uidb64, token):
+    try:
+        user = User.objects.get(pk=force_str(urlsafe_base64_decode(uidb64)))
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if not user or not default_token_generator.check_token(user, token):
+        return render(request, 'password_reset_confirm.html', {'valid_link': False})
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        confirmation = request.POST.get('confirmation')
+        if not password or len(password) < 8 or password != confirmation:
+            return render(request, 'password_reset_confirm.html', {'valid_link': True, 'error': 'Passwords must match and be at least 8 characters.'})
+        user.set_password(password)
+        user.save(update_fields=['password'])
+        messages.success(request, 'Your password has been reset. You can now sign in.')
+        return redirect('login')
+    return render(request, 'password_reset_confirm.html', {'valid_link': True})
+
+
+def password_reset_sms(request):
+    reset_data = request.session.get('password_reset_sms')
+    if not reset_data or reset_data['expires_at'] < django_timezone.now().timestamp():
+        request.session.pop('password_reset_sms', None)
+        return redirect('password_reset')
+    if request.method == 'POST':
+        otp = request.POST.get('otp', '').strip()
+        password = request.POST.get('password')
+        confirmation = request.POST.get('confirmation')
+        if not check_password(otp, reset_data['otp']):
+            return render(request, 'password_reset_sms.html', {'error': 'That verification code is incorrect.'})
+        if not password or len(password) < 8 or password != confirmation:
+            return render(request, 'password_reset_sms.html', {'error': 'Passwords must match and be at least 8 characters.'})
+        user = get_object_or_404(User, pk=reset_data['user_id'])
+        user.set_password(password)
+        user.save(update_fields=['password'])
+        request.session.pop('password_reset_sms', None)
+        messages.success(request, 'Your password has been reset. You can now sign in.')
+        return redirect('login')
+    return render(request, 'password_reset_sms.html')
 
 @login_required(login_url='login')
 def logoutuser(request):
@@ -2091,7 +2266,7 @@ def tender_detail(request, tender_id):
 @login_required(login_url='login')
 def apply_tender(request, pk):
     tender = get_object_or_404(Tender, id=pk)
-    if tender.status == 'closed' or (tender.closing_date and tender.closing_date < django_timezone.localdate()):
+    if tender.status not in {'published', 'open'} or (tender.closing_date and tender.closing_date < django_timezone.localdate()):
         messages.error(request, 'This tender is closed for applications.')
         return redirect('tender_detail', tender_id=tender.id)
 
@@ -2283,8 +2458,79 @@ def delete_tender(request, tender_id):
 
 @login_required(login_url='login')
 def comment_list(request):
-    comments = Comment.objects.all()
-    return  render(request, 'comment_list.html', { 'comments': comments})
+    comments = Comment.objects.select_related('user', 'project').order_by('-created_at')
+    return render(request, 'comment_list.html', {'comments': comments})
+
+
+# ── Community Discussion ──────────────────────────────────────────────
+@login_required(login_url='login')
+def community_discussion(request):
+    topics = DiscussionTopic.objects.select_related('author', 'project').all()
+    tag_filter = request.GET.get('tag', 'all')
+    query = (request.GET.get('q') or '').strip()
+    if tag_filter and tag_filter != 'all':
+        topics = topics.filter(tag=tag_filter)
+    if query:
+        topics = topics.filter(Q(title__icontains=query) | Q(body__icontains=query))
+    topics = topics.annotate(num_replies=Count('replies'))
+
+    if request.method == 'POST':
+        title = (request.POST.get('title') or '').strip()
+        body = (request.POST.get('body') or '').strip()
+        tag = request.POST.get('tag') or 'general'
+        if title and body:
+            DiscussionTopic.objects.create(
+                title=title, body=body, tag=tag,
+                author=request.user,
+                project_id=request.POST.get('project') or None,
+            )
+            messages.success(request, 'Your discussion topic has been posted.')
+        else:
+            messages.error(request, 'A title and message are required to start a discussion.')
+        return redirect('community_discussion')
+
+    return render(request, 'community_discussion.html', {
+        'topics': topics,
+        'projects': Project.objects.filter(is_public=True).order_by('project_title'),
+        'active_tag': tag_filter,
+        'query': query,
+        'topic_tags': DiscussionTopic.TOPIC_TAGS,
+        'reply_total': DiscussionReply.objects.count(),
+    })
+
+
+@login_required(login_url='login')
+def discussion_thread(request, pk):
+    topic = get_object_or_404(DiscussionTopic.objects.select_related('author', 'project'), pk=pk)
+    replies = topic.replies.select_related('author').all()
+
+    if request.method == 'POST':
+        if topic.is_closed:
+            messages.error(request, 'This discussion has been closed to new replies.')
+            return redirect('discussion_thread', pk=pk)
+        content = (request.POST.get('content') or '').strip()
+        if content:
+            DiscussionReply.objects.create(topic=topic, author=request.user, content=content)
+            messages.success(request, 'Reply posted.')
+        return redirect('discussion_thread', pk=pk)
+
+    return render(request, 'discussion_thread.html', {
+        'topic': topic,
+        'replies': replies,
+    })
+
+
+@login_required(login_url='login')
+def discussion_close(request, pk):
+    if not (request.user.is_superuser or request.user.is_staff or request.user.role in OFFICER_ROLES):
+        messages.error(request, 'You do not have permission to close discussions.')
+        return redirect('discussion_thread', pk=pk)
+    topic = get_object_or_404(DiscussionTopic, pk=pk)
+    topic.is_closed = not topic.is_closed
+    topic.save(update_fields=['is_closed'])
+    messages.success(request, f'Discussion {"closed" if topic.is_closed else "reopened"}.')
+    return redirect('discussion_thread', pk=pk)
+# ── end Community Discussion ─────────────────────────────────────────
 
 
 @login_required(login_url='login')
@@ -2886,10 +3132,10 @@ def submit_issue(request):
 
 @login_required(login_url='login')
 def contractor_dashboard(request):
-    con = Project.objects.all()
+    con = Project.objects.all().prefetch_related('stages')
     contractors = Contractor.objects.all().prefetch_related('projects', 'awarded_tenders').order_by('-created_at')
     reports = StageReport.objects.select_related('project', 'stage', 'contractor', 'reported_by').all().order_by('-created_at')
-    stages = ProjectStage.objects.all()
+    stages = ProjectStage.objects.select_related('project').all()
     form = contractorForm(request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
@@ -2904,6 +3150,16 @@ def contractor_dashboard(request):
         'stages': stages,
         'form': form
     })
+
+
+@login_required(login_url='login')
+def register_contractor(request):
+    form = contractorForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Contractor registered successfully.')
+        return redirect('contractor_performance')
+    return render(request, 'contractors/register.html', {'form': form})
 
 
 @login_required(login_url='login')
@@ -2928,7 +3184,7 @@ def submit_stage_report(request):
                 report.stage.save(update_fields=['progress_percentage'])
             audit(request, 'stage_report_submitted', report, project=report.project)
             messages.success(request, "Stage report submitted successfully.")
-        except (ValueError, ValidationErr) as error:
+        except (ValueError, ValidationError) as error:
             messages.error(request, f'Unable to submit report: {error}')
             return redirect('contractor_performance')
         return redirect('contractor_performance')
@@ -2957,20 +3213,20 @@ def citizen_evidence(request):
 
 @login_required
 def submit_evidence(request):
-
     if request.method == "POST":
+        form = CitizenEvidenceForm(request.POST, request.FILES)
+        if form.is_valid():
+            evidence = form.save(commit=False)
+            evidence.user = request.user
+            evidence.save()
+            messages.success(request, 'Citizen evidence submitted successfully for verification.')
+            return redirect('citizen_evidence')
 
-        CitizenEvidence.objects.create(
-            user=request.user,
-            project_id=request.POST.get('project'),
-            stage_id=request.POST.get('stage'),
-            title=request.POST.get('title'),
-            description=request.POST.get('description'),
-            location=request.POST.get('location'),
-            image=request.FILES.get('image')
-        )
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"{field}: {error}")
 
-        return redirect('citizen_evidence')
+    return redirect('citizen_evidence')
 
 
 @login_required(login_url='login')

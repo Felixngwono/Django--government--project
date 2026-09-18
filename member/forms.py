@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Budget, Contractor, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
+from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -9,7 +9,7 @@ class MyUserCreationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['name', 'username', 'email', 'role', 'bio', 'profile', 'is_enduser']
+        fields = ['name', 'username', 'email', 'phone_number', 'role', 'bio', 'profile', 'is_enduser']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
@@ -22,6 +22,10 @@ class MyUserCreationForm(UserCreationForm):
             'email': forms.EmailInput(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
                 'placeholder': 'name@example.com'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
+                'placeholder': '+254 700 000 000'
             }),
             'role': forms.Select(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200'
@@ -244,6 +248,30 @@ class TenderApplicationForm(forms.ModelForm):
             'bid_amount',
             'proposal_document',
             'cover_letter',]
+
+class CitizenEvidenceForm(forms.ModelForm):
+    class Meta:
+        model = CitizenEvidence
+        fields = [
+            'project', 'stage', 'category', 'severity', 'evidence_type',
+            'title', 'description', 'location', 'coordinates', 'observed_at',
+            'notes', 'image'
+        ]
+        widgets = {
+            'project': forms.Select(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
+            'stage': forms.Select(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
+            'category': forms.Select(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
+            'severity': forms.Select(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
+            'evidence_type': forms.Select(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
+            'title': forms.TextInput(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none', 'placeholder': 'Evidence title'}),
+            'description': forms.Textarea(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none', 'rows': 4, 'placeholder': 'Describe the condition or issue in detail'}),
+            'location': forms.TextInput(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none', 'placeholder': 'Site or landmark name'}),
+            'coordinates': forms.TextInput(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none', 'placeholder': 'Latitude, Longitude'}),
+            'observed_at': forms.DateInput(attrs={'type': 'date', 'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
+            'notes': forms.Textarea(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none', 'rows': 3, 'placeholder': 'Additional notes for officials or reviewers'}),
+            'image': forms.FileInput(attrs={'class': 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'}),
+        }
+
 
 class ReportIssueForm(forms.ModelForm):
     class Meta:

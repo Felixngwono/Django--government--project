@@ -123,7 +123,7 @@
                                             View
                                         </a>
 
-                                        {% if tender.status != 'awarded' and tender.status != 'closed' and tender.status != 'cancelled' %}
+                                        {% if tender.status == 'published' or tender.status == 'open' %}
                                         <a href="{% url 'apply_tender' tender.id %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg shadow transition">
                                             Apply / Bid
                                         </a>

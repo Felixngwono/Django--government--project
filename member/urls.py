@@ -1,12 +1,16 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_expense, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, evaluate_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_portal, close_request, comment, contractor_dashboard, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_team, delete_testimonial, edit_division, export_excel, export_pdf, feedback_details, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, regional_analysis, reportedissuesdetails, request_detail, respond_request, delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, delete_audit, comment_list, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_detail, milestone_create, milestone_update, milestone_quick_update, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile, stalled, cancelled, suspended, draft,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial, api_unread_notifications, api_mark_notification_read, api_mark_all_read
+from .views import Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_expense, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, evaluate_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_portal, close_request, comment, contractor_dashboard, register_contractor, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_team, delete_testimonial, edit_division, export_excel, export_pdf, feedback_details, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, regional_analysis, reportedissuesdetails, request_detail, respond_request, delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, delete_audit, comment_list, discussion_thread, discussion_close, community_discussion, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_detail, milestone_create, milestone_update, milestone_quick_update, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile, stalled, cancelled, suspended, draft,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial, api_unread_notifications, api_mark_notification_read, api_mark_all_read, password_reset_request, password_reset_done, password_reset_confirm, password_reset_sms
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
 
     path('login/', loginpage, name="login"),
+    path('password-reset/', password_reset_request, name='password_reset'),
+    path('password-reset/done/', password_reset_done, name='password_reset_done'),
+    path('password-reset/sms/', password_reset_sms, name='password_reset_sms'),
+    path('reset-password/<uidb64>/<token>/', password_reset_confirm, name='password_reset_confirm'),
     path('chart/', charts, name="chart"),
 
     path('profile/<int:pk>/', updateprofile, name="profile"),
@@ -126,6 +130,10 @@ urlpatterns = [
     path('add-comment/<str:pk>/', add_comment, name='add_comment'),
     path('comments/', comment_list, name='comment_list'),
 
+    path('community-discussion/', community_discussion, name='community_discussion'),
+    path('community-discussion/<int:pk>/', discussion_thread, name='discussion_thread'),
+    path('community-discussion/<int:pk>/close/', discussion_close, name='discussion_close'),
+
     path('AuditLog/', AuditLogs, name='AuditLog'),
     path('add_audit/', add_audit, name='add_audit'),
     path('audit_details/<str:pk>/', audit_details, name='audit_details'),
@@ -151,6 +159,7 @@ urlpatterns = [
     path('submit/', submit_issue, name='submit_issue'),
 
     path('contractor_performance/', contractor_dashboard, name='contractor_performance'),
+    path('contractor/register/', register_contractor, name='register_contractor'),
     path('submit-stage-report/', submit_stage_report, name='submit_stage_report'),
 
     path('citizen_evidence/', citizen_evidence, name='citizen_evidence'),

@@ -3,6 +3,7 @@ from django.conf import settings
 from member.ai_services import build_report_text
 from member.models import Project, AIReportGeneration
 from ai.services import get_openai_client
+from ai.project_analysis import generate_project_analyses
 
 def generate_project_summary(project: Project, requested_by) -> AIReportGeneration:
     milestones = project.milestones.all()
@@ -20,11 +21,11 @@ def generate_project_summary(project: Project, requested_by) -> AIReportGenerati
     output = None
     model_used = "govtracker-rules-v1"
     client = get_openai_client()
+    prompt = f"Generate an executive summary report for this government project context:\n{context}"
 
     if client:
         try:
             model = getattr(settings, "OPENAI_MODEL", "gpt-4o-mini")
-            prompt = f"Generate an executive summary report for this government project context:\n{context}"
             response = client.chat.completions.create(
                 model=model,
                 messages=[
@@ -42,12 +43,15 @@ def generate_project_summary(project: Project, requested_by) -> AIReportGenerati
     if not output:
         output = build_report_text(context)
 
-    return AIReportGeneration.objects.create(
+    report = AIReportGeneration.objects.create(
         project=project,
         requested_by=requested_by,
         report_type='executive_summary',
+        prompt=prompt,
         output=output,
         status='generated',
         model=model_used,
     )
+    generate_project_analyses(project, requested_by)
+    return report
 

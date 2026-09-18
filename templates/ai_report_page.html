@@ -56,6 +56,13 @@
               <span>{{ project.project_title|truncatechars:28 }}</span>
             </button>
           </form>
+          <form method="post" action="{% url 'ai_generate_analysis' project.id %}">
+            {% csrf_token %}
+            <button type="submit" class="rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-100 px-3.5 py-2 text-xs font-bold text-emerald-700 transition flex items-center gap-1.5 shadow-xs">
+              <iconify-icon icon="solar:chart-2-bold" class="text-sm"></iconify-icon>
+              <span>Analyze {{ project.project_title|truncatechars:20 }}</span>
+            </button>
+          </form>
         {% empty %}
           <p class="text-xs text-gray-400 italic">No project records available to generate reports.</p>
         {% endfor %}
@@ -74,6 +81,29 @@
               <span>{{ report.title }}</span>
             </h4>
             <p class="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{{ report.text }}</p>
+            <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+              <span class="rounded-lg bg-gray-100 px-2 py-1">{{ report.model }}</span>
+              <span class="rounded-lg bg-gray-100 px-2 py-1">{{ report.created_at|date:"d M Y H:i" }}</span>
+            </div>
+            {% if report.analyses %}
+              <div class="grid gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-5">
+                {% for analysis in report.analyses %}
+                  <div {% if forloop.parentloop.first %}id="ai-{{ analysis.analysis_type }}"{% endif %} class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
+                    <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-700">{{ analysis.get_analysis_type_display }}</p>
+                    {% if analysis.analysis_type == 'risk' %}<p class="mt-1 text-lg font-black {% if analysis.data.score >= 70 %}text-rose-700{% elif analysis.data.score >= 40 %}text-amber-700{% else %}text-emerald-700{% endif %}">{{ analysis.data.score }}/100 <span class="text-[10px] uppercase">{{ analysis.data.level }}</span></p><p class="text-[10px] font-bold uppercase text-slate-600">Anomaly {{ analysis.data.anomaly_score }}/100</p>{% endif %}
+                    {% if analysis.analysis_type == 'budget' and analysis.data.anomaly_score >= 40 %}<p class="mt-1 text-[10px] font-black uppercase text-rose-700">Anomaly {{ analysis.data.anomaly_score }}% · {{ analysis.data.anomaly_level }}</p>{% endif %}
+                    {% if analysis.analysis_type == 'completion' and analysis.data.predicted_completion %}<p class="mt-1 text-[10px] font-bold uppercase text-indigo-700">Forecast {{ analysis.data.predicted_completion }}</p>{% endif %}
+                    {% if analysis.analysis_type == 'performance' and analysis.data.contractor_score %}<p class="mt-1 text-[10px] font-bold uppercase text-blue-700">Contractor {{ analysis.data.contractor_score }}/100</p>{% endif %}
+                    {% if analysis.analysis_type == 'sentiment' and analysis.data.citizen_satisfaction %}<p class="mt-1 text-[10px] font-bold uppercase text-amber-700">Citizen signal {{ analysis.data.citizen_satisfaction }}/100</p>{% endif %}
+                    <p class="mt-2 text-xs leading-5 text-gray-700">{{ analysis.summary|truncatechars:130 }}</p>
+                    {% if analysis.analysis_type == 'risk' %}<p class="mt-2 text-[10px] leading-4 text-slate-600">Action: {{ analysis.data.recommendations.0 }}</p>{% endif %}
+                    {% if analysis.analysis_type == 'risk' and analysis.data.early_warnings %}<p class="mt-2 text-[10px] leading-4 text-rose-700">Warning: {{ analysis.data.early_warnings.0 }}</p>{% endif %}
+                    {% if analysis.analysis_type == 'risk' and analysis.data.investigation %}<div class="mt-2 border-t border-emerald-100 pt-2 text-[10px] leading-4 text-slate-600"><p><strong>Why:</strong> {{ analysis.data.investigation.why_unusual }}</p><p><strong>Check:</strong> {{ analysis.data.investigation.what_to_check }}</p>{% if forloop.parentloop.first %}<span id="ai-procurement"></span><span id="ai-data-quality"></span>{% endif %}</div>{% endif %}
+                    <p class="mt-2 text-[10px] font-bold text-gray-500">Confidence {{ analysis.confidence|floatformat:0 }}%</p>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
             {% if report.assessment %}
               <div class="text-[11px] font-bold text-purple-700 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-100 w-fit">
                 Urgency: <span class="uppercase text-rose-700">{{ report.assessment.urgency }}</span> · Staff Review: {{ report.assessment.review_status }}
