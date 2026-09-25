@@ -72,7 +72,7 @@ def ai_intelligence(request):
     )
     ranked_items = []
     for project in ranked:
-        data = next(data for kind, _summary, data, _confidence in _analysis_payloads(project) if kind == "risk")
+        kind, summary_text, data, _confidence = next(item for item in _analysis_payloads(project) if item[0] == "risk")
         level = data["level"]
         if county and (project.district.name if project.district else "").lower() != county.lower():
             continue
@@ -82,7 +82,7 @@ def ai_intelligence(request):
             continue
         if risk_level and level != risk_level.lower():
             continue
-        ranked_items.append({"project": project, "data": data, "level": level})
+        ranked_items.append({"project": project, "data": data, "level": level, "summary": summary_text})
 
     counties = sorted({project.district.name for project in projects if project.district})
     agencies = sorted({project.implementing_agency for project in projects if project.implementing_agency})

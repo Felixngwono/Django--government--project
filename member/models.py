@@ -273,30 +273,40 @@ class ProjectTag(models.Model):
 
 class ProjectStage(models.Model):
     STAGES = [
-        ('planning',      'Planning'),
-        ('procurement',   'Procurement'),
-        ('construction',  'Construction'),
-        ('completion',    'Completion'),
-        ('monitoring',    'Monitoring & Evaluation'),
-        ('handover',      'Handover'),
-        ('others',        'Others'),
+        ('planning',         'Planning & Design'),
+        ('procurement',      'Procurement & Tendering'),
+        ('site_clearance',   'Site Clearance & Land Preparation'),
+        ('foundation',       'Foundation & Substructure'),
+        ('superstructure',   'Superstructure / Main Works'),
+        ('finishing',        'Finishing & Fittings'),
+        ('inspection',       'Inspection & Quality Assurance'),
+        ('construction',     'Construction (General)'),
+        ('completion',       'Completion'),
+        ('monitoring',       'Monitoring & Evaluation'),
+        ('handover',         'Handover'),
+        ('others',           'Others'),
     ]
-
+    STATUS_CHOICES = [
+        ('not_started', 'Not Started'),
+        ('in_progress', 'In Progress'),
+        ('completed',   'Completed'),
+        ('delayed',     'Delayed'),
+        ('on_hold',     'On Hold'),
+    ]
     project             = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='stages')
     stage_name          = models.CharField(max_length=30, choices=STAGES)
     description         = models.TextField(null=True, blank=True)
     start_date          = models.DateField(null=True, blank=True)
     end_date            = models.DateField(null=True, blank=True)
     progress_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    status              = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started', db_index=True)
+    completed_on        = models.DateField(null=True, blank=True, help_text="Auto-set when the stage is marked completed.")
     is_current          = models.BooleanField(default=False)
     order               = models.PositiveIntegerField(default=0)
-
     class Meta:
         ordering = ['order']
-
     def __str__(self):
         return f"{self.project.project_title} — {self.get_stage_name_display()}"
-
     def clean(self):
         errors = {}
         if self.start_date and self.end_date and self.end_date < self.start_date:
@@ -305,6 +315,53 @@ class ProjectStage(models.Model):
             errors['progress_percentage'] = 'Progress must be between 0 and 100.'
         if errors:
             raise ValidationError(errors)
+    @property
+    def is_completed(self):
+        return self.status == 'completed' or self.progress_percentage >= 100
+    @property
+    def is_stage_overdue(self):
+        from datetime import date
+        if self.end_date and not self.is_completed:
+            return self.end_date < date.today()
+        return False
+    def sync_status(self):
+        """Derive stage status from progress/dates. Returns True if anything changed."""
+        changed = False
+        progress = int(self.progress_percentage or 0)
+        if progress >= 100:
+            if self.status != 'completed':
+                self.status = 'completed'
+                changed = True
+            if not self.completed_on:
+                self.completed_on = timezone.localdate()
+                changed = True
+        elif self.status == 'completed':
+            # Progress fell back below 100 — un-complete.
+            self.status = 'in_progress'
+            self.completed_on = None
+            changed = True
+        elif progress > 0 and self.status == 'not_started':
+            self.status = 'in_progress'
+            changed = True
+        return changed
+    def sync_progress_from_milestones(self):
+        """Recompute this stage's progress + status from its milestones.
+
+        The stage tracks the average of its milestones, so completing each
+        deliverable (land preparation, foundation, etc.) moves the stage
+        forward automatically. Returns True if any field changed.
+        """
+        from django.db.models import Avg
+        avg = self.milestones.aggregate(v=Avg('progress_percentage'))['v']
+        changed = False
+        if avg is not None:
+            new_progress = round(avg)
+            if self.progress_percentage != new_progress:
+                self.progress_percentage = new_progress
+                changed = True
+        if self.sync_status():
+            changed = True
+        return changed
 
 
 class ProgressUpdate(models.Model):
@@ -376,9 +433,24 @@ class Milestone(models.Model):
         if errors:
             raise ValidationError(errors)
 
+    def sync_completion(self):
+        """Keep progress, status and completion date consistent."""
+        if self.status == 'completed':
+            self.progress_percentage = 100
+            if not self.completion_date:
+                self.completion_date = timezone.localdate()
+        elif self.progress_percentage >= 100:
+            self.status = 'completed'
+            if not self.completion_date:
+                self.completion_date = timezone.localdate()
+        elif self.completion_date:
+            self.completion_date = None
 
-# ─────────────────────────────────────────────
-# BUDGET & FINANCE
+    def save(self, *args, **kwargs):
+        self.sync_completion()
+        super().save(*args, **kwargs)
+    # ─────────────────────────────────────────────
+    # BUDGET & FINANCE
 # ─────────────────────────────────────────────
 
 class Budget(models.Model):
@@ -659,6 +731,17 @@ class StageReport(models.Model):
             errors['stage'] = 'Stage must belong to this project.'
         if errors:
             raise ValidationError(errors)
+
+
+class StageReportImage(models.Model):
+    """Additional progress photos attached to a stage report (multi-image evidence)."""
+    report = models.ForeignKey(StageReport, on_delete=models.CASCADE, related_name='images')
+    image  = models.ImageField(upload_to='stage_reports/gallery/')
+    caption = models.CharField(max_length=255, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image for report #{self.report_id}"
 
 
 # ─────────────────────────────────────────────
@@ -1029,6 +1112,7 @@ class Notification(models.Model):
         ('update',        'Project Update'),
         ('tender',        'Tender Alert'),
         ('issue',         'Issue Reported'),
+        ('deadline',      'Project Deadline Alert'),
         ('ai',            'AI Recommendation'),
         ('system',        'System Alert'),
     ]

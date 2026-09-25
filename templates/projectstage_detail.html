@@ -112,9 +112,20 @@
 
             <div class="mt-4">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Milestones:</h3>
-                <ul class="list-disc list-inside text-gray-600">
+                <ul class="space-y-2 text-gray-600">
                     {% for milestone in stage.milestones.all %}
-                        <li>{{ milestone.title }} - Due: {{ milestone.project.end_date|date:"M d, Y" }}</li>
+                        <li class="flex flex-wrap items-center gap-2">
+                            <span class="w-2 h-2 rounded-full shrink-0 {% if milestone.status == 'completed' %}bg-emerald-500{% elif milestone.status == 'in_progress' %}bg-blue-500{% elif milestone.status == 'missed' %}bg-rose-500{% else %}bg-amber-400{% endif %}"></span>
+                            <span class="font-semibold text-gray-700">{{ milestone.title }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {% if milestone.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif milestone.status == 'in_progress' %}bg-blue-100 text-blue-700{% elif milestone.status == 'missed' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                                {{ milestone.get_status_display }}
+                            </span>
+                            <span class="text-xs text-gray-500">
+                                {{ milestone.progress_percentage }}%
+                                {% if milestone.due_date %}&middot; Due: {{ milestone.due_date|date:"M d, Y" }}{% endif %}
+                                {% if milestone.completion_date %}&middot; Done: {{ milestone.completion_date|date:"M d, Y" }}{% endif %}
+                            </span>
+                        </li>
                     {% empty %}
                         <li>No milestones defined.</li>
                     {% endfor %}

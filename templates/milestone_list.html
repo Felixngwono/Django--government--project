@@ -270,7 +270,7 @@
                 </a>
                 {% if milestone.stage %}
                 <span class="inline-block mt-1 bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md font-semibold text-[10px]">
-                  Stage: {{ milestone.stage.name }}
+                  Stage: {{ milestone.stage.get_stage_name_display }}
                 </span>
                 {% else %}
                 <span class="inline-block mt-1 text-slate-400 text-[10px] italic">General Milestone</span>
@@ -386,7 +386,7 @@
                   </a>
                   <p class="text-xs text-slate-500">
                     Project: <a href="{% url 'project_details' milestone.project.id %}" class="text-blue-600 font-bold hover:underline">{{ milestone.project.project_title }}</a>
-                    {% if milestone.stage %} &bull; Stage: <span class="font-semibold text-slate-700">{{ milestone.stage.name }}</span>{% endif %}
+                    {% if milestone.stage %} &bull; Stage: <span class="font-semibold text-slate-700">{{ milestone.stage.get_stage_name_display }}</span>{% endif %}
                   </p>
                 </div>
                 <div class="flex items-center gap-2">

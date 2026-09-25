@@ -105,10 +105,39 @@ class FeedbackForm(ModelForm):
         fields= '__all__'
 
 
+class MultipleImageInput(forms.ClearableFileInput):
+    """File input that lets an officer select several evidence photos at once."""
+    allow_multiple_selected = True
+
+
+class MultipleImageField(forms.ImageField):
+    """Validate every image selected by a multiple file input."""
+    def clean(self, data, initial=None):
+        if not data:
+            return []
+        files = data if isinstance(data, (list, tuple)) else [data]
+        return [super(MultipleImageField, self).clean(file, initial) for file in files]
+
+
 class ProjectCreationForm(ModelForm):
+    evidence_images = MultipleImageField(
+        required=False,
+        widget=MultipleImageInput(attrs={
+            'accept': 'image/*',
+            'multiple': True,
+        }),
+        help_text='Add photos for project reference and evidence (up to 12 at a time).',
+    )
+
     class Meta:
         model= Project
         fields='__all__'
+
+    def clean_evidence_images(self):
+        images = self.cleaned_data.get('evidence_images', [])
+        if len(images) > 12:
+            raise forms.ValidationError('Please upload no more than 12 images at a time.')
+        return images
 
 
 class ProjectDivisionForm(ModelForm):
@@ -151,6 +180,14 @@ class PdfForm(ModelForm):
 
 
 
+
+
+from django import forms
+
+INLINE_INPUT_CLASSES = (
+    'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 '
+    'shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+)
 
 
 class MilestoneForm(forms.ModelForm):
@@ -225,6 +262,21 @@ class ProgressReportForm(forms.ModelForm):
     class Meta:
         model = ProgressReport
         fields = ['report_title', 'description', 'report_file']
+        widgets = {
+            'report_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Foundation works progress report — September 2026'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'placeholder': 'Summarise completed work, current progress, issues, next steps, and supporting evidence.'}),
+            'report_file': forms.ClearableFileInput(attrs={'class': 'sr-only', 'accept': '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png'}),
+        }
+
+    def clean_report_file(self):
+        report_file = self.cleaned_data['report_file']
+        allowed_extensions = {'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png'}
+        extension = '.' + report_file.name.rsplit('.', 1)[-1].lower() if '.' in report_file.name else ''
+        if extension not in allowed_extensions:
+            raise forms.ValidationError('Upload a PDF, Office document, spreadsheet, JPG, or PNG file.')
+        if report_file.size > 20 * 1024 * 1024:
+            raise forms.ValidationError('The report file must be 20 MB or smaller.')
+        return report_file
 
 class TenderForm(forms.ModelForm):
     class Meta:
@@ -287,6 +339,77 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = '__all__'
 
+
+class MilestoneInlineForm(forms.ModelForm):
+    """Compact milestone form for inline use on the project details page."""
+
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only allow stages that belong to the current project.
+        if project is not None:
+            self.fields['stage'].queryset = project.stages.all()
+
+    class Meta:
+        model = Milestone
+        fields = ['stage', 'title', 'description', 'due_date', 'progress_percentage', 'status']
+        widgets = {
+            'stage': forms.Select(attrs={'class': INLINE_INPUT_CLASSES}),
+            'title': forms.TextInput(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'e.g. Environmental Impact Assessment Completed',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': INLINE_INPUT_CLASSES, 'rows': 3,
+                'placeholder': 'Objective and key deliverables...',
+            }),
+            'due_date': forms.DateInput(attrs={'class': INLINE_INPUT_CLASSES, 'type': 'date'}),
+            'progress_percentage': forms.NumberInput(attrs={
+                'class': INLINE_INPUT_CLASSES, 'min': 0, 'max': 100, 'placeholder': '0 - 100',
+            }),
+            'status': forms.Select(attrs={'class': INLINE_INPUT_CLASSES}),
+        }
+
+
+class ExpenseInlineForm(forms.ModelForm):
+    """Compact expense form for inline use on the project details page."""
+    class Meta:
+        model = ProjectExpense
+        fields = ['title', 'category', 'amount', 'description', 'receipt']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'Expense description/title',
+            }),
+            'category': forms.Select(attrs={'class': INLINE_INPUT_CLASSES}),
+            'amount': forms.NumberInput(attrs={
+                'class': INLINE_INPUT_CLASSES, 'step': '0.01', 'min': '0', 'placeholder': '0.00',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': INLINE_INPUT_CLASSES, 'rows': 2,
+                'placeholder': 'Details of this payment or expense item (optional)',
+            }),
+            'receipt': forms.ClearableFileInput(attrs={'class': 'w-full text-xs text-slate-500'}),
+        }
+
+
+class IssueInlineForm(forms.ModelForm):
+    """Compact issue form for inline use on the project details page."""
+    class Meta:
+        model = ReportIssue
+        fields = ['title', 'severity', 'issue_description', 'evidence']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'Short summary of the issue',
+            }),
+            'severity': forms.Select(attrs={'class': INLINE_INPUT_CLASSES}),
+            'issue_description': forms.Textarea(attrs={
+                'class': INLINE_INPUT_CLASSES, 'rows': 3,
+                'placeholder': 'Describe the issue in detail...',
+            }),
+            'evidence': forms.ClearableFileInput(attrs={'class': 'w-full text-xs text-slate-500'}),
+        }
+
 class AuditLogForm(forms.ModelForm):
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
@@ -335,7 +458,7 @@ class AuditLogForm(forms.ModelForm):
 class ProjectStageForm(forms.ModelForm):
     class Meta:
         model = ProjectStage
-        fields = ['project', 'stage_name', 'description', 'start_date', 'end_date', 'progress_percentage', 'is_current', 'order']
+        fields = ['project', 'stage_name', 'description', 'start_date', 'end_date', 'progress_percentage', 'status', 'is_current', 'order']
         widgets = {
             'project': forms.Select(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs'}),
             'stage_name': forms.Select(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs'}),
@@ -343,6 +466,7 @@ class ProjectStageForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs', 'type': 'date'}),
             'progress_percentage': forms.NumberInput(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs', 'min': 0, 'max': 100}),
+            'status': forms.Select(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs'}),
             'order': forms.NumberInput(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs', 'min': 0}),
             'is_current': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500'}),
         }

@@ -55,8 +55,17 @@
         <div class="rounded-2xl bg-purple-50 p-5"><p class="text-3xl font-black text-purple-700">{{ summary.counts.early_warnings }}</p><p class="mt-1 text-xs font-bold uppercase text-purple-600">Early warnings</p></div>
       </section>
 
+      {% if focus == 'overview' %}
       <section class="rounded-3xl bg-white p-6 shadow-sm">
-        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ projects_count }} projects analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">{% if focus == 'overview' %}Recent AI Findings{% elif focus == 'anomalies' %}Anomaly Detection{% elif focus == 'risk' %}Project Risk Ranking{% elif focus == 'finance' %}Financial Intelligence{% elif focus == 'project' %}Project Intelligence{% elif focus == 'contractor' %}Contractor Intelligence{% elif focus == 'procurement' %}Procurement Intelligence{% elif focus == 'data' %}Data Quality{% else %}AI Alerts{% endif %}</h2></div><a href="{% url 'ai_report_page' %}" class="rounded-xl bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-600 hover:text-white">Detailed reports</a></div>
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ projects_count }} projects analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">Recent AI Findings</h2></div><a href="{% url 'ai_report_page' %}" class="rounded-xl bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-600 hover:text-white">Detailed reports</a></div>
+        <div class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-6">
+          <div class="rounded-2xl bg-emerald-50 p-4"><p class="text-2xl font-black text-emerald-700">{{ detection_counts.financial }}</p><p class="text-[10px] font-bold uppercase text-emerald-600">Financial</p></div>
+          <div class="rounded-2xl bg-sky-50 p-4"><p class="text-2xl font-black text-sky-700">{{ detection_counts.schedule }}</p><p class="text-[10px] font-bold uppercase text-sky-600">Schedule</p></div>
+          <div class="rounded-2xl bg-amber-50 p-4"><p class="text-2xl font-black text-amber-700">{{ detection_counts.progress }}</p><p class="text-[10px] font-bold uppercase text-amber-600">Progress</p></div>
+          <div class="rounded-2xl bg-violet-50 p-4"><p class="text-2xl font-black text-violet-700">{{ detection_counts.contractor }}</p><p class="text-[10px] font-bold uppercase text-violet-600">Contractor</p></div>
+          <div class="rounded-2xl bg-indigo-50 p-4"><p class="text-2xl font-black text-indigo-700">{{ detection_counts.procurement }}</p><p class="text-[10px] font-bold uppercase text-indigo-600">Procurement</p></div>
+          <div class="rounded-2xl bg-slate-50 p-4"><p class="text-2xl font-black text-slate-700">{{ detection_counts.data }}</p><p class="text-[10px] font-bold uppercase text-slate-600">Data</p></div>
+        </div>
         <div class="mt-5 space-y-3">
           {% for item in findings %}
           <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:shadow-sm">
@@ -67,6 +76,144 @@
           {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No findings currently match this intelligence view.</p>{% endfor %}
         </div>
       </section>
+
+      {% elif focus == 'anomalies' %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ projects_count }} projects analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">Anomaly Detection</h2></div></div>
+        <div class="mt-5 space-y-3">
+          {% for item in findings %}
+            {% if item.score >= 60 %}
+            <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-rose-200 hover:shadow-sm">
+              <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start"><div><span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black uppercase text-rose-700">Anomaly score {{ item.score }}/100</span><h3 class="mt-2 text-base font-black text-slate-900">{{ item.project.project_title }}</h3><p class="mt-1 text-xs text-slate-500">{{ item.project.project_location|default:'Location pending' }} · Confidence {{ item.confidence }}%</p></div><a href="{% url 'ai_investigation' item.project.id %}" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700">Investigate</a></div>
+              <p class="mt-4 max-w-3xl text-sm leading-6 text-slate-600">{{ item.summary }}</p>
+            </article>
+            {% endif %}
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No anomalies detected.</p>{% endfor %}
+        </div>
+      </section>
+
+      {% elif focus == 'risk' %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ ranked_items|length }} projects shown</p><h2 class="mt-1 text-2xl font-black text-slate-900">Project Risk Ranking</h2></div></div>
+        <form method="GET" class="mt-4 grid gap-2 sm:grid-cols-5">
+          <input type="hidden" name="focus" value="risk">
+          <select name="county" class="rounded-xl border-slate-200 bg-slate-50 px-3 py-2 text-sm"><option value="">All counties</option>{% for c in counties %}<option value="{{ c }}" {% if filters.county == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+          <select name="agency" class="rounded-xl border-slate-200 bg-slate-50 px-3 py-2 text-sm"><option value="">All agencies</option>{% for a in agencies %}<option value="{{ a }}" {% if filters.agency == a %}selected{% endif %}>{{ a }}</option>{% endfor %}</select>
+          <select name="status" class="rounded-xl border-slate-200 bg-slate-50 px-3 py-2 text-sm"><option value="">All statuses</option>{% for value, label in status_choices %}<option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          <select name="level" class="rounded-xl border-slate-200 bg-slate-50 px-3 py-2 text-sm"><option value="">All risk levels</option><option value="high" {% if filters.level == 'high' %}selected{% endif %}>High</option><option value="medium" {% if filters.level == 'medium' %}selected{% endif %}>Medium</option><option value="low" {% if filters.level == 'low' %}selected{% endif %}>Low</option></select>
+          <button type="submit" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white">Filter</button>
+        </form>
+        <div class="mt-5 space-y-3">
+          {% for entry in ranked_items %}
+          <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:shadow-sm">
+            <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start"><div><span class="rounded-full {% if entry.level == 'high' %}bg-rose-100 text-rose-700{% elif entry.level == 'medium' %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %} px-2 py-0.5 text-[10px] font-black uppercase">{{ entry.level }} risk · Score {{ entry.data.score }}/100</span><h3 class="mt-2 text-base font-black text-slate-900">{{ entry.project.project_title }}</h3><p class="mt-1 text-xs text-slate-500">{{ entry.project.get_project_status_display|default:entry.project.project_status }} · {{ entry.project.project_location|default:'Location pending' }}</p></div><a href="{% url 'ai_investigation' entry.project.id %}" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700">Investigate</a></div>
+            <p class="mt-4 max-w-3xl text-sm leading-6 text-slate-600">{{ entry.summary }}</p>
+          </article>
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No projects match these filters.</p>{% endfor %}
+        </div>
+      </section>
+
+      {% elif focus == 'finance' %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ finance_stats.analyzed }} projects analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">Financial Intelligence</h2></div></div>
+        <div class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div class="rounded-2xl bg-rose-50 p-5"><p class="text-3xl font-black text-rose-700">{{ finance_stats.anomalies }}</p><p class="mt-1 text-xs font-bold uppercase text-rose-600">Financial anomalies</p></div>
+          <div class="rounded-2xl bg-orange-50 p-5"><p class="text-3xl font-black text-orange-700">{{ finance_stats.overruns }}</p><p class="mt-1 text-xs font-bold uppercase text-orange-600">Budget overruns</p></div>
+          <div class="rounded-2xl bg-amber-50 p-5"><p class="text-3xl font-black text-amber-700">{{ finance_stats.unusual_payments }}</p><p class="mt-1 text-xs font-bold uppercase text-amber-600">Unusual payments</p></div>
+          <div class="rounded-2xl bg-slate-50 p-5"><p class="text-3xl font-black text-slate-700">{{ finance_stats.budget_variations }}</p><p class="mt-1 text-xs font-bold uppercase text-slate-600">Budget revisions</p></div>
+        </div>
+        <div class="mt-5 space-y-3">
+          {% for item in finance_findings %}
+          <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:shadow-sm">
+            <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start"><div><span class="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-black uppercase text-indigo-700">Score {{ item.score }}/100</span><h3 class="mt-2 text-base font-black text-slate-900">{{ item.project.project_title }}</h3></div><a href="{% url 'ai_investigation' item.project.id %}" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700">Investigate</a></div>
+            <p class="mt-4 max-w-3xl text-sm leading-6 text-slate-600">{{ item.summary }}</p>
+          </article>
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No financial anomalies found.</p>{% endfor %}
+        </div>
+      </section>
+
+      {% elif focus == 'project' %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ projects_count }} projects analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">Project Intelligence</h2></div></div>
+        <div class="mt-5 space-y-3">
+          {% for item in ranked_items %}
+          <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:shadow-sm">
+            <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start"><div><span class="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-black uppercase text-sky-700">{{ item.level|capfirst }} risk</span><h3 class="mt-2 text-base font-black text-slate-900">{{ item.project.project_title }}</h3><p class="mt-1 text-xs text-slate-500">{{ item.project.implementing_agency|default:'Agency pending' }} · {{ item.project.project_location|default:'Location pending' }}</p></div><a href="{% url 'ai_investigation' item.project.id %}" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700">Investigate</a></div>
+            <p class="mt-4 max-w-3xl text-sm leading-6 text-slate-600">{{ item.summary }}</p>
+          </article>
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No projects analyzed yet.</p>{% endfor %}
+        </div>
+      </section>
+
+      {% elif focus == 'contractor' %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ contractor_items|length }} contractors analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">Contractor Intelligence</h2></div></div>
+        <div class="mt-5 space-y-3">
+          {% for c in contractor_items %}
+          <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:shadow-sm">
+            <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start"><div><span class="rounded-full {% if c.risk == 'HIGH' %}bg-rose-100 text-rose-700{% elif c.risk == 'MEDIUM' %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %} px-2 py-0.5 text-[10px] font-black uppercase">{{ c.risk }} risk</span><h3 class="mt-2 text-base font-black text-slate-900">{{ c.name }}</h3><p class="mt-1 text-xs text-slate-500">{{ c.projects }} projects · {{ c.completed }} completed · {{ c.delayed }} delayed · {{ c.abandoned }} cancelled{% if c.performance %} · Performance {{ c.performance }}/100{% endif %}</p></div></div>
+          </article>
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No contractor data available.</p>{% endfor %}
+        </div>
+      </section>
+
+      {% elif focus == 'procurement' %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ procurement_stats.analyzed }} tenders analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">Procurement Intelligence</h2></div></div>
+        <div class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div class="rounded-2xl bg-rose-50 p-5"><p class="text-3xl font-black text-rose-700">{{ procurement_stats.anomalies }}</p><p class="mt-1 text-xs font-bold uppercase text-rose-600">Anomalies</p></div>
+          <div class="rounded-2xl bg-amber-50 p-5"><p class="text-3xl font-black text-amber-700">{{ procurement_stats.repeated_awards }}</p><p class="mt-1 text-xs font-bold uppercase text-amber-600">Repeat awards (3+)</p></div>
+          <div class="rounded-2xl bg-orange-50 p-5"><p class="text-3xl font-black text-orange-700">{{ procurement_stats.price_anomalies }}</p><p class="mt-1 text-xs font-bold uppercase text-orange-600">Price variances</p></div>
+          <div class="rounded-2xl bg-slate-50 p-5"><p class="text-3xl font-black text-slate-700">{{ procurement_stats.short_window }}</p><p class="mt-1 text-xs font-bold uppercase text-slate-600">Short windows</p></div>
+        </div>
+        <div class="mt-5 space-y-3">
+          {% for anomaly in tender_anomalies %}
+          <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:shadow-sm">
+            <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start"><div><span class="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-black uppercase text-indigo-700">{% if anomaly.variance %}Variance {{ anomaly.variance }}%{% else %}Process flag{% endif %}</span><h3 class="mt-2 text-base font-black text-slate-900">{{ anomaly.tender.title|default:anomaly.tender.reference_number }}</h3><p class="mt-1 text-xs text-slate-500">{% if anomaly.tender.project %}{{ anomaly.tender.project.project_title }} · {% endif %}{{ anomaly.tender.get_procurement_method_display }}</p></div></div>
+            <p class="mt-4 max-w-3xl text-sm leading-6 text-slate-600">{{ anomaly.issue }}</p>
+          </article>
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No procurement anomalies found.</p>{% endfor %}
+        </div>
+      </section>
+
+      {% elif focus == 'data' %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">{{ data_stats.analyzed }} projects analyzed</p><h2 class="mt-1 text-2xl font-black text-slate-900">Data Quality</h2></div></div>
+        <div class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-5">
+          <div class="rounded-2xl bg-slate-50 p-5"><p class="text-3xl font-black text-slate-700">{{ data_stats.missing }}</p><p class="mt-1 text-xs font-bold uppercase text-slate-600">Missing fields</p></div>
+          <div class="rounded-2xl bg-amber-50 p-5"><p class="text-3xl font-black text-amber-700">{{ data_stats.duplicates }}</p><p class="mt-1 text-xs font-bold uppercase text-amber-600">Duplicate suspects</p></div>
+          <div class="rounded-2xl bg-rose-50 p-5"><p class="text-3xl font-black text-rose-700">{{ data_stats.conflicting_dates }}</p><p class="mt-1 text-xs font-bold uppercase text-rose-600">Conflicting dates</p></div>
+          <div class="rounded-2xl bg-orange-50 p-5"><p class="text-3xl font-black text-orange-700">{{ data_stats.invalid_progress }}</p><p class="mt-1 text-xs font-bold uppercase text-orange-600">Invalid progress</p></div>
+          <div class="rounded-2xl bg-indigo-50 p-5"><p class="text-3xl font-black text-indigo-700">{{ data_stats.status_inconsistent }}</p><p class="mt-1 text-xs font-bold uppercase text-indigo-600">Integrity flags</p></div>
+        </div>
+        <div class="mt-5 space-y-3">
+          {% for entry in data_findings %}
+          <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:shadow-sm">
+            <h3 class="text-base font-black text-slate-900">{{ entry.project.project_title }}</h3>
+            <ul class="mt-2 space-y-1">{% for flag in entry.flags %}<li class="text-sm text-slate-600">• {{ flag }}</li>{% endfor %}</ul>
+          </article>
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No data quality issues found.</p>{% endfor %}
+        </div>
+      </section>
+
+      {% else %}
+      <section class="rounded-3xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 md:flex-row md:items-center"><div><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Live monitoring</p><h2 class="mt-1 text-2xl font-black text-slate-900">AI Alerts</h2></div></div>
+        <div class="mt-5 grid grid-cols-3 gap-4">
+          <div class="rounded-2xl bg-rose-50 p-5"><p class="text-3xl font-black text-rose-700">{{ alert_counts.critical }}</p><p class="mt-1 text-xs font-bold uppercase text-rose-600">Critical</p></div>
+          <div class="rounded-2xl bg-orange-50 p-5"><p class="text-3xl font-black text-orange-700">{{ alert_counts.high }}</p><p class="mt-1 text-xs font-bold uppercase text-orange-600">High</p></div>
+          <div class="rounded-2xl bg-amber-50 p-5"><p class="text-3xl font-black text-amber-700">{{ alert_counts.medium }}</p><p class="mt-1 text-xs font-bold uppercase text-amber-600">Medium</p></div>
+        </div>
+        <div class="mt-5 space-y-3">
+          {% for item in alerts %}
+          <article class="rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-rose-200 hover:shadow-sm">
+            <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start"><div><span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black uppercase text-rose-700">Score {{ item.score }}/100</span><h3 class="mt-2 text-base font-black text-slate-900">{{ item.project.project_title }}</h3></div><a href="{% url 'ai_investigation' item.project.id %}" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700">Investigate</a></div>
+            {% for warning in item.data.early_warnings %}<p class="mt-2 rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">{{ warning }}</p>{% endfor %}
+          </article>
+          {% empty %}<p class="py-10 text-center text-sm italic text-slate-400">No active alerts. All clear.</p>{% endfor %}
+        </div>
+      </section>
+      {% endif %}
     </div>
   </main>
   <script>function dashboardApp(){return {darkMode:false,mobileSidebarOpen:false,sidebarCollapsed:false,isMobile:false};}</script>

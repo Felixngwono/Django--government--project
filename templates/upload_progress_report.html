@@ -2,23 +2,20 @@
 {% block content %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>{{ project.project_title }} — Project Details | GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,30 +23,45 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<!-- ===== HEADER ===== -->
-
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="content p-4 md:p-8"><div class="report-shell space-y-6">
+    <header class="rounded-3xl bg-gradient-to-br from-indigo-950 via-indigo-800 to-violet-700 px-6 py-8 text-white shadow-xl md:px-9 md:py-10">
+      <a href="{% url 'project_details' project.id %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-100 hover:text-white"><iconify-icon icon="solar:arrow-left-linear"></iconify-icon> Back to project record</a>
+      <div class="mt-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><p class="text-xs font-bold uppercase tracking-[.2em] text-indigo-200">Project documentation</p><h1 class="mt-2 text-2xl font-extrabold md:text-3xl">Upload Progress Report</h1><p class="mt-2 max-w-2xl text-sm leading-6 text-indigo-100">Create an accountable project update with completed work, current conditions, next steps, and evidence.</p></div><div class="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm backdrop-blur"><p class="text-[10px] font-bold uppercase tracking-wider text-indigo-200">Project</p><p class="mt-1 max-w-xs truncate font-bold">{{ project.project_title }}</p></div></div>
+    </header>
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    {% if messages %}{% for message in messages %}<div class="rounded-2xl border px-4 py-3 text-sm font-medium {% if message.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-700{% else %}border-emerald-200 bg-emerald-50 text-emerald-700{% endif %}">{{ message }}</div>{% endfor %}{% endif %}
 
-<h1>Upload Progress Report for {{ project.project_title }}</h1>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Upload</button>
-</form>
-<div class="mt-4">
-    {% if project.progress_report %}
-        <h2>Current Progress Report:</h2>
-        <a href="{{ project.progress_report.url }}" target="_blank">View Progress Report</a>
-    {% else %}
-        <p>No progress report uploaded yet.</p>
-    {% endif %}
-</div>
+    <div class="grid gap-6 lg:grid-cols-3">
+      <section class="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <div class="mb-6 border-b border-slate-100 pb-5"><h2 class="flex items-center gap-2 text-lg font-extrabold text-slate-900"><iconify-icon icon="solar:document-add-bold-duotone" class="text-xl text-indigo-600"></iconify-icon> Report details</h2><p class="mt-1 text-sm text-slate-500">Fields marked with an asterisk are required.</p></div>
+        <form method="post" enctype="multipart/form-data" class="space-y-6" id="progress-report-form">
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div class="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{{ form.non_field_errors }}</div>{% endif %}
+          <div><label for="{{ form.report_title.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Report title <span class="text-rose-600">*</span></label>{{ form.report_title }}{% for error in form.report_title.errors %}<p class="mt-1 text-xs font-medium text-rose-600">{{ error }}</p>{% endfor %}</div>
+          <div><label for="{{ form.description.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Progress narrative <span class="text-rose-600">*</span></label>{{ form.description }}<p class="mt-2 text-xs text-slate-500">Include completed activities, stage progress, risks or delays, next actions, and site observations.</p>{% for error in form.description.errors %}<p class="mt-1 text-xs font-medium text-rose-600">{{ error }}</p>{% endfor %}</div>
+          <div><label for="{{ form.report_file.id_for_label }}" class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/60 px-6 py-9 text-center transition hover:border-indigo-400 hover:bg-indigo-50"><iconify-icon icon="solar:cloud-upload-bold-duotone" class="text-4xl text-indigo-600"></iconify-icon><span class="mt-3 text-sm font-extrabold text-slate-800" id="file-label">Choose a supporting report file</span><span class="mt-1 text-xs text-slate-500">PDF, Word, Excel, JPG, or PNG · maximum 20 MB</span>{{ form.report_file }}</label>{% for error in form.report_file.errors %}<p class="mt-2 text-xs font-medium text-rose-600">{{ error }}</p>{% endfor %}</div>
+          <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end"><a href="{% url 'project_details' project.id %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancel</a><button type="submit" id="submit-button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"><iconify-icon icon="solar:upload-bold"></iconify-icon><span>Submit Progress Report</span></button></div>
+        </form>
+      </section>
+
+      <aside class="space-y-5">
+        <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><h2 class="text-sm font-extrabold text-slate-900">A useful update includes</h2><ul class="mt-4 space-y-3 text-sm leading-5 text-slate-600"><li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="shrink-0 text-emerald-500"></iconify-icon> Work completed during this period</li><li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="shrink-0 text-emerald-500"></iconify-icon> Stage and progress percentage</li><li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="shrink-0 text-emerald-500"></iconify-icon> Risks, delays, or decisions required</li><li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="shrink-0 text-emerald-500"></iconify-icon> Next actions and evidence attachment</li></ul></section>
+        <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex items-center justify-between"><h2 class="text-sm font-extrabold text-slate-900">Recent reports</h2><span class="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700">{{ reports|length }}</span></div><div class="mt-4 space-y-3">{% for report in reports %}<a href="{{ report.report_file.url }}" target="_blank" class="block rounded-xl border border-slate-100 p-3 transition hover:border-indigo-200 hover:bg-indigo-50/40"><p class="truncate text-xs font-bold text-slate-800">{{ report.report_title }}</p><p class="mt-1 text-[11px] text-slate-500">{{ report.created_at|date:"d M Y, H:i" }}{% if report.created_by %} · {{ report.created_by.username }}{% endif %}</p></a>{% empty %}<p class="py-3 text-center text-xs italic text-slate-400">No reports uploaded yet.</p>{% endfor %}</div></section>
+      </aside>
+    </div>
+  </div></div>
 </main>
+<script>
+  (() => {
+    const fileInput = document.getElementById('{{ form.report_file.id_for_label }}');
+    const fileLabel = document.getElementById('file-label');
+    const form = document.getElementById('progress-report-form');
+    const submitButton = document.getElementById('submit-button');
+    fileInput?.addEventListener('change', () => { fileLabel.textContent = fileInput.files.length ? fileInput.files[0].name : 'Choose a supporting report file'; });
+    form?.addEventListener('submit', () => { submitButton.disabled = true; submitButton.classList.add('opacity-70', 'cursor-wait'); submitButton.querySelector('span').textContent = 'Uploading report…'; });
+  })();
+</script>
 {% include "footer.html" %}
-{% endblock content %}
+{% endblock content%}

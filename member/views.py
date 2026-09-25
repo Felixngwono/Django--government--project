@@ -28,9 +28,9 @@ from openpyxl import Workbook
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, FeedbackForm, GovernmentRequestForm, MediaForm, MilestoneForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
-from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,ProjectCategory,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ReportIssue,StageReport,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
-from .workflow import OFFICER_ROLES, audit, notify, role_required
+from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ExpenseInlineForm, FeedbackForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
+from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,ProjectCategory,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ReportIssue,StageReport,StageReportImage,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
+from .workflow import OFFICER_ROLES, audit, has_role, notify, refresh_project_status, role_required
 
 
 def _send_password_reset_sms(phone_number, otp):
@@ -836,14 +836,34 @@ def feedback(request):
 
 @login_required(login_url='login')
 def CreateProject(request):
-    form= ProjectCreationForm()
-    if request.method=='POST':
-        form= ProjectCreationForm(request.POST,request.FILES)
+    form = ProjectCreationForm()
+    if request.method == 'POST':
+        form = ProjectCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('projectoverview')
-    context={'form':form,}
-    return render(request,'project_form.html', context)
+            try:
+                project = form.save(commit=False)
+                project.created_by = request.user
+                project.full_clean()
+                project.save()
+                form.save_m2m()
+                _ensure_standard_project_stages(project)
+                _store_project_evidence_images(
+                    project, request.user, form.cleaned_data['evidence_images']
+                )
+                messages.success(request, f"Project '{project.project_title}' created successfully.")
+                return redirect('projectoverview')
+            except ValidationError as e:
+                for field, errs in e.message_dict.items():
+                    form.add_error(field if field != '__all__' else None, errs)
+            except Exception as e:
+                messages.error(request, f"Unexpected error while saving: {e}")
+        else:
+            messages.error(request, "Please fix the errors below and try again.")
+            # Log field errors so they are visible in the console during debugging
+            for field, errs in form.errors.items():
+                messages.error(request, f"{field}: {', '.join(errs)}")
+    context = {'form': form}
+    return render(request, 'project_form.html', context)
 
 @login_required(login_url='login')
 def updateProject(request,pk):
@@ -853,9 +873,45 @@ def updateProject(request,pk):
         form= ProjectCreationForm(request.POST,request.FILES,instance=project)
         if form.is_valid():
             form.save()
+            _store_project_evidence_images(
+                project, request.user, form.cleaned_data['evidence_images']
+            )
+            # Recompute status in case dates/stages/progress changed
+            refresh_project_status(project, actor=request.user, source='manual')
             return redirect('projectoverview')
     context={'form':form}
     return render(request,'project_form.html', context)
+
+
+def _store_project_evidence_images(project, uploaded_by, images):
+    """Store each uploaded project photo as its own auditable media record."""
+    for position, image in enumerate(images, start=1):
+        Media.objects.create(
+            project=project,
+            file=image,
+            media_type='image',
+            caption=f'Project evidence photo {position}',
+            uploaded_by=uploaded_by,
+        )
+
+
+def _ensure_standard_project_stages(project):
+    """Give every project a complete, ordered delivery roadmap once."""
+    for order, (stage_name, _label) in enumerate(ProjectStage.STAGES, start=1):
+        ProjectStage.objects.get_or_create(
+            project=project,
+            stage_name=stage_name,
+            defaults={'order': order, 'status': 'not_started'},
+        )
+
+
+def _sync_stage_after_milestone(milestone):
+    """A stage is complete only when its tracked deliverables are complete."""
+    if not milestone.stage_id:
+        return
+    stage = milestone.stage
+    if stage.sync_progress_from_milestones():
+        stage.save()
 
 @login_required(login_url='login')
 def deleteProject(request, pk):
@@ -1086,6 +1142,7 @@ def delayedstatus(request, pk):
         'projects': projects,
         'project': target_project,
         'project_status': target_project.project_status,
+        'today': django_timezone.now().date(),
         'form': form
     }
     return render(request, 'statuses.html', context)
@@ -1274,6 +1331,7 @@ def project_details(request,pk):
         form= ProjectCreationForm(request.POST,request.FILES,instance=project)
         if form.is_valid():
             form.save()
+            refresh_project_status(project, actor=request.user, source='manual')
             return redirect('projectoverview')
     context={'form':form}
     return render(request,'project_details.html', context)
@@ -1430,7 +1488,8 @@ def _render_status_page(request, status_code, title_text):
         'total_count': paginator.count,
         'project_status': status_code,
         'status_code': status_code,
-        'status_title': title_text
+        'status_title': title_text,
+        'today': date.today(),
     }
     return render(request, 'statuses.html', context)
 
@@ -1973,7 +2032,7 @@ def milestone_delete(request, pk):
 
 @login_required(login_url='login')
 def notification_list(request):
-    notifications = Notification.objects.all()
+    notifications = Notification.objects.filter(user=request.user).order_by('-is_read', '-created_at')
     return render(request, 'notification_list.html', {'notifications': notifications})
 
 @login_required(login_url='login')
@@ -2128,6 +2187,7 @@ def project_detail(request, pk):
     milestones = project.milestones.all()
     expenses = project.expenses.all()
     media = project.media.all()
+    image_media = media.filter(media_type='image')
     documents = project.documents.all()
     progress_reports = project.progress_reports.all()
     risks = project.risks.all()
@@ -2140,14 +2200,197 @@ def project_detail(request, pk):
     remaining = max(0.0, b_total - s_total)
     utilization = round((s_total / b_total * 100), 1) if b_total > 0 else 0.0
 
+    is_officer = request.user.is_superuser or (getattr(request.user, 'role', None) in OFFICER_ROLES)
+
     if request.method == "POST":
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.project = project
-            comment.user = request.user
-            comment.save()
+        action = request.POST.get('action', 'comment')
+
+        if action == 'stage_setup' and is_officer:
+            _ensure_standard_project_stages(project)
+            messages.success(request, 'The full project-stage roadmap has been added.')
             return redirect('project_details', pk=project.id)
+
+        elif action == 'stage_quick' and is_officer:
+            stage = get_object_or_404(ProjectStage, pk=request.POST.get('stage_id'), project=project)
+            status = request.POST.get('status')
+            if status in [choice[0] for choice in ProjectStage.STATUS_CHOICES]:
+                stage.status = status
+                if status == 'completed':
+                    stage.progress_percentage = 100
+                    stage.completed_on = timezone.localdate()
+                elif status == 'not_started':
+                    stage.progress_percentage = 0
+                    stage.completed_on = None
+                stage.save()
+                refresh_project_status(project, actor=request.user)
+                audit(request, 'stage_status_changed', stage, project=project, changes={'status': status})
+                messages.success(request, f"{stage.get_stage_name_display()} marked {stage.get_status_display()}.")
+            return redirect('project_details', pk=project.id)
+
+        elif action == 'milestone_add':
+            form = MilestoneInlineForm(request.POST, project=project)
+            if form.is_valid():
+                ms = form.save(commit=False)
+                ms.project = project
+                if ms.progress_percentage >= 100 and ms.status != 'completed':
+                    ms.status = 'completed'
+                if ms.status == 'completed' and not ms.completion_date:
+                    ms.completion_date = timezone.localdate()
+                ms.save()
+                _sync_stage_after_milestone(ms)
+                refresh_project_status(project, actor=request.user)
+                audit(request, 'created', ms, project=project, changes={'title': ms.title})
+                messages.success(request, f"Milestone '{ms.title}' added.")
+                return redirect('project_details', pk=project.id)
+            messages.error(request, "Could not add milestone — check the form fields.")
+
+        elif action == 'milestone_quick' and is_officer:
+            ms = get_object_or_404(Milestone, pk=request.POST.get('milestone_id'), project=project)
+            status = request.POST.get('status')
+            progress = request.POST.get('progress_percentage')
+            if status in [c[0] for c in Milestone.STATUS_CHOICES]:
+                ms.status = status
+                if status == 'completed':
+                    ms.progress_percentage = 100
+                    if not ms.completion_date:
+                        ms.completion_date = timezone.localdate()
+            if progress not in (None, ''):
+                try:
+                    p_val = int(progress)
+                    if 0 <= p_val <= 100:
+                        ms.progress_percentage = p_val
+                        if p_val == 100:
+                            ms.status = 'completed'
+                            if not ms.completion_date:
+                                ms.completion_date = timezone.localdate()
+                except ValueError:
+                    pass
+            ms.save()
+            _sync_stage_after_milestone(ms)
+            refresh_project_status(project, actor=request.user)
+            audit(request, 'quick_updated', ms, project=project, changes={'status': ms.status, 'progress': ms.progress_percentage})
+            messages.success(request, f"Milestone '{ms.title}' updated.")
+            return redirect('project_details', pk=project.id)
+
+        elif action == 'milestone_edit' and is_officer:
+            ms = get_object_or_404(Milestone, pk=request.POST.get('milestone_id'), project=project)
+            form = MilestoneInlineForm(request.POST, instance=ms, project=project)
+            if form.is_valid():
+                saved = form.save(commit=False)
+                if saved.progress_percentage >= 100 and saved.status != 'completed':
+                    saved.status = 'completed'
+                if saved.status == 'completed' and not saved.completion_date:
+                    saved.completion_date = timezone.localdate()
+                elif saved.status != 'completed':
+                    saved.completion_date = None
+                saved.save()
+                _sync_stage_after_milestone(saved)
+                refresh_project_status(project, actor=request.user)
+                audit(request, 'updated', saved, project=project, changes={'title': saved.title, 'status': saved.status})
+                messages.success(request, f"Milestone '{saved.title}' updated.")
+                return redirect('project_details', pk=project.id)
+            messages.error(request, "Could not update milestone — check the form fields.")
+
+        elif action == 'expense_add':
+            form = ExpenseInlineForm(request.POST, request.FILES)
+            if form.is_valid():
+                expense = form.save(commit=False)
+                expense.project = project
+                expense.recorded_by = request.user
+                expense.save()
+
+                # Keep the project-level spend figures in sync.
+                project.amount_spent = (project.amount_spent or Decimal('0.00')) + (expense.amount or Decimal('0.00'))
+                project.save(update_fields=['amount_spent'])
+                budget = Budget.objects.filter(project=project).first()
+                if budget:
+                    budget.spent_amount = (budget.spent_amount or Decimal('0.00')) + (expense.amount or Decimal('0.00'))
+                    budget.save()
+                else:
+                    Budget.objects.create(
+                        project=project,
+                        allocated_amount=project.project_Budgeting or Decimal('0.00'),
+                        spent_amount=expense.amount or Decimal('0.00'),
+                    )
+
+                audit(request, 'created', expense, project=project, changes={'title': expense.title, 'amount': str(expense.amount)})
+                messages.success(request, f"Expense '{expense.title}' recorded.")
+                return redirect('project_details', pk=project.id)
+            messages.error(request, "Could not record expense — check the form fields.")
+
+        elif action == 'expense_edit' and is_officer:
+            exp = get_object_or_404(ProjectExpense, pk=request.POST.get('expense_id'), project=project)
+            old_amount = exp.amount or Decimal('0.00')
+            form = ExpenseInlineForm(request.POST, request.FILES, instance=exp)
+            if form.is_valid():
+                saved = form.save()
+                # Re-sync the project-level spend figures with the corrected amount.
+                diff = (saved.amount or Decimal('0.00')) - old_amount
+                if diff:
+                    project.amount_spent = (project.amount_spent or Decimal('0.00')) + diff
+                    project.save(update_fields=['amount_spent'])
+                    budget = Budget.objects.filter(project=project).first()
+                    if budget:
+                        budget.spent_amount = (budget.spent_amount or Decimal('0.00')) + diff
+                        budget.save()
+                audit(request, 'updated', saved, project=project, changes={'title': saved.title, 'amount': str(saved.amount)})
+                messages.success(request, f"Expense '{saved.title}' updated.")
+                return redirect('project_details', pk=project.id)
+            messages.error(request, "Could not update expense — check the form fields.")
+
+        elif action == 'issue_add':
+            form = IssueInlineForm(request.POST, request.FILES)
+            if form.is_valid():
+                issue = form.save(commit=False)
+                issue.project = project
+                issue.user = request.user
+                issue.save()
+                audit(request, 'issue_reported', issue, project=project)
+                if project.created_by:
+                    notify(project.created_by, 'issue', 'New project issue', issue.title, f'/issues/{issue.id}/')
+                messages.success(request, "Issue reported successfully.")
+                return redirect('project_details', pk=project.id)
+            messages.error(request, "Could not report issue — check the form fields.")
+
+        elif action == 'issue_edit' and is_officer:
+            iss = get_object_or_404(ReportIssue, pk=request.POST.get('issue_id'), project=project)
+            form = IssueInlineForm(request.POST, request.FILES, instance=iss)
+            if form.is_valid():
+                form.save()
+                audit(request, 'issue_updated', iss, project=project, changes={'title': iss.title, 'status': iss.status})
+                if iss.user and iss.user != request.user:
+                    notify(iss.user, 'issue', 'Issue updated', f"'{iss.title}' was updated by an officer.", f'/issues/{iss.id}/')
+                messages.success(request, f"Issue '{iss.title}' updated.")
+                return redirect('project_details', pk=project.id)
+            messages.error(request, "Could not update issue — check the form fields.")
+
+        elif action == 'issue_status' and is_officer:
+            iss = get_object_or_404(ReportIssue, pk=request.POST.get('issue_id'), project=project)
+            new_status = request.POST.get('status')
+            if new_status in [c[0] for c in ReportIssue.STATUS_CHOICES]:
+                iss.status = new_status
+                if new_status == 'resolved':
+                    iss.resolved = True
+                notes = request.POST.get('resolution_notes', '').strip()
+                if notes:
+                    iss.resolution_notes = notes
+                if new_status == 'resolved' and not iss.resolved_by:
+                    iss.resolved_by = request.user
+                iss.save()
+                audit(request, 'issue_status_changed', iss, project=project, changes={'status': new_status})
+                if iss.user:
+                    notify(iss.user, 'issue', 'Issue status updated', f"'{iss.title}' is now {iss.get_status_display()}.", f'/issues/{iss.id}/')
+                messages.success(request, f"Issue '{iss.title}' marked {iss.get_status_display()}.")
+            return redirect('project_details', pk=project.id)
+
+        else:  # comment
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                comment = form.save(commit=False)
+                comment.project = project
+                comment.user = request.user
+                comment.save()
+                return redirect('project_details', pk=project.id)
     else:
         form = CommentForm()
 
@@ -2158,6 +2401,7 @@ def project_detail(request, pk):
         'milestones': milestones,
         'expenses': expenses,
         'media': media,
+        'image_media': image_media,
         'documents': documents,
         'progress_reports': progress_reports,
         'risks': risks,
@@ -2168,6 +2412,10 @@ def project_detail(request, pk):
         'remaining': remaining,
         'utilization': utilization,
         'form': form,
+        'is_officer': is_officer,
+        'milestone_form': MilestoneInlineForm(project=project),
+        'expense_form': ExpenseInlineForm(),
+        'issue_form': IssueInlineForm(),
     }
     return render(request, 'project_detail.html', context)
 
@@ -2180,11 +2428,16 @@ def upload_progress_report(request, project_id):
         if form.is_valid():
             report = form.save(commit=False)
             report.project = project
+            report.created_by = request.user
             report.save()
+            audit(request, 'created', report, project=project, changes={'title': report.report_title})
+            messages.success(request, 'Progress report uploaded and added to the project record.')
             return redirect('project_details', pk=project.id)
+        messages.error(request, 'Please correct the highlighted fields and upload again.')
     else:
         form = ProgressReportForm()
-    return render(request, 'upload_progress_report.html', {'form': form, 'project': project})
+    reports = project.progress_reports.select_related('created_by').order_by('-created_at')[:5]
+    return render(request, 'upload_progress_report.html', {'form': form, 'project': project, 'reports': reports})
 
 # 🔹 Tender View
 @login_required(login_url='login')
@@ -2728,7 +2981,9 @@ def ProjectStageCreate(request):
     if request.method == 'POST':
         form = ProjectStageForm(request.POST, request.FILES)
         if form.is_valid():
-            stage = form.save()
+            stage = form.save(commit=False)
+            stage.sync_status()
+            stage.save()
             audit(request, 'created', stage, project=stage.project, changes={'stage_name': stage.stage_name})
             messages.success(request, f"Project stage '{stage.get_stage_name_display()}' created successfully.")
             return redirect('projectstage_list')
@@ -2750,8 +3005,11 @@ def ProjectStageUpdate(request, pk):
     if request.method == 'POST':
         form = ProjectStageForm(request.POST, request.FILES, instance=updatestage)
         if form.is_valid():
-            stage = form.save()
-            audit(request, 'updated', stage, project=stage.project, changes={'stage_name': stage.stage_name})
+            stage = form.save(commit=False)
+            stage.sync_status()
+            stage.save()
+            refresh_project_status(stage.project, actor=request.user)
+            audit(request, 'updated', stage, project=stage.project, changes={'stage_name': stage.stage_name, 'status': stage.status})
             messages.success(request, f"Project stage '{stage.get_stage_name_display()}' updated successfully.")
             return redirect('projectstage_list')
     else:
@@ -3164,21 +3422,32 @@ def register_contractor(request):
 
 @login_required(login_url='login')
 def submit_stage_report(request):
-    projects = Project.objects.all()
-    stages = ProjectStage.objects.all()
-    contractors = Contractor.objects.all()
+    # Contractors whose logged-in user owns them (match by name or company/email)
+    user = request.user
+    full_name = user.full_name
+    my_contractor = None
+    for c in Contractor.objects.all():
+        if (c.name and c.name.strip().lower() == full_name.strip().lower()) \
+                or (c.email and user.email and c.email.lower() == user.email.lower()) \
+                or (c.name and c.name.strip().lower() == user.username.strip().lower()):
+            my_contractor = c
+            break
 
     if request.method == "POST":
         try:
             progress_val = request.POST.get('progress') or request.POST.get('progress_percentage') or 0
             report = StageReport(
                 project_id=request.POST.get('project'), stage_id=request.POST.get('stage'),
-                contractor_id=request.POST.get('contractor') or None, reported_by=request.user,
+                contractor_id=request.POST.get('contractor') or (my_contractor.id if my_contractor else None),
+                reported_by=request.user,
                 description=request.POST.get('description'), progress_percentage=progress_val,
                 location=request.POST.get('location'), photo=request.FILES.get('photo'),
             )
             report.full_clean()
             report.save()
+            # Extra verification photos (multiple images allowed)
+            for image_file in request.FILES.getlist('photos'):
+                StageReportImage.objects.create(report=report, image=image_file)
             if report.stage:
                 report.stage.progress_percentage = report.progress_percentage
                 report.stage.save(update_fields=['progress_percentage'])
@@ -3189,10 +3458,17 @@ def submit_stage_report(request):
             return redirect('contractor_performance')
         return redirect('contractor_performance')
 
+    # Projects the logged-in contractor is actually working on (pop-up choice, not a full list)
+    if my_contractor:
+        projects = my_contractor.projects.all()
+    else:
+        projects = Project.objects.none()
+
     return render(request, 'contractors/report_form.html', {
         'projects': projects,
-        'stages': stages,
-        'contractors': contractors
+        'stages': ProjectStage.objects.all(),
+        'contractors': Contractor.objects.all(),
+        'my_contractor': my_contractor,
     })
 
 

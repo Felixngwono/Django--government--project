@@ -1,22 +1,19 @@
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="{ sidebarCollapsed: false, isMobile: window.innerWidth < 1024, mobileSidebarOpen: false, darkMode: false }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Reported Issues — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="{ sidebarCollapsed: false, isMobile: window.innerWidth < 1024, mobileSidebarOpen: false, darkMode: false }" class="bg-gray-50/50 text-gray-800 font-sans antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -29,53 +26,76 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="content p-6 max-w-6xl mx-auto space-y-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <!-- ===== HERO BANNER ===== -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-8 shadow-xl border border-white/10">
+      <div class="absolute -right-10 -top-10 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/30 mb-3">
+            <iconify-icon icon="solar:shield-warning-bold" class="text-sm"></iconify-icon>
+            Public Feedback
+          </span>
+          <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white">Reported Issues</h1>
+          <p class="text-slate-300 text-sm md:text-base mt-2">All issues reported by citizens against government projects.</p>
+        </div>
+        <a href="{% url 'add_report_issue' %}"
+           class="px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-rose-600/30">
+          <iconify-icon icon="solar:add-circle-bold" class="text-base"></iconify-icon>
+          <span>+ Report Issue</span>
+        </a>
+      </div>
+    </div>
 
-
-
-
-<!-- TailwindCSS CDN -->
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-  <div class="container px-4 py-6">
-    <h1 class="text-2xl font-semibold text-gray-800">Reported Issues</h1>
-    <table class="min-w-full bg-white border border-gray-300 mt-4">
-        <thead>
-            <tr class="bg-gray-800 text-white">
-                <th class="py-2 px-4 border">Title</th>
-                <th class="py-2 px-4 border">Status</th>
-                <th class="py-2 px-4 border">Actions</th>
+    <!-- ===== ISSUES LIST ===== -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 border-y border-slate-100">
+            <tr>
+              <th class="py-3 px-6 font-semibold">Title</th>
+              <th class="py-3 px-6 font-semibold">Status</th>
+              <th class="py-3 px-6 font-semibold text-right">Actions</th>
             </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
             {% for issue in issues %}
-            <tr class="border text-gray-700">
-                <td class="py-2 px-4 border">{{ issue.title }}</td>
-                <td class="py-2 px-4 border">{{ issue.get_status_display }}</td>
-                <td class="py-2 px-4 border">
-                    <a href="{% url 'issue_detail' issue.id %}" class="text-blue-500 hover:underline">View</a>
-                </td>
+            <tr class="hover:bg-slate-50/70 transition">
+              <td class="py-3 px-6 font-semibold text-slate-700">{{ issue.title }}</td>
+              <td class="py-3 px-6">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
+                  {% if issue.status == 'resolved' %}bg-emerald-50 text-emerald-600 border border-emerald-200
+                  {% elif issue.status == 'investigating' %}bg-blue-50 text-blue-600 border border-blue-200
+                  {% elif issue.status == 'dismissed' %}bg-slate-100 text-slate-500 border border-slate-200
+                  {% else %}bg-amber-50 text-amber-600 border border-amber-200{% endif %}">
+                  {{ issue.get_status_display }}
+                </span>
+              </td>
+              <td class="py-3 px-6 text-right">
+                <a href="{% url 'issue_detail' issue.id %}"
+                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 text-xs font-bold transition">
+                  <iconify-icon icon="solar:eye-bold-duotone" class="text-sm"></iconify-icon>
+                  View
+                </a>
+              </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="3" class="text-center py-4">No issues reported</td>
+              <td colspan="3" class="py-10 text-center text-slate-400">
+                <iconify-icon icon="solar:inbox-linear" class="text-3xl block mx-auto mb-2 text-slate-300"></iconify-icon>
+                No issues reported yet.
+              </td>
             </tr>
             {% endfor %}
-        </tbody>
-        <div class="mt-4">
-            <a href="{% url 'add_report_issue' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow">
-                Add Report
-            </a>
-        </div>
-        
-    </table>
-</div>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-</div>
-</div>
+  </div>
 </main>
+
 {% include "footer.html" %}
+</body>
+</html>

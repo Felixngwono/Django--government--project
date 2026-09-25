@@ -1,6 +1,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ 'mobile-open': mobileSidebarOpen, 'collapsed': !isMobile && sidebarCollapsed }">
       <!-- Logo -->
       <div class="sidebar-logo">
       <div class="logo-icon">
@@ -327,3 +327,38 @@
       </a>
       </div>
     </aside>
+
+    <script>
+    // Shared Alpine dashboard state — used by every page that includes this sidebar.
+    // Pages that define their own dashboardApp() will simply override this one.
+    function dashboardApp() {
+      return {
+        darkMode: false,
+        sidebarCollapsed: false,
+        mobileSidebarOpen: false,
+        isMobile: window.innerWidth < 1024,
+        pageTitle: document.title,
+        init() {
+          window.addEventListener('resize', () => {
+            this.isMobile = window.innerWidth < 1024;
+            if (!this.isMobile) this.mobileSidebarOpen = false;
+          });
+          // Close the mobile sidebar with the Escape key
+          window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') this.mobileSidebarOpen = false;
+          });
+          // Close the mobile sidebar after tapping a nav link
+          const sidebar = document.querySelector('.sidebar');
+          if (sidebar) {
+            sidebar.addEventListener('click', (e) => {
+              if (e.target.closest('a') && this.isMobile) this.mobileSidebarOpen = false;
+            });
+          }
+        },
+        toggleSidebar() {
+          if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+          else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+        }
+      };
+    }
+    </script>

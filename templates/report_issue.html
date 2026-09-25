@@ -1,24 +1,31 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="{ sidebarCollapsed: false, isMobile: window.innerWidth < 1024, mobileSidebarOpen: false, darkMode: false }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Report an Issue — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
+<style>
+  .form-input, .form-textarea, .form-select {
+    width: 100%; padding: 10px 14px; border-radius: 12px;
+    border: 1px solid #e2e8f0; background: #f8fafc;
+    font-size: .9rem; transition: all .2s; outline: none;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus {
+    border-color: #3b82f6; background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+  }
+  .form-label { font-size: .8rem; font-weight: 700; color: #475569; margin-bottom: 6px; display: block; }
+</style>
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="{ sidebarCollapsed: false, isMobile: window.innerWidth < 1024, mobileSidebarOpen: false, darkMode: false }" class="bg-gray-50/50 text-gray-800 font-sans antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -27,48 +34,72 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="content p-6 max-w-3xl mx-auto space-y-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
+    <!-- ===== HERO BANNER ===== -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-900 via-red-900 to-slate-900 text-white p-8 shadow-xl border border-white/10">
+      <div class="absolute -right-10 -top-10 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/30 mb-3">
+          <iconify-icon icon="solar:shield-warning-bold" class="text-sm"></iconify-icon>
+          Citizen Reporting
+        </span>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white">Report an Issue</h1>
+        <p class="text-slate-300 text-sm md:text-base mt-2 max-w-2xl">Spotted a problem with a government project? Report it here and the responsible agency will be notified.</p>
+      </div>
+    </div>
 
-
-<!-- TailwindCSS CDN -->
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-<div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow">
-    <h1 class="text-2xl font-semibold text-gray-800 mb-4">Report an Issue</h1>
-    <form method="post" enctype="multipart/form-data" class="space-y-4">
+    <!-- ===== FORM CARD ===== -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+      <form method="post" enctype="multipart/form-data" class="space-y-5">
         {% csrf_token %}
-        <div class="space-y-2">
-            {{ form.title.label_tag }}
-            {{ form.title }}
-        </div>
-        <div class="space-y-2">
-            {{ form.project.label_tag }}
-            {{ form.project }}
-        </div>
-        <div class="space-y-2">
-            {{ form.issue_description.label_tag }}
-            {{ form.issue_description }}
-        </div>
-        <div class="space-y-2">
-            {{ form.evidence.label_tag }}
-            {{ form.evidence }}
-        </div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Report</button>
-    </form>
-</div>
 
-</div>
-</div>
-</div>
-</div>
+        {% if form.non_field_errors %}
+        <div class="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm p-4">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div>
+          <label class="form-label">Issue Title</label>
+          {{ form.title }}
+          {% if form.title.errors %}<p class="text-rose-600 text-xs mt-1">{{ form.title.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="form-label">Related Project</label>
+          {{ form.project }}
+          {% if form.project.errors %}<p class="text-rose-600 text-xs mt-1">{{ form.project.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="form-label">Describe the Issue</label>
+          {{ form.issue_description }}
+          {% if form.issue_description.errors %}<p class="text-rose-600 text-xs mt-1">{{ form.issue_description.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="form-label">Evidence (photo / document — optional)</label>
+          {{ form.evidence }}
+          {% if form.evidence.errors %}<p class="text-rose-600 text-xs mt-1">{{ form.evidence.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold transition shadow-lg shadow-rose-600/25">
+            <iconify-icon icon="solar:paper-plane-bold" class="text-base"></iconify-icon>
+            Submit Report
+          </button>
+          <a href="{% url 'issue_list' %}" class="text-sm font-semibold text-slate-500 hover:text-slate-700 transition">View all reported issues</a>
+        </div>
+      </form>
+    </div>
+
+  </div>
 </main>
 
 {% include "footer.html" %}
-{% endblock %}
+</body>
+</html>

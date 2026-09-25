@@ -32,7 +32,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables from the project-root .env file (API keys, etc.).
 load_dotenv(BASE_DIR / '.env')
-LOGIN_REDIRECT_URL='login'
+LOGIN_REDIRECT_URL='home'
+LOGOUT_REDIRECT_URL='login'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -42,7 +43,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-developm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # AI configuration. Keep API keys in the hosting environment, never in Git.
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -71,6 +72,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'member',
+    'rest_framework',
     'widget_tweaks',
     "ai",
 ]
@@ -83,7 +85,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Moves project statuses with the passage of time (upcoming -> ongoing ->
+    # delayed/completed) once per day. See member.middleware.
+    'member.middleware.ProjectStatusSyncMiddleware',
 ]
+
+# Set to False to disable the daily automatic status sweep (e.g. if you add
+# a cron job or Celery beat running `manage.py update_project_statuses`).
+PROJECT_STATUS_AUTO_SYNC = True
 
 ROOT_URLCONF = 'FelloMarley.urls'
 
@@ -113,11 +122,14 @@ WSGI_APPLICATION = 'FelloMarley.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django-government',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME', 'django-government'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -158,11 +170,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
-MEDIA_URL = '/images/'
-
-STATICFILES_DIRS =[
-    BASE_DIR /'static'
-]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -175,3 +182,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
+
+# Production hardening (enabled automatically when DEBUG is off)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_CONTENT_TYPE_NOSNIFF = True

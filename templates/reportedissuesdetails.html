@@ -1,24 +1,19 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="{ sidebarCollapsed: false, isMobile: window.innerWidth < 1024, mobileSidebarOpen: false, darkMode: false }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Issue Details — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="{ sidebarCollapsed: false, isMobile: window.innerWidth < 1024, mobileSidebarOpen: false, darkMode: false }" class="bg-gray-50/50 text-gray-800 font-sans antialiased">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -27,67 +22,91 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+  <div class="content p-6 max-w-3xl mx-auto space-y-6">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-
-    <div class="container mx-auto max-w-4xl bg-white shadow-lg rounded-lg p-6">
-        <!-- Contact Image -->
-        {% if contdetail.image %}
-        <div class="w-full h-72 bg-gray-200 rounded-lg overflow-hidden shadow-md">
-            <img src="{{ contdetail.image.url }}" alt="{{ contdetail.title }}" class="w-full h-full object-cover">
-        </div>
-        {% endif %}
-
-        <!-- Contact Details -->
-        <div class="mt-6 text-center">
-            <h2 class="text-3xl font-bold text-gray-800">{{ feed.full_name }}</h2>
-            <p class="text-lg text-gray-600 mt-2">{{ feed.email }}</p>
-        </div>
-
-        <!-- Contact Info -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-800">
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-phone text-blue-500 text-xl"></i>
-                <p class="text-lg font-medium">{{ feed.phone_number }}</p>
-            </div>
-            <div class="flex items-start gap-3">
-                <i class="fa-solid fa-envelope text-blue-500 text-xl"></i>
-                <p class="text-lg font-medium">{{ feed.feedback }}</p>
-            </div>
-        </div>
-
-        <!-- Admin Response Form -->
-        <div class="mt-8">
-            <form method="POST" action="">
-                {% csrf_token %}
-                <label class="block text-gray-700 font-bold mb-2">Response Message:</label>
-                <textarea name="response_message" rows="4" required 
-                          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
-                
-                <button type="submit" 
-                        class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition shadow-md">
-                    Send Response
-                </button>
-            </form>
-        </div>
-
-        <!-- Back Button -->
-        <div class="mt-8 flex justify-center">
-            <a href="{% url 'adminview' %}" 
-               class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition shadow-md flex items-center gap-2">
-                <i class="fa-solid fa-arrow-left"></i> Back to Home
-            </a>
-        </div>
+    <!-- ===== HERO BANNER ===== -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-8 shadow-xl border border-white/10">
+      <div class="absolute -right-10 -top-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30 mb-3">
+          <iconify-icon icon="solar:shield-warning-bold" class="text-sm"></iconify-icon>
+          Issue Details
+        </span>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white">{{ issues.title|default:"Untitled Issue" }}</h1>
+        <p class="text-slate-300 text-sm mt-2">Reported on {{ issues.created_at|date:"M d, Y" }}{% if issues.user %} by {{ issues.user.username }}{% endif %}</p>
+      </div>
     </div>
-</div>
-</div>
+
+    <!-- ===== DETAILS CARD ===== -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8 space-y-6">
+
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
+          {% if issues.status == 'resolved' %}bg-emerald-50 text-emerald-600 border border-emerald-200
+          {% elif issues.status == 'investigating' %}bg-blue-50 text-blue-600 border border-blue-200
+          {% elif issues.status == 'dismissed' %}bg-slate-100 text-slate-500 border border-slate-200
+          {% else %}bg-amber-50 text-amber-600 border border-amber-200{% endif %}">
+          {{ issues.get_status_display }}
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
+          {% if issues.severity == 'critical' %}bg-rose-50 text-rose-600 border border-rose-200
+          {% elif issues.severity == 'high' %}bg-orange-50 text-orange-600 border border-orange-200
+          {% elif issues.severity == 'low' %}bg-slate-100 text-slate-500 border border-slate-200
+          {% else %}bg-amber-50 text-amber-600 border border-amber-200{% endif %}">
+          <iconify-icon icon="solar:danger-bold" class="text-xs"></iconify-icon>
+          {{ issues.get_severity_display }} severity
+        </span>
+        {% if issues.project %}
+        <a href="{% url 'project_details' issues.project.id %}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition">
+          <iconify-icon icon="solar:folder-open-bold-duotone" class="text-xs"></iconify-icon>
+          {{ issues.project.project_title }}
+        </a>
+        {% endif %}
+      </div>
+
+      <div>
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Description</h3>
+        <p class="text-slate-700 leading-relaxed whitespace-pre-line">{{ issues.issue_description }}</p>
+      </div>
+
+      {% if issues.evidence %}
+      <div>
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Evidence</h3>
+        <a href="{{ issues.evidence.url }}" target="_blank"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition">
+          <iconify-icon icon="solar:paperclip-bold-duotone" class="text-base text-blue-500"></iconify-icon>
+          View attached evidence
+        </a>
+      </div>
+      {% endif %}
+
+      {% if issues.resolution_notes %}
+      <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
+        <h3 class="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+          <iconify-icon icon="solar:check-circle-bold" class="text-sm"></iconify-icon>
+          Resolution
+        </h3>
+        <p class="text-emerald-800 text-sm leading-relaxed">{{ issues.resolution_notes }}</p>
+      </div>
+      {% endif %}
+
+      <div class="pt-2 border-t border-slate-100">
+        <a href="{% url 'issue_list' %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold transition">
+          <iconify-icon icon="solar:arrow-left-bold" class="text-base"></iconify-icon>
+          Back to all issues
+        </a>
+      </div>
+
+    </div>
+
+  </div>
 </main>
-{% include 'footer.html' %}
-{% endblock %}
+
+{% include "footer.html" %}
+</body>
+</html>

@@ -1,18 +1,18 @@
 {% load static %}
-<!-- ===== PLATFORM FOOTER ===== -->
-<footer class="bg-slate-900 text-gray-300 w-full pt-12 pb-8 mt-12 border-t border-slate-800">
-    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+<!-- ===== PLATFORM FOOTER (theme-aware, sits inside .main content area) ===== -->
+<footer class="mt-12 w-full" :class="{ 'sidebar-collapsed': !isMobile && sidebarCollapsed, 'sidebar-hidden': isMobile }" style="background:var(--footer-bg); color:var(--footer-ink); padding:28px 4px 16px;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
 
         <!-- Column 1: Brand & Mission -->
-        <div class="space-y-4">
-            <a href="{% url 'index' %}" class="flex items-center space-x-3">
-                <img src="{% static 'images/GOK.png' %}" class="h-10 w-auto object-contain" alt="GovTracker Logo" />
-                <span class="text-2xl font-extrabold tracking-tight text-white">GovTracker</span>
+        <div class="space-y-3">
+            <a href="{% url 'index' %}" class="flex items-center gap-3">
+                <img src="{% static 'images/GOK.png' %}" class="h-9 w-auto object-contain" alt="GovTracker Logo" />
+                <span class="text-lg font-extrabold tracking-tight text-white">GovTracker</span>
             </a>
-            <p class="text-xs text-gray-400 leading-relaxed">
+            <p class="text-xs leading-relaxed" style="color:var(--footer-ink-dim);">
                 National Public Works & Infrastructure Project Monitoring Portal. Enhancing transparency, accountability, and citizen participation in government projects.
             </p>
-            <div class="flex items-center space-x-2 text-xs text-gray-400">
+            <div class="flex items-center gap-2 text-xs" style="color:var(--footer-ink-dim);">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span>System Status: <strong class="text-emerald-400">Operational</strong></span>
             </div>
@@ -20,49 +20,49 @@
 
         <!-- Column 2: Core Navigation -->
         <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4">Quick Navigation</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider pb-2 mb-3" style="border-bottom:1px solid rgba(255,255,255,0.1);">Quick Navigation</h3>
             <ul class="space-y-2 text-xs">
-                <li><a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-blue-400 transition">Dashboard & Analytics</a></li>
-                <li><a href="{% url 'projectoverview' %}" class="text-gray-400 hover:text-blue-400 transition">Project Overview</a></li>
-                <li><a href="{% url 'projectstage_list' %}" class="text-gray-400 hover:text-blue-400 transition">Project Stages & Progress</a></li>
-                <li><a href="{% url 'division_details' %}" class="text-gray-400 hover:text-blue-400 transition">Project Divisions</a></li>
-                <li><a href="{% url 'budget_dashboard' %}" class="text-gray-400 hover:text-blue-400 transition">Budget & Financial Tracker</a></li>
-                <li><a href="{% url 'tender_list' %}" class="text-gray-400 hover:text-blue-400 transition">Tenders & Procurement</a></li>
+                <li><a href="{% url 'dashboard' %}" class="footer-link">Dashboard & Analytics</a></li>
+                <li><a href="{% url 'projectoverview' %}" class="footer-link">Project Overview</a></li>
+                <li><a href="{% url 'projectstage_list' %}" class="footer-link">Project Stages & Progress</a></li>
+                <li><a href="{% url 'division_details' %}" class="footer-link">Project Divisions</a></li>
+                <li><a href="{% url 'budget_dashboard' %}" class="footer-link">Budget & Financial Tracker</a></li>
+                <li><a href="{% url 'tender_list' %}" class="footer-link">Tenders & Procurement</a></li>
             </ul>
         </div>
 
         <!-- Column 3: Citizen & Public Services -->
         <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4">Public Services</h3>
+            <h3 class="text-xs font-bold uppercase tracking-wider pb-2 mb-3" style="border-bottom:1px solid rgba(255,255,255,0.1);">Public Services</h3>
             <ul class="space-y-2 text-xs">
-                <li><a href="{% url 'citizen_portal' %}" class="text-gray-400 hover:text-blue-400 transition">Citizen Portal & Submissions</a></li>
-                <li><a href="{% url 'citizen_evidence' %}" class="text-gray-400 hover:text-blue-400 transition">Citizen Verification & Evidence</a></li>
-                <li><a href="{% url 'issue_list' %}" class="text-gray-400 hover:text-blue-400 transition">Report Project Issues</a></li>
-                <li><a href="{% url 'announcements' %}" class="text-gray-400 hover:text-blue-400 transition">Official Announcements</a></li>
-                <li><a href="{% url 'AboutUs' %}" class="text-gray-400 hover:text-blue-400 transition">About Government Tracker</a></li>
-                <li><a href="{% url 'contactus' %}" class="text-gray-400 hover:text-blue-400 transition">Helpdesk & Contact</a></li>
+                <li><a href="{% url 'citizen_portal' %}" class="footer-link">Citizen Portal & Submissions</a></li>
+                <li><a href="{% url 'citizen_evidence' %}" class="footer-link">Citizen Verification & Evidence</a></li>
+                <li><a href="{% url 'issue_list' %}" class="footer-link">Report Project Issues</a></li>
+                <li><a href="{% url 'announcements' %}" class="footer-link">Official Announcements</a></li>
+                <li><a href="{% url 'AboutUs' %}" class="footer-link">About Government Tracker</a></li>
+                <li><a href="{% url 'contactus' %}" class="footer-link">Helpdesk & Contact</a></li>
             </ul>
         </div>
 
         <!-- Column 4: Contact & Social Links -->
         <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2 mb-4">Official Contact</h3>
-            <p class="text-xs text-gray-400 leading-relaxed mb-2">Government Public Information Office</p>
-            <p class="text-xs text-gray-300"><strong>Email:</strong> support@govtracker.go.ke</p>
-            <p class="text-xs text-gray-300"><strong>Toll-Free:</strong> +254 (0) 800 720 000</p>
-            <p class="text-xs text-gray-300"><strong>Address:</strong> Capital Complex, Block B, Nairobi</p>
+            <h3 class="text-xs font-bold uppercase tracking-wider pb-2 mb-3" style="border-bottom:1px solid rgba(255,255,255,0.1);">Official Contact</h3>
+            <p class="text-xs leading-relaxed mb-2" style="color:var(--footer-ink-dim);">Government Public Information Office</p>
+            <p class="text-xs"><strong class="text-white">Email:</strong> support@govtracker.go.ke</p>
+            <p class="text-xs"><strong class="text-white">Toll-Free:</strong> +254 (0) 800 720 000</p>
+            <p class="text-xs"><strong class="text-white">Address:</strong> Capital Complex, Block B, Nairobi</p>
 
-            <div class="mt-4 flex items-center space-x-3 text-lg">
-                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="Facebook">
+            <div class="mt-4 flex items-center gap-2">
+                <a href="#" class="footer-social" title="Facebook">
                     <iconify-icon icon="solar:letter-bold-duotone"></iconify-icon>
                 </a>
-                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="Twitter / X">
+                <a href="#" class="footer-social" title="Twitter / X">
                     <iconify-icon icon="solar:share-bold-duotone"></iconify-icon>
                 </a>
-                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="LinkedIn">
+                <a href="#" class="footer-social" title="LinkedIn">
                     <iconify-icon icon="solar:user-rounded-bold-duotone"></iconify-icon>
                 </a>
-                <a href="#" class="p-2 rounded-lg bg-slate-800 text-gray-400 hover:text-blue-400 hover:bg-slate-700 transition" title="Global Portal">
+                <a href="#" class="footer-social" title="Global Portal">
                     <iconify-icon icon="solar:global-bold-duotone"></iconify-icon>
                 </a>
             </div>
@@ -71,14 +71,13 @@
     </div>
 
     <!-- Bottom Copyright Bar -->
-    <div class="max-w-7xl mx-auto px-6 border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-5 flex flex-col sm:flex-row justify-between items-center text-xs gap-3"
+         style="border-top:1px solid rgba(255,255,255,0.1); color:var(--footer-ink-dim);">
         <p>© {% now "Y" %} Republic Information Portal — GovTracker System. All Rights Reserved.</p>
-        <div class="flex space-x-4">
-            <a href="{% url 'AboutUs' %}" class="hover:text-gray-300 transition">Privacy Policy</a>
-            <span>•</span>
-            <a href="{% url 'contactus' %}" class="hover:text-gray-300 transition">Terms of Use</a>
-            <span>•</span>
-            <a href="{% url 'citizen_portal' %}" class="hover:text-gray-300 transition">Accessibility</a>
+        <div class="flex gap-4">
+            <a href="{% url 'AboutUs' %}" class="footer-link">Privacy Policy</a>
+            <a href="{% url 'contactus' %}" class="footer-link">Terms of Use</a>
+            <a href="{% url 'citizen_portal' %}" class="footer-link">Accessibility</a>
         </div>
     </div>
 </footer>
