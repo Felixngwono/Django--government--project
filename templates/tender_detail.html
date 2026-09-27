@@ -93,10 +93,14 @@
               {{ tender.awarded_to.company|default:tender.awarded_to.name|default:"Awarded Contractor" }}
             </h2>
             <p class="text-xs text-slate-600 mt-1">
-              📍 {{ tender.awarded_to.location|default:"Registered Contractor" }}
+              👤 Awarded to: <span class="font-bold text-slate-800">{{ tender.awarded_to.name|default:tender.awarded_to.company|default:"—" }}</span>
+              &middot; 📍 {{ tender.awarded_to.location|default:"Registered Contractor" }}
               &middot; 📞 {{ tender.awarded_to.phone|default:"Phone available" }}
               &middot; ✉️ {{ tender.awarded_to.email|default:"Email available" }}
             </p>
+            <a href="{% url 'contractor_detail' tender.awarded_to.pk %}" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition">
+              <i class="fa-solid fa-eye"></i> View Contractor Profile
+            </a>
           </div>
         </div>
 
@@ -233,7 +237,7 @@
                   </a>
                   {% endif %}
 
-                  {% if is_officer and tender.status != 'awarded' %}
+                  {% if can_award and tender.status != 'awarded' %}
                   <form method="post" action="{% url 'award_tender' tender.id %}" onsubmit="return confirm('Award tender to {{ app.company_name }}?');">
                     {% csrf_token %}
                     <input type="hidden" name="application_id" value="{{ app.id }}">

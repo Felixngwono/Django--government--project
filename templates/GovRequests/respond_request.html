@@ -1,4 +1,4 @@
-{% extends "heading.html" %}
+?{% extends "heading.html" %}
 {% block content %}
 {% load static %}
 
@@ -35,11 +35,11 @@
           Official Response Form
         </h2>
         <p class="text-sm text-gray-500 mt-1">
-          Post an official government response to Request #{{ request.reference_no|default:request.id }}
+          Post an official government response to Request #{{ gov_request.reference_no|default:gov_request.id }}
         </p>
       </div>
 
-      <a href="{% url 'request_detail' request.id %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition">
+      <a href="{% url 'request_detail' gov_request.id %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition">
         ← Cancel
       </a>
     </div>
@@ -47,11 +47,11 @@
     <!-- Request Summary Card -->
     <div class="bg-blue-50/70 rounded-3xl p-6 border border-blue-100 space-y-2">
       <div class="flex justify-between items-start">
-        <span class="font-mono text-xs font-bold text-blue-700">{{ request.reference_no|default:"REQ" }}</span>
-        <span class="text-xs text-gray-500">Submitted by {{ request.citizen.full_name }}</span>
+        <span class="font-mono text-xs font-bold text-blue-700">{{ gov_request.reference_no|default:"REQ" }}</span>
+        <span class="text-xs text-gray-500">Submitted by {{ gov_request.citizen.full_name }}</span>
       </div>
-      <h3 class="text-lg font-bold text-gray-900">{{ request.title }}</h3>
-      <p class="text-xs text-gray-600 line-clamp-3">{{ request.description }}</p>
+      <h3 class="text-lg font-bold text-gray-900">{{ gov_request.title }}</h3>
+      <p class="text-xs text-gray-600 line-clamp-3">{{ gov_request.description }}</p>
     </div>
 
     <!-- Form Container -->
@@ -65,10 +65,10 @@
             Update Request Status *
           </label>
           <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
-            <option value="in_progress" {% if request.status == 'in_progress' %}selected{% endif %}>Under Investigation / In Progress</option>
-            <option value="responded" {% if request.status == 'responded' %}selected{% endif %}>Responded (Action Pending)</option>
-            <option value="resolved" {% if request.status == 'resolved' %}selected{% endif %}>Resolved (Issue Addressed)</option>
-            <option value="rejected" {% if request.status == 'rejected' %}selected{% endif %}>Rejected / Dismissed</option>
+            <option value="in_progress" {% if gov_request.status == 'in_progress' %}selected{% endif %}>Under Investigation / In Progress</option>
+            <option value="responded" {% if gov_request.status == 'responded' %}selected{% endif %}>Responded (Action Pending)</option>
+            <option value="resolved" {% if gov_request.status == 'resolved' %}selected{% endif %}>Resolved (Issue Addressed)</option>
+            <option value="rejected" {% if gov_request.status == 'rejected' %}selected{% endif %}>Rejected / Dismissed</option>
           </select>
         </div>
 
@@ -79,12 +79,12 @@
           </label>
           <textarea name="official_response" rows="6" required
             class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
-            placeholder="Write clear, formal government findings, actions taken, timeline for resolution, or official determination...">{{ request.official_response|default:"" }}</textarea>
+            placeholder="Write clear, formal government findings, actions taken, timeline for resolution, or official determination...">{{ gov_request.official_response|default:"" }}</textarea>
         </div>
 
         <!-- Buttons -->
         <div class="flex items-center justify-between pt-6 border-t border-gray-100">
-          <a href="{% url 'request_detail' request.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-2xl text-sm transition">
+          <a href="{% url 'request_detail' gov_request.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-2xl text-sm transition">
             Cancel
           </a>
 
@@ -102,3 +102,4 @@
 
 {% include "footer.html" %}
 {% endblock %}
+

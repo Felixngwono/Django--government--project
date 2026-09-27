@@ -38,7 +38,7 @@ class User(AbstractUser):
         ('suspended',  'Suspended'),
     ]
 
-    email               = models.EmailField(unique=True, default=True)
+    email               = models.EmailField(unique=True)
     username            = models.CharField(max_length=20, unique=True)
     name                = models.CharField(max_length=50, null=True)
     role                = models.CharField(max_length=20, choices=ROLE_CHOICES, default='citizen')
@@ -709,7 +709,8 @@ class ContractorRating(models.Model):
 
 class StageReport(models.Model):
     project             = models.ForeignKey(Project, on_delete=models.CASCADE)
-    stage               = models.ForeignKey(ProjectStage, on_delete=models.CASCADE)
+    stage               = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, null=True, blank=True)
+    stage_description   = models.CharField(max_length=255, null=True, blank=True)  # free-text stage entered by contractor
     contractor          = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True, blank=True)
     reported_by         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     description         = models.TextField()
@@ -721,7 +722,8 @@ class StageReport(models.Model):
     created_at          = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.project.project_title} — {self.stage.get_stage_name_display()}"
+        stage_label = self.stage.get_stage_name_display() if self.stage_id else (self.stage_description or 'Stage')
+        return f"{self.project.project_title} — {stage_label}"
 
     def clean(self):
         errors = {}
@@ -729,6 +731,8 @@ class StageReport(models.Model):
             errors['progress_percentage'] = 'Progress must be between 0 and 100.'
         if self.stage_id and self.stage.project_id != self.project_id:
             errors['stage'] = 'Stage must belong to this project.'
+        if not self.stage_id and not self.stage_description:
+            errors['stage_description'] = 'Describe the stage you are working on or have completed.'
         if errors:
             raise ValidationError(errors)
 
@@ -928,6 +932,44 @@ class Participation(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.project.project_title}"
+
+
+class MilestoneStageEvidence(models.Model):
+    """Evidence (images, videos or documents) attached when a project stage
+    or milestone is added. Multiple files of any kind are supported."""
+    FILE_KINDS = [
+        ('image', 'Image'),
+        ('video', 'Video'),
+        ('document', 'Document'),
+    ]
+
+    stage        = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, null=True, blank=True, related_name='evidences')
+    milestone    = models.ForeignKey(Milestone, on_delete=models.CASCADE, null=True, blank=True, related_name='evidences')
+    project      = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='evidences')
+    uploaded_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_evidences')
+    file         = models.FileField(upload_to='milestone_stage_evidence/%Y/%m/')
+    file_kind    = models.CharField(max_length=10, choices=FILE_KINDS, default='image')
+    caption      = models.CharField(max_length=255, null=True, blank=True)
+    uploaded_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+
+    def __str__(self):
+        target = self.stage or self.milestone
+        return f"{self.file_kind}: {self.file.name} for {target or self.project}"
+
+    def save(self, *args, **kwargs):
+        # Infer the file kind from the extension if not set explicitly.
+        if not self.file_kind or self.file_kind == 'image':
+            name = (self.file.name or '').lower()
+            if any(name.endswith(ext) for ext in ('.mp4', '.mov', '.avi', '.mkv', '.webm')):
+                self.file_kind = 'video'
+            elif any(name.endswith(ext) for ext in ('.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.csv')):
+                self.file_kind = 'document'
+            else:
+                self.file_kind = 'image'
+        super().save(*args, **kwargs)
 
 
 class Comment(models.Model):

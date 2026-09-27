@@ -9,11 +9,65 @@ from .models import AuditLog, Notification
 
 
 OFFICER_ROLES = {"official", "admin", "auditor", "manager", "staff"}
+# Only these roles may award a tender to a contractor.
+TENDER_AWARD_ROLES = {"official", "admin"}
 PROJECT_ROLES = OFFICER_ROLES | {"engineer", "architect", "surveyor", "planner"}
 
 
 def has_role(user, roles):
     return user.is_authenticated and (user.is_superuser or user.role in roles)
+
+
+def assigned_projects(user):
+    """Queryset of projects this user is assigned to work on (participant,
+    project manager name match, or assigned contractor). Officers see all."""
+    from django.db.models import Q
+    from .models import Contractor, Participation, Project
+    if not user.is_authenticated:
+        return Project.objects.none()
+    if user.is_superuser or getattr(user, 'role', '') in OFFICER_ROLES:
+        return Project.objects.all()
+    contractor = Contractor.objects.filter(
+        Q(email__iexact=user.email or '__none__') |
+        Q(company__iexact=user.organization or '__none__') |
+        Q(name__iexact=user.organization or '__none__')
+    ).first()
+    q = Q(participation__user=user, participation__is_active=True)
+    if user.full_name:
+        q |= Q(project_manager__iexact=user.full_name.strip())
+    if contractor:
+        q |= Q(contractors=contractor)
+    return Project.objects.filter(q).distinct()
+
+
+def user_assigned_to_project(user, project):
+    """True only if this user is the one working on the given project:
+    listed project manager, the project's assigned contractor (by company
+    name/email match), or an active participant. Superusers/officers are
+    always allowed."""
+    if not user.is_authenticated or project is None:
+        return False
+    if user.is_superuser or getattr(user, 'role', '') in OFFICER_ROLES:
+        return True
+    from .models import Contractor, Participation, Project
+    # Project manager assignment (by name match)
+    if project.project_manager and user.full_name and \
+            user.full_name.strip().lower() == str(project.project_manager).strip().lower():
+        return True
+    # Contractor assigned to this project
+    contractor = Contractor.objects.filter(projects=project).first()
+    if contractor:
+        email = (user.email or '').strip().lower()
+        if email and contractor.email and contractor.email.strip().lower() == email:
+            return True
+        company_or_name = (contractor.company or contractor.name or '').strip().lower()
+        if company_or_name and user.organization and \
+                user.organization.strip().lower() == company_or_name:
+            return True
+    # Active participant on this exact project
+    if Participation.objects.filter(user=user, project=project, is_active=True).exists():
+        return True
+    return False
 
 
 def role_required(*roles):

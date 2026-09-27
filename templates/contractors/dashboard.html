@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -13,6 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
 </head>
@@ -40,7 +41,7 @@
           <h1 class="text-2xl md:text-3xl font-extrabold">Registered Contractors & Awarded Delivery Partners</h1>
           <p class="text-sm text-slate-300 mt-1 max-w-xl">Comprehensive register of verified delivery contractors, awarded project tenders, and stage execution reports.</p>
         </div>
-
+        {% if user.is_superuser or official %}
         <div class="flex flex-wrap items-center gap-2">
           <a href="{% url 'register_contractor' %}" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow transition border border-slate-700 flex items-center gap-2">
             <iconify-icon icon="solar:user-plus-bold"></iconify-icon> + Register Contractor
@@ -49,6 +50,7 @@
             <iconify-icon icon="solar:document-add-bold"></iconify-icon> + Submit Stage Report
           </a>
         </div>
+        {% endif %}
       </div>
     </div>
 
@@ -59,93 +61,107 @@
         Contractor Registry & Awarded Projects
       </h2>
 
-      <div class="grid md:grid-cols-3 gap-5">
-        {% for c in contractors %}
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition flex flex-col justify-between">
-          <div>
-            <div class="flex items-start justify-between gap-2 mb-3">
-              <div class="flex items-center gap-3">
-                {% if c.profile %}
-                <img src="{{ c.profile.url }}" class="w-12 h-12 rounded-full object-cover border-2 border-blue-500" alt="{{ c.name }}">
-                {% else %}
-                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">
-                  {{ c.name|slice:":1"|upper|default:c.company|slice:":1"|upper }}
-                </div>
-                {% endif %}
-                <div>
-                  <h3 class="font-bold text-slate-900 text-base leading-tight">{{ c.company|default:c.name }}</h3>
-                  <p class="text-xs text-slate-500 font-medium">{{ c.name }} &middot; {{ c.category|default:"Class A Contractor" }}</p>
-                </div>
-              </div>
-              {% if c.is_blacklisted %}
-              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-100 text-red-700 uppercase">Blacklisted</span>
-              {% else %}
-              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700 uppercase">Verified</span>
-              {% endif %}
-            </div>
+      <div x-data="{ selected: null }">
 
-            <div class="space-y-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3">
-              <div class="flex items-center gap-1.5">
-                <iconify-icon icon="solar:map-point-bold" class="text-slate-400"></iconify-icon>
-                <span>{{ c.location|default:"National Contractor" }}</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <iconify-icon icon="solar:phone-bold" class="text-slate-400"></iconify-icon>
-                <span>{{ c.phone|default:"Phone available" }}</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <iconify-icon icon="solar:letter-bold" class="text-slate-400"></iconify-icon>
-                <span class="truncate">{{ c.email|default:"Email available" }}</span>
-              </div>
-            </div>
-
-            <!-- Assigned Projects -->
-            <div class="text-xs text-slate-700 mb-2">
-              <p class="font-bold text-slate-800 mb-1 flex items-center gap-1">
-                <iconify-icon icon="solar:folder-open-bold" class="text-blue-600"></iconify-icon> Assigned Projects:
-              </p>
-              <div class="flex flex-wrap gap-1">
-                {% for project in c.projects.all %}
-                <a href="{% url 'project_details' project.id %}" class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-semibold hover:underline">
-                  {{ project.project_title|truncatechars:25 }}
-                </a>
-                {% empty %}
-                <span class="text-slate-400 italic">No assigned project yet</span>
-                {% endfor %}
-              </div>
-            </div>
-
-            <!-- Awarded Tenders -->
-            <div class="text-xs text-slate-700">
-              <p class="font-bold text-slate-800 mb-1 flex items-center gap-1">
-                <iconify-icon icon="solar:medal-ribbon-star-bold" class="text-emerald-600"></iconify-icon> Awarded Tenders:
-              </p>
-              <div class="space-y-1">
-                {% for t in c.awarded_tenders.all %}
-                <div class="bg-emerald-50 text-emerald-800 p-2 rounded-lg border border-emerald-100 flex justify-between items-center">
-                  <span class="font-semibold truncate">{{ t.reference_number }}</span>
-                  <span class="font-bold">KES {{ t.award_amount|floatformat:0|default:t.estimated_budget }}</span>
-                </div>
-                {% empty %}
-                <span class="text-slate-400 italic">No awarded tenders yet</span>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-
-          <div class="pt-3 border-t border-slate-100 mt-4 flex justify-between items-center text-xs">
-            <span class="text-slate-400">Score: <strong class="text-emerald-700 font-extrabold">{{ c.average_rating|default:"4.8" }}/5.0</strong></span>
-            <span class="text-slate-500 font-medium">Reg No: {{ c.registration_no|default:"NCA-REG" }}</span>
-          </div>
+      <!-- TABLE VIEW -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-b border-slate-100">
+              <tr>
+                <th class="px-5 py-3 font-bold">Contractor</th>
+                <th class="px-5 py-3 font-bold">Category</th>
+                <th class="px-5 py-3 font-bold">Location</th>
+                <th class="px-5 py-3 font-bold">Projects</th>
+                <th class="px-5 py-3 font-bold">Awarded Tenders</th>
+                <th class="px-5 py-3 font-bold">Rating</th>
+                <th class="px-5 py-3 font-bold">Status</th>
+                <th class="px-5 py-3 font-bold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for c in contractors %}
+              <tr class="hover:bg-slate-50 transition">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    {% if c.profile %}
+                    <img src="{{ c.profile.url }}" class="w-9 h-9 rounded-full object-cover border-2 border-blue-500" alt="{{ c.name }}">
+                    {% else %}
+                    <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">{{ c.name|slice:":1"|upper|default:c.company|slice:":1"|upper }}</div>
+                    {% endif %}
+                    <div>
+                      <p class="font-bold text-slate-900 leading-tight">{{ c.company|default:c.name }}</p>
+                      <p class="text-xs text-slate-500">{{ c.name|default:"—" }} · {{ c.registration_no|default:"Registration number missing" }}</p>
+                      <p class="text-xs text-slate-500">{{ c.phone|default:"Phone missing" }} · {{ c.email|default:"Email missing" }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-slate-600">{{ c.category|default:"General" }}</td>
+                <td class="px-5 py-3 text-slate-600">{{ c.location|default:"National" }}</td>
+                <td class="px-5 py-3">
+                  <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ c.projects.all|length }}</span>
+                </td>
+                <td class="px-5 py-3">
+                  <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ c.awarded_tenders.all|length }}</span>
+                </td>
+                <td class="px-5 py-3">
+                  <span class="text-amber-500 font-bold">★</span>
+                  <span class="font-bold text-slate-700">{{ c.average_rating|floatformat:1 }}</span>
+                </td>
+                <td class="px-5 py-3">
+                  {% if c.is_blacklisted %}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-100 text-red-700 uppercase">Blacklisted</span>
+                  {% else %}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700 uppercase">Verified</span>
+                  {% endif %}
+                </td>
+                <td class="px-5 py-3 text-right">
+                  <a href="{% url 'contractor_detail' c.id %}" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
+                    <i class="fa-solid fa-eye"></i> View Details
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" class="px-5 py-10 text-center text-slate-500">
+                  <i class="fa-solid fa-users-slash text-3xl text-slate-300 mb-2"></i>
+                  <p class="font-bold text-slate-700">No contractors registered yet.</p>
+                  <p class="text-xs mt-1 text-slate-400">Contractors will automatically appear when tenders are awarded or registered.</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        {% empty %}
-        <div class="col-span-3 bg-white p-10 rounded-2xl text-center text-slate-500 border border-slate-100">
-          <iconify-icon icon="solar:users-group-rounded-bold-duotone" style="font-size:40px;" class="text-slate-300 mb-2"></iconify-icon>
-          <p class="font-bold text-slate-700">No contractors registered yet.</p>
-          <p class="text-xs mt-1 text-slate-400">Contractors will automatically appear when tenders are awarded or registered.</p>
-        </div>
-        {% endfor %}
       </div>
+
+      <!-- MY WORKS (contractor role) -->
+      {% if is_contractor_role %}
+      <div class="mt-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <p class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-helmet-safety text-emerald-600"></i> My Works
+        </p>
+        <div class="flex flex-wrap gap-2">
+          {% for project in con %}
+          <a href="{% url 'contractor_project_works' project.id %}" class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">
+            <i class="fa-solid fa-eye text-[10px] mr-1"></i>{{ project.project_title|truncatechars:30 }}
+          </a>
+          {% empty %}
+          <span class="text-slate-400 italic text-sm">No projects associated with you yet</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ASSIGNED PROJECTS QUICK CHIPS -->
+      <div class="mt-5 flex flex-wrap gap-2">
+        {% for c in contractors %}{% for project in c.projects.all %}
+        <a href="{% url 'project_details' project.id %}" class="bg-white border border-slate-200 hover:border-blue-400 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
+          <i class="fa-solid fa-diagram-project mr-1 text-blue-500"></i>{{ project.project_title|truncatechars:30 }}
+        </a>
+        {% endfor %}{% endfor %}
+      </div>
+
     </div>
 
     <!-- ================= REPORTS ================= -->
@@ -157,7 +173,7 @@
         <div class="border-b py-3">
 
             <p class="font-semibold text-gray-800">
-                {{ r.project.project_title }} → {{ r.stage.get_stage_name_display|default:r.stage.stage_name }}
+                {{ r.project.project_title }} â†’ {% if r.stage %}{{ r.stage.get_stage_name_display|default:r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}
             </p>
 
             <p class="text-sm text-gray-600">
@@ -165,9 +181,9 @@
             </p>
 
             <p class="text-xs text-gray-400">
-                👷 {{ r.contractor.name }}
-                | 📍 {{ r.location }}
-                | 📊 {{ r.progress_percentage }}%
+                ðŸ‘· {{ r.contractor.name }}
+                | ðŸ“ {{ r.location }}
+                | ðŸ“Š {{ r.progress_percentage }}%
             </p>
 
         </div>
@@ -191,36 +207,38 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Submit Stage Report</h2>
             <button @click="openForm = false"
-                class="text-red-500 text-xl">✖</button>
+                class="text-red-500 text-xl">âœ–</button>
         </div>
 
         <!-- FORM -->
         <form method="POST" action="{% url 'submit_stage_report' %}" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
 
-            <!-- PROJECT -->
+            <!-- PROJECT (auto-detected: locked if only one, chooser if multiple) -->
+            {% if con|length == 1 %}{% for p in con %}
+            <label class="block text-xs font-bold uppercase text-gray-500">Project (auto-detected)</label>
+            <input type="hidden" name="project" value="{{ p.id }}">
+            <input type="text" value="{{ p.project_title }}" readonly class="w-full border p-2 rounded bg-gray-100 text-gray-600">
+            {% endfor %}{% else %}
+            <label class="block text-xs font-bold uppercase text-gray-500">Project â€” select the one you're submitting for</label>
             <select name="project" class="w-full border p-2 rounded" required>
                 <option value="">Select Project</option>
                 {% for p in con %}
                 <option value="{{ p.id }}">{{ p.project_title }}</option>
                 {% endfor %}
             </select>
+            {% endif %}
 
-            <!-- STAGE -->
-            <select name="stage" id="stage-select" class="w-full border p-2 rounded" required>
-                <option value="">Select Stage</option>
-                {% for st in stages %}
-              <option value="{{ st.id }}" data-project-id="{{ st.project_id }}">{{ st.stage_name }}</option>
-                {% endfor %}
-            </select>
+            <!-- STAGE (free text â€” contractor types the stage being worked on / completed) -->
+            <input type="text" name="stage_description"
+                   placeholder="Stage you are working on or completed (e.g. Foundation works)"
+                   class="w-full border p-2 rounded"
+                   required>
 
-            <!-- CONTRACTOR -->
-            <select name="contractor" class="w-full border p-2 rounded" required>
-                <option value="">Select Contractor</option>
-                {% for c in contractors %}
-                <option value="{{ c.id }}">{{ c.name }}</option>
-                {% endfor %}
-            </select>
+            <!-- CONTRACTOR (auto-detected = the logged-in user) -->
+            <input type="text" value="{{ contractor_display_name }}" readonly
+                   placeholder="Contractor (auto-detected)"
+                   class="w-full border p-2 rounded bg-gray-100 text-gray-600">
 
             <!-- LOCATION -->
             <input type="text" name="location"
@@ -233,6 +251,10 @@
                    placeholder="Progress %"
                    class="w-full border p-2 rounded"
                    required>
+
+            <!-- PROGRESS PHOTOS (multiple allowed for full justification evidence) -->
+            <input type="file" name="photos" accept="image/*" multiple
+                   class="w-full border p-2 rounded">
 
             <!-- DESCRIPTION -->
             <textarea name="description"
@@ -249,19 +271,6 @@
 
         </form>
 
-        <script>
-          const projectSelect = document.querySelector('select[name="project"]');
-          const stageSelect = document.getElementById('stage-select');
-          const stageOptions = Array.from(stageSelect.options);
-          projectSelect.addEventListener('change', () => {
-            const projectId = projectSelect.value;
-            stageOptions.forEach((option) => {
-              option.hidden = option.value && option.dataset.projectId !== projectId;
-            });
-            stageSelect.value = '';
-          });
-        </script>
-
     </div>
 </div>
 
@@ -276,7 +285,7 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Fill Contractor</h2>
             <button @click="openContractorForm = false"
-                class="text-red-500 text-xl">✖</button>
+                class="text-red-500 text-xl">âœ–</button>
         </div>
 
         <form method="POST" action="" enctype="multipart/form-data" class="space-y-4">
@@ -355,3 +364,4 @@
 </main>
 
 {% include "footer.html" %}
+

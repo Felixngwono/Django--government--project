@@ -10,7 +10,7 @@ from member.ai_services import (
     generate_chatbot_reply,
     triage_issue,
 )
-from member.forms import ReportIssueForm
+from member.forms import MyUserCreationForm, ReportIssueForm
 from member.models import Project, ReportIssue, User, Tender, TenderApplication, Contractor
 
 
@@ -89,6 +89,46 @@ class AIInsightsTest(TestCase):
 
         self.assertIn('500,000.00', reply)
         self.assertEqual(model, 'govtracker-intelligence-v2')
+
+
+class RolePermissionTests(TestCase):
+    def setUp(self):
+        self.citizen = User.objects.create_user(
+            email='citizen-role@example.com', username='citizen-role', password='password123'
+        )
+        self.officer = User.objects.create_user(
+            email='officer-role@example.com', username='officer-role', password='password123', role='official'
+        )
+
+    def test_registration_and_profile_form_do_not_expose_privileged_fields(self):
+        form = MyUserCreationForm()
+        self.assertNotIn('role', form.fields)
+        self.assertNotIn('is_enduser', form.fields)
+
+    def test_citizen_cannot_create_projects_tenders_or_budgets(self):
+        self.client.force_login(self.citizen)
+        for url_name in (
+            'createproject', 'add_tender', 'add_budget', 'add_expense',
+            'generate_report', 'system_reports', 'export_pdf', 'export_excel',
+        ):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertEqual(response.status_code, 403)
+
+    def test_citizen_cannot_edit_another_users_profile(self):
+        other_user = User.objects.create_user(
+            email='another@example.com', username='another-user', password='password123'
+        )
+        self.client.force_login(self.citizen)
+        response = self.client.get(reverse('profile', args=[other_user.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_officer_can_open_staff_workflows(self):
+        self.client.force_login(self.officer)
+        for url_name in ('createproject', 'add_tender', 'add_budget', 'add_expense'):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertEqual(response.status_code, 200)
 
 
 class CitizenEvidenceSubmissionTest(TestCase):

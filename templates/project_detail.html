@@ -25,7 +25,7 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+  <div class="content p-4 md:p-8 space-y-6">
 
     <!-- HERO HEADER CARD -->
     <div class="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-6 md:p-10 shadow-xl border border-slate-800">
@@ -218,6 +218,83 @@
           </div>
         </div>
 
+        <!-- Contractor & Works Record (visible to end users) -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:user-bold-duotone" class="text-emerald-600 text-xl"></iconify-icon>
+            <span>Contractor & Works Record</span>
+          </h2>
+
+          <!-- Assigned contractors -->
+          {% if project_contractors %}
+          <div class="grid sm:grid-cols-2 gap-3">
+            {% for c in project_contractors %}
+            <div class="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+              {% if c.profile %}
+              <img src="{{ c.profile.url }}" class="w-10 h-10 rounded-full object-cover border-2 border-emerald-500" alt="{{ c.name }}">
+              {% else %}
+              <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">{{ c.name|slice:":1"|upper }}</div>
+              {% endif %}
+              <div class="min-w-0">
+                <p class="font-bold text-slate-900 text-sm truncate">{{ c.name }}</p>
+                <p class="text-[11px] text-slate-500 truncate">{{ c.company }}{% if c.phone %} · {{ c.phone }}{% endif %}</p>
+                {% if c.registration_no %}<p class="text-[10px] text-slate-400 font-mono">Reg: {{ c.registration_no }}</p>{% endif %}
+              </div>
+              <div class="ml-auto flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase {% if c.is_blacklisted %}bg-red-100 text-red-700{% else %}bg-emerald-200 text-emerald-800{% endif %}">{% if c.is_blacklisted %}Blacklisted{% else %}Verified{% endif %}</span>
+                {% if c.user %}
+                <a href="/contractor/works/{{ c.user.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold transition shadow-sm" title="View contractor profile & works">
+                  View Details <iconify-icon icon="solar:eye-bold" class="text-xs"></iconify-icon>
+                </a>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% elif project.project_contractor %}
+          <div class="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold"><iconify-icon icon="solar:user-bold"></iconify-icon></div>
+            <div>
+              <p class="font-bold text-slate-900 text-sm">{{ project.project_contractor }}</p>
+              <p class="text-[11px] text-slate-500">Assigned contractor</p>
+            </div>
+          </div>
+          {% else %}
+          <p class="text-xs text-slate-400 italic">No contractor assigned to this project yet.</p>
+          {% endif %}
+
+          <!-- Works done on site -->
+          <div class="pt-3 border-t border-slate-100 space-y-3">
+            <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Works Done on Site ({{ contractor_stage_reports|length }})</h3>
+            {% for r in contractor_stage_reports %}
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div class="flex flex-wrap justify-between items-center gap-2">
+                <span class="font-bold text-slate-900 text-sm">
+                  <iconify-icon icon="solar:hammer-bold" class="text-emerald-600"></iconify-icon>
+                  {% if r.stage %}{{ r.stage.get_stage_name_display|default:r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}
+                </span>
+                <span class="inline-flex items-center gap-1 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black text-[10px]">{{ r.progress_percentage }}% complete</span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">{{ r.description }}</p>
+              <div class="flex flex-wrap items-center gap-3 text-[10px] font-semibold text-slate-400">
+                <span>📍 {{ r.location }}</span>
+                <span>👷 {{ r.contractor.name|default:r.reported_by.full_name|default:r.reported_by.username|default:"Site team" }}</span>
+                <span>🗓 {{ r.created_at|date:"M d, Y" }}</span>
+              </div>
+              {% if r.images.all or r.photo %}
+              <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
+                {% if r.photo %}<a href="{{ r.photo.url }}" target="_blank"><img src="{{ r.photo.url }}" class="h-16 w-full object-cover rounded-lg border border-slate-200" alt="evidence"></a>{% endif %}
+                {% for img in r.images.all %}<a href="{{ img.image.url }}" target="_blank"><img src="{{ img.image.url }}" class="h-16 w-full object-cover rounded-lg border border-slate-200" alt="evidence"></a>{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-xs text-slate-400 italic text-center py-2">No works have been reported on this project yet. The contractor's stage reports and photo evidence will appear here once submitted.</p>
+            {% endfor %}
+          </div>
+        </div>
+        {% if user.is_superuser or contractor %}
+
         <!-- Project Stages & Milestones -->
         <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4" x-data="{ addMilestone: false }">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -244,7 +321,6 @@
               </button>
             </div>
           </div>
-
           <!-- Inline: Add Milestone -->
           <form x-show="addMilestone" x-transition method="post" enctype="multipart/form-data" class="rounded-2xl bg-blue-50/60 border border-blue-200 p-5 space-y-3">
             {% csrf_token %}
@@ -373,6 +449,7 @@
             <p class="text-xs text-slate-400 italic py-4 text-center">No explicit stages or milestones configured yet. Use “Add Milestone” to create the first one.</p>
           {% endif %}
         </div>
+{% endif %}
 
         <!-- Expense Items Table -->
         <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4" x-data="{ addExpense: false }">
@@ -481,19 +558,16 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Media, Issues, Comments -->
-      <div class="space-y-6">
-
-        <!-- Project Media & Documents -->
+        <!-- Media, Official Documents & PDFs -->
         <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
           <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
-            <iconify-icon icon="solar:gallery-bold-duotone" class="text-purple-600 text-xl"></iconify-icon>
-            <span>Media & Documents Vault</span>
+            <iconify-icon icon="solar:folder-bold-duotone" class="text-purple-600 text-xl"></iconify-icon>
+            <span>Media, Documents & PDFs</span>
           </h2>
 
           <!-- Media Images Grid -->
           {% if image_media or project.images %}
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-3 gap-2">
               {% if project.images %}
                 <a href="{{ project.images.url }}" target="_blank" class="block">
                   <img src="{{ project.images.url }}" class="w-full h-24 object-cover rounded-xl border border-slate-200 shadow-xs hover:opacity-90 transition" alt="Primary project image">
@@ -506,14 +580,10 @@
                 </a>
               {% endfor %}
             </div>
-          {% else %}
-            <p class="text-xs text-slate-400 italic text-center py-2">No photo attachments uploaded.</p>
           {% endif %}
 
-          <!-- Documents List -->
           {% if documents or progress_reports %}
-            <div class="pt-2 border-t border-slate-100 space-y-2 text-xs">
-              <span class="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">Official Documents & PDFs</span>
+            <div class="space-y-2 text-xs {% if image_media or project.images %}pt-2 border-t border-slate-100{% endif %}">
               {% for doc in documents %}
                 <a href="{{ doc.file.url }}" target="_blank" class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-purple-50 transition border border-slate-200 text-slate-800 font-semibold line-clamp-1">
                   <iconify-icon icon="solar:document-bold" class="text-purple-600 shrink-0"></iconify-icon>
@@ -527,8 +597,17 @@
                 </a>
               {% endfor %}
             </div>
+          {% else %}
+            {% if not image_media and not project.images %}
+            <p class="text-xs text-slate-400 italic text-center py-2">No media, official documents or reports uploaded yet.</p>
+            {% endif %}
           {% endif %}
         </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Media, Issues, Comments -->
+      <div class="space-y-6">
 
         <!-- Citizen Issues & Risk Signals -->
         <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4" x-data="{ addIssue: false }">

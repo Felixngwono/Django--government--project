@@ -30,7 +30,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
 from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ExpenseInlineForm, FeedbackForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
 from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,ProjectCategory,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ReportIssue,StageReport,StageReportImage,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
-from .workflow import OFFICER_ROLES, audit, has_role, notify, refresh_project_status, role_required
+from .workflow import OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, assigned_projects, audit, has_role, notify, refresh_project_status, role_required, user_assigned_to_project
 
 
 def _send_password_reset_sms(phone_number, otp):
@@ -75,6 +75,8 @@ def get_participants_for_request(request, limit=None):
     return queryset
 
 
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def generate_report(request):
     # Fetch data for reports
     users = User.objects.all()
@@ -113,6 +115,8 @@ def generate_report(request):
 
     return render(request, 'generate_pdf.html', context)
 
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def export_report_pdf(request):
     if pdfkit is None:
         return HttpResponse('PDF export is unavailable. Install pdfkit and wkhtmltopdf.', status=503)
@@ -741,8 +745,9 @@ def registrationpage(request):
 
 @login_required(login_url='login')
 def updateprofile(request,pk):
-
     profiles = get_object_or_404(User, id=pk)
+    if profiles.pk != request.user.pk and not has_role(request.user, OFFICER_ROLES):
+        return HttpResponse('You do not have permission to edit this profile.', status=403)
     form = MyUserCreationForm(instance=profiles)
     if request.method == 'POST':
         form = MyUserCreationForm(request.POST, request.FILES, instance=profiles)
@@ -835,6 +840,7 @@ def feedback(request):
 
 
 @login_required(login_url='login')
+@role_required(*PROJECT_ROLES)
 def CreateProject(request):
     form = ProjectCreationForm()
     if request.method == 'POST':
@@ -866,6 +872,7 @@ def CreateProject(request):
     return render(request, 'project_form.html', context)
 
 @login_required(login_url='login')
+@role_required(*PROJECT_ROLES)
 def updateProject(request,pk):
     project=Project.objects.get(id= pk)
     form= ProjectCreationForm(instance=project)
@@ -914,6 +921,7 @@ def _sync_stage_after_milestone(milestone):
         stage.save()
 
 @login_required(login_url='login')
+@role_required(*PROJECT_ROLES)
 def deleteProject(request, pk):
     project= Project.objects.get(id=pk)
     if request.method== 'POST':
@@ -1932,17 +1940,24 @@ def milestone_create(request):
         form = MilestoneForm(request.POST)
         if form.is_valid():
             milestone_obj = form.save(commit=False)
-            if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
-                milestone_obj.status = 'completed'
-                if not milestone_obj.completion_date:
-                    milestone_obj.completion_date = date.today()
-            milestone_obj.save()
+            # Only the person assigned to this project (or an officer) may add milestones.
+            if not user_assigned_to_project(request.user, milestone_obj.project):
+                form.add_error('project', 'You can only add milestones to a project you are assigned to work on.')
+            else:
+                if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
+                    milestone_obj.status = 'completed'
+                    if not milestone_obj.completion_date:
+                        milestone_obj.completion_date = date.today()
+                milestone_obj.save()
 
-            audit(request, 'created', milestone_obj, project=milestone_obj.project, changes={'title': milestone_obj.title})
-            messages.success(request, f"Milestone '{milestone_obj.title}' created successfully!")
-            return redirect('milestone_list')
+                audit(request, 'created', milestone_obj, project=milestone_obj.project, changes={'title': milestone_obj.title})
+                messages.success(request, f"Milestone '{milestone_obj.title}' created successfully!")
+                return redirect('milestone_list')
     else:
         form = MilestoneForm(initial=initial)
+        # Non-officers can only pick projects they are assigned to work on.
+        if not has_role(request.user, OFFICER_ROLES):
+            form.fields['project'].queryset = assigned_projects(request.user)
 
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
@@ -2194,6 +2209,14 @@ def project_detail(request, pk):
     issues = project.issues.all()
     tenders = project.tenders.all()
 
+    # Documents split into image files (previewable) and file attachments
+    import os
+    IMAGE_EXTS = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
+    image_documents, file_documents = [], []
+    for doc in documents:
+        ext = os.path.splitext(doc.file.name or '')[1].lower()
+        (image_documents if ext in IMAGE_EXTS else file_documents).append(doc)
+
     # Calculate financial metrics
     b_total = float(project.project_Budgeting or 0)
     s_total = float(project.amount_spent or 0)
@@ -2407,6 +2430,14 @@ def project_detail(request, pk):
         'risks': risks,
         'issues': issues,
         'tenders': tenders,
+        # Contractor visibility for end users: every contractor linked to the
+        # project, plus their stage reports as the works record.
+        'project_contractors': project.contractors.all().prefetch_related('documents'),
+        'contractor_stage_reports': StageReport.objects.filter(
+            project=project
+        ).select_related('stage', 'reported_by').prefetch_related('images').order_by('-created_at'),
+        'image_documents': image_documents,
+        'file_documents': file_documents,
         'b_total': b_total,
         's_total': s_total,
         'remaining': remaining,
@@ -2418,6 +2449,67 @@ def project_detail(request, pk):
         'issue_form': IssueInlineForm(),
     }
     return render(request, 'project_detail.html', context)
+
+@login_required(login_url='login')
+def contractor_project_works(request, pk):
+    """Detailed view of one project the logged-in contractor is working on:
+    their assigned stages, submitted works reports with photo evidence, and
+    everything else about the project they are associated with."""
+    project = get_object_or_404(Project, id=pk)
+
+    # Access check: the user must be associated with the project (contractor
+    # role with activity on it, participation, a past report, or being a gov officer).
+    projects_for_user, _detected = _detect_projects_for_user(request.user)
+    is_associated = projects_for_user.filter(id=project.id).exists()
+    is_gov = request.user.is_superuser or (getattr(request.user, 'role', None) in OFFICER_ROLES)
+    if not (is_associated or is_gov):
+        messages.error(request, 'You are not associated with this project.')
+        return redirect('contractor_performance')
+
+    # The contractor's own work record on this project
+    my_reports = StageReport.objects.filter(
+        project=project, reported_by=request.user
+    ).select_related('stage').prefetch_related('images').order_by('-created_at')
+
+    # Everything the project team (any contractor) has reported
+    all_reports = StageReport.objects.filter(
+        project=project
+    ).select_related('stage', 'reported_by').prefetch_related('images').order_by('-created_at')
+
+    stages = project.stages.prefetch_related('milestones').all()
+    milestones = project.milestones.all()
+    issues = project.issues.all()
+    media = project.media.all()
+    image_media = media.filter(media_type='image')
+    documents = project.documents.all()
+    progress_reports = project.progress_reports.all()
+    expenses = project.expenses.all()
+
+    b_total = float(project.project_Budgeting or 0)
+    s_total = float(project.amount_spent or 0)
+
+    my_progress = my_reports.first().progress_percentage if my_reports.exists() else 0
+
+    context = {
+        'project': project,
+        'my_reports': my_reports,
+        'all_reports': all_reports,
+        'stages': stages,
+        'milestones': milestones,
+        'issues': issues,
+        'image_media': image_media,
+        'documents': documents,
+        'progress_reports': progress_reports,
+        'expenses': expenses,
+        'b_total': b_total,
+        's_total': s_total,
+        'remaining': max(0.0, b_total - s_total),
+        'my_progress': my_progress,
+        'contractor_display_name': request.user.full_name,
+        'is_contractor_role': request.user.role == 'contractor',
+    }
+    return render(request, 'contractors/project_works.html', context)
+
 
 # 🔹 Progress Report View
 @login_required(login_url='login')
@@ -2512,6 +2604,7 @@ def tender_detail(request, tender_id):
         'applications': applications,
         'applications_count': applications.count(),
         'is_officer': request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES),
+        'can_award': request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in TENDER_AWARD_ROLES),
     }
     return render(request, 'tender_detail.html', context)
 
@@ -2614,7 +2707,7 @@ def evaluate_tender(request, tender_id):
     })
 
 @login_required(login_url='login')
-@role_required(*OFFICER_ROLES)
+@role_required(*TENDER_AWARD_ROLES)
 def award_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     if request.method != 'POST':
@@ -2647,6 +2740,7 @@ def award_tender(request, tender_id):
                 email=winner.company_email or (winner.applicant.email if winner.applicant else ''),
                 phone=winner.company_phone or '',
                 location=(tender.project.project_location if (tender.project and tender.project.project_location) else 'National'),
+                profile=(winner.applicant.profile if winner.applicant and winner.applicant.profile else None),
             )
 
         if tender.project:
@@ -2667,6 +2761,7 @@ def award_tender(request, tender_id):
 
 # Add a new tender
 @login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def add_tender(request):
     pr = Project.objects.all()
     form = TenderForm(request.POST or None, request.FILES or None)
@@ -2684,6 +2779,7 @@ def add_tender(request):
 
 # Update an existing tender
 @login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def update_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     pr = Project.objects.all()
@@ -2699,6 +2795,7 @@ def update_tender(request, tender_id):
 
 # Delete a tender
 @login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def delete_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     if request.method == "POST":
@@ -2982,13 +3079,20 @@ def ProjectStageCreate(request):
         form = ProjectStageForm(request.POST, request.FILES)
         if form.is_valid():
             stage = form.save(commit=False)
-            stage.sync_status()
-            stage.save()
-            audit(request, 'created', stage, project=stage.project, changes={'stage_name': stage.stage_name})
-            messages.success(request, f"Project stage '{stage.get_stage_name_display()}' created successfully.")
-            return redirect('projectstage_list')
+            # Only the person assigned to this project (or an officer) may add stages.
+            if not user_assigned_to_project(request.user, stage.project):
+                form.add_error('project', 'You can only add stages to a project you are assigned to work on.')
+            else:
+                stage.sync_status()
+                stage.save()
+                audit(request, 'created', stage, project=stage.project, changes={'stage_name': stage.stage_name})
+                messages.success(request, f"Project stage '{stage.get_stage_name_display()}' created successfully.")
+                return redirect('projectstage_list')
     else:
         form = ProjectStageForm(initial=initial)
+        # Non-officers can only pick projects they are assigned to work on.
+        if not has_role(request.user, OFFICER_ROLES):
+            form.fields['project'].queryset = assigned_projects(request.user)
 
     context = {'form': form, 'participants': participants}
     return render(request, 'projectstage_form.html', context)
@@ -3389,8 +3493,53 @@ def submit_issue(request):
 
 
 @login_required(login_url='login')
+def contractor_detail(request, pk):
+    """Full detail page for a single registered contractor: profile, assigned
+    projects, awarded tenders, stage reports, ratings and compliance documents."""
+    contractor = get_object_or_404(
+        Contractor.objects.prefetch_related('projects', 'awarded_tenders',
+                                            'contractorrating_set__project',
+                                            'contractorrating_set__rated_by',
+                                            'documents'),
+        id=pk
+    )
+
+    projects = contractor.projects.all()
+    awarded_tenders = contractor.awarded_tenders.select_related('project').all()
+    ratings = contractor.contractorrating_set.select_related('project', 'rated_by').order_by('-created_at')
+    documents = contractor.documents.order_by('-uploaded_at')
+
+    reports = StageReport.objects.filter(
+        Q(contractor=contractor) |
+        Q(project__in=projects, contractor__isnull=True)
+    ).select_related('project', 'stage', 'reported_by').order_by('-created_at')
+
+    # Simple stats for the header cards
+    total_projects = projects.count()
+    completed_projects = projects.filter(project_status='completed').count()
+    delayed_projects = projects.filter(project_status='delayed').count()
+    ongoing_projects = projects.filter(project_status='ongoing').count()
+    total_awarded = sum(float(t.award_amount or t.estimated_budget or 0) for t in awarded_tenders)
+
+    return render(request, 'contractors/detail.html', {
+        'contractor': contractor,
+        'projects': projects,
+        'awarded_tenders': awarded_tenders,
+        'ratings': ratings,
+        'documents': documents,
+        'reports': reports,
+        'total_projects': total_projects,
+        'completed_projects': completed_projects,
+        'delayed_projects': delayed_projects,
+        'ongoing_projects': ongoing_projects,
+        'total_awarded': total_awarded,
+    })
+
+
+@login_required(login_url='login')
 def contractor_dashboard(request):
-    con = Project.objects.all().prefetch_related('stages')
+    # Contractor identity = the current logged-in user (via their role)
+    con, detected_from_contractor = _detect_projects_for_user(request.user)
     contractors = Contractor.objects.all().prefetch_related('projects', 'awarded_tenders').order_by('-created_at')
     reports = StageReport.objects.select_related('project', 'stage', 'contractor', 'reported_by').all().order_by('-created_at')
     stages = ProjectStage.objects.select_related('project').all()
@@ -3406,11 +3555,15 @@ def contractor_dashboard(request):
         'reports': reports,
         'con': con,
         'stages': stages,
-        'form': form
+        'form': form,
+        'contractor_display_name': request.user.full_name,
+        'is_contractor_role': request.user.role == 'contractor',
+        'detected_from_contractor': detected_from_contractor,
     })
 
 
 @login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def register_contractor(request):
     form = contractorForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
@@ -3420,25 +3573,58 @@ def register_contractor(request):
     return render(request, 'contractors/register.html', {'form': form})
 
 
+def _detect_projects_for_user(user):
+    """Pick the projects the logged-in user is working on, based purely on the user's
+    role and their own activity (tender applications, participations, past reports).
+    The Contractor model is NOT used for identity here."""
+    project_ids = set()
+    # Tenders this user applied for (awarded first) -> the tender's project
+    app_projects = TenderApplication.objects.filter(applicant=user).order_by(
+        'status'
+    ).values_list('tender__project_id', flat=True)
+    project_ids.update(pid for pid in app_projects if pid)
+    # Projects the user participates in
+    project_ids.update(Participation.objects.filter(user=user).values_list('project_id', flat=True))
+    # Projects the user created
+    project_ids.update(Project.objects.filter(created_by=user).values_list('id', flat=True))
+    # Projects the user already reported on
+    project_ids.update(StageReport.objects.filter(reported_by=user).values_list('project_id', flat=True))
+
+    projects = Project.objects.filter(id__in=[pid for pid in project_ids if pid])
+    # For contractor-role users the projects are treated as auto-detected from
+    # their own activity; others just get the same list as a plain choice.
+    return projects, getattr(user, 'role', '') == 'contractor'
+
+
 @login_required(login_url='login')
 def submit_stage_report(request):
-    # Contractors whose logged-in user owns them (match by name or company/email)
-    user = request.user
-    full_name = user.full_name
-    my_contractor = None
-    for c in Contractor.objects.all():
-        if (c.name and c.name.strip().lower() == full_name.strip().lower()) \
-                or (c.email and user.email and c.email.lower() == user.email.lower()) \
-                or (c.name and c.name.strip().lower() == user.username.strip().lower()):
-            my_contractor = c
-            break
+    # Contractor identity = the current logged-in user (via their role).
+    # A StageReport.contractor link is only set if a Contractor record already
+    # happens to match the user — none is ever created or required.
+    my_contractor = Contractor.objects.filter(
+        email__iexact=(request.user.email or '__none__')
+    ).first() or Contractor.objects.filter(
+        name__iexact=(request.user.full_name or '__none__')
+    ).first()
 
     if request.method == "POST":
         try:
             progress_val = request.POST.get('progress') or request.POST.get('progress_percentage') or 0
+            # Free-text stage description (contractor types the stage, not a dropdown choice)
+            stage_description = (request.POST.get('stage_description') or request.POST.get('stage') or '').strip()
+            # Try to match the typed stage to one of the project's stages so progress can sync
+            matched_stage = None
+            project_id = request.POST.get('project')
+            if stage_description and project_id:
+                matched_stage = ProjectStage.objects.filter(
+                    project_id=project_id,
+                    stage_name__iexact=stage_description
+                ).first()
             report = StageReport(
-                project_id=request.POST.get('project'), stage_id=request.POST.get('stage'),
-                contractor_id=request.POST.get('contractor') or (my_contractor.id if my_contractor else None),
+                project_id=project_id,
+                stage=matched_stage,
+                stage_description=stage_description or None,
+                contractor_id=(my_contractor.id if my_contractor else request.POST.get('contractor') or None),
                 reported_by=request.user,
                 description=request.POST.get('description'), progress_percentage=progress_val,
                 location=request.POST.get('location'), photo=request.FILES.get('photo'),
@@ -3458,17 +3644,19 @@ def submit_stage_report(request):
             return redirect('contractor_performance')
         return redirect('contractor_performance')
 
-    # Projects the logged-in contractor is actually working on (pop-up choice, not a full list)
-    if my_contractor:
-        projects = my_contractor.projects.all()
-    else:
-        projects = Project.objects.none()
+    # If the current user's role is 'contractor', the projects come from their own
+    # activity (tenders, participations, past reports). Single = locked; multiple = choose.
+    projects, detected_from_contractor = _detect_projects_for_user(request.user)
+
+    # Auto-detect: preselect the project when the user works on exactly one
+    preselected_project = projects.first() if projects.count() == 1 else None
 
     return render(request, 'contractors/report_form.html', {
         'projects': projects,
-        'stages': ProjectStage.objects.all(),
-        'contractors': Contractor.objects.all(),
-        'my_contractor': my_contractor,
+        'preselected_project': preselected_project,
+        'contractor_display_name': request.user.full_name,
+        'is_contractor_role': request.user.role == 'contractor',
+        'detected_from_contractor': detected_from_contractor,
     })
 
 
@@ -3576,6 +3764,7 @@ def budget_dashboard(request):
 
 
 @login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def add_budget(request):
     if request.method == "POST":
         form = BudgetForm(request.POST, request.FILES)
@@ -3594,6 +3783,7 @@ def add_budget(request):
 
 
 @login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def add_expense(request):
     if request.method == "POST":
         form = ProjectExpenseForm(request.POST, request.FILES)
@@ -3680,9 +3870,19 @@ def my_bids(request):
             Q(company_name__icontains=query)
         )
 
+    total_bids = applications.count()
+    awarded_bids = applications.filter(status='awarded').count()
+    pending_bids = applications.exclude(status__in=['awarded', 'rejected']).count()
+    total_bid_value = sum(float(a.bid_amount or 0) for a in applications)
+
     return render(request, 'My_bids/bids.html', {
         'applications': applications,
         'query': query,
+        'total_bids': total_bids,
+        'total_bids': total_bids,
+        'awarded_bids': awarded_bids,
+        'pending_bids': pending_bids,
+        'total_bid_value': total_bid_value,
     })
 
 
@@ -3791,7 +3991,7 @@ def all_requests(request):
 @login_required(login_url='login')
 def request_detail(request, pk):
     req = get_object_or_404(GovernmentRequest.objects.select_related('citizen', 'assigned_to', 'responded_by'), pk=pk)
-    return render(request, 'GovRequests/request_detail.html', {'request': req})
+    return render(request, 'GovRequests/request_detail.html', {'gov_request': req})
 
 
 @login_required(login_url='login')
@@ -3813,7 +4013,7 @@ def respond_request(request, pk):
         messages.success(request, f"Response saved for Request #{req.reference_no or req.id}.")
         return redirect('request_detail', pk=req.id)
 
-    return render(request, 'GovRequests/respond_request.html', {'request': req})
+    return render(request, 'GovRequests/respond_request.html', {'gov_request': req})
 
 
 @login_required(login_url='login')
@@ -3871,6 +4071,8 @@ def account_settings(request):
     return render(request, 'account_settings.html', {'user': user})
 
 
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def system_reports(request):
     # ── Projects ──
     projects = Project.objects.all()
@@ -4249,6 +4451,8 @@ def system_reports(request):
     return render(request, 'Reports/system_reports.html', context)
 
 
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def export_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="system_report.pdf"'
@@ -4395,6 +4599,8 @@ def export_pdf(request):
     return response
 
 
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def export_excel(request):
     if Workbook is None:
         return HttpResponse('Excel export is unavailable. Install openpyxl.', status=503)

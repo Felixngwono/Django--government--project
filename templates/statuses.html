@@ -197,7 +197,7 @@
           <ul class="space-y-3">
             {% for participant in Participants %}
               <li class="flex items-center gap-3">
-                <img src="{{ participant.profile.url|default:'/static/images/avatar.jpg' }}" alt="" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+                <img src="{{ participant.user.profile.url|default:'/static/images/avatar.jpg' }}" alt="" class="w-9 h-9 rounded-full object-cover border border-gray-200">
                 <div class="min-w-0">
                   <p class="text-sm font-bold text-gray-800 truncate">{{ participant.user.full_name|default:participant.user.username }}</p>
                   <p class="text-xs text-gray-500">{{ participant.created_at|date:"M d, Y" }}</p>

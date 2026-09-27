@@ -1,4 +1,4 @@
-{% extends "heading.html" %}
+?{% extends "heading.html" %}
 {% block content %}
 {% load static %}
 
@@ -33,18 +33,18 @@
         <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
           <a href="{% url 'all_requests' %}" class="hover:text-blue-600 transition">Government Requests</a>
           <span>/</span>
-          <span class="text-gray-800 font-semibold">{{ request.reference_no|default:"Details" }}</span>
+          <span class="text-gray-800 font-semibold">{{ gov_request.reference_no|default:"Details" }}</span>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
-          <span>{{ request.title }}</span>
+          <span>{{ gov_request.title }}</span>
           <span class="text-xs font-mono font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-            {{ request.reference_no|default:"REQ-PENDING" }}
+            {{ gov_request.reference_no|default:"REQ-PENDING" }}
           </span>
         </h2>
       </div>
 
       <div class="flex gap-3">
-        <a href="{% url 'respond_request' request.id %}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-2xl shadow transition">
+        <a href="{% url 'respond_request' gov_request.id %}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-2xl shadow transition">
           Respond to Request
         </a>
         <a href="{% url 'all_requests' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-2xl transition">
@@ -61,15 +61,15 @@
         <div>
           <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Request Description</h3>
           <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-            {{ request.description }}
+            {{ gov_request.description }}
           </p>
         </div>
 
-        {% if request.image %}
+        {% if gov_request.image %}
         <div>
           <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Photographic Evidence</h3>
           <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm max-h-96">
-            <img src="{{ request.image.url }}" alt="Evidence Image" class="w-full h-full object-cover">
+            <img src="{{ gov_request.image.url }}" alt="Evidence Image" class="w-full h-full object-cover">
           </div>
         </div>
         {% endif %}
@@ -81,20 +81,20 @@
             <span>Official Government Response</span>
           </h3>
 
-          {% if request.official_response %}
+          {% if gov_request.official_response %}
           <div class="bg-blue-50/70 rounded-2xl p-5 border border-blue-100 space-y-3">
             <p class="text-xs text-blue-950 leading-relaxed whitespace-pre-line">
-              {{ request.official_response }}
+              {{ gov_request.official_response }}
             </p>
             <div class="text-[11px] text-blue-700 border-t border-blue-200/60 pt-2 flex justify-between items-center">
-              <span>Responded by: <strong>{{ request.responded_by.full_name|default:"Authorized Official" }}</strong></span>
-              <span>{{ request.responded_at|date:"M d, Y @ H:i" }}</span>
+              <span>Responded by: <strong>{{ gov_request.responded_by.full_name|default:"Authorized Official" }}</strong></span>
+              <span>{{ gov_request.responded_at|date:"M d, Y @ H:i" }}</span>
             </div>
           </div>
           {% else %}
           <div class="bg-gray-50 rounded-2xl p-6 text-center border border-gray-200/80 text-gray-400">
             <p class="text-xs font-medium">No official response has been posted for this request yet.</p>
-            <a href="{% url 'respond_request' request.id %}" class="inline-block mt-3 bg-blue-600 text-white font-bold text-xs px-5 py-2 rounded-xl hover:bg-blue-700 transition">
+            <a href="{% url 'respond_request' gov_request.id %}" class="inline-block mt-3 bg-blue-600 text-white font-bold text-xs px-5 py-2 rounded-xl hover:bg-blue-700 transition">
               Post Response Now
             </a>
           </div>
@@ -109,49 +109,49 @@
         <div>
           <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Status</span>
           <span class="inline-block px-3 py-1 rounded-full text-xs font-bold
-            {% if request.status == 'resolved' %}bg-emerald-100 text-emerald-800
-            {% elif request.status == 'responded' %}bg-blue-100 text-blue-800
-            {% elif request.status == 'in_progress' %}bg-amber-100 text-amber-800
-            {% elif request.status == 'rejected' %}bg-rose-100 text-rose-800
+            {% if gov_request.status == 'resolved' %}bg-emerald-100 text-emerald-800
+            {% elif gov_request.status == 'responded' %}bg-blue-100 text-blue-800
+            {% elif gov_request.status == 'in_progress' %}bg-amber-100 text-amber-800
+            {% elif gov_request.status == 'rejected' %}bg-rose-100 text-rose-800
             {% else %}bg-gray-100 text-gray-700{% endif %}">
-            {{ request.get_status_display }}
+            {{ gov_request.get_status_display }}
           </span>
         </div>
 
         <div>
           <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Priority</span>
           <span class="inline-block px-2.5 py-0.5 rounded-lg text-xs font-semibold uppercase
-            {% if request.priority == 'urgent' %}bg-rose-100 text-rose-800
-            {% elif request.priority == 'high' %}bg-amber-100 text-amber-800
+            {% if gov_request.priority == 'urgent' %}bg-rose-100 text-rose-800
+            {% elif gov_request.priority == 'high' %}bg-amber-100 text-amber-800
             {% else %}bg-gray-100 text-gray-700{% endif %}">
-            {{ request.get_priority_display }}
+            {{ gov_request.get_priority_display }}
           </span>
         </div>
 
         <div>
           <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Category</span>
-          <span class="text-sm font-semibold text-gray-800">{{ request.get_category_display }}</span>
+          <span class="text-sm font-semibold text-gray-800">{{ gov_request.get_category_display }}</span>
         </div>
 
         <div>
           <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Location</span>
-          <span class="text-sm font-medium text-gray-700">📍 {{ request.location }}</span>
+          <span class="text-sm font-medium text-gray-700">📍 {{ gov_request.location }}</span>
         </div>
 
         <div class="border-t border-gray-100 pt-3">
           <span class="text-xs font-bold text-gray-400 uppercase block mb-1">Submitted By</span>
-          <p class="text-sm font-bold text-gray-900">{{ request.citizen.full_name }}</p>
-          <p class="text-xs text-gray-400">{{ request.citizen.email }}</p>
+          <p class="text-sm font-bold text-gray-900">{{ gov_request.citizen.full_name }}</p>
+          <p class="text-xs text-gray-400">{{ gov_request.citizen.email }}</p>
         </div>
 
         <div class="border-t border-gray-100 pt-3 text-xs text-gray-400">
-          <p>Created: {{ request.created_at|date:"M d, Y @ H:i" }}</p>
-          <p class="mt-1">Last Updated: {{ request.updated_at|date:"M d, Y @ H:i" }}</p>
+          <p>Created: {{ gov_request.created_at|date:"M d, Y @ H:i" }}</p>
+          <p class="mt-1">Last Updated: {{ gov_request.updated_at|date:"M d, Y @ H:i" }}</p>
         </div>
 
-        {% if request.status != 'closed' %}
+        {% if gov_request.status != 'closed' %}
         <div class="border-t border-gray-100 pt-4">
-          <a href="{% url 'close_request' request.id %}" onclick="return confirm('Mark this request as closed?');"
+          <a href="{% url 'close_request' gov_request.id %}" onclick="return confirm('Mark this request as closed?');"
              class="block w-full bg-gray-100 hover:bg-rose-50 hover:text-rose-700 text-gray-600 font-semibold text-xs py-2.5 rounded-xl text-center transition">
             Mark Request as Closed
           </a>
@@ -166,3 +166,4 @@
 
 {% include "footer.html" %}
 {% endblock %}
+

@@ -14,7 +14,7 @@
       <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <span class="inline-block px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-full uppercase tracking-wider mb-2 border border-blue-500/30">Contractor Proposals</span>
-          <h1 class="text-2xl md:text-3xl font-extrabold">My Bids & Tender Proposals</h1>
+          <h1 class="text-2xl md:text-3xl font-extrabold">My Bids &amp; Tender Proposals</h1>
           <p class="text-sm text-slate-300 mt-1">Manage submitted bids, review evaluation scores, and track contract award outcomes.</p>
         </div>
 
@@ -29,56 +29,120 @@
       </div>
     </div>
 
+    <!-- SUMMARY STATS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Bids</p>
+        <p class="text-2xl font-extrabold text-slate-800"><i class="fa-solid fa-file-invoice text-blue-500 text-lg mr-1"></i>{{ total_bids }}</p>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Awarded</p>
+        <p class="text-2xl font-extrabold text-slate-800"><i class="fa-solid fa-trophy text-emerald-500 text-lg mr-1"></i>{{ awarded_bids }}</p>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pending</p>
+        <p class="text-2xl font-extrabold text-slate-800"><i class="fa-solid fa-hourglass-half text-amber-500 text-lg mr-1"></i>{{ pending_bids }}</p>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Bid Value</p>
+        <p class="text-xl font-extrabold text-slate-800 truncate"><i class="fa-solid fa-sack-dollar text-indigo-600 text-lg mr-1"></i>KES {{ total_bid_value|floatformat:0 }}</p>
+      </div>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+      <form method="get" class="flex gap-3">
+        <div class="relative flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" name="q" value="{{ query }}" placeholder="Search by tender title, reference number or company..."
+                 class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+        </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-sm font-bold shadow transition flex items-center gap-2">
+          <i class="fa-solid fa-filter"></i> Filter
+        </button>
+        {% if query %}
+        <a href="{% url 'my_bids' %}" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-3 rounded-xl text-sm font-bold transition flex items-center gap-2">
+          <i class="fa-solid fa-xmark"></i> Clear
+        </a>
+        {% endif %}
+      </form>
+    </div>
+
     <!-- BIDS GRID -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {% for app in applications %}
-      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition">
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all">
         <div>
-          <div class="flex justify-between items-start gap-2 mb-2">
-            <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">
-              Ref: {{ app.tender.reference_number }}
+          <div class="flex justify-between items-start gap-2 mb-3">
+            <span class="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+              {{ app.tender.reference_number }}
             </span>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold capitalize {% if app.status == 'awarded' %}bg-emerald-100 text-emerald-700{% elif app.status == 'rejected' %}bg-red-100 text-red-700{% elif app.status == 'shortlisted' %}bg-blue-100 text-blue-700{% else %}bg-slate-100 text-slate-700{% endif %}">
-              {{ app.get_status_display }}
-            </span>
+            {% if app.status == 'awarded' %}
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase bg-emerald-100 text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-trophy"></i> Awarded</span>
+            {% elif app.status == 'rejected' %}
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase bg-red-100 text-red-700 flex items-center gap-1"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
+            {% elif app.status == 'shortlisted' %}
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase bg-blue-100 text-blue-700 flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Shortlisted</span>
+            {% else %}
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase bg-slate-100 text-slate-600 flex items-center gap-1"><i class="fa-solid fa-hourglass-half"></i> {{ app.get_status_display }}</span>
+            {% endif %}
           </div>
 
-          <h3 class="font-bold text-slate-900 text-base mb-2 line-clamp-1">
+          <h3 class="font-bold text-slate-900 text-base mb-3 line-clamp-1">
             <a href="{% url 'tender_detail' app.tender.id %}" class="hover:text-blue-600 transition">
               {{ app.tender.title|default:app.tender.reference_number }}
             </a>
           </h3>
 
-          <div class="space-y-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3">
-            <div class="flex justify-between">
-              <span>Contractor Company:</span>
-              <strong class="text-slate-800">{{ app.company_name|default:app.applicant.username }}</strong>
+          <!-- BID AMOUNT HIGHLIGHT -->
+          <div class="flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-xl mb-3">
+            <div>
+              <p class="text-[10px] uppercase tracking-wider font-bold text-blue-200">Bid Amount</p>
+              <p class="text-lg font-extrabold">KES {{ app.bid_amount|floatformat:0 }}</p>
             </div>
-            <div class="flex justify-between">
-              <span>Submitted Bid Amount:</span>
-              <strong class="text-slate-900 text-sm">KES {{ app.bid_amount|floatformat:2 }}</strong>
+            <div class="text-right">
+              <p class="text-[10px] uppercase tracking-wider font-bold text-blue-200">Eval Score</p>
+              <p class="text-lg font-extrabold">{{ app.total_score|floatformat:1 }}%</p>
             </div>
-            <div class="flex justify-between pt-1 border-t border-slate-200">
-              <span>Total Evaluation Score:</span>
-              <strong class="text-purple-700 font-extrabold">{{ app.total_score|floatformat:1 }}%</strong>
+          </div>
+
+          <!-- EVALUATION SCORE BAR -->
+          <div class="mb-3">
+            <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
+              <span>Evaluation Score</span>
+              <span>{{ app.total_score|floatformat:1 }} / 100</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full {% if app.total_score >= 80 %}bg-emerald-500{% elif app.total_score >= 60 %}bg-blue-500{% elif app.total_score >= 40 %}bg-amber-500{% else %}bg-red-500{% endif %}" style="width: {% if app.total_score <= 100 %}{{ app.total_score }}{% else %}100{% endif %}%;"></div>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-building text-slate-400"></i>
+              <span class="font-semibold text-slate-700 truncate">{{ app.company_name|default:app.applicant.username }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-calendar text-slate-400"></i>
+              <span>Submitted {{ app.submitted_at|date:"d M Y" }}</span>
             </div>
           </div>
         </div>
 
-        <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
-          <span class="text-slate-400">Submitted {{ app.submitted_at|date:"d M Y" }}</span>
+        <div class="pt-3 border-t border-slate-100 mt-3 flex justify-between items-center text-xs">
+          <span class="text-slate-400 font-semibold">{{ app.tender.project.project_title|default:"No project"|truncatechars:28 }}</span>
           <a href="{% url 'tender_detail' app.tender.id %}" class="font-bold text-blue-600 hover:underline flex items-center gap-1">
-            View Details &rarr;
+            View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
           </a>
         </div>
       </div>
       {% empty %}
       <div class="col-span-full bg-white p-12 rounded-2xl text-center border border-slate-100">
-        <iconify-icon icon="solar:folder-open-bold-duotone" style="font-size:48px;" class="text-slate-300 mb-3"></iconify-icon>
-        <h3 class="text-lg font-bold text-slate-800">No Bids Submitted Yet</h3>
+        <i class="fa-solid fa-inbox text-5xl text-slate-200 mb-4"></i>
+        <h3 class="text-lg font-bold text-slate-800">{% if query %}No bids match "{{ query }}"{% else %}No Bids Submitted Yet{% endif %}</h3>
         <p class="text-sm text-slate-500 mt-1">Browse open government tenders and submit your competitive bid proposals.</p>
         <a href="{% url 'tender_list' %}" class="inline-block mt-4 bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-700 transition">
-          Browse Open Tenders
+          <i class="fa-solid fa-magnifying-glass mr-1"></i> Browse Open Tenders
         </a>
       </div>
       {% endfor %}

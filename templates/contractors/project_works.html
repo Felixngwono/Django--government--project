@@ -1,0 +1,248 @@
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ project.project_title }} — My Works | GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+
+    <!-- HERO -->
+    <div class="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-6 md:p-8 shadow-xl">
+      <img src="https://images.unsplash.com/photo-1503387762-592deb58f4d5?q=80&w=1400&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="">
+      <div class="relative z-10 space-y-3">
+        <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 border border-white/15 transition">
+          <iconify-icon icon="solar:arrow-left-linear"></iconify-icon> Back to my dashboard
+        </a>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <span class="inline-block px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-full uppercase tracking-wider border border-blue-400/30 mb-2">Contractor Works Record</span>
+            <h1 class="text-2xl md:text-3xl font-extrabold">{{ project.project_title }}</h1>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300 mt-2 font-medium">
+              <span class="flex items-center gap-1.5"><iconify-icon icon="solar:map-point-bold" class="text-blue-400"></iconify-icon>{{ project.project_location|default:"National" }}</span>
+              <span>&bull;</span>
+              <span class="flex items-center gap-1.5"><iconify-icon icon="solar:user-bold" class="text-emerald-400"></iconify-icon>{{ contractor_display_name }}</span>
+              <span>&bull;</span>
+              <span class="flex items-center gap-1.5"><iconify-icon icon="solar:flag-bold" class="text-amber-400"></iconify-icon>{{ project.get_project_status_display|default:project.project_status|title }}</span>
+            </div>
+          </div>
+          <a href="{% url 'submit_stage_report' %}" class="bg-blue-600 hover:bg-blue-500 px-4 py-2.5 rounded-xl text-sm font-bold shadow flex items-center gap-2 self-start">
+            <iconify-icon icon="solar:document-add-bold"></iconify-icon> + Submit Stage Report
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">My Latest Progress</span>
+        <h3 class="text-2xl font-black text-blue-700 font-mono">{{ my_progress }}%</h3>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">My Reports Filed</span>
+        <h3 class="text-2xl font-black text-purple-700 font-mono">{{ my_reports|length }}</h3>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Team Reports (all)</span>
+        <h3 class="text-2xl font-black text-emerald-700 font-mono">{{ all_reports|length }}</h3>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Budget / Spent</span>
+        <h3 class="text-base md:text-lg font-black text-slate-900 font-mono truncate">KES {{ s_total|floatformat:0 }} <span class="text-slate-400 text-xs font-bold">/ {{ b_total|floatformat:0 }}</span></h3>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT: MY WORKS REPORTS -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- MY SUBMITTED WORKS -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:clipboard-check-bold-duotone" class="text-blue-600 text-xl"></iconify-icon>
+            <span>My Works Done ({{ my_reports|length }})</span>
+          </h2>
+
+          {% for r in my_reports %}
+          <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 space-y-2">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+              <span class="font-bold text-slate-900 text-sm">
+                <iconify-icon icon="solar:flag-bold" class="text-blue-600"></iconify-icon>
+                {% if r.stage %}{{ r.stage.get_stage_name_display|default:r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}
+              </span>
+              <span class="text-[10px] font-bold text-slate-500">{{ r.created_at|date:"M d, Y" }}</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">{{ r.description }}</p>
+            <div class="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-500">
+              <span class="inline-flex items-center gap-1 bg-blue-600 text-white px-2 py-0.5 rounded-full font-black">{{ r.progress_percentage }}%</span>
+              <span class="flex items-center gap-1"><iconify-icon icon="solar:map-point-bold"></iconify-icon>{{ r.location }}</span>
+              {% if r.workforce_count %}<span class="flex items-center gap-1"><iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>{{ r.workforce_count }} workers</span>{% endif %}
+            </div>
+            {% if r.images.all or r.photo %}
+            <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
+              {% if r.photo %}<a href="{{ r.photo.url }}" target="_blank"><img src="{{ r.photo.url }}" class="h-16 w-full object-cover rounded-lg border border-slate-200" alt="evidence"></a>{% endif %}
+              {% for img in r.images.all %}<a href="{{ img.image.url }}" target="_blank"><img src="{{ img.image.url }}" class="h-16 w-full object-cover rounded-lg border border-slate-200" alt="evidence"></a>{% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% empty %}
+          <p class="text-xs text-slate-400 italic text-center py-4">You haven't submitted any works on this project yet. Use "Submit Stage Report" to record your first stage.</p>
+          {% endfor %}
+        </div>
+
+        <!-- TEAM REPORTS -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:chat-line-bold-duotone" class="text-emerald-600 text-xl"></iconify-icon>
+            <span>All Works on This Project ({{ all_reports|length }})</span>
+          </h2>
+          {% for r in all_reports %}
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+            <div class="flex flex-wrap justify-between items-center gap-2 text-xs">
+              <span class="font-bold text-slate-800">
+                {% if r.stage %}{{ r.stage.get_stage_name_display|default:r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}
+              </span>
+              <span class="inline-flex items-center gap-1 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black text-[10px]">{{ r.progress_percentage }}%</span>
+            </div>
+            <p class="text-[11px] text-slate-600 line-clamp-2">{{ r.description }}</p>
+            <p class="text-[10px] text-slate-400">Reported by {{ r.reported_by.full_name|default:r.reported_by.username|default:"Site team" }} · {{ r.created_at|date:"M d, Y" }}</p>
+          </div>
+          {% empty %}
+          <p class="text-xs text-slate-400 italic text-center py-4">No works recorded on this project yet.</p>
+          {% endfor %}
+        </div>
+
+        <!-- ASSIGNED STAGES -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:checklist-bold-duotone" class="text-indigo-600 text-xl"></iconify-icon>
+            <span>Project Stages & Milestones</span>
+          </h2>
+          {% for st in stages %}
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                <iconify-icon icon="solar:flag-bold" class="text-indigo-600"></iconify-icon>
+                {{ st.get_stage_name_display|default:st.stage_name }}
+              </span>
+              <span class="text-[10px] font-mono font-bold text-slate-500">{{ st.progress_percentage|default:0 }}%</span>
+            </div>
+            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-indigo-500 h-1.5 rounded-full" style="width: {{ st.progress_percentage|default:0 }}%"></div>
+            </div>
+            {% if st.milestones.all %}
+            <div class="pl-4 space-y-1 border-l-2 border-slate-300 mt-2 text-[11px]">
+              {% for m in st.milestones.all %}
+              <div class="flex justify-between text-slate-600">
+                <span class="font-semibold">{{ m.title }}</span>
+                <span class="font-mono text-slate-400">{{ m.progress_percentage|default:0 }}% · {{ m.get_status_display|default:m.status }}</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% empty %}
+          <p class="text-xs text-slate-400 italic text-center py-4">No stages configured for this project yet.</p>
+          {% endfor %}
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="space-y-6">
+
+        <!-- PROJECT FACTS -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-3">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:info-circle-bold-duotone" class="text-blue-600 text-xl"></iconify-icon>
+            <span>Project Facts</span>
+          </h2>
+          <div class="text-xs space-y-2 text-slate-600">
+            <div class="flex justify-between"><span class="font-bold text-slate-400 uppercase text-[10px]">Status</span><span class="font-bold">{{ project.get_project_status_display|default:project.project_status|title }}</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-400 uppercase text-[10px]">Location</span><span class="font-semibold">{{ project.project_location|default:"National" }}</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-400 uppercase text-[10px]">Agency</span><span class="font-semibold">{{ project.implementing_agency|default:"Public Works" }}</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-400 uppercase text-[10px]">Budget</span><span class="font-semibold font-mono">KES {{ b_total|floatformat:0 }}</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-400 uppercase text-[10px]">Spent</span><span class="font-semibold font-mono">KES {{ s_total|floatformat:0 }}</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-400 uppercase text-[10px]">Start</span><span class="font-semibold">{{ project.start_date|date:"d M Y"|default:"—" }}</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-400 uppercase text-[10px]">Deadline</span><span class="font-semibold">{{ project.end_date|date:"d M Y"|default:"—" }}</span></div>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed pt-2 border-t border-slate-100">{{ project.project_description|truncatechars:320|default:"No description provided." }}</p>
+        </div>
+
+        <!-- SITE ISSUES -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-3">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:shield-warning-bold-duotone" class="text-amber-500 text-xl"></iconify-icon>
+            <span>Site Issues & Risks ({{ issues|length }})</span>
+          </h2>
+          {% for iss in issues %}
+          <div class="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-[11px] space-y-1">
+            <div class="flex justify-between items-center gap-2">
+              <span class="font-bold text-slate-900">{{ iss.title }}</span>
+              <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-amber-200 text-amber-800">{{ iss.severity|default:"Moderate" }}</span>
+            </div>
+            <p class="text-slate-600">{{ iss.issue_description|truncatechars:140 }}</p>
+          </div>
+          {% empty %}
+          <p class="text-xs text-slate-400 italic text-center py-2">No issues logged.</p>
+          {% endfor %}
+        </div>
+
+        <!-- MEDIA & DOCUMENTS -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-3">
+          <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <iconify-icon icon="solar:gallery-bold-duotone" class="text-purple-600 text-xl"></iconify-icon>
+            <span>Media & Documents</span>
+          </h2>
+          {% if image_media %}
+          <div class="grid grid-cols-3 gap-2">
+            {% for m in image_media %}<a href="{{ m.file.url }}" target="_blank"><img src="{{ m.file.url }}" class="h-20 w-full object-cover rounded-lg border border-slate-200" alt="media"></a>{% endfor %}
+          </div>
+          {% endif %}
+          {% if documents %}
+          <div class="space-y-1.5 text-xs pt-2">
+            {% for d in documents %}<a href="{{ d.file.url }}" target="_blank" class="flex items-center gap-2 p-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-900 font-semibold"><iconify-icon icon="solar:file-text-bold" class="text-indigo-600"></iconify-icon><span class="truncate">{{ d.title|default:"Document" }}</span></a>{% endfor %}
+          </div>
+          {% endif %}
+          {% if progress_reports %}
+          <div class="space-y-1.5 text-xs">
+            {% for pr in progress_reports %}<a href="{{ pr.report_file.url }}" target="_blank" class="flex items-center gap-2 p-2 rounded-xl bg-purple-50 border border-purple-100 text-purple-900 font-semibold"><iconify-icon icon="solar:file-text-bold" class="text-purple-600"></iconify-icon><span class="truncate">{{ pr.report_title|default:"Progress Report" }}</span></a>{% endfor %}
+          </div>
+          {% endif %}
+          {% if not image_media and not documents and not progress_reports %}
+          <p class="text-xs text-slate-400 italic text-center py-2">No media or documents yet.</p>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+{% include "footer.html" %}
+</body>
+</html>

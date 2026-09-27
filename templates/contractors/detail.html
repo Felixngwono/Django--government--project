@@ -1,0 +1,336 @@
+{% load static %}
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ contractor.company|default:contractor.name }} — GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<div class="max-w-6xl mx-auto space-y-6 p-4">
+
+    <!-- BACK LINK -->
+    <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition">
+        <i class="fa-solid fa-arrow-left"></i> Back to Contractor Registry
+    </a>
+
+    <!-- HERO PROFILE CARD -->
+    <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
+        <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-5">
+            {% if contractor.profile %}
+            <img src="{{ contractor.profile.url }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-white/20 shadow-lg" alt="{{ contractor.company|default:contractor.name }}">
+            {% else %}
+            <div class="w-20 h-20 rounded-2xl bg-blue-600 flex items-center justify-center font-extrabold text-3xl border-4 border-white/20 shadow-lg">
+                {{ contractor.company|default:contractor.name|slice:":1"|upper }}
+            </div>
+            {% endif %}
+            <div class="flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full uppercase tracking-wider border border-emerald-500/30">Contractor Profile</span>
+                    {% if contractor.is_blacklisted %}
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-red-500/20 text-red-300 uppercase border border-red-500/30">Blacklisted</span>
+                    {% else %}
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/20 text-emerald-300 uppercase border border-emerald-500/30">Verified</span>
+                    {% endif %}
+                </div>
+                <h1 class="text-2xl md:text-3xl font-extrabold">{{ contractor.company|default:contractor.name }}</h1>
+                <p class="text-sm text-slate-300 mt-1">
+                    {{ contractor.name|default:"—" }} &middot; {{ contractor.category|default:"Category missing" }} &middot; Reg No: {{ contractor.registration_no|default:"Not provided" }}
+                </p>
+            </div>
+            <div class="text-center bg-white/10 backdrop-blur rounded-2xl px-6 py-4 border border-white/10">
+                <p class="text-3xl font-extrabold text-amber-400"><i class="fa-solid fa-star text-xl"></i> {{ contractor.average_rating|floatformat:1 }}</p>
+                <p class="text-xs text-slate-300 font-semibold mt-1">Performance Score</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Projects</p>
+            <p class="text-2xl font-extrabold text-slate-800"><i class="fa-solid fa-diagram-project text-blue-500 text-lg mr-1"></i>{{ total_projects }}</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Ongoing</p>
+            <p class="text-2xl font-extrabold text-slate-800"><i class="fa-solid fa-spinner text-amber-500 text-lg mr-1"></i>{{ ongoing_projects }}</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Completed</p>
+            <p class="text-2xl font-extrabold text-slate-800"><i class="fa-solid fa-circle-check text-emerald-500 text-lg mr-1"></i>{{ completed_projects }}</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Awarded Value</p>
+            <p class="text-xl font-extrabold text-slate-800 truncate"><i class="fa-solid fa-sack-dollar text-emerald-600 text-lg mr-1"></i>KES {{ total_awarded|floatformat:0 }}</p>
+        </div>
+    </div>
+
+    <!-- CONTACT + BLACKLIST INFO -->
+    <div class="grid md:grid-cols-3 gap-5">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 md:col-span-2">
+            <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-address-card text-blue-600"></i> Contact Information
+            </h2>
+            <div class="grid sm:grid-cols-2 gap-3 text-sm">
+                <div class="bg-slate-50 p-3 rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-phone text-blue-600"></i>
+                    <span class="text-slate-700 font-semibold">{{ contractor.phone|default:"—" }}</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-envelope text-blue-600"></i>
+                    <span class="text-slate-700 font-semibold truncate">{{ contractor.email|default:"—" }}</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-blue-600"></i>
+                    <span class="text-slate-700 font-semibold">{{ contractor.location|default:"Not provided" }}</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-blue-600"></i>
+                    <span class="text-slate-700 font-semibold">{{ contractor.registration_no|default:"Not provided" }}</span>
+                </div>
+            </div>
+            {% if contractor.is_blacklisted and contractor.blacklist_reason %}
+            <div class="mt-4 bg-red-50 border border-red-100 p-4 rounded-xl flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-red-600 mt-0.5"></i>
+                <div>
+                    <p class="text-sm font-bold text-red-700">Blacklisted</p>
+                    <p class="text-xs text-red-600 mt-0.5">{{ contractor.blacklist_reason }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- QUICK FACTS -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clock text-blue-600"></i> Registered
+            </h2>
+            <p class="text-sm text-slate-600">{{ contractor.created_at|date:"M d, Y" }}</p>
+            <div class="mt-4 space-y-2">
+                <a href="{% url 'submit_stage_report' %}" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow transition w-full">
+                    <i class="fa-solid fa-file-circle-plus"></i> Stage Report
+                </a>
+                <a href="{% url 'register_contractor' %}" class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition w-full">
+                    <i class="fa-solid fa-user-pen"></i> Manage Registry
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASSIGNED PROJECTS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-5 pb-3 flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-diagram-project text-blue-600"></i> Assigned Projects
+                <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ projects|length }}</span>
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-y border-slate-100">
+                    <tr>
+                        <th class="px-5 py-3 font-bold">Project</th>
+                        <th class="px-5 py-3 font-bold">Status</th>
+                        <th class="px-5 py-3 font-bold">Location</th>
+                        <th class="px-5 py-3 font-bold text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for p in projects %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-5 py-3 font-bold text-slate-800">{{ p.project_title|truncatechars:50 }}</td>
+                        <td class="px-5 py-3">
+                            {% if p.project_status == 'completed' %}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700 uppercase">Completed</span>
+                            {% elif p.project_status == 'delayed' %}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-red-100 text-red-700 uppercase">Delayed</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-700 uppercase">{{ p.project_status|default:"Active" }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3 text-slate-600">{{ p.project_location|default:"—" }}</td>
+                        <td class="px-5 py-3 text-right">
+                            <a href="{% url 'project_details' p.id %}" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                <i class="fa-solid fa-eye"></i> Open
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400 italic">No projects assigned to this contractor yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- AWARDED TENDERS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-5 pb-3 flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-medal text-emerald-600"></i> Awarded Tenders
+                <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ awarded_tenders|length }}</span>
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-y border-slate-100">
+                    <tr>
+                        <th class="px-5 py-3 font-bold">Reference</th>
+                        <th class="px-5 py-3 font-bold">Award Amount</th>
+                        <th class="px-5 py-3 font-bold">Award Date</th>
+                        <th class="px-5 py-3 font-bold text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for t in awarded_tenders %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-5 py-3 font-bold text-slate-800">{{ t.reference_number }}</td>
+                        <td class="px-5 py-3 text-slate-700 font-semibold">KES {{ t.award_amount|floatformat:0|default:t.estimated_budget|floatformat:0 }}</td>
+                        <td class="px-5 py-3 text-slate-600">{{ t.award_date|date:"M d, Y"|default:"—" }}</td>
+                        <td class="px-5 py-3 text-right">
+                            <a href="{% url 'tender_detail' t.id %}" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                <i class="fa-solid fa-eye"></i> Open
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400 italic">No awarded tenders yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- STAGE REPORTS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-5 pb-3">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-file-lines text-blue-600"></i> Stage Reports
+                <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ reports|length }}</span>
+            </h2>
+        </div>
+        <div class="divide-y divide-slate-100">
+            {% for r in reports %}
+            <div class="p-5 hover:bg-slate-50 transition">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                    <p class="font-bold text-slate-800 text-sm">
+                        {{ r.project.project_title|truncatechars:45 }}
+                        <span class="text-slate-300 mx-1">→</span>
+                        <span class="text-blue-700">{% if r.stage %}{{ r.stage.get_stage_name_display|default:r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}</span>
+                    </p>
+                    <span class="text-xs text-slate-400 font-semibold">{{ r.created_at|date:"M d, Y" }}</span>
+                </div>
+                <p class="text-sm text-slate-600">{{ r.description|truncatechars:160 }}</p>
+                <div class="mt-2 flex items-center gap-3 text-xs text-slate-500 font-semibold">
+                    <span><i class="fa-solid fa-location-dot mr-1"></i>{{ r.location }}</span>
+                    <span><i class="fa-solid fa-chart-simple mr-1"></i>{{ r.progress_percentage }}% progress</span>
+                    <div class="flex-1 max-w-[180px] h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 rounded-full" style="width: {{ r.progress_percentage }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center text-slate-400 italic">No stage reports submitted by this contractor yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RATINGS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-5 pb-3">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-star text-amber-500"></i> Performance Ratings
+                <span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ ratings|length }}</span>
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-y border-slate-100">
+                    <tr>
+                        <th class="px-5 py-3 font-bold">Project</th>
+                        <th class="px-5 py-3 font-bold">Quality</th>
+                        <th class="px-5 py-3 font-bold">Speed</th>
+                        <th class="px-5 py-3 font-bold">Compliance</th>
+                        <th class="px-5 py-3 font-bold">Average</th>
+                        <th class="px-5 py-3 font-bold">Rated By</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for r in ratings %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-5 py-3 font-bold text-slate-800">{{ r.project.project_title|truncatechars:40 }}</td>
+                        <td class="px-5 py-3 text-slate-600">{{ r.quality_score }}</td>
+                        <td class="px-5 py-3 text-slate-600">{{ r.speed_score }}</td>
+                        <td class="px-5 py-3 text-slate-600">{{ r.compliance_score }}</td>
+                        <td class="px-5 py-3"><span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-extrabold text-xs">{{ r.average_score }}</span></td>
+                        <td class="px-5 py-3 text-slate-600">{{ r.rated_by.full_name|default:r.rated_by.username|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">No ratings recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- COMPLIANCE DOCUMENTS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-5 pb-3">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-folder-open text-blue-600"></i> Compliance Documents
+                <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold text-xs">{{ documents|length }}</span>
+            </h2>
+        </div>
+        <div class="divide-y divide-slate-100">
+            {% for d in documents %}
+            <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i class="fa-solid fa-file-shield"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">{{ d.get_doc_type_display }}</p>
+                        <p class="text-xs text-slate-500">
+                            Uploaded {{ d.uploaded_at|date:"M d, Y" }}
+                            {% if d.expiry_date %} · Expires <span class="{% if d.expiry_date < d.uploaded_at %}text-red-600 font-bold{% endif %}">{{ d.expiry_date|date:"M d, Y" }}</span>{% endif %}
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ d.file.url }}" target="_blank" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                    <i class="fa-solid fa-download"></i> Download
+                </a>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center text-slate-400 italic">No compliance documents uploaded.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+</main>
+
+{% include "footer.html" %}
+</body>
+</html>

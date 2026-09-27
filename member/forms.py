@@ -9,7 +9,19 @@ class MyUserCreationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['name', 'username', 'email', 'phone_number', 'role', 'bio', 'profile', 'is_enduser']
+        # Publicly selectable roles. Privileged roles (admin, staff, official,
+        # auditor, manager) are assigned internally only -- never at signup.
+        SAFE_ROLE_CHOICES = [
+            ('citizen',    'Citizen'),
+            ('contractor', 'Contractor'),
+            ('engineer',   'Engineer'),
+            ('architect',  'Architect'),
+            ('surveyor',   'Surveyor'),
+            ('planner',    'Urban Planner'),
+            ('developer',  'Software Developer'),
+            ('analyst',    'Data Analyst'),
+        ]
+        fields = ['name', 'username', 'email', 'role', 'phone_number', 'bio', 'profile', 'is_enduser']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
@@ -21,7 +33,7 @@ class MyUserCreationForm(UserCreationForm):
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
-                'placeholder': 'name@example.com'
+                'placeholder': 'Enter email or email@gmail.com'
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
@@ -42,6 +54,11 @@ class MyUserCreationForm(UserCreationForm):
                 'class': 'h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'role' in self.fields:
+            self.fields['role'].choices = self.Meta.SAFE_ROLE_CHOICES
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
@@ -551,9 +568,25 @@ class ProjectExpenseForm(forms.ModelForm):
 
 
 class contractorForm(forms.ModelForm):
+    name = forms.CharField(required=True, label='Contact person')
+    company = forms.CharField(required=True, label='Company name')
+    phone = forms.CharField(required=True, label='Phone number')
+    email = forms.EmailField(required=True, label='Business email')
+    location = forms.CharField(required=True, label='Business location')
+    profile = forms.ImageField(
+        required=True,
+        label='Identification photo or company logo',
+        help_text='Upload a clear face photo or company logo for the registry.',
+    )
+    registration_no = forms.CharField(required=True, label='Registration number')
+    category = forms.CharField(required=True, label='Contractor category')
+
     class Meta:
         model = Contractor
-        fields = '__all__'
+        fields = [
+            'profile', 'company', 'name', 'registration_no', 'category',
+            'phone', 'email', 'location',
+        ]
 
 
 class GovernmentRequestForm(forms.ModelForm):
