@@ -358,11 +358,15 @@ class CommentForm(forms.ModelForm):
 
 
 class MilestoneInlineForm(forms.ModelForm):
-    """Compact milestone form for inline use on the project details page."""
+    """Compact milestone form for inline use on the project details page.
+
+    Sticks strictly to the Milestone model fields. The official picks the
+    stage manually from the stages that belong to this project."""
 
     def __init__(self, *args, project=None, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only allow stages that belong to the current project.
+        # Only allow stages that belong to the current project — the official
+        # chooses manually from stages they added themselves.
         if project is not None:
             self.fields['stage'].queryset = project.stages.all()
 
@@ -370,7 +374,10 @@ class MilestoneInlineForm(forms.ModelForm):
         model = Milestone
         fields = ['stage', 'title', 'description', 'due_date', 'progress_percentage', 'status']
         widgets = {
-            'stage': forms.Select(attrs={'class': INLINE_INPUT_CLASSES}),
+            'stage': forms.Select(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'Select the stage this milestone belongs to',
+            }),
             'title': forms.TextInput(attrs={
                 'class': INLINE_INPUT_CLASSES,
                 'placeholder': 'e.g. Environmental Impact Assessment Completed',
@@ -487,6 +494,36 @@ class ProjectStageForm(forms.ModelForm):
             'order': forms.NumberInput(attrs={'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs', 'min': 0}),
             'is_current': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500'}),
         }
+
+class ProjectStageInlineForm(forms.ModelForm):
+    """Manual stage form used on the project details page.
+    The official/contractor responsible for the project types in exactly the
+    stage they want — no auto-filled roadmap is created for them."""
+    class Meta:
+        model = ProjectStage
+        fields = ['stage_name', 'description', 'start_date', 'end_date',
+                  'progress_percentage', 'status', 'is_current', 'order']
+        widgets = {
+            # Free text: the contractor types the exact stage they are working
+            # on. Nothing is restricted to preset options.
+            'stage_name': forms.TextInput(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'e.g. Roofing works, Block C — type the exact stage you are on',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': INLINE_INPUT_CLASSES, 'rows': 3,
+                'placeholder': 'Scope of this stage, key activities and deliverables...',
+            }),
+            'start_date': forms.DateInput(attrs={'class': INLINE_INPUT_CLASSES, 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': INLINE_INPUT_CLASSES, 'type': 'date'}),
+            'progress_percentage': forms.NumberInput(attrs={
+                'class': INLINE_INPUT_CLASSES, 'min': 0, 'max': 100, 'placeholder': '0 - 100',
+            }),
+            'status': forms.Select(attrs={'class': INLINE_INPUT_CLASSES}),
+            'order': forms.NumberInput(attrs={'class': INLINE_INPUT_CLASSES, 'min': 0}),
+            'is_current': forms.CheckboxInput(attrs={'class': 'w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500'}),
+        }
+
 
 class ProgramFundingForm(forms.ModelForm):
     class Meta:

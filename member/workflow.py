@@ -11,6 +11,8 @@ from .models import AuditLog, Notification
 OFFICER_ROLES = {"official", "admin", "auditor", "manager", "staff"}
 # Only these roles may award a tender to a contractor.
 TENDER_AWARD_ROLES = {"official", "admin"}
+# Only admins (plus Django superusers) may permanently delete a project.
+DELETE_ROLES = {"admin"}
 PROJECT_ROLES = OFFICER_ROLES | {"engineer", "architect", "surveyor", "planner"}
 
 
@@ -125,6 +127,25 @@ from .models import Project, ProjectStage
 # Manual states that must never be overwritten automatically.
 TERMINAL_STATUSES = {"completed", "cancelled"}
 
+# Lifecycle rank: statuses may only move forward along this chain (higher rank
+# wins) until the project reaches 'completed'. That is what keeps every change
+# flowing from the initial point to the final one, never backwards.
+STATUS_RANK = {
+    "draft": 0,
+    "upcoming": 1,
+    "ongoing": 2,
+    "stalled": 3,
+    "suspended": 3,
+    "delayed": 3,
+    "completed": 4,
+    "cancelled": 4,
+}
+
+
+def is_forward_transition(old_status, new_status):
+    """True when new_status is at least as far along the lifecycle as old_status."""
+    return STATUS_RANK.get(new_status, 0) >= STATUS_RANK.get(old_status or "draft", 0)
+
 # Statuses that mean "work is paused" — the engine won't move them forward
 # on progress alone, but a completion signal still wins.
 PAUSED_STATUSES = {"suspended", "stalled"}
@@ -205,13 +226,26 @@ def compute_status(project):
 
 
 def apply_status_change(project, new_status, actor=None, source="auto"):
-    """Set the status and keep dependent fields consistent (dates, remarks)."""
+    """Set the status and keep dependent fields consistent (dates, remarks).
+
+    Transitions are forward-only (draft → upcoming → ongoing → delayed →
+    completed). A project stays open to change until it reaches the completed
+    status; after that the automatic engine never moves it again. Every change
+    is recorded in ProjectStatusHistory so the statuses page can display the
+    full path the project has taken.
+    """
     old_status = project.project_status
     if new_status == old_status:
         return False
 
     # Automatic transitions must never override a manually-set terminal state.
     if source == "auto" and old_status in TERMINAL_STATUSES and new_status not in TERMINAL_STATUSES:
+        return False
+
+    # Lifecycle rule: statuses only move from the initial point towards the
+    # final one. Auto moves must never go backwards; only a manual action by
+    # an authorised person can step back (e.g. reopening a wrongly closed bid).
+    if source == "auto" and not is_forward_transition(old_status, new_status):
         return False
 
     project.project_status = new_status
@@ -241,6 +275,16 @@ def apply_status_change(project, new_status, actor=None, source="auto"):
         object_id=project.pk,
         project=project,
         changes={"source": source, "old_status": old_status, "new_status": new_status},
+    )
+
+    # History trail — one row per transition, in order.
+    from .models import ProjectStatusHistory
+    ProjectStatusHistory.objects.create(
+        project=project,
+        from_status=old_status,
+        to_status=new_status,
+        source=source,
+        changed_by=actor,
     )
     return True
 

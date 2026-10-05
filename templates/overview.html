@@ -363,11 +363,11 @@
                     <a href="{% url 'project_details' project.id %}" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition" title="View Details">
                       <iconify-icon icon="solar:eye-bold" class="text-sm"></iconify-icon>
                     </a>
-                    {% if request.user.is_superuser %}
+                    {% if request.user.is_superuser or request.user.role == 'admin' %}
                     <a href="{% url 'update' project.id %}" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-lg transition" title="Edit">
                       <iconify-icon icon="solar:pen-bold" class="text-sm"></iconify-icon>
                     </a>
-                    <a href="{% url 'delete' project.id %}" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition" title="Delete">
+                    <a href="{% url 'delete' project.id %}" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition" title="Delete (admin only)">
                       <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
                     </a>
                     {% endif %}

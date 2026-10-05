@@ -1,0 +1,99 @@
+﻿.\myvenv\Scripts\python.exe : Creating test database for alias 'default'...
+At line:1 char:107
++ ... ing]::UTF8; .\myvenv\Scripts\python.exe -W ignore manage.py test memb ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Creating test d...as 'default'...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Found 48 test(s).
+System check identified no issues (0 silenced).
+.......E.....F................F..E..E.....F.....
+======================================================================
+ERROR: test_submit_evidence_captures_full_context 
+(member.tests.CitizenEvidenceSubmissionTest.test_submit_evidence_captures_full_context)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\user\OneDrive\Desktop\FelloMarley\Projects\Django--government--project\member\tests.py", line 169, in 
+test_submit_evidence_captures_full_context
+    evidence = CitizenEvidence.objects.get(user=self.user, project=self.project)
+               ^^^^^^^^^^^^^^^
+NameError: name 'CitizenEvidence' is not defined
+
+======================================================================
+ERROR: test_due_in_two_days_creates_deadline_notification 
+(member.tests_status_engine.DeadlineAlertTests.test_due_in_two_days_creates_deadline_notification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File 
+"C:\Users\user\OneDrive\Desktop\FelloMarley\Projects\Django--government--project\member\tests_status_engine.py", line 
+262, in test_due_in_two_days_creates_deadline_notification
+    n = Notification.objects.get(notification_type="deadline")
+        ^^^^^^^^^^^^
+NameError: name 'Notification' is not defined
+
+======================================================================
+ERROR: test_overdue_creates_overdue_notification 
+(member.tests_status_engine.DeadlineAlertTests.test_overdue_creates_overdue_notification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File 
+"C:\Users\user\OneDrive\Desktop\FelloMarley\Projects\Django--government--project\member\tests_status_engine.py", line 
+275, in test_overdue_creates_overdue_notification
+    n = Notification.objects.get(notification_type="deadline")
+        ^^^^^^^^^^^^
+NameError: name 'Notification' is not defined
+
+======================================================================
+FAIL: test_registration_and_profile_form_do_not_expose_privileged_fields 
+(member.tests.RolePermissionTests.test_registration_and_profile_form_do_not_expose_privileged_fields)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\user\OneDrive\Desktop\FelloMarley\Projects\Django--government--project\member\tests.py", line 105, in 
+test_registration_and_profile_form_do_not_expose_privileged_fields
+    self.assertNotIn('role', form.fields)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'role' unexpectedly found in {'name': <django.forms.fields.CharField object at 0x0000027AF108D7E0>, 
+'username': <django.forms.fields.CharField object at 0x0000027AF108D8B0>, 'email': <django.forms.fields.EmailField 
+object at 0x0000027AF0EE7E30>, 'role': <django.forms.fields.TypedChoiceField object at 0x0000027AF0FCA510>, 
+'phone_number': <django.forms.fields.CharField object at 0x0000027AF108D980>, 'bio': <django.forms.fields.CharField 
+object at 0x0000027AF108DA50>, 'profile': <django.forms.fields.ImageField object at 0x0000027AF0EF89F0>, 'is_enduser': 
+<django.forms.fields.BooleanField object at 0x0000027AF0FCA8D0>, 'password1': <django.forms.fields.CharField object at 
+0x0000027AF108DCC0>, 'password2': <django.forms.fields.CharField object at 0x0000027AF108DD90>}
+
+======================================================================
+FAIL: test_planning_stage_keeps_upcoming 
+(member.tests_status_engine.ComputeStatusTests.test_planning_stage_keeps_upcoming)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File 
+"C:\Users\user\OneDrive\Desktop\FelloMarley\Projects\Django--government--project\member\tests_status_engine.py", line 
+40, in test_planning_stage_keeps_upcoming
+    self.assertEqual(p.project_status, "upcoming")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'ongoing' != 'upcoming'
+- ongoing
++ upcoming
+
+
+======================================================================
+FAIL: test_delayed_recovers_when_end_date_corrected 
+(member.tests_status_engine.SweepTests.test_delayed_recovers_when_end_date_corrected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File 
+"C:\Users\user\OneDrive\Desktop\FelloMarley\Projects\Django--government--project\member\tests_status_engine.py", line 
+148, in test_delayed_recovers_when_end_date_corrected
+    self.assertEqual(p.project_status, "ongoing")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'delayed' != 'ongoing'
+- delayed
++ ongoing
+
+
+----------------------------------------------------------------------
+Ran 48 tests in 46.940s
+
+FAILED (failures=3, errors=3)
+Destroying test database for alias 'default'...
+

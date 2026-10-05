@@ -294,7 +294,10 @@ class ProjectStage(models.Model):
         ('on_hold',     'On Hold'),
     ]
     project             = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='stages')
-    stage_name          = models.CharField(max_length=30, choices=STAGES)
+    # Free text on purpose: the contractor types the exact stage they are
+    # working on (e.g. "Roofing works, Block C"). STAGES is kept only as a
+    # list of suggestions — it does NOT restrict what can be entered.
+    stage_name          = models.CharField(max_length=100)
     description         = models.TextField(null=True, blank=True)
     start_date          = models.DateField(null=True, blank=True)
     end_date            = models.DateField(null=True, blank=True)
@@ -306,7 +309,7 @@ class ProjectStage(models.Model):
     class Meta:
         ordering = ['order']
     def __str__(self):
-        return f"{self.project.project_title} — {self.get_stage_name_display()}"
+        return f"{self.project.project_title} — {self.stage_name}"
     def clean(self):
         errors = {}
         if self.start_date and self.end_date and self.end_date < self.start_date:
@@ -1189,6 +1192,24 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.action} — {self.timestamp}"
+
+
+class ProjectStatusHistory(models.Model):
+    """Every project status transition, in order. The statuses page uses this
+    to show how the project moved from its initial point to the final one."""
+    project     = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='status_history')
+    from_status = models.CharField(max_length=20, null=True, blank=True)
+    to_status   = models.CharField(max_length=20)
+    source      = models.CharField(max_length=20, default='auto')  # auto | manual | time_sweep
+    note        = models.CharField(max_length=255, null=True, blank=True)
+    changed_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='status_changes_made')
+    changed_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['changed_at']
+
+    def __str__(self):
+        return f"{self.project} : {self.from_status or '—'} → {self.to_status} ({self.source})"
 
 
 class Announcement(models.Model):

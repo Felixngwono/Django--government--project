@@ -72,6 +72,100 @@
         </a>
       </header>
 
+      <!-- ================= STATUS PROGRESSION ================= -->
+      <section class="w-full bg-white rounded-2xl shadow border border-gray-100 p-6 mb-8">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-sm font-extrabold uppercase tracking-wide text-gray-500 flex items-center gap-2">
+            <iconify-icon icon="mdi:timeline-arrow-right" class="text-blue-600"></iconify-icon>
+            Status Progression — from initial point to final
+          </h2>
+          <span class="text-xs text-gray-400">Status stays open to change until the project reaches “Completed”.</span>
+        </div>
+        <a href="{% url 'project_tracking' project.id %}" class="inline-flex items-center gap-2 mt-3 text-xs font-bold text-blue-700 hover:underline">
+          <iconify-icon icon="mdi:radar"></iconify-icon> Track this project to the end (full timeline)
+        </a>
+        <!-- Lifecycle steps -->
+        <div class="flex items-center gap-2 flex-wrap">
+          {% for step in status_lifecycle_steps %}
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition
+                          {% if forloop.counter0 <= status_current_index %}text-white border-transparent shadow{% endif %}"
+                   {% if forloop.counter0 <= status_current_index %}style="background: {% if step == 'completed' %}#16a34a{% elif step == 'delayed' %}#f97316{% elif step == 'ongoing' %}#2563eb{% elif step == 'upcoming' %}#8b5cf6{% else %}#64748b{% endif %}"
+                   {% else %}style="color:#94a3b8; border-color:#e2e8f0"{% endif %}>
+                <iconify-icon icon="{% if step == 'completed' %}mdi:check-circle{% elif step == 'delayed' %}mdi:clock-alert-outline{% elif step == 'ongoing' %}mdi:progress-clock{% elif step == 'upcoming' %}mdi:calendar-clock{% else %}mdi:pencil-ruler{% endif %}"></iconify-icon>
+                {{ step|capfirst }}
+                {% if step == project.project_status %}<span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">NOW</span>{% endif %}
+              </div>
+              {% if not forloop.last %}<iconify-icon icon="mdi:chevron-right" class="text-gray-300 text-xl"></iconify-icon>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <!-- Actual transition history -->
+        {% if status_path %}
+        <div class="mt-4 pt-4 border-t border-dashed border-gray-200">
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Recorded changes</p>
+          <ol class="space-y-2">
+            {% for h in status_path %}
+              <li class="flex items-center gap-2 text-sm text-gray-600">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                {% if h.from_status %}<strong class="capitalize text-gray-700">{{ h.from_status }}</strong>
+                  <iconify-icon icon="mdi:arrow-right" class="text-gray-400"></iconify-icon>{% endif %}
+                <strong class="capitalize {% if h.to_status == 'completed' %}text-green-700{% elif h.to_status == 'delayed' %}text-orange-600{% else %}text-blue-700{% endif %}">{{ h.to_status }}</strong>
+                <span class="text-xs text-gray-400">— {{ h.changed_at|date:"M d, Y H:i" }} ({{ h.source|default:"auto" }})</span>
+              </li>
+            {% endfor %}
+          </ol>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- ================= STATUS PROGRESSION ================= -->
+      <section class="w-full bg-white rounded-2xl shadow border border-gray-100 p-6 mb-8">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-sm font-extrabold uppercase tracking-wide text-gray-500 flex items-center gap-2">
+            <iconify-icon icon="mdi:timeline-arrow-right" class="text-blue-600"></iconify-icon>
+            Status Progression — from initial point to final
+          </h2>
+          <span class="text-xs text-gray-400">Status stays open to change until the project reaches “Completed”.</span>
+        </div>
+        <a href="{% url 'project_tracking' project.id %}" class="inline-flex items-center gap-2 mt-3 text-xs font-bold text-blue-700 hover:underline">
+          <iconify-icon icon="mdi:radar"></iconify-icon> Track this project to the end (full timeline)
+        </a>
+        <!-- Lifecycle steps -->
+        <div class="flex items-center gap-2 flex-wrap">
+          {% for step in status_lifecycle_steps %}
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition
+                          {% if forloop.counter0 <= status_current_index %}text-white border-transparent shadow{% endif %}"
+                   {% if forloop.counter0 <= status_current_index %}style="background: {% if step == 'completed' %}#16a34a{% elif step == 'delayed' %}#f97316{% elif step == 'ongoing' %}#2563eb{% elif step == 'upcoming' %}#8b5cf6{% else %}#64748b{% endif %}"
+                   {% else %}style="color:#94a3b8; border-color:#e2e8f0"{% endif %}>
+                <iconify-icon icon="{% if step == 'completed' %}mdi:check-circle{% elif step == 'delayed' %}mdi:clock-alert-outline{% elif step == 'ongoing' %}mdi:progress-clock{% elif step == 'upcoming' %}mdi:calendar-clock{% else %}mdi:pencil-ruler{% endif %}"></iconify-icon>
+                {{ step|capfirst }}
+                {% if step == project.project_status %}<span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">NOW</span>{% endif %}
+              </div>
+              {% if not forloop.last %}<iconify-icon icon="mdi:chevron-right" class="text-gray-300 text-xl"></iconify-icon>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <!-- Actual transition history -->
+        {% if status_path %}
+        <div class="mt-4 pt-4 border-t border-dashed border-gray-200">
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Recorded changes</p>
+          <ol class="space-y-2">
+            {% for h in status_path %}
+              <li class="flex items-center gap-2 text-sm text-gray-600">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                {% if h.from_status %}<strong class="capitalize text-gray-700">{{ h.from_status }}</strong>
+                  <iconify-icon icon="mdi:arrow-right" class="text-gray-400"></iconify-icon>{% endif %}
+                <strong class="capitalize {% if h.to_status == 'completed' %}text-green-700{% elif h.to_status == 'delayed' %}text-orange-600{% else %}text-blue-700{% endif %}">{{ h.to_status }}</strong>
+                <span class="text-xs text-gray-400">— {{ h.changed_at|date:"M d, Y H:i" }} ({{ h.source|default:"auto" }})</span>
+              </li>
+            {% endfor %}
+          </ol>
+        </div>
+        {% endif %}
+      </section>
+
       <!-- ================= STATS ROW ================= -->
       <section class="w-full grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div class="bg-white rounded-2xl shadow border border-gray-100 p-5 flex items-center gap-4">

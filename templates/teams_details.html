@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="teamDetailApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 <link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
+<body x-data="teamDetailApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>

@@ -2,7 +2,8 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from urllib.parse import quote
 from django.core.exceptions import ValidationError
-
+from datetime import datetime
+from django.utils import timezone
 from django.db import models
 import pdfkit
 from django.contrib import messages
@@ -22,15 +23,36 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponseForbidden
 from django.template.loader import get_template
 from django.utils import timezone as django_timezone
 from openpyxl import Workbook
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ExpenseInlineForm, FeedbackForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
-from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,ProjectCategory,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ReportIssue,StageReport,StageReportImage,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
-from .workflow import OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, assigned_projects, audit, has_role, notify, refresh_project_status, role_required, user_assigned_to_project
+from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ExpenseInlineForm, FeedbackForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
+from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressUpdate,Project,ProjectCategory,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ProjectStatusHistory,ReportIssue,MilestoneStageEvidence,StageReport,StageReportImage,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
+from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, assigned_projects, apply_status_change, audit, has_role, notify, refresh_project_status, role_required, user_assigned_to_project
+from .models import ProjectStatusHistory
+
+
+def _status_progress_context(project):
+    """Shared context for the statuses page: the project's full status path
+    (initial point → … → current) plus the current point in the lifecycle."""
+    history = list(project.status_history.all())
+    if not history and project.project_status:
+        # Seed the initial point for projects that predate the history model.
+        history = [ProjectStatusHistory(project=project, from_status=None,
+                                        to_status=project.project_status, source='initial')]
+    path = [h.to_status for h in history]
+    from member.workflow import STATUS_RANK
+    ordered = sorted(set(path), key=lambda s: STATUS_RANK.get(s, 0))
+    return {
+        'status_path': history,          # ordered transitions with timestamps
+        'status_lifecycle': ordered,     # unique statuses in lifecycle order
+        'status_current_index': ordered.index(project.project_status) if project.project_status in ordered else 0,
+        'status_lifecycle_steps': ['draft', 'upcoming', 'ongoing', 'delayed', 'completed'],
+    }
 
 
 def _send_password_reset_sms(phone_number, otp):
@@ -921,13 +943,20 @@ def _sync_stage_after_milestone(milestone):
         stage.save()
 
 @login_required(login_url='login')
-@role_required(*PROJECT_ROLES)
+@role_required(*DELETE_ROLES)  # admin / superuser only
 def deleteProject(request, pk):
-    project= Project.objects.get(id=pk)
-    if request.method== 'POST':
+    project = Project.objects.filter(id=pk).first()
+    if project is None:
+        messages.error(request, 'Project not found.')
+        return redirect('projectoverview')
+    if request.method == 'POST':
+        title = project.project_title or f'Project #{project.pk}'
+        audit(request, 'deleted', project, project=project, changes={'title': title})
+        notify(request.user, 'system', 'Project deleted', f'You deleted the project "{title}" (#{project.pk}).', link='/projectoverview/')
         project.delete()
-        return redirect ('projectoverview')
-    return render(request, 'delete.html')
+        messages.success(request, f'Project "{title}" was permanently deleted.')
+        return redirect('projectoverview')
+    return render(request, 'delete.html', {'project': project})
 
 @login_required(login_url='login')
 def BudgetAnalysis(request):
@@ -1151,7 +1180,8 @@ def delayedstatus(request, pk):
         'project': target_project,
         'project_status': target_project.project_status,
         'today': django_timezone.now().date(),
-        'form': form
+        'form': form,
+        **_status_progress_context(target_project),
     }
     return render(request, 'statuses.html', context)
 
@@ -1570,7 +1600,8 @@ def UpcomingStatuses(request, pk):
         'project_status': target_project.project_status,
         'Participants': participants,
         'today': django_timezone.now().date(),
-        'form': form
+        'form': form,
+        **_status_progress_context(target_project),
     }
     return render(request, 'statuses.html', context)
 
@@ -1617,7 +1648,8 @@ def CompletedStatuses(request, pk):
         'locations': locations,
         'Participants': participants,
         'today': django_timezone.now().date(),
-        'form': form
+        'form': form,
+        **_status_progress_context(target_project),
     }
     return render(request, 'statuses.html', context)
 
@@ -1645,7 +1677,8 @@ def OngoingStatuses(request, pk):
         'project_status': target_project.project_status,
         'Participants': participants,
         'today': django_timezone.now().date(),
-        'form': form
+        'form': form,
+        **_status_progress_context(target_project),
     }
     return render(request, 'statuses.html', context)
 
@@ -2224,16 +2257,31 @@ def project_detail(request, pk):
     utilization = round((s_total / b_total * 100), 1) if b_total > 0 else 0.0
 
     is_officer = request.user.is_superuser or (getattr(request.user, 'role', None) in OFFICER_ROLES)
+    # Anyone responsible for this project may set up / update its stages:
+    # the project manager (head), the assigned contractor, an active
+    # participant, or a government officer.
+    is_responsible = is_officer or user_assigned_to_project(request.user, project)
 
     if request.method == "POST":
         action = request.POST.get('action', 'comment')
 
-        if action == 'stage_setup' and is_officer:
-            _ensure_standard_project_stages(project)
-            messages.success(request, 'The full project-stage roadmap has been added.')
-            return redirect('project_details', pk=project.id)
+        if action == 'stage_add' and is_responsible:
+            # Stages are entered manually by the person responsible for the
+            # project — exactly the fields they fill in, nothing auto-created.
+            form = ProjectStageInlineForm(request.POST)
+            if form.is_valid():
+                stage = form.save(commit=False)
+                stage.project = project
+                if stage.order in (None, 0) and not stage.pk:
+                    stage.order = (project.stages.aggregate(m=Max('order'))['m'] or 0) + 1
+                stage.save()
+                refresh_project_status(project, actor=request.user)
+                audit(request, 'created', stage, project=project, changes={'stage_name': stage.stage_name})
+                messages.success(request, f"Stage '{stage.get_stage_name_display()}' added to the project roadmap.")
+                return redirect('project_details', pk=project.id)
+            messages.error(request, "Could not add stage — check the form fields.")
 
-        elif action == 'stage_quick' and is_officer:
+        elif action == 'stage_quick' and is_responsible:
             stage = get_object_or_404(ProjectStage, pk=request.POST.get('stage_id'), project=project)
             status = request.POST.get('status')
             if status in [choice[0] for choice in ProjectStage.STATUS_CHOICES]:
@@ -2250,7 +2298,7 @@ def project_detail(request, pk):
                 messages.success(request, f"{stage.get_stage_name_display()} marked {stage.get_status_display()}.")
             return redirect('project_details', pk=project.id)
 
-        elif action == 'milestone_add':
+        elif action == 'milestone_add' and is_responsible:
             form = MilestoneInlineForm(request.POST, project=project)
             if form.is_valid():
                 ms = form.save(commit=False)
@@ -2260,14 +2308,28 @@ def project_detail(request, pk):
                 if ms.status == 'completed' and not ms.completion_date:
                     ms.completion_date = timezone.localdate()
                 ms.save()
+                # Attach any evidence files uploaded with the milestone
+                # (images, videos, PDFs, documents — multiple allowed).
+                evidence_files = request.FILES.getlist('evidence_files')
+                for f in evidence_files:
+                    MilestoneStageEvidence.objects.create(
+                        milestone=ms,
+                        stage=ms.stage,
+                        project=project,
+                        uploaded_by=request.user,
+                        file=f,
+                    )
                 _sync_stage_after_milestone(ms)
                 refresh_project_status(project, actor=request.user)
                 audit(request, 'created', ms, project=project, changes={'title': ms.title})
-                messages.success(request, f"Milestone '{ms.title}' added.")
+                msg = f"Milestone '{ms.title}' added."
+                if evidence_files:
+                    msg += f" {len(evidence_files)} evidence file(s) attached."
+                messages.success(request, msg)
                 return redirect('project_details', pk=project.id)
             messages.error(request, "Could not add milestone — check the form fields.")
 
-        elif action == 'milestone_quick' and is_officer:
+        elif action == 'milestone_quick' and is_responsible:
             ms = get_object_or_404(Milestone, pk=request.POST.get('milestone_id'), project=project)
             status = request.POST.get('status')
             progress = request.POST.get('progress_percentage')
@@ -2288,6 +2350,8 @@ def project_detail(request, pk):
                                 ms.completion_date = timezone.localdate()
                 except ValueError:
                     pass
+            # Keep status, progress and completion date consistent before saving.
+            ms.sync_completion()
             ms.save()
             _sync_stage_after_milestone(ms)
             refresh_project_status(project, actor=request.user)
@@ -2295,7 +2359,7 @@ def project_detail(request, pk):
             messages.success(request, f"Milestone '{ms.title}' updated.")
             return redirect('project_details', pk=project.id)
 
-        elif action == 'milestone_edit' and is_officer:
+        elif action == 'milestone_edit' and is_responsible:
             ms = get_object_or_404(Milestone, pk=request.POST.get('milestone_id'), project=project)
             form = MilestoneInlineForm(request.POST, instance=ms, project=project)
             if form.is_valid():
@@ -2445,6 +2509,8 @@ def project_detail(request, pk):
         'form': form,
         'is_officer': is_officer,
         'milestone_form': MilestoneInlineForm(project=project),
+        'stage_form': ProjectStageInlineForm(),
+        'project_statuses': Project.STATUS_CHOICES,
         'expense_form': ExpenseInlineForm(),
         'issue_form': IssueInlineForm(),
     }
@@ -4698,3 +4764,94 @@ def export_excel(request):
 
     wb.save(response)
     return response
+
+@login_required(login_url='login')
+def project_tracking(request, pk):
+    """Full end-to-end tracking for one project: every status change, progress
+    report, stage report and update on a single chronological timeline, so any
+    user can follow the project from its initial point to the end (completed
+    or cancelled). The assigned contractor/PM can also post a status response
+    that moves the project forward."""
+    project = get_object_or_404(
+        Project.objects.select_related('district', 'category', 'project_division'), id=pk
+    )
+
+    # ── Assignee status response (POST) ──────────────────────────────────
+    if request.method == 'POST':
+        if not user_assigned_to_project(request.user, project):
+            return HttpResponseForbidden('Only the person assigned to this project can post status responses.')
+        new_status = (request.POST.get('new_status') or '').strip()
+        note = (request.POST.get('note') or '').strip()
+        progress = request.POST.get('progress_percentage')
+        allowed = {'ongoing', 'delayed', 'stalled', 'suspended', 'completed', 'cancelled'}
+        if new_status and new_status in allowed:
+            old = project.project_status
+            apply_status_change(project, new_status, actor=request.user, source='assignee')
+            if note:
+                project.remarks = (project.remarks + "\n" + note).strip() if project.remarks else note
+                project.save(update_fields=['remarks'])
+        if progress not in (None, ''):
+            try:
+                ProgressUpdate.objects.create(
+                    project=project,
+                    reported_by=request.user,
+                    description=note or f'Progress reported by assignee ({request.user.full_name}).',
+                    progress_percentage=max(0, min(100, int(float(progress)))),
+                )
+            except (ValueError, TypeError):
+                pass
+        # Let the engine consolidate (e.g. 100% progress forces completed).
+        refresh_project_status(project, actor=request.user, source='auto')
+        project.refresh_from_db()
+        messages.success(request, f'Tracking updated — project is now "{project.get_project_status_display()}".')
+        return redirect('project_tracking', pk=project.id)
+
+    # ── Build the unified timeline (newest first) ────────────────────────
+    events = []
+    for h in project.status_history.all():
+        events.append({
+            'type': 'status',
+            'date': h.changed_at,
+            'from_status': h.from_status,
+            'to_status': h.to_status,
+            'source': h.source,
+            'actor': h.changed_by,
+            'text': f'Status changed from "{h.from_status or "—"}" to "{h.to_status}" ({h.source}).',
+        })
+    for r in project.progress_updates.all()[:200]:
+        events.append({
+            'type': 'progress',
+            'date': r.date_reported,
+            'progress': r.progress_percentage,
+            'actor': r.reported_by,
+            'text': r.description,
+        })
+    for r in project.reports.all()[:200]:
+        events.append({
+            'type': 'stage_report',
+            'date': r.created_at,
+            'progress': r.progress_percentage,
+            'actor': r.reported_by,
+            'photo': r.photo,
+            'text': f'{(r.stage_description or (r.stage.get_stage_name_display() if r.stage_id else "")) or "Stage report"}: {r.description}',
+        })
+    for u in project.updates.all()[:100]:
+        events.append({
+            'type': 'update',
+            'date': u.update_date,
+            'actor': u.posted_by,
+            'text': f'{u.title}: {u.description}',
+        })
+    events.sort(key=lambda e: e['date'], reverse=True)
+
+    stages = project.stages.order_by('order')
+
+    context = {
+        'project': project,
+        'events': events,
+        'stages': stages,
+        'can_respond': user_assigned_to_project(request.user, project) and project.project_status not in ('completed', 'cancelled'),
+        'status_progress': _status_progress_context(project),
+        'overall_progress': round(project.stages.aggregate(v=Avg('progress_percentage'))['v'] or 0) if project.stages.exists() else 0,
+    }
+    return render(request, 'project_tracking.html', context)

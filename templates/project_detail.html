@@ -122,6 +122,19 @@
             <iconify-icon icon="solar:danger-bold" class="text-base text-amber-400"></iconify-icon>
             <span>Report Issue / Risk</span>
           </a>
+
+          {% if request.user.is_superuser or request.user.role == 'admin' %}
+            <a href="{% url 'update' project.id %}" class="bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+              <iconify-icon icon="solar:pen-bold" class="text-base"></iconify-icon>
+              <span>Edit Project</span>
+            </a>
+
+            <a href="{% url 'delete' project.id %}" onclick="return confirm('Permanently delete \'{{ project.project_title|escapejs }}\'? This cannot be undone.')"
+               class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+              <iconify-icon icon="solar:trash-bin-trash-bold" class="text-base"></iconify-icon>
+              <span>Delete Project</span>
+            </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -296,7 +309,7 @@
         {% if user.is_superuser or contractor %}
 
         <!-- Project Stages & Milestones -->
-        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4" x-data="{ addMilestone: false }">
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4" x-data="{ addStage: false, addMilestone: false }">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
               <iconify-icon icon="solar:checklist-bold-duotone" class="text-blue-600 text-xl"></iconify-icon>
@@ -304,25 +317,70 @@
             </h2>
             <div class="flex items-center gap-3">
               <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ stages|length }} Active Stages</span>
-              {% if is_officer %}
-              <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="stage_setup">
-                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition shadow-sm">
-                  <iconify-icon icon="solar:route-bold" class="text-sm"></iconify-icon>
-                  Set Up Stages
-                </button>
-              </form>
+              {% if is_responsible %}
+              <button type="button" @click="addStage = !addStage; addMilestone = false"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition shadow-sm">
+                <iconify-icon icon="solar:route-bold" class="text-sm"></iconify-icon>
+                Add Stage
+              </button>
               {% endif %}
-              <button type="button" @click="addMilestone = !addMilestone"
+              {% if project_contractors %}
+              <button type="button" @click="addMilestone = !addMilestone; addStage = false"
                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-sm">
                 <iconify-icon icon="solar:add-circle-bold" class="text-sm"></iconify-icon>
                 Add Milestone
               </button>
+              {% endif %}
             </div>
           </div>
-          <!-- Inline: Add Milestone -->
-          <form x-show="addMilestone" x-transition method="post" enctype="multipart/form-data" class="rounded-2xl bg-blue-50/60 border border-blue-200 p-5 space-y-3">
+
+          <!-- Inline: Add Stage (entered manually by the official/contractor responsible) -->
+        {% if user.is_superuser or project_contractors %}
+          <form x-show="addStage" x-transition method="post" class="rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="stage_add">
+            <p class="text-xs text-slate-500">Add the stage yourself — exactly the stage, dates and status the project officially has. Nothing is auto-created.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase">Stage</label>
+                {{ stage_form.stage_name }}
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase">Start Date</label>
+                {{ stage_form.start_date }}
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase">End Date</label>
+                {{ stage_form.end_date }}
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase">Progress %</label>
+                {{ stage_form.progress_percentage }}
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase">Status</label>
+                {{ stage_form.status }}
+              </div>
+              <div class="flex items-end gap-2">
+                <label class="text-[11px] font-bold text-slate-500 uppercase flex items-center gap-2">{{ stage_form.is_current }} Current stage</label>
+                {{ stage_form.order }}
+              </div>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 uppercase">Description</label>
+              {{ stage_form.description }}
+            </div>
+            {% if stage_form.non_field_errors %}<div class="text-rose-600 text-xs">{{ stage_form.non_field_errors }}</div>{% endif %}
+            <div class="flex gap-2 pt-1">
+              <button type="submit" class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition">Save Stage</button>
+              <button type="button" @click="addStage = false" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-bold transition">Cancel</button>
+            </div>
+          </form>
+          {% endif %}
+
+          <!-- Inline: Add Milestone (admin/contractor/responsible only) -->
+        {% if user.is_superuser or user.is_project_contractors %}
+          <form x-show="addMilestone" x-transition method="post" class="rounded-2xl bg-blue-50/60 border border-blue-200 p-5 space-y-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="milestone_add">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -359,6 +417,7 @@
               <button type="button" @click="addMilestone = false" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-bold transition">Cancel</button>
             </div>
           </form>
+          {% endif %}
 
           {% if stages %}
             <div class="space-y-4">
@@ -387,7 +446,7 @@
                     <span>Planned: {{ st.start_date|date:"d M Y"|default:"Not set" }} – {{ st.end_date|date:"d M Y"|default:"Not set" }}</span>
                     {% if st.completed_on %}<span class="font-bold text-emerald-700">Completed: {{ st.completed_on|date:"d M Y" }}</span>{% endif %}
                   </div>
-                  {% if is_officer %}
+                  {% if user.is_superuser or user.is_project_contractors %}
                   <form method="post" class="flex items-center gap-2">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="stage_quick">
@@ -414,11 +473,11 @@
                           </span>
                           <span class="flex items-center gap-2">
                             <span class="font-bold text-slate-500">{{ m.status|title }}</span>
-                            {% if is_officer %}
+                            {% if contractor %}
                             <button type="button" @click="editMs = !editMs" class="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-300 text-slate-600 text-[10px] font-bold transition">Edit</button>
                             {% endif %}
                           </span>
-                          {% if is_officer %}
+                          {% if contractor %}
                           <form x-show="editMs" x-transition method="post" class="w-full rounded-xl bg-white border border-blue-200 p-3 flex flex-wrap items-end gap-2 mt-1">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="milestone_quick">
@@ -439,6 +498,19 @@
                           </form>
                           {% endif %}
                         </div>
+                        {% if m.evidences.all %}
+                        <div class="flex flex-wrap gap-2 mt-1">
+                          {% for ev in m.evidences.all %}
+                            {% if ev.file_kind == 'image' %}
+                            <a href="{{ ev.file.url }}" target="_blank"><img src="{{ ev.file.url }}" class="h-12 w-16 object-cover rounded-lg border border-slate-200" alt="{{ ev.caption|default:'evidence' }}"></a>
+                            {% elif ev.file_kind == 'video' %}
+                            <a href="{{ ev.file.url }}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold"><iconify-icon icon="solar:video-frame-play-bold"></iconify-icon> Video evidence</a>
+                            {% else %}
+                            <a href="{{ ev.file.url }}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold"><iconify-icon icon="solar:file-text-bold"></iconify-icon> Document</a>
+                            {% endif %}
+                          {% endfor %}
+                        </div>
+                        {% endif %}
                       {% endfor %}
                     </div>
                   {% endif %}
