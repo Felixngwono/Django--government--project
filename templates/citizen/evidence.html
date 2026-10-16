@@ -76,7 +76,7 @@
                 <div>📍 {{ e.location }}</div>
                 <div>🗓 {{ e.observed_at|default:'Not specified' }}</div>
                 <div>🏗 {{ e.project.project_title }}</div>
-                <div>📌 {{ e.stage.get_stage_name_display }}</div>
+                <div>📌 {{ e.stage.stage_name }}</div>
                 <div>📎 {{ e.get_evidence_type_display }}</div>
                 <div>🧭 {{ e.coordinates|default:'No coordinates' }}</div>
             </div>
@@ -137,7 +137,7 @@
                     <select name="stage" class="w-full border p-2 rounded" required>
                         <option value="">Select Stage</option>
                         {% for s in stages %}
-                        <option value="{{ s.id }}">{{ s.get_stage_name_display }}</option>
+                        <option value="{{ s.id }}">{{ s.stage_name }}</option>
                         {% endfor %}
                     </select>
                 </div>

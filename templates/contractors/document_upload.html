@@ -1,0 +1,30 @@
+{% load static %}
+<script src="https://cdn.tailwindcss.com"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Compliance Document | GovTracker</title>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+  <main class="mx-auto max-w-3xl p-4 md:p-8">
+    <a href="{% url 'contractor_performance' %}" class="text-sm font-semibold text-blue-700 hover:underline">← Back to contractor dashboard</a>
+    <section class="mt-5 rounded-2xl bg-white p-6 shadow-sm">
+      <h1 class="text-2xl font-extrabold">Business Compliance Document</h1>
+      <p class="mt-1 text-sm text-slate-500">Upload registration, tax, insurance, or license documents (PDF/JPG/PNG, max 20 MB).</p>
+      <form method="post" enctype="multipart/form-data" class="mt-6 space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+        <label class="block text-sm font-semibold text-slate-700">{{ field.label }}{% if field.field.required %}<span class="text-rose-600"> *</span>{% endif %}
+          {{ field }}
+          {% for error in field.errors %}<span class="mt-1 block text-xs text-rose-700">{{ error }}</span>{% endfor %}
+        </label>
+        {% endfor %}
+        <button class="w-full rounded-xl bg-blue-700 px-4 py-3 font-bold text-white hover:bg-blue-800">Upload document</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

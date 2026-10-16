@@ -108,10 +108,12 @@
 
         <!-- Action Bar Buttons -->
         <div class="pt-2 flex flex-wrap gap-2.5">
+          {% if is_responsible %}
           <a href="{% url 'upload_progress_report' project.id %}" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
             <iconify-icon icon="solar:document-add-bold" class="text-base"></iconify-icon>
             <span>Upload Progress Report</span>
           </a>
+          {% endif %}
 
           <a href="{% url 'add_tender' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
             <iconify-icon icon="solar:file-send-bold" class="text-base"></iconify-icon>
@@ -284,7 +286,7 @@
               <div class="flex flex-wrap justify-between items-center gap-2">
                 <span class="font-bold text-slate-900 text-sm">
                   <iconify-icon icon="solar:hammer-bold" class="text-emerald-600"></iconify-icon>
-                  {% if r.stage %}{{ r.stage.get_stage_name_display|default:r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}
+                  {% if r.stage %}{{ r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}
                 </span>
                 <span class="inline-flex items-center gap-1 bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black text-[10px]">{{ r.progress_percentage }}% complete</span>
               </div>
@@ -306,7 +308,7 @@
             {% endfor %}
           </div>
         </div>
-        {% if user.is_superuser or contractor %}
+        {% if stages or can_manage_project_stages %}
 
         <!-- Project Stages & Milestones -->
         <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-4" x-data="{ addStage: false, addMilestone: false }">
@@ -317,14 +319,14 @@
             </h2>
             <div class="flex items-center gap-3">
               <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ stages|length }} Active Stages</span>
-              {% if is_responsible %}
+              {% if can_manage_project_stages %}
               <button type="button" @click="addStage = !addStage; addMilestone = false"
                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition shadow-sm">
                 <iconify-icon icon="solar:route-bold" class="text-sm"></iconify-icon>
                 Add Stage
               </button>
               {% endif %}
-              {% if project_contractors %}
+              {% if can_manage_project_stages %}
               <button type="button" @click="addMilestone = !addMilestone; addStage = false"
                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-sm">
                 <iconify-icon icon="solar:add-circle-bold" class="text-sm"></iconify-icon>
@@ -335,7 +337,7 @@
           </div>
 
           <!-- Inline: Add Stage (entered manually by the official/contractor responsible) -->
-        {% if user.is_superuser or project_contractors %}
+        {% if can_manage_project_stages %}
           <form x-show="addStage" x-transition method="post" class="rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="stage_add">
@@ -379,7 +381,7 @@
           {% endif %}
 
           <!-- Inline: Add Milestone (admin/contractor/responsible only) -->
-        {% if user.is_superuser or user.is_project_contractors %}
+        {% if can_manage_project_stages %}
           <form x-show="addMilestone" x-transition method="post" class="rounded-2xl bg-blue-50/60 border border-blue-200 p-5 space-y-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="milestone_add">
@@ -426,7 +428,7 @@
                   <div class="flex items-center justify-between">
                     <span class="font-bold text-slate-900 text-sm flex items-center gap-2">
                       <iconify-icon icon="solar:flag-bold" class="text-indigo-600 text-base"></iconify-icon>
-                      {{ st.get_stage_name_display|default:st.stage_name }}
+                      {{ st.stage_name }}
                       <span class="text-[10px] font-mono text-slate-400">{{ st.progress_percentage|default:0 }}%</span>
                     </span>
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase
@@ -442,11 +444,32 @@
                   <div class="h-2 overflow-hidden rounded-full bg-slate-200">
                     <div class="h-full rounded-full {% if st.status == 'completed' %}bg-emerald-500{% elif st.status == 'delayed' %}bg-rose-500{% else %}bg-blue-500{% endif %}" style="width: {{ st.progress_percentage|default:0 }}%"></div>
                   </div>
+                  {% if is_responsible %}
+                  <!-- Update progress of THIS job only (authenticated contractor/official assigned to the project) -->
+                  <form method="post" class="mt-3 flex flex-wrap items-center gap-2 p-3 rounded-xl bg-white border border-slate-200" x-data="{ open: false }">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="job_progress_update">
+                    <input type="hidden" name="stage_id" value="{{ st.id }}">
+                    <button type="button" @click="open = !open"
+                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-extrabold uppercase transition">
+                      <iconify-icon icon="solar:pen-new-bold" class="text-sm"></iconify-icon>
+                      Update this job's progress
+                    </button>
+                    <div x-show="open" x-transition class="flex flex-wrap items-center gap-2 w-full">
+                      <label class="text-[10px] font-extrabold text-slate-400 uppercase">Progress %</label>
+                      <input type="number" name="progress_percentage" min="0" max="100" value="{{ st.progress_percentage|default:0 }}"
+                             class="w-20 rounded-lg border border-slate-200 px-2 py-1.5 text-xs" required>
+                      <input type="text" name="description" placeholder="What's happening on this job? (optional)"
+                             class="flex-1 min-w-[180px] rounded-lg border border-slate-200 px-2 py-1.5 text-xs">
+                      <button type="submit" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition">Save</button>
+                    </div>
+                  </form>
+                  {% endif %}
                   <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
                     <span>Planned: {{ st.start_date|date:"d M Y"|default:"Not set" }} – {{ st.end_date|date:"d M Y"|default:"Not set" }}</span>
                     {% if st.completed_on %}<span class="font-bold text-emerald-700">Completed: {{ st.completed_on|date:"d M Y" }}</span>{% endif %}
                   </div>
-                  {% if user.is_superuser or user.is_project_contractors %}
+                  {% if is_responsible %}
                   <form method="post" class="flex items-center gap-2">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="stage_quick">
@@ -473,11 +496,11 @@
                           </span>
                           <span class="flex items-center gap-2">
                             <span class="font-bold text-slate-500">{{ m.status|title }}</span>
-                            {% if contractor %}
+                            {% if is_responsible %}
                             <button type="button" @click="editMs = !editMs" class="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-300 text-slate-600 text-[10px] font-bold transition">Edit</button>
                             {% endif %}
                           </span>
-                          {% if contractor %}
+                          {% if is_responsible %}
                           <form x-show="editMs" x-transition method="post" class="w-full rounded-xl bg-white border border-blue-200 p-3 flex flex-wrap items-end gap-2 mt-1">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="milestone_quick">

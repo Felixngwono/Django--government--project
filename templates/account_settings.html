@@ -162,19 +162,12 @@
                     </div>
 
                     <div class="space-y-3 p-4 rounded-lg border bg-slate-50">
-                        <p class="text-sm font-semibold mb-2">Notifications</p>
+                        <p class="text-sm font-semibold mb-2">Notification preferences</p>
                         <label class="flex items-center gap-3">
-                            <input type="checkbox" name="notify_email" {% if user.profile.notify_email %}checked{% endif %} class="form-checkbox">
-                            <span>Email updates</span>
+                            <input type="checkbox" name="notifications_enabled" {% if user.notifications_enabled %}checked{% endif %} class="form-checkbox">
+                            <span>In-app project, deadline, and review notifications</span>
                         </label>
-                        <label class="flex items-center gap-3">
-                            <input type="checkbox" name="notify_sms" {% if user.profile.notify_sms %}checked{% endif %} class="form-checkbox">
-                            <span>SMS alerts</span>
-                        </label>
-                        <label class="flex items-center gap-3">
-                            <input type="checkbox" name="notify_product" {% if user.profile.notify_product %}checked{% endif %} class="form-checkbox">
-                            <span>Product announcements</span>
-                        </label>
+                        <p class="text-xs text-slate-500">Email and SMS delivery are not currently configured.</p>
                     </div>
                 </div>
             </div>

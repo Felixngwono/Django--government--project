@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
+from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, ContractorDocument, ContractorPaymentRequest, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -294,6 +294,75 @@ class ProgressReportForm(forms.ModelForm):
         if report_file.size > 20 * 1024 * 1024:
             raise forms.ValidationError('The report file must be 20 MB or smaller.')
         return report_file
+
+class ContractorPaymentRequestForm(forms.ModelForm):
+    class Meta:
+        model = ContractorPaymentRequest
+        fields = [
+            'project', 'invoice_number', 'title', 'amount', 'description',
+            'invoice_file', 'supporting_document',
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'invoice_file': forms.ClearableFileInput(attrs={'accept': '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx'}),
+            'supporting_document': forms.ClearableFileInput(attrs={'accept': '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx'}),
+        }
+
+    def __init__(self, *args, project_queryset=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if project_queryset is not None:
+            self.fields['project'].queryset = project_queryset
+
+    @staticmethod
+    def _validate_upload(upload):
+        if upload is None:
+            return upload
+        allowed_extensions = {'.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx'}
+        extension = '.' + upload.name.rsplit('.', 1)[-1].lower() if '.' in upload.name else ''
+        if extension not in allowed_extensions:
+            raise forms.ValidationError('Upload a PDF, Office document, spreadsheet, JPG, or PNG file.')
+        if upload.size > 20 * 1024 * 1024:
+            raise forms.ValidationError('Each file must be 20 MB or smaller.')
+        return upload
+
+    def clean_invoice_file(self):
+        return self._validate_upload(self.cleaned_data.get('invoice_file'))
+
+    def clean_supporting_document(self):
+        return self._validate_upload(self.cleaned_data.get('supporting_document'))
+
+class ContractorProfileForm(forms.ModelForm):
+    class Meta:
+        model = Contractor
+        fields = [
+            'company', 'name', 'registration_no', 'category', 'phone',
+            'email', 'location', 'profile',
+        ]
+        widgets = {
+            'profile': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+        }
+
+    def __init__(self, *args, contact_email='', **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].disabled = True
+        self.fields['email'].initial = contact_email
+
+class ContractorDocumentForm(forms.ModelForm):
+    class Meta:
+        model = ContractorDocument
+        fields = ['doc_type', 'file', 'expiry_date']
+        widgets = {'expiry_date': forms.DateInput(attrs={'type': 'date'})}
+
+    def clean_file(self):
+        upload = self.cleaned_data.get('file')
+        if upload:
+            allowed_extensions = {'.pdf', '.jpg', '.jpeg', '.png'}
+            extension = '.' + upload.name.rsplit('.', 1)[-1].lower() if '.' in upload.name else ''
+            if extension not in allowed_extensions:
+                raise forms.ValidationError('Upload a PDF, JPG, or PNG file.')
+            if upload.size > 20 * 1024 * 1024:
+                raise forms.ValidationError('The document must be 20 MB or smaller.')
+        return upload
 
 class TenderForm(forms.ModelForm):
     class Meta:

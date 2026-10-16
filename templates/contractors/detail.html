@@ -238,7 +238,7 @@
                     <p class="font-bold text-slate-800 text-sm">
                         {{ r.project.project_title|truncatechars:45 }}
                         <span class="text-slate-300 mx-1">→</span>
-                        <span class="text-blue-700">{% if r.stage %}{{ r.stage.get_stage_name_display|default:r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}</span>
+                        <span class="text-blue-700">{% if r.stage %}{{ r.stage.stage_name }}{% else %}{{ r.stage_description }}{% endif %}</span>
                     </p>
                     <span class="text-xs text-slate-400 font-semibold">{{ r.created_at|date:"M d, Y" }}</span>
                 </div>

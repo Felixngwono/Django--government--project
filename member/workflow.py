@@ -24,22 +24,50 @@ def assigned_projects(user):
     """Queryset of projects this user is assigned to work on (participant,
     project manager name match, or assigned contractor). Officers see all."""
     from django.db.models import Q
-    from .models import Contractor, Participation, Project
+    from .models import Participation, Project
     if not user.is_authenticated:
         return Project.objects.none()
     if user.is_superuser or getattr(user, 'role', '') in OFFICER_ROLES:
         return Project.objects.all()
-    contractor = Contractor.objects.filter(
-        Q(email__iexact=user.email or '__none__') |
-        Q(company__iexact=user.organization or '__none__') |
-        Q(name__iexact=user.organization or '__none__')
-    ).first()
     q = Q(participation__user=user, participation__is_active=True)
     if user.full_name:
         q |= Q(project_manager__iexact=user.full_name.strip())
-    if contractor:
-        q |= Q(contractors=contractor)
+    contractor_ids = _contractors_for_user(user).values_list('id', flat=True)
+    q |= Q(contractors__in=contractor_ids)
     return Project.objects.filter(q).distinct()
+
+
+def _contractors_for_user(user):
+    """Find contractor records linked to the user's email, name, or organization."""
+    from django.db.models import Q
+    from .models import Contractor
+
+    query = Q()
+    has_identity = False
+    email = (user.email or '').strip()
+    if email:
+        query |= Q(email__iexact=email)
+        has_identity = True
+
+    identities = {
+        value.strip()
+        for value in (user.full_name, user.organization)
+        if value and value.strip()
+    }
+    for identity in identities:
+        query |= Q(name__iexact=identity) | Q(company__iexact=identity)
+        has_identity = True
+
+    if not has_identity:
+        return Contractor.objects.none()
+    return Contractor.objects.filter(query).distinct()
+
+
+def contractor_assigned_to_project(user, project):
+    """Whether one of this user's contractor records is assigned to this project."""
+    if not user.is_authenticated or project is None:
+        return False
+    return _contractors_for_user(user).filter(projects=project).exists()
 
 
 def user_assigned_to_project(user, project):
@@ -51,21 +79,13 @@ def user_assigned_to_project(user, project):
         return False
     if user.is_superuser or getattr(user, 'role', '') in OFFICER_ROLES:
         return True
-    from .models import Contractor, Participation, Project
+    from .models import Participation
     # Project manager assignment (by name match)
     if project.project_manager and user.full_name and \
             user.full_name.strip().lower() == str(project.project_manager).strip().lower():
         return True
-    # Contractor assigned to this project
-    contractor = Contractor.objects.filter(projects=project).first()
-    if contractor:
-        email = (user.email or '').strip().lower()
-        if email and contractor.email and contractor.email.strip().lower() == email:
-            return True
-        company_or_name = (contractor.company or contractor.name or '').strip().lower()
-        if company_or_name and user.organization and \
-                user.organization.strip().lower() == company_or_name:
-            return True
+    if contractor_assigned_to_project(user, project):
+        return True
     # Active participant on this exact project
     if Participation.objects.filter(user=user, project=project, is_active=True).exists():
         return True
@@ -86,7 +106,7 @@ def role_required(*roles):
 
 
 def notify(user, notification_type, title, message, link=""):
-    if user:
+    if user and user.notifications_enabled:
         return Notification.objects.create(
             user=user,
             notification_type=notification_type,
@@ -186,7 +206,13 @@ def compute_status(project):
     milestones = list(project.milestones.values_list("progress_percentage", flat=True))
     stages = ProjectStage.objects.filter(project=project)
     all_signals = [p for p in progress_updates + milestones if p is not None]
-    milestones_complete = bool(milestones) and all(p >= 100 for p in milestones)
+    # Milestones mean "project done" only when there is no unfinished stage
+    # roadmap — a project WITH stages needs all of them completed; a project
+    # WITHOUT stages falls back to the milestone/progress signals alone.
+    milestones_complete = (
+        bool(milestones) and all(p >= 100 for p in milestones)
+        and not stages.exclude(status="completed").exists()
+    )
     stages_complete = stages.exists() and not stages.exclude(status="completed").exists()
     if (progress_updates and max(progress_updates) >= 100) or milestones_complete or stages_complete:
         return "completed"

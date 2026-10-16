@@ -1,6 +1,7 @@
 # models.py — GovTracker Complete
 
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -52,6 +53,7 @@ class User(AbstractUser):
     is_enduser          = models.BooleanField(default=False)
     is_verified         = models.BooleanField(default=False)
     two_factor_enabled  = models.BooleanField(default=False)
+    notifications_enabled = models.BooleanField(default=True)
     last_login_ip       = models.GenericIPAddressField(null=True, blank=True)
     updated             = models.DateTimeField(auto_now=True)
     created_at          = models.DateTimeField(auto_now_add=True, null=True)
@@ -394,6 +396,13 @@ class ProgressUpdate(models.Model):
 
 
 class Milestone(models.Model):
+    VERIFICATION_STATUS_CHOICES = [
+        ('not_submitted', 'Not Submitted'),
+        ('pending', 'Pending Verification'),
+        ('approved', 'Verified'),
+        ('rejected', 'Verification Rejected'),
+    ]
+
     STATUS_CHOICES = [
         ('pending',     'Pending'),
         ('in_progress', 'In Progress'),
@@ -409,6 +418,10 @@ class Milestone(models.Model):
     completion_date     = models.DateField(null=True, blank=True)
     progress_percentage = models.IntegerField(default=0)
     status              = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='not_submitted')
+    verification_comments = models.TextField(blank=True)
+    verified_by         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_milestones')
+    verified_at         = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.project.project_title} — {self.title}"
@@ -711,6 +724,12 @@ class ContractorRating(models.Model):
 
 
 class StageReport(models.Model):
+    REVIEW_STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
     project             = models.ForeignKey(Project, on_delete=models.CASCADE)
     stage               = models.ForeignKey(ProjectStage, on_delete=models.CASCADE, null=True, blank=True)
     stage_description   = models.CharField(max_length=255, null=True, blank=True)  # free-text stage entered by contractor
@@ -722,6 +741,13 @@ class StageReport(models.Model):
     photo               = models.ImageField(upload_to='stage_reports/', blank=True, null=True)
     weather_conditions  = models.CharField(max_length=100, null=True, blank=True)
     workforce_count     = models.IntegerField(null=True, blank=True)
+    delay_reason        = models.TextField(blank=True)
+    corrective_actions  = models.TextField(blank=True)
+    supporting_document = models.FileField(upload_to='stage_reports/documents/', blank=True, null=True)
+    review_status       = models.CharField(max_length=20, choices=REVIEW_STATUS_CHOICES, default='pending', db_index=True)
+    reviewer_comments   = models.TextField(blank=True)
+    reviewed_by         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_stage_reports')
+    reviewed_at         = models.DateTimeField(null=True, blank=True)
     created_at          = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -749,6 +775,49 @@ class StageReportImage(models.Model):
 
     def __str__(self):
         return f"Image for report #{self.report_id}"
+
+
+class StageReportAttachment(models.Model):
+    report      = models.ForeignKey(StageReport, on_delete=models.CASCADE, related_name='attachments')
+    file        = models.FileField(upload_to='stage_reports/attachments/')
+    caption     = models.CharField(max_length=255, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Attachment for report #{self.report_id}"
+
+
+class ContractorPaymentRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('paid', 'Paid'),
+    ]
+
+    project             = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='contractor_payment_requests')
+    contractor          = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True, blank=True, related_name='payment_requests')
+    submitted_by        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='contractor_payment_requests')
+    invoice_number      = models.CharField(max_length=100, blank=True)
+    title               = models.CharField(max_length=255)
+    amount              = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    description         = models.TextField(blank=True)
+    invoice_file        = models.FileField(upload_to='contractor_invoices/')
+    supporting_document = models.FileField(upload_to='contractor_invoices/supporting/', blank=True, null=True)
+    status              = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    reviewer_comments   = models.TextField(blank=True)
+    reviewed_by         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_contractor_payments')
+    reviewed_at         = models.DateTimeField(null=True, blank=True)
+    paid_at             = models.DateTimeField(null=True, blank=True)
+    paid_by             = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_contractor_payments')
+    created_at          = models.DateTimeField(auto_now_add=True)
+    updated_at          = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.invoice_number or self.title} — {self.project.project_title}"
 
 
 # ─────────────────────────────────────────────

@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
@@ -11,7 +12,179 @@ from member.ai_services import (
     triage_issue,
 )
 from member.forms import MyUserCreationForm, ReportIssueForm
-from member.models import Project, ReportIssue, User, Tender, TenderApplication, Contractor
+from member.models import (
+    Contractor,
+    ContractorPaymentRequest,
+    Milestone,
+    Project,
+    ProjectStage,
+    ReportIssue,
+    StageReport,
+    Tender,
+    TenderApplication,
+    User,
+)
+
+
+class ContractorStageReportProjectSelectionTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='contractor@example.com',
+            username='contractor',
+            password='password123',
+            role='contractor',
+            name='Working Contractor',
+        )
+        self.project = Project.objects.create(project_title='Road Upgrade')
+        self.other_project = Project.objects.create(project_title='Water Supply')
+        unrelated_contractor = Contractor.objects.create(
+            email='other-contractor@example.com',
+            name='Other Contractor',
+        )
+        unrelated_contractor.projects.add(self.project)
+        self.contractor = Contractor.objects.create(
+            email='registered-contractor@example.com',
+            name=self.user.full_name,
+        )
+        self.contractor.projects.add(self.project, self.other_project)
+        self.client.force_login(self.user)
+
+    def test_project_works_report_link_preselects_the_current_project(self):
+        response = self.client.get(
+            reverse('submit_stage_report'),
+            {'project': self.project.pk},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'name="project" value="{self.project.pk}"')
+        self.assertContains(response, self.project.project_title)
+        self.assertNotContains(response, '<select name="project"')
+
+    def test_multiple_assigned_projects_are_available_for_selection(self):
+        response = self.client.get(reverse('submit_stage_report'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'value="{self.project.pk}">{self.project.project_title}</option>')
+        self.assertContains(response, f'value="{self.other_project.pk}">{self.other_project.project_title}</option>')
+        self.assertContains(response, '<select name="project"')
+
+    def test_only_assigned_project_is_preselected_automatically(self):
+        self.contractor.projects.remove(self.other_project)
+
+        response = self.client.get(reverse('submit_stage_report'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'name="project" value="{self.project.pk}"')
+        self.assertNotContains(response, '<select name="project"')
+
+    def test_report_cannot_be_submitted_for_an_unassigned_project(self):
+        unassigned_project = Project.objects.create(project_title='School Repair')
+
+        response = self.client.post(reverse('submit_stage_report'), {
+            'project': unassigned_project.pk,
+            'stage_description': 'Foundation',
+            'description': 'Foundation work completed.',
+            'location': 'Central',
+            'progress_percentage': 25,
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(StageReport.objects.exists())
+
+    def test_assigned_contractor_can_see_add_milestone_form(self):
+        response = self.client.get(reverse('project_details', args=[self.project.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['can_manage_project_stages'])
+        self.assertContains(response, 'Add Milestone')
+        self.assertContains(response, 'Add Stage')
+        self.assertContains(response, 'x-show="addMilestone"')
+        self.assertContains(response, 'x-show="addStage"')
+
+    def test_unassigned_contractor_cannot_see_stage_or_milestone_actions(self):
+        unassigned_user = User.objects.create_user(
+            email='unassigned@example.com',
+            username='unassigned-contractor',
+            password='password123',
+            role='contractor',
+            name='Unassigned Contractor',
+        )
+        self.client.force_login(unassigned_user)
+
+        response = self.client.get(reverse('project_details', args=[self.project.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['can_manage_project_stages'])
+        self.assertNotContains(response, 'Add Stage')
+        self.assertNotContains(response, 'Add Milestone')
+
+    def test_unassigned_contractor_cannot_post_stage_or_milestone(self):
+        unassigned_user = User.objects.create_user(
+            email='unassigned@example.com',
+            username='unassigned-contractor',
+            password='password123',
+            role='contractor',
+            name='Unassigned Contractor',
+        )
+        self.client.force_login(unassigned_user)
+        url = reverse('project_details', args=[self.project.pk])
+
+        self.client.post(url, {
+            'action': 'stage_add',
+            'stage_name': 'Unauthorized stage',
+            'description': 'Should not be saved.',
+            'progress_percentage': '0',
+            'status': 'not_started',
+            'order': '1',
+        })
+        self.client.post(url, {
+            'action': 'milestone_add',
+            'title': 'Unauthorized milestone',
+            'description': 'Should not be saved.',
+            'progress_percentage': '0',
+            'status': 'pending',
+            'stage': '',
+        })
+
+        self.assertFalse(ProjectStage.objects.filter(
+            project=self.project, stage_name='Unauthorized stage'
+        ).exists())
+        self.assertFalse(Milestone.objects.filter(
+            project=self.project, title='Unauthorized milestone'
+        ).exists())
+
+    def test_assigned_contractor_can_add_stage_and_milestone(self):
+        stage_response = self.client.post(
+            reverse('project_details', args=[self.project.pk]),
+            {
+                'action': 'stage_add',
+                'stage_name': 'Foundation work',
+                'description': 'Prepare the foundation.',
+                'progress_percentage': '10',
+                'status': 'in_progress',
+                'order': '1',
+            },
+        )
+        milestone_response = self.client.post(
+            reverse('project_details', args=[self.project.pk]),
+            {
+                'action': 'milestone_add',
+                'title': 'Foundation inspection',
+                'description': 'Complete the foundation inspection.',
+                'progress_percentage': '0',
+                'status': 'pending',
+                'stage': '',
+            },
+        )
+
+        self.assertEqual(stage_response.status_code, 302)
+        self.assertEqual(milestone_response.status_code, 302)
+        self.assertTrue(ProjectStage.objects.filter(
+            project=self.project, stage_name='Foundation work'
+        ).exists())
+        self.assertTrue(Milestone.objects.filter(
+            project=self.project, title='Foundation inspection'
+        ).exists())
 
 
 class AIInsightsTest(TestCase):
@@ -380,3 +553,246 @@ class TenderAndBidsTest(TestCase):
         # Filter by search
         response = self.client.get(reverse('my_bids'), {'q': 'Nakuru'})
         self.assertEqual(response.status_code, 200)
+
+
+class ContractorDashboardWorkflowTests(TestCase):
+    def setUp(self):
+        self.contractor_user = User.objects.create_user(
+            email='builder@example.com',
+            username='builder',
+            password='password123',
+            role='contractor',
+            name='Builder Representative',
+            organization='BuildCo',
+        )
+        self.project = Project.objects.create(
+            project_title='Clinic Construction',
+            project_description='Build a community clinic.',
+            project_location='North District',
+            project_Budgeting=500000,
+            project_status='ongoing',
+            end_date=date.today() + timedelta(days=30),
+        )
+        self.contractor = Contractor.objects.create(
+            email=self.contractor_user.email,
+            name=self.contractor_user.full_name,
+            company='BuildCo',
+        )
+        self.contractor.projects.add(self.project)
+
+    def test_dashboard_shows_scoped_projects_and_overview_counts(self):
+        other_project = Project.objects.create(project_title='Private Unassigned Project')
+        StageReport.objects.create(
+            project=self.project,
+            reported_by=self.contractor_user,
+            stage_description='Roofing',
+            description='Roofing is in progress.',
+            progress_percentage=45,
+            location='North District',
+        )
+
+        self.client.force_login(self.contractor_user)
+        response = self.client.get(reverse('contractor_performance'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total_project_count'], 1)
+        self.assertEqual(response.context['ongoing_project_count'], 1)
+        self.assertEqual(response.context['pending_report_count'], 1)
+        self.assertContains(response, self.project.project_title)
+        self.assertNotContains(response, other_project.project_title)
+        self.assertNotContains(response, 'Contractor Registry & Awarded Projects')
+
+    def test_contractor_can_submit_invoice_only_for_assigned_project(self):
+        self.client.force_login(self.contractor_user)
+        invoice = SimpleUploadedFile('invoice.pdf', b'%PDF-1.4 test')
+        response = self.client.post(reverse('contractor_payment_request'), {
+            'project': self.project.pk,
+            'invoice_number': 'INV-2026-01',
+            'title': 'Foundation milestone invoice',
+            'amount': '125000.00',
+            'description': 'Foundation work completed.',
+            'invoice_file': invoice,
+        })
+
+        self.assertRedirects(response, reverse('contractor_performance'))
+        payment = ContractorPaymentRequest.objects.get(invoice_number='INV-2026-01')
+        self.assertEqual(payment.submitted_by, self.contractor_user)
+        self.assertEqual(payment.project, self.project)
+        self.assertEqual(payment.status, 'pending')
+
+    def test_officer_can_reject_report_with_feedback_and_approve_payment(self):
+        report = StageReport.objects.create(
+            project=self.project,
+            reported_by=self.contractor_user,
+            stage_description='Roofing',
+            description='Roofing is in progress.',
+            progress_percentage=45,
+            location='North District',
+        )
+        payment = ContractorPaymentRequest.objects.create(
+            project=self.project,
+            contractor=self.contractor,
+            submitted_by=self.contractor_user,
+            title='Approved milestone invoice',
+            amount=125000,
+            invoice_file=SimpleUploadedFile('invoice.pdf', b'%PDF-1.4 test'),
+        )
+        reviewer = User.objects.create_user(
+            email='officer@example.com',
+            username='officer',
+            password='password123',
+            role='official',
+        )
+        self.client.force_login(reviewer)
+
+        response = self.client.post(reverse('contractor_review_queue'), {
+            'submission_type': 'report',
+            'submission_id': report.pk,
+            'action': 'rejected',
+            'reviewer_comments': 'Attach inspection evidence.',
+        })
+        self.assertRedirects(response, reverse('contractor_review_queue'))
+        report.refresh_from_db()
+        self.assertEqual(report.review_status, 'rejected')
+        self.assertEqual(report.reviewer_comments, 'Attach inspection evidence.')
+        self.assertEqual(report.reviewed_by, reviewer)
+
+        self.client.post(reverse('contractor_review_queue'), {
+            'submission_type': 'payment',
+            'submission_id': payment.pk,
+            'action': 'approved',
+            'reviewer_comments': 'Verified against milestone.',
+        })
+        payment.refresh_from_db()
+        self.assertEqual(payment.status, 'approved')
+        self.assertEqual(payment.reviewer_comments, 'Verified against milestone.')
+
+    def test_rejected_invoice_requires_reviewer_comment(self):
+        payment = ContractorPaymentRequest.objects.create(
+            project=self.project,
+            contractor=self.contractor,
+            submitted_by=self.contractor_user,
+            title='Invoice without review note',
+            amount=125000,
+            invoice_file=SimpleUploadedFile('invoice.pdf', b'%PDF-1.4 test'),
+        )
+        reviewer = User.objects.create_user(
+            email='reviewer@example.com',
+            username='reviewer',
+            password='password123',
+            role='official',
+        )
+        self.client.force_login(reviewer)
+
+        self.client.post(reverse('contractor_review_queue'), {
+            'submission_type': 'payment',
+            'submission_id': payment.pk,
+            'action': 'rejected',
+            'reviewer_comments': '',
+        })
+
+        payment.refresh_from_db()
+        self.assertEqual(payment.status, 'pending')
+
+    def test_assigned_contractor_can_update_and_submit_milestone_for_verification(self):
+        milestone = Milestone.objects.create(
+            project=self.project,
+            title='Foundation inspection',
+            description='Complete and document the foundation.',
+            progress_percentage=70,
+            status='in_progress',
+        )
+        self.client.force_login(self.contractor_user)
+
+        detail_response = self.client.get(reverse('milestone_detail', args=[milestone.pk]))
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertContains(detail_response, 'Update milestone progress')
+
+        update_response = self.client.post(
+            reverse('milestone_quick_update', args=[milestone.pk]),
+            {'progress_percentage': '100', 'status': 'completed'},
+        )
+        self.assertEqual(update_response.status_code, 302)
+        milestone.refresh_from_db()
+        self.assertEqual(milestone.progress_percentage, 100)
+        self.assertEqual(milestone.status, 'completed')
+
+        submit_response = self.client.post(
+            reverse('submit_milestone_verification', args=[milestone.pk]),
+        )
+        self.assertEqual(submit_response.status_code, 302)
+        milestone.refresh_from_db()
+        self.assertEqual(milestone.verification_status, 'pending')
+        pending_response = self.client.get(reverse('milestone_detail', args=[milestone.pk]))
+        self.assertContains(pending_response, 'awaiting verification')
+
+    def test_unassigned_contractor_cannot_update_or_submit_milestone(self):
+        milestone = Milestone.objects.create(
+            project=self.project,
+            title='Roof inspection',
+            description='Inspect the completed roof.',
+            progress_percentage=100,
+            status='completed',
+        )
+        unassigned_user = User.objects.create_user(
+            email='unassigned-builder@example.com',
+            username='other-builder',
+            password='password123',
+            role='contractor',
+            name='Other Builder',
+        )
+        self.client.force_login(unassigned_user)
+
+        update_response = self.client.post(
+            reverse('milestone_quick_update', args=[milestone.pk]),
+            {'progress_percentage': '100', 'status': 'completed'},
+        )
+        submit_response = self.client.post(
+            reverse('submit_milestone_verification', args=[milestone.pk]),
+        )
+
+        self.assertEqual(update_response.status_code, 403)
+        self.assertEqual(submit_response.status_code, 403)
+        milestone.refresh_from_db()
+        self.assertEqual(milestone.verification_status, 'not_submitted')
+
+    def test_officer_can_review_milestone_and_rejection_requires_comment(self):
+        milestone = Milestone.objects.create(
+            project=self.project,
+            title='Electrical inspection',
+            description='Verify wiring and safety.',
+            progress_percentage=100,
+            status='completed',
+            verification_status='pending',
+        )
+        reviewer = User.objects.create_user(
+            email='milestone-reviewer@example.com',
+            username='milestone-reviewer',
+            password='password123',
+            role='official',
+        )
+        self.client.force_login(reviewer)
+        queue_response = self.client.get(reverse('contractor_review_queue'))
+        self.assertContains(queue_response, 'Electrical inspection')
+
+        missing_comment_response = self.client.post(reverse('contractor_review_queue'), {
+            'submission_type': 'milestone',
+            'submission_id': milestone.pk,
+            'action': 'rejected',
+            'reviewer_comments': '',
+        })
+        self.assertRedirects(missing_comment_response, reverse('contractor_review_queue'))
+        milestone.refresh_from_db()
+        self.assertEqual(milestone.verification_status, 'pending')
+
+        review_response = self.client.post(reverse('contractor_review_queue'), {
+            'submission_type': 'milestone',
+            'submission_id': milestone.pk,
+            'action': 'rejected',
+            'reviewer_comments': 'Provide the signed inspection record.',
+        })
+        self.assertRedirects(review_response, reverse('contractor_review_queue'))
+        milestone.refresh_from_db()
+        self.assertEqual(milestone.verification_status, 'rejected')
+        self.assertEqual(milestone.verification_comments, 'Provide the signed inspection record.')
+        self.assertEqual(milestone.verified_by, reviewer)
