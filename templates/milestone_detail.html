@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    {% if can_update_milestone and not can_manage_milestone %}
+    {% if can_update_milestone_progress %}
     <section class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
       <h2 class="font-extrabold text-slate-900">Update milestone progress</h2>
       {% if milestone.verification_status == 'pending' %}

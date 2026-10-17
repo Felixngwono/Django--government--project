@@ -1,0 +1,539 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ project.project_title }} — Project Details | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <style>
+    [hidden] { display: none !important; }
+    [x-cloak] { display: none !important; }
+    .workspace-shell {
+      background:
+        radial-gradient(ellipse at 8% 0%, rgba(191, 219, 254, .38), transparent 34rem),
+        radial-gradient(ellipse at 94% 22%, rgba(167, 243, 208, .24), transparent 30rem),
+        #f8fafc;
+    }
+    .project-hero {
+      background:
+        radial-gradient(ellipse at 88% 15%, rgba(59, 130, 246, .45), transparent 24rem),
+        radial-gradient(ellipse at 12% 100%, rgba(16, 185, 129, .22), transparent 24rem),
+        linear-gradient(125deg, #0f172a 4%, #172554 58%, #164e63 100%);
+    }
+    .project-tab { transition: color .18s ease, background-color .18s ease, border-color .18s ease; }
+    .project-tab[aria-selected="true"] { color: #1d4ed8; border-color: #2563eb; background: #eff6ff; box-shadow: 0 4px 12px rgba(37, 99, 235, .08); }
+    .project-tab:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+    .media-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .media-card:hover { transform: translateY(-3px); border-color: #bfdbfe; box-shadow: 0 14px 30px rgba(15, 23, 42, .1); }
+  </style>
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
+
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="workspace-shell mx-auto min-h-screen max-w-7xl space-y-6 p-4 md:p-8">
+      <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-700">
+        <iconify-icon icon="solar:arrow-left-linear"></iconify-icon> My projects
+      </a>
+      {% if messages %}
+      <div class="space-y-2" role="status" aria-live="polite">
+        {% for message in messages %}
+        <p class="rounded-xl border px-4 py-3 text-sm font-semibold {% if message.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800{% else %}border-emerald-200 bg-emerald-50 text-emerald-800{% endif %}">{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <section class="project-hero relative overflow-hidden rounded-3xl p-6 text-white shadow-xl md:p-9">
+        {% if project.cover_image %}
+          <img src="{{ project.cover_image.url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen">
+        {% elif project.images %}
+          <img src="{{ project.images.url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen">
+        {% endif %}
+        <div aria-hidden="true" class="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full border border-white/10"></div>
+        <div aria-hidden="true" class="pointer-events-none absolute -right-2 -top-10 h-44 w-44 rounded-full border border-white/10"></div>
+        <div class="relative z-10">
+          <div class="mb-4 flex flex-wrap items-center gap-2">
+            <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider">Project workspace</span>
+            <span class="rounded-full border border-blue-300/30 bg-blue-400/15 px-3 py-1 text-xs font-bold text-blue-100">{{ project.get_project_status_display|default:project.project_status|title }}</span>
+            {% if project.priority %}
+              <span class="rounded-full border border-amber-300/30 bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-100">{{ project.get_priority_display|default:project.priority|title }} priority</span>
+            {% endif %}
+          </div>
+          <div class="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+            <div class="max-w-3xl">
+              <p class="mb-2 text-xs font-bold uppercase tracking-[.18em] text-blue-200">GovTracker / My Projects / Project Details</p>
+              <h1 class="text-3xl font-extrabold tracking-tight md:text-4xl">{{ project.project_title|default:"Untitled project" }}</h1>
+              <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-300">
+                <span class="inline-flex items-center gap-1.5"><iconify-icon icon="solar:map-point-bold" class="text-blue-300"></iconify-icon>{{ project.project_location|default:"Location not provided" }}{% if project.district %}, {{ project.district }}{% endif %}</span>
+                <span>Project Ref: <span class="font-mono font-bold text-white">{{ project.reference_code|default:"Not recorded" }}</span></span>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {% if is_contractor_role %}
+                <a href="{% url 'submit_stage_report' %}?project={{ project.id }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow hover:bg-blue-500">
+                  <iconify-icon icon="solar:document-add-bold"></iconify-icon> Submit progress
+                </a>
+              {% endif %}
+              {% if is_contractor_role %}
+                <a href="{% url 'upload_progress_report' project.id %}" class="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/20">
+                  <iconify-icon icon="solar:upload-bold"></iconify-icon> Upload report
+                </a>
+                <a href="{% url 'contractor_payment_request' %}" class="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-bold text-white hover:bg-white/20">
+                  <iconify-icon icon="solar:bill-list-bold"></iconify-icon> Submit invoice
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <article class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:p-5">
+          <p class="text-xs font-bold uppercase tracking-wide text-slate-400">{{ contract_value_label }}</p>
+          <p class="mt-2 text-xl font-black text-slate-900 md:text-2xl">KES {{ contract_value|floatformat:0 }}</p>
+          {% if awarded_tenders %}<p class="mt-1 text-xs text-slate-500">Awarded contract{% else %}<p class="mt-1 text-xs text-slate-500">Budget allocation; award value not recorded{% endif %}</p>
+        </article>
+        <article class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:p-5">
+          <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Reported progress</p>
+          <p class="mt-2 text-2xl font-black text-blue-700 md:text-3xl">{{ my_progress }}%</p>
+          <p class="mt-1 text-xs text-slate-500">Contractor-reported; subject to verification</p>
+        </article>
+        <article class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:p-5">
+          <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Start date</p>
+          <p class="mt-2 text-lg font-extrabold text-slate-900">{{ project.start_date|date:"d M Y"|default:"Not set" }}</p>
+          <p class="mt-1 text-xs text-slate-500">Contract commencement</p>
+        </article>
+        <article class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:p-5">
+          <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Expected completion</p>
+          <p class="mt-2 text-lg font-extrabold text-slate-900">{{ project.end_date|date:"d M Y"|default:"Not set" }}</p>
+          <p class="mt-1 text-xs text-slate-500">Current project deadline</p>
+        </article>
+      </section>
+
+      <section class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+        <div class="mb-2 flex items-center justify-between gap-4">
+          <div><h2 class="font-extrabold text-slate-900">Overall progress</h2><p class="text-xs text-slate-500">Reported completion</p></div>
+          <span class="font-mono text-xl font-black text-blue-700">{{ my_progress }}%</span>
+        </div>
+        <div class="h-2.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-blue-600" style="width: {{ my_progress }}%"></div></div>
+        <p class="mt-3 text-xs text-slate-500">Progress is reported by the contractor and should be verified by an authorized officer.</p>
+      </section>
+
+      <nav class="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2" role="tablist" aria-label="Project details">
+        <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-overview" role="tab" aria-controls="panel-overview" aria-selected="true" data-project-tab="overview">Overview</button>
+        <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-milestones" role="tab" aria-controls="panel-milestones" aria-selected="false" data-project-tab="milestones" tabindex="-1">Milestones</button>
+        <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-reports" role="tab" aria-controls="panel-reports" aria-selected="false" data-project-tab="reports" tabindex="-1">Progress reports</button>
+        <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-gallery" role="tab" aria-controls="panel-gallery" aria-selected="false" data-project-tab="gallery" tabindex="-1">Evidence gallery</button>
+        <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-finance" role="tab" aria-controls="panel-finance" aria-selected="false" data-project-tab="finance" tabindex="-1">Finance</button>
+        <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-inspections" role="tab" aria-controls="panel-inspections" aria-selected="false" data-project-tab="inspections" tabindex="-1">Inspections</button>
+        <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-documents" role="tab" aria-controls="panel-documents" aria-selected="false" data-project-tab="documents" tabindex="-1">Documents</button>
+      </nav>
+
+      <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-project-panel="overview" class="grid gap-5 lg:grid-cols-3">
+        <article class="space-y-5 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6 lg:col-span-2">
+          <div><h2 class="text-lg font-extrabold text-slate-900">Project description & objectives</h2><p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ project.project_description|default:"Project objectives and delivery description have not been provided." }}</p></div>
+          {% for tender in awarded_tenders %}
+            {% if tender.description %}<div class="border-t border-slate-100 pt-5"><h3 class="font-bold text-slate-800">Contract scope — {{ tender.title|default:"Awarded contract" }}</h3><p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ tender.description }}</p></div>{% endif %}
+          {% endfor %}
+          <div class="grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
+            <div><p class="text-xs font-bold uppercase text-slate-400">Intended beneficiaries</p><p class="mt-1 text-sm text-slate-700">{{ project.beneficiaries|default:"Not specified" }}</p></div>
+            <div><p class="text-xs font-bold uppercase text-slate-400">Project impact</p><p class="mt-1 text-sm text-slate-700">{{ project.impact|default:"Not specified" }}</p></div>
+            <div><p class="text-xs font-bold uppercase text-slate-400">Project category</p><p class="mt-1 text-sm text-slate-700">{{ project.category|default:"Not categorized" }}</p></div>
+            <div><p class="text-xs font-bold uppercase text-slate-400">Funding source</p><p class="mt-1 text-sm text-slate-700">{{ project.funding_source|default:"Not specified" }}</p></div>
+          </div>
+        </article>
+        <aside class="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+          <h2 class="text-lg font-extrabold text-slate-900">Project assignment</h2>
+          <div><p class="text-xs font-bold uppercase text-slate-400">Implementing agency</p><p class="mt-1 text-sm font-semibold text-slate-800">{{ project.implementing_agency|default:"Not specified" }}</p></div>
+          {% if project.supervising_agency %}<div><p class="text-xs font-bold uppercase text-slate-400">Supervising agency</p><p class="mt-1 text-sm text-slate-700">{{ project.supervising_agency }}</p></div>{% endif %}
+          <div><p class="text-xs font-bold uppercase text-slate-400">Project coordinator</p><p class="mt-1 text-sm text-slate-700">{{ project.project_manager|default:"Not assigned" }}</p></div>
+          {% if project.contact_email %}<a href="mailto:{{ project.contact_email }}" class="inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:underline"><iconify-icon icon="solar:letter-bold"></iconify-icon>{{ project.contact_email }}</a>{% endif %}
+          <div><p class="text-xs font-bold uppercase text-slate-400">Assigned contractor</p><p class="mt-1 text-sm font-semibold text-slate-700">{{ contractor_record.company|default:project.project_contractor|default:contractor_display_name|default:"Contractor not specified" }}</p></div>
+          <div class="border-t border-slate-100 pt-4"><p class="text-xs font-bold uppercase text-slate-400">Contract reference</p>
+            {% for tender in awarded_tenders %}<p class="mt-1 font-mono text-sm font-bold text-slate-700">{{ tender.reference_number }}{% if tender.award_date %}<span class="font-sans font-normal text-slate-500"> · awarded {{ tender.award_date|date:"d M Y" }}</span>{% endif %}</p>{% empty %}<p class="mt-1 font-mono text-sm text-slate-700">{{ project.reference_code|default:"Not recorded" }}</p>{% endfor %}
+          </div>
+        </aside>
+        {% if stages %}
+        <article class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6 lg:col-span-3">
+          <div class="mb-4 flex items-center justify-between"><h2 class="text-lg font-extrabold text-slate-900">Work stages</h2>{% if is_contractor_role %}<a href="{% url 'submit_stage_report' %}?project={{ project.id }}" class="text-sm font-bold text-blue-700 hover:underline">Report work</a>{% endif %}</div>
+          <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {% for stage in stages %}
+            <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div class="flex items-start justify-between gap-3"><h3 class="font-bold text-slate-800">{{ stage.stage_name }}</h3><span class="text-xs font-bold text-slate-500">{{ stage.progress_percentage|floatformat:0 }}%</span></div>
+              <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-indigo-500" style="width: {{ stage.progress_percentage }}%"></div></div>
+              <p class="mt-2 text-xs text-slate-500">{{ stage.get_status_display }}{% if stage.end_date %} · due {{ stage.end_date|date:"d M Y" }}{% endif %}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+        {% endif %}
+      </section>
+
+      <section id="panel-milestones" role="tabpanel" aria-labelledby="tab-milestones" data-project-panel="milestones" hidden class="space-y-5">
+        <article class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div class="border-b border-slate-100 p-5"><h2 class="text-lg font-extrabold text-slate-900">Milestones & deliverables</h2><p class="mt-1 text-sm text-slate-500">Review due dates and open a milestone to view its work and verification details.</p></div>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[680px] text-left text-sm">
+              <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Milestone</th><th class="px-5 py-3">Due date</th><th class="px-5 py-3">Progress</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Verification</th></tr></thead>
+              <tbody class="divide-y divide-slate-100">
+                {% for milestone in milestones %}
+                <tr>
+                  <td class="px-5 py-4"><a href="{% url 'milestone_detail' milestone.id %}" class="font-bold text-blue-700 hover:underline">{{ milestone.title }}</a>{% if milestone.description %}<p class="mt-1 max-w-xl text-xs text-slate-500">{{ milestone.description|truncatechars:150 }}</p>{% endif %}</td>
+                  <td class="px-5 py-4 text-slate-600">{{ milestone.due_date|date:"d M Y"|default:"—" }}</td>
+                  <td class="px-5 py-4"><span class="font-mono font-bold text-slate-700">{{ milestone.progress_percentage }}%</span><div class="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-blue-600" style="width: {{ milestone.progress_percentage }}%"></div></div></td>
+                  <td class="px-5 py-4 text-slate-700">{{ milestone.get_status_display }}</td>
+                  <td class="px-5 py-4 text-xs font-semibold {% if milestone.verification_status == 'approved' %}text-emerald-700{% elif milestone.verification_status == 'rejected' %}text-rose-700{% elif milestone.verification_status == 'pending' %}text-amber-700{% else %}text-slate-500{% endif %}">{{ milestone.get_verification_status_display }}</td>
+                </tr>
+                {% empty %}<tr><td colspan="5" class="px-5 py-10 text-center text-sm text-slate-500">No milestones have been added to this project yet.</td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" data-project-panel="reports" hidden class="space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-5">
+          <div><h2 class="font-extrabold text-slate-900">Progress reports & evidence</h2><p class="mt-1 text-sm text-slate-600">Project reports and their attached evidence are visible to authorized project viewers.</p></div>
+          {% if is_contractor_role %}<a href="{% url 'submit_stage_report' %}?project={{ project.id }}" class="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800">Submit progress report</a>{% endif %}
+        </div>
+        {% for report in all_reports %}
+        <article id="report-{{ report.id }}" x-data="{ editingReport: false }" class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div><p class="text-xs font-bold uppercase tracking-wide text-slate-400">{% if report.stage %}{{ report.stage.stage_name }}{% else %}{{ report.stage_description|default:"Progress update" }}{% endif %}</p><h3 class="mt-1 font-extrabold text-slate-900">{{ report.progress_percentage }}% completion reported</h3><p class="mt-1 text-xs text-slate-500">Submitted {{ report.created_at|date:"d M Y · H:i" }}{% if report.reported_by %} by {{ report.reported_by.full_name|default:report.reported_by.username }}{% endif %}</p></div>
+            <span class="rounded-full px-3 py-1 text-xs font-bold {% if report.review_status == 'approved' %}bg-emerald-100 text-emerald-800{% elif report.review_status == 'rejected' %}bg-rose-100 text-rose-800{% else %}bg-amber-100 text-amber-800{% endif %}">{{ report.get_review_status_display }}</span>
+          </div>
+          <p class="mt-4 whitespace-pre-line text-sm leading-6 text-slate-600">{{ report.description }}</p>
+          {% if report.delay_reason %}<p class="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><strong>Challenge:</strong> {{ report.delay_reason }}</p>{% endif %}
+          {% if report.corrective_actions %}<p class="mt-3 text-sm text-slate-600"><strong>Corrective action:</strong> {{ report.corrective_actions }}</p>{% endif %}
+          {% if report.reviewer_comments %}<p class="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700"><strong>Reviewer feedback:</strong> {{ report.reviewer_comments }}</p>{% endif %}
+          {% if report.photo or report.images.all or report.attachments.all or report.supporting_document %}
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {% if report.photo %}
+            <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              <a href="{{ report.photo.url }}" target="_blank" rel="noopener"><img src="{{ report.photo.url }}" alt="Primary progress evidence photo" loading="lazy" class="aspect-video w-full object-cover"></a>
+              <figcaption class="px-3 py-2 text-xs font-semibold text-slate-600">Primary photo</figcaption>
+            </figure>
+            {% endif %}
+            {% for image in report.images.all %}
+            <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              <a href="{{ image.image.url }}" target="_blank" rel="noopener"><img src="{{ image.image.url }}" alt="{{ image.caption|default:'Progress evidence photo' }}" loading="lazy" class="aspect-video w-full object-cover"></a>
+              <figcaption class="px-3 py-2 text-xs font-semibold text-slate-600">{{ image.caption|default:"Evidence photo" }} · {{ image.uploaded_at|date:"d M Y" }}</figcaption>
+            </figure>
+            {% endfor %}
+            {% for attachment in report.attachments.all %}
+              {% if attachment.media_kind == "video" %}
+              <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-950">
+                <video controls preload="metadata" class="aspect-video w-full"><source src="{{ attachment.file.url }}">Your browser cannot play this video. <a href="{{ attachment.file.url }}">Download it</a>.</video>
+                <figcaption class="px-3 py-2 text-xs font-semibold text-white">{{ attachment.caption|default:attachment.file.name|cut:"stage_reports/attachments/" }} · {{ attachment.uploaded_at|date:"d M Y" }}</figcaption>
+              </figure>
+              {% elif attachment.media_kind == "image" %}
+              <figure class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                <a href="{{ attachment.file.url }}" target="_blank" rel="noopener"><img src="{{ attachment.file.url }}" alt="{{ attachment.caption|default:'Progress evidence photo' }}" loading="lazy" class="aspect-video w-full object-cover"></a>
+                <figcaption class="px-3 py-2 text-xs font-semibold text-slate-600">{{ attachment.caption|default:attachment.file.name|cut:"stage_reports/attachments/" }} · {{ attachment.uploaded_at|date:"d M Y" }}</figcaption>
+              </figure>
+              {% else %}
+              <a href="{{ attachment.file.url }}" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-blue-300 hover:bg-blue-50">
+                <iconify-icon icon="solar:document-text-bold" class="text-2xl text-blue-700"></iconify-icon>
+                <span class="min-w-0"><span class="block truncate text-sm font-bold text-slate-800">{{ attachment.caption|default:attachment.file.name|cut:"stage_reports/attachments/" }}</span><span class="mt-1 block text-xs text-slate-500">Document · {{ attachment.uploaded_at|date:"d M Y" }}</span></span>
+              </a>
+              {% endif %}
+            {% endfor %}
+            {% if report.supporting_document %}
+            <a href="{{ report.supporting_document.url }}" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-blue-300 hover:bg-blue-50">
+              <iconify-icon icon="solar:document-text-bold" class="text-2xl text-blue-700"></iconify-icon>
+              <span class="min-w-0"><span class="block truncate text-sm font-bold text-slate-800">{{ report.supporting_document.name|cut:"stage_reports/documents/" }}</span><span class="mt-1 block text-xs text-slate-500">Primary supporting file</span></span>
+            </a>
+            {% endif %}
+          </div>
+          {% else %}
+          <p class="mt-4 rounded-xl border border-dashed border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">No evidence files were attached to this report.</p>
+          {% endif %}
+          {% if is_contractor_role and report.reported_by_id == request.user.id %}
+          <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+            <button type="button" @click="editingReport = !editingReport" class="rounded-lg border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-50" :aria-expanded="editingReport.toString()">
+              <span x-show="!editingReport">Edit submission</span><span x-show="editingReport" x-cloak>Close editor</span>
+            </button>
+            <form method="post" class="inline" onsubmit="return confirm('Delete this progress report and all of its evidence? This cannot be undone.');">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="report_delete">
+              <input type="hidden" name="report_id" value="{{ report.id }}">
+              <button type="submit" class="rounded-lg border border-rose-200 px-3 py-2 text-sm font-bold text-rose-700 hover:bg-rose-50">Delete submission</button>
+            </form>
+          </div>
+
+          <form x-show="editingReport" x-cloak method="post" enctype="multipart/form-data" class="mt-4 space-y-4 rounded-xl border border-blue-100 bg-blue-50/50 p-4" @submit="if (!confirm('Save your changes? This report will be sent for review again.')) $event.preventDefault()">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="report_update">
+            <input type="hidden" name="report_id" value="{{ report.id }}">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block text-sm font-semibold text-slate-700">Stage
+                <input name="stage_description" value="{% if report.stage_description %}{{ report.stage_description }}{% elif report.stage %}{{ report.stage.stage_name }}{% endif %}" required class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
+              </label>
+              <label class="block text-sm font-semibold text-slate-700">Work location
+                <input name="location" value="{{ report.location }}" required class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
+              </label>
+            </div>
+            <label class="block text-sm font-semibold text-slate-700">Work completed and reporting period details
+              <textarea name="description" required rows="4" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">{{ report.description }}</textarea>
+            </label>
+            <label class="block text-sm font-semibold text-slate-700">Updated completion percentage
+              <input type="number" name="progress_percentage" min="0" max="100" value="{{ report.progress_percentage }}" required class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">
+            </label>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block text-sm font-semibold text-slate-700">Challenges / delay reason
+                <textarea name="delay_reason" rows="3" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">{{ report.delay_reason }}</textarea>
+              </label>
+              <label class="block text-sm font-semibold text-slate-700">Corrective actions
+                <textarea name="corrective_actions" rows="3" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2">{{ report.corrective_actions }}</textarea>
+              </label>
+            </div>
+            <div class="space-y-2">
+              <p class="text-sm font-bold text-slate-700">Existing evidence — select files to remove</p>
+              {% if report.photo %}<label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" name="remove_photo" class="rounded border-slate-300"> Remove primary photo ({{ report.photo.name|cut:"stage_reports/" }})</label>{% endif %}
+              {% if report.supporting_document %}<label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" name="remove_supporting_document" class="rounded border-slate-300"> Remove primary supporting file ({{ report.supporting_document.name|cut:"stage_reports/documents/" }})</label>{% endif %}
+              {% for image in report.images.all %}<label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" name="remove_image_ids" value="{{ image.id }}" class="rounded border-slate-300"> Remove photo {{ forloop.counter }}{% if image.caption %} — {{ image.caption }}{% endif %}</label>{% endfor %}
+              {% for attachment in report.attachments.all %}<label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" name="remove_attachment_ids" value="{{ attachment.id }}" class="rounded border-slate-300"> Remove {{ attachment.file.name|cut:"stage_reports/attachments/" }}</label>{% endfor %}
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block text-sm font-semibold text-slate-700">Add more photos
+                <input type="file" name="photos" accept=".jpg,.jpeg,.png,.gif,.webp" multiple class="mt-1 block w-full rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-sm">
+              </label>
+              <label class="block text-sm font-semibold text-slate-700">Add more videos or documents
+                <input type="file" name="attachments" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" multiple class="mt-1 block w-full rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-sm">
+              </label>
+              {% if report.photo %}<label class="block text-sm font-semibold text-slate-700">Replace primary photo
+                <input type="file" name="photo" accept=".jpg,.jpeg,.png,.gif,.webp" class="mt-1 block w-full rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-sm">
+              </label>{% endif %}
+              {% if report.supporting_document %}<label class="block text-sm font-semibold text-slate-700">Replace primary supporting file
+                <input type="file" name="supporting_document" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" class="mt-1 block w-full rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-sm">
+              </label>{% endif %}
+            </div>
+            <p class="text-xs text-slate-500">Changes keep the original submission date and reset the review status to Pending Review. Each file must be 20 MB or smaller.</p>
+            <button type="submit" class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800">Save changes and resubmit</button>
+          </form>
+          {% endif %}
+        </article>
+        {% empty %}<article class="rounded-2xl border border-slate-100 bg-white p-8 text-center text-sm text-slate-500">No progress reports have been submitted for this project yet.</article>{% endfor %}
+        {% if progress_reports %}
+        <article class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+          <h3 class="mb-3 font-extrabold text-slate-900">Uploaded project reports</h3>
+          <div class="divide-y divide-slate-100">{% for report in progress_reports %}<div class="flex flex-wrap items-center justify-between gap-3 py-3"><div><p class="font-bold text-slate-800">{{ report.report_title }}</p><p class="text-xs text-slate-500">{{ report.created_at|date:"d M Y · H:i" }}{% if report.created_by %} · {{ report.created_by.full_name|default:report.created_by.username }}{% endif %}</p></div><a href="{{ report.report_file.url }}" target="_blank" rel="noopener" class="text-sm font-bold text-blue-700 hover:underline">Open file</a></div>{% endfor %}</div>
+        </article>
+        {% endif %}
+      </section>
+
+      <section id="panel-gallery" role="tabpanel" aria-labelledby="tab-gallery" data-project-panel="gallery" hidden class="space-y-5">
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-950 via-blue-900 to-teal-800 p-6 text-white shadow-lg md:p-8">
+          <div aria-hidden="true" class="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full border border-white/10"></div>
+          <div class="relative flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p class="text-xs font-extrabold uppercase tracking-[.2em] text-cyan-200">On-site evidence</p>
+              <h2 class="mt-2 text-2xl font-black tracking-tight md:text-3xl">Evidence gallery</h2>
+              <p class="mt-2 max-w-2xl text-sm leading-6 text-blue-100">Browse the photos, videos and documents attached to your progress submissions, grouped by report.</p>
+            </div>
+            {% if is_contractor_role %}
+              <a href="{% url 'submit_stage_report' %}?project={{ project.id }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-blue-900 shadow hover:bg-blue-50">
+                <iconify-icon icon="solar:upload-bold"></iconify-icon> Add evidence
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% for report in all_reports %}
+        <article class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50/70 px-5 py-4 md:px-6">
+            <div class="flex items-center gap-3">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-xl text-blue-700"><iconify-icon icon="solar:folder-with-files-bold"></iconify-icon></span>
+              <div>
+                <h3 class="font-extrabold text-slate-900">{% if report.stage %}{{ report.stage.stage_name }}{% else %}{{ report.stage_description|default:"Progress update" }}{% endif %}</h3>
+                <p class="mt-0.5 text-xs text-slate-500">Submitted {{ report.created_at|date:"d M Y · H:i" }}</p>
+              </div>
+            </div>
+            <span class="rounded-full px-3 py-1 text-xs font-bold {% if report.review_status == 'approved' %}bg-emerald-100 text-emerald-800{% elif report.review_status == 'rejected' %}bg-rose-100 text-rose-800{% else %}bg-amber-100 text-amber-800{% endif %}">{{ report.get_review_status_display }}</span>
+          </div>
+
+          {% if report.photo or report.images.all or report.attachments.all or report.supporting_document %}
+          <div class="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3 md:p-5">
+            {% if report.photo %}
+            <figure class="media-card overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              <a href="{{ report.photo.url }}" target="_blank" rel="noopener" aria-label="Open primary progress photo">
+                <img src="{{ report.photo.url }}" alt="Primary progress evidence photo" loading="lazy" class="aspect-[4/3] w-full bg-slate-100 object-cover">
+              </a>
+              <figcaption class="flex items-center justify-between gap-2 px-3 py-3">
+                <span class="min-w-0 truncate text-sm font-bold text-slate-700">Primary project photo</span>
+                <span class="shrink-0 rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-blue-800">Photo</span>
+              </figcaption>
+            </figure>
+            {% endif %}
+            {% for image in report.images.all %}
+            <figure class="media-card overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              <a href="{{ image.image.url }}" target="_blank" rel="noopener" aria-label="Open {{ image.caption|default:'progress evidence photo' }}">
+                <img src="{{ image.image.url }}" alt="{{ image.caption|default:'Progress evidence photo' }}" loading="lazy" class="aspect-[4/3] w-full bg-slate-100 object-cover">
+              </a>
+              <figcaption class="flex items-center justify-between gap-2 px-3 py-3">
+                <span class="min-w-0 truncate text-sm font-bold text-slate-700">{{ image.caption|default:"Project photo" }}</span>
+                <span class="shrink-0 rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-blue-800">Photo</span>
+              </figcaption>
+            </figure>
+            {% endfor %}
+            {% for attachment in report.attachments.all %}
+              {% if attachment.media_kind == "video" %}
+              <figure class="media-card overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
+                <video controls preload="metadata" class="aspect-[4/3] w-full bg-slate-950 object-contain">
+                  <source src="{{ attachment.file.url }}">Your browser cannot play this video. <a href="{{ attachment.file.url }}">Download it</a>.
+                </video>
+                <figcaption class="flex items-center justify-between gap-2 bg-gradient-to-r from-slate-900 to-blue-950 px-3 py-3">
+                  <span class="min-w-0 truncate text-sm font-bold text-white">{{ attachment.caption|default:attachment.file.name|cut:"stage_reports/attachments/" }}</span>
+                  <span class="shrink-0 rounded-full bg-violet-400/20 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-violet-200">Video</span>
+                </figcaption>
+              </figure>
+              {% elif attachment.media_kind == "image" %}
+              <figure class="media-card overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                <a href="{{ attachment.file.url }}" target="_blank" rel="noopener" aria-label="Open {{ attachment.caption|default:'evidence image' }}">
+                  <img src="{{ attachment.file.url }}" alt="{{ attachment.caption|default:'Progress evidence image' }}" loading="lazy" class="aspect-[4/3] w-full bg-slate-100 object-cover">
+                </a>
+                <figcaption class="flex items-center justify-between gap-2 px-3 py-3">
+                  <span class="min-w-0 truncate text-sm font-bold text-slate-700">{{ attachment.caption|default:attachment.file.name|cut:"stage_reports/attachments/" }}</span>
+                  <span class="shrink-0 rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-blue-800">Photo</span>
+                </figcaption>
+              </figure>
+              {% else %}
+              <a href="{{ attachment.file.url }}" target="_blank" rel="noopener" class="media-card flex min-h-40 items-center gap-4 rounded-xl border border-slate-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5">
+                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-2xl text-orange-600 shadow-sm"><iconify-icon icon="solar:document-text-bold"></iconify-icon></span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-[10px] font-extrabold uppercase tracking-[.16em] text-orange-700">Supporting document</span>
+                  <span class="mt-1 block truncate text-sm font-extrabold text-slate-800">{{ attachment.caption|default:attachment.file.name|cut:"stage_reports/attachments/" }}</span>
+                  <span class="mt-1 block text-xs text-slate-500">Uploaded {{ attachment.uploaded_at|date:"d M Y" }}</span>
+                </span>
+                <iconify-icon icon="solar:arrow-up-right-linear" class="shrink-0 text-lg text-orange-700"></iconify-icon>
+              </a>
+              {% endif %}
+            {% endfor %}
+            {% if report.supporting_document %}
+            <a href="{{ report.supporting_document.url }}" target="_blank" rel="noopener" class="media-card flex min-h-40 items-center gap-4 rounded-xl border border-slate-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5">
+              <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-2xl text-orange-600 shadow-sm"><iconify-icon icon="solar:document-text-bold"></iconify-icon></span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-[10px] font-extrabold uppercase tracking-[.16em] text-orange-700">Primary supporting file</span>
+                <span class="mt-1 block truncate text-sm font-extrabold text-slate-800">{{ report.supporting_document.name|cut:"stage_reports/documents/" }}</span>
+                <span class="mt-1 block text-xs text-slate-500">Attached to this progress report</span>
+              </span>
+              <iconify-icon icon="solar:arrow-up-right-linear" class="shrink-0 text-lg text-orange-700"></iconify-icon>
+            </a>
+            {% endif %}
+          </div>
+          {% else %}
+          <p class="p-5 text-sm text-slate-500">No photos, videos or documents were attached to this progress report.</p>
+          {% endif %}
+        </article>
+        {% empty %}
+        <div class="rounded-2xl border border-dashed border-blue-200 bg-white/80 px-6 py-12 text-center shadow-sm">
+          <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-3xl text-blue-600"><iconify-icon icon="solar:gallery-wide-bold"></iconify-icon></span>
+          <h3 class="mt-4 font-extrabold text-slate-900">Project evidence will appear here</h3>
+          <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">Site photos, walkthrough videos and supporting documents attached to project progress reports will appear here.</p>
+          {% if is_contractor_role %}<a href="{% url 'submit_stage_report' %}?project={{ project.id }}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-800"><iconify-icon icon="solar:document-add-bold"></iconify-icon> Submit your first report</a>{% endif %}
+        </div>
+        {% endfor %}
+      </section>
+
+      <section id="panel-finance" role="tabpanel" aria-labelledby="tab-finance" data-project-panel="finance" hidden class="space-y-5">
+        <article class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+          <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-lg font-extrabold text-slate-900">Contract & financial summary</h2><p class="mt-1 text-sm text-slate-500">Invoice and payment values reflect this project and the visible submissions.</p></div>{% if is_contractor_role %}<a href="{% url 'contractor_payment_request' %}" class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800">Submit invoice</a>{% endif %}</div>
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">{{ contract_value_label }}</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ contract_value|floatformat:2 }}</p></div>
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Approved variations</p><p class="mt-2 text-lg font-black text-slate-900">Not recorded</p></div>
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Invoices submitted</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ invoices_submitted|floatformat:2 }}</p></div>
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Payments approved</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ payments_approved|floatformat:2 }}</p></div>
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Payments received</p><p class="mt-2 text-lg font-black text-emerald-700">KES {{ payments_received|floatformat:2 }}</p></div>
+            {% if is_officer %}<div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Recorded project expenditure</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ s_total|floatformat:2 }}</p></div>{% endif %}
+          </div>
+        </article>
+        <article class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div class="border-b border-slate-100 p-5"><h3 class="font-extrabold text-slate-900">Invoice & payment history</h3></div>
+          <div class="divide-y divide-slate-100 px-5">
+            {% for payment in payment_requests %}
+            <div class="flex flex-col justify-between gap-3 py-4 sm:flex-row sm:items-center">
+              <div><p class="font-bold text-slate-800">{{ payment.title }}{% if payment.invoice_number %} · {{ payment.invoice_number }}{% endif %}</p><p class="mt-1 text-xs text-slate-500">Submitted {{ payment.created_at|date:"d M Y · H:i" }} · KES {{ payment.amount|floatformat:2 }}</p>{% if payment.reviewer_comments %}<p class="mt-2 text-sm text-amber-800">Review feedback: {{ payment.reviewer_comments }}</p>{% endif %}</div>
+              <div class="flex items-center gap-3"><span class="rounded-full px-3 py-1 text-xs font-bold {% if payment.status == 'paid' %}bg-emerald-100 text-emerald-800{% elif payment.status == 'rejected' %}bg-rose-100 text-rose-800{% elif payment.status == 'approved' %}bg-blue-100 text-blue-800{% else %}bg-amber-100 text-amber-800{% endif %}">{{ payment.get_status_display }}</span>{% if payment.invoice_file %}<a href="{{ payment.invoice_file.url }}" target="_blank" rel="noopener" class="text-sm font-bold text-blue-700 hover:underline">Invoice</a>{% endif %}</div>
+            </div>
+            {% empty %}<p class="py-8 text-center text-sm text-slate-500">No invoices or payment requests are recorded for this project.</p>{% endfor %}
+          </div>
+        </article>
+      </section>
+
+      <section id="panel-inspections" role="tabpanel" aria-labelledby="tab-inspections" data-project-panel="inspections" hidden class="space-y-5">
+        <article class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+          <h2 class="text-lg font-extrabold text-slate-900">Site inspections & quality assurance</h2>
+          <p class="mt-1 text-sm text-slate-500">Inspection records are entered by an authorized inspector. Findings and corrective actions should be followed through to closure.</p>
+          <div class="mt-5 divide-y divide-slate-100">
+            {% for inspection in inspections %}
+            <div class="py-4"><div class="flex flex-wrap justify-between gap-2"><a href="{% url 'milestone_detail' inspection.id %}" class="font-bold text-blue-700 hover:underline">{{ inspection.title }}</a><span class="text-sm text-slate-500">{{ inspection.due_date|date:"d M Y"|default:"Date not scheduled" }}</span></div><p class="mt-1 text-sm text-slate-600">{{ inspection.description|default:"Inspection or handover milestone" }}</p><p class="mt-2 text-xs font-semibold text-slate-500">Milestone status: {{ inspection.get_status_display }} · Verification: {{ inspection.get_verification_status_display }}</p>{% if inspection.verification_comments %}<p class="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Inspector feedback: {{ inspection.verification_comments }}</p>{% endif %}</div>
+            {% empty %}<p class="py-8 text-center text-sm text-slate-500">No inspection or handover milestones are recorded yet. Inspection findings and certificates will appear here when logged by an authorized inspector.</p>{% endfor %}
+          </div>
+          <div class="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">For inspection certificates, defects, corrective actions or handover records already uploaded, see the Documents tab.</div>
+        </article>
+      </section>
+
+      <section id="panel-documents" role="tabpanel" aria-labelledby="tab-documents" data-project-panel="documents" hidden class="space-y-5">
+        <article class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+          <h2 class="text-lg font-extrabold text-slate-900">Project documents & evidence</h2>
+          <p class="mt-1 text-sm text-slate-500">Available files retain their category, upload date and uploader. Contract files are limited to authorized officers and contractors assigned an awarded contract.</p>
+          <div class="mt-4 divide-y divide-slate-100">
+            {% for tender in awarded_tenders %}
+              {% if tender.document %}
+              <div class="flex flex-wrap items-center justify-between gap-3 py-4">
+                <div><p class="font-bold text-slate-800">{{ tender.title|default:"Awarded contract document" }}</p><p class="mt-1 text-xs text-slate-500">Award document · {{ tender.reference_number }}{% if tender.award_date %} · Awarded {{ tender.award_date|date:"d M Y" }}{% endif %}</p></div>
+                <a href="{{ tender.document.url }}" target="_blank" rel="noopener" class="text-sm font-bold text-blue-700 hover:underline">Open document</a>
+              </div>
+              {% endif %}
+            {% endfor %}
+            {% for document in documents %}
+            <div class="flex flex-wrap items-center justify-between gap-3 py-4">
+              <div class="flex items-start gap-3"><span class="rounded-lg bg-indigo-50 p-2 text-indigo-700"><iconify-icon icon="solar:document-text-bold"></iconify-icon></span><div><p class="font-bold text-slate-800">{{ document.name }}</p><p class="mt-1 text-xs text-slate-500">{{ document.get_category_display }} · Uploaded {{ document.uploaded_at|date:"d M Y" }}{% if document.uploaded_by %} by {{ document.uploaded_by.full_name|default:document.uploaded_by.username }}{% endif %}</p></div></div>
+              {% if document.file %}<a href="{{ document.file.url }}" target="_blank" rel="noopener" class="text-sm font-bold text-blue-700 hover:underline">Open document</a>{% endif %}
+            </div>
+            {% empty %}<p class="py-8 text-center text-sm text-slate-500">No project documents are available yet.</p>{% endfor %}
+          </div>
+        </article>
+      </section>
+
+      <p class="text-center text-xs text-slate-400">Illustrative financial and progress figures are based on available project records. Reported work remains subject to authorized verification.</p>
+    </div>
+  </main>
+  {% include "footer.html" %}
+  <script>
+    (() => {
+      const tabs = Array.from(document.querySelectorAll('[data-project-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-project-panel]'));
+      const activate = (name, focus = false) => {
+        tabs.forEach((tab) => {
+          const selected = tab.dataset.projectTab === name;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          if (selected && focus) tab.focus();
+        });
+        panels.forEach((panel) => { panel.hidden = panel.dataset.projectPanel !== name; });
+      };
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activate(tab.dataset.projectTab));
+        tab.addEventListener('keydown', (event) => {
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 :
+            (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+          activate(tabs[next].dataset.projectTab, true);
+        });
+      });
+      const requestedTab = new URLSearchParams(window.location.search).get('tab');
+      if (tabs.some((tab) => tab.dataset.projectTab === requestedTab)) activate(requestedTab);
+    })();
+  </script>
+</body>
+</html>

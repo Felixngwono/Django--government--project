@@ -127,8 +127,9 @@
       <p class="text-sm text-slate-500 mb-5">Where the project runs and who is responsible.</p>
       <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
         <div class="form-group">
-          <label class="form-label">Location</label>
-          {% render_field form.project_location class="form-control" %}
+          <label class="form-label" for="{{ form.project_location.id_for_label }}">Project Place / Location</label>
+          {% render_field form.project_location class="form-control" placeholder="County, ward, town, site or landmark" %}
+          <p class="mt-1 text-xs text-slate-500">Enter where the project is physically located. This place is shown with the project details and regional reports.</p>
         </div>
         <div class="form-group">
           <label class="form-label">District</label>
@@ -205,23 +206,11 @@
       </div>
     </div>
 
-    <!-- ===== SECTION: AI & INSIGHTS ===== -->
+    <!-- ===== SECTION: IMPACT & NOTES ===== -->
     <div class="card" style="padding:24px;">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">AI &amp; Insights</h3>
-      <p class="text-sm text-slate-500 mb-5">Automated analysis and reporting fields.</p>
+      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Impact &amp; Notes</h3>
+      <p class="text-sm text-slate-500 mb-5">Record the expected project impact and any operational remarks.</p>
       <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div class="form-group sm:col-span-2">
-          <label class="form-label">AI Summary</label>
-          {% render_field form.ai_summary class="form-control" rows="4" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">AI Risk Score</label>
-          {% render_field form.ai_risk_score class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">AI Completion Estimate</label>
-          {% render_field form.ai_completion_estimate type="date" class="form-control" %}
-        </div>
         <div class="form-group sm:col-span-2">
           <label class="form-label">Impact</label>
           {% render_field form.impact class="form-control" %}

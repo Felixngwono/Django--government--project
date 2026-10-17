@@ -113,7 +113,7 @@
                     {% endif %}
                 </form>
 
-                {% if request.user.is_superuser %}
+                {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
                 <a href="{% url 'createproject' %}"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2.5 rounded-xl transition duration-300 shadow">
                     + Add New Project

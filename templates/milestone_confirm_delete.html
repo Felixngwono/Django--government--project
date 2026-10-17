@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete {{ milestone.title }} — GovTracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
+  <main class="main">
+    <div class="mx-auto max-w-2xl space-y-5 p-4 md:p-6">
+      <a href="{% url 'milestone_detail' milestone.id %}" class="text-sm font-bold text-blue-700 hover:underline">&larr; Back to milestone</a>
+      <section class="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm">
+        <h1 class="text-xl font-extrabold text-slate-900">Delete milestone</h1>
+        <p class="mt-3 text-sm leading-6 text-slate-600">
+          Are you sure you want to delete <strong>{{ milestone.title }}</strong> from
+          {{ milestone.project.project_title }}? This action cannot be undone.
+        </p>
+        <form method="post" class="mt-6 flex flex-wrap gap-3">
+          {% csrf_token %}
+          <button type="submit" class="rounded-lg bg-rose-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-800">Delete milestone</button>
+          <a href="{% url 'milestone_detail' milestone.id %}" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Cancel</a>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -129,12 +129,14 @@
             </h2>
             <p class="text-sm text-slate-600">{{ contractor.created_at|date:"M d, Y" }}</p>
             <div class="mt-4 space-y-2">
-                <a href="{% url 'submit_stage_report' %}" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow transition w-full">
-                    <i class="fa-solid fa-file-circle-plus"></i> Stage Report
-                </a>
-                <a href="{% url 'register_contractor' %}" class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition w-full">
-                    <i class="fa-solid fa-user-pen"></i> Manage Registry
-                </a>
+                {% if is_contractor_role %}
+                    <a href="{% url 'submit_stage_report' %}" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow transition w-full">
+                        <i class="fa-solid fa-file-circle-plus"></i> Stage Report
+                    </a>
+                    <a href="{% url 'contractor_profile_settings' %}" class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition w-full">
+                        <i class="fa-solid fa-user-pen"></i> Manage Registry
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -185,6 +187,33 @@
         </div>
     </div>
 
+    {% if can_award_tenders %}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-5 pb-3">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-scale-balanced text-blue-600"></i> Tender applications to review
+                <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ pending_tender_applications|length }}</span>
+            </h2>
+            <p class="mt-1 text-xs text-slate-500">Awards are completed from the tender evaluation page so bids and decisions stay attached to the correct procurement.</p>
+        </div>
+        <div class="divide-y divide-slate-100">
+            {% for application in pending_tender_applications %}
+            <div class="flex flex-wrap items-center justify-between gap-3 p-5">
+                <div>
+                    <p class="text-sm font-bold text-slate-800">{{ application.tender.reference_number }} · {{ application.tender.title|default:application.tender.project.project_title }}</p>
+                    <p class="mt-1 text-xs text-slate-500">Bid: KES {{ application.bid_amount|floatformat:2 }} · {{ application.get_status_display }}</p>
+                </div>
+                <a href="{% url 'tender_detail' application.tender_id %}" class="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100">
+                    Review tender
+                </a>
+            </div>
+            {% empty %}
+            <p class="p-6 text-center text-sm text-slate-400">No matching tender applications are awaiting a decision.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- AWARDED TENDERS -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="p-5 pb-3 flex items-center justify-between">
@@ -223,6 +252,7 @@
         </div>
     </div>
 
+    {% if is_contractor_role %}
     <!-- STAGE REPORTS -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="p-5 pb-3">
@@ -256,6 +286,7 @@
             {% endfor %}
         </div>
     </div>
+    {% endif %}
 
     <!-- RATINGS -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -264,6 +295,28 @@
                 <i class="fa-solid fa-star text-amber-500"></i> Performance Ratings
                 <span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ ratings|length }}</span>
             </h2>
+            {% if can_rate_contractor and projects %}
+            <details class="mt-4 rounded-xl border border-amber-100 bg-amber-50/60 p-4" {% if rating_form.errors %}open{% endif %}>
+                <summary class="cursor-pointer text-sm font-bold text-amber-800">Add or update a project performance rating</summary>
+                <form method="post" class="mt-4 grid gap-3 sm:grid-cols-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_rating">
+                    <label class="text-xs font-bold text-slate-600 sm:col-span-2">Project
+                        {{ rating_form.project }}
+                        {% for error in rating_form.project.errors %}<span class="mt-1 block text-xs text-rose-600">{{ error }}</span>{% endfor %}
+                    </label>
+                    {% for field in rating_form %}
+                    {% if field.name != 'project' %}
+                    <label class="text-xs font-bold text-slate-600">{{ field.label|default:field.name|title }}
+                        {{ field }}
+                        {% for error in field.errors %}<span class="mt-1 block text-xs text-rose-600">{{ error }}</span>{% endfor %}
+                    </label>
+                    {% endif %}
+                    {% endfor %}
+                    <button type="submit" class="rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-700 sm:col-span-2">Save performance rating</button>
+                </form>
+            </details>
+            {% endif %}
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
@@ -275,6 +328,7 @@
                         <th class="px-5 py-3 font-bold">Compliance</th>
                         <th class="px-5 py-3 font-bold">Average</th>
                         <th class="px-5 py-3 font-bold">Rated By</th>
+                        <th class="px-5 py-3 font-bold">Comment</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -286,9 +340,10 @@
                         <td class="px-5 py-3 text-slate-600">{{ r.compliance_score }}</td>
                         <td class="px-5 py-3"><span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-extrabold text-xs">{{ r.average_score }}</span></td>
                         <td class="px-5 py-3 text-slate-600">{{ r.rated_by.full_name|default:r.rated_by.username|default:"—" }}</td>
+                        <td class="px-5 py-3 text-slate-600">{{ r.comment|default:"—" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">No ratings recorded yet.</td></tr>
+                    <tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">No ratings recorded yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -298,10 +353,17 @@
     <!-- COMPLIANCE DOCUMENTS -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="p-5 pb-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                 <i class="fa-solid fa-folder-open text-blue-600"></i> Compliance Documents
                 <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold text-xs">{{ documents|length }}</span>
             </h2>
+            {% if can_upload_contractor_documents %}
+            <a href="{% url 'contractor_document_upload' %}?contractor={{ contractor.id }}&next={% url 'contractor_detail' contractor.id %}" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                <i class="fa-solid fa-upload"></i> Upload compliance document
+            </a>
+            {% endif %}
+            </div>
         </div>
         <div class="divide-y divide-slate-100">
             {% for d in documents %}

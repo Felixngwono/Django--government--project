@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body class="dashboard-page" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -56,7 +56,7 @@
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            {% if request.user.is_superuser  %}
+            {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
             <a href="{% url 'createproject' %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
               <i class="fas fa-plus"></i> Create Project
             </a>
@@ -129,7 +129,7 @@
             Active Portfolio
           </div>
         </div>
-{% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' %}
+{% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
 <div class="stat-card bg-green-800 text-white ">
     <a href="{% url 'user' %}" class="block">
 
@@ -253,7 +253,7 @@
             <div>
               <div class="section-title">Quick actions</div>
               <div class="section-sub">
-                {% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' %}
+                {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
                 Fast links for day-to-day administration
                 {% else %}
                 Key links for citizen participation and tracking
@@ -262,7 +262,7 @@
             </div>
           </div>
           <div class="grid-2">
-            {% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' %}
+            {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
             <a class="quick-action-link" href="{% url 'createproject' %}">
               <div class="font-semibold">Create project</div>
               <div class="text-sm text-gray-500">Register a new government project or initiative.</div>
@@ -696,6 +696,6 @@ function dashboardApp() {
 }
 
 </script>
+{% include "footer.html" %}
 </body>
 </html>
-{% include "footer.html" %}

@@ -51,22 +51,25 @@
             </span>
           {% endif %}
 
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md
+          <span id="project-live-status" role="status" aria-live="polite" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md
             {% if project.project_status == 'ongoing' %}
               bg-blue-500/20 text-blue-300 border-blue-400/30
             {% elif project.project_status == 'completed' %}
               bg-emerald-500/20 text-emerald-300 border-emerald-400/30
             {% elif project.project_status == 'delayed' %}
               bg-rose-500/20 text-rose-300 border-rose-400/30
+            {% elif project.project_status == 'cancelled' %}
+              bg-slate-500/20 text-slate-200 border-slate-400/30
             {% else %}
               bg-amber-500/20 text-amber-300 border-amber-400/30
             {% endif %}">
-            <span class="w-2 h-2 rounded-full
+            <span id="project-live-status-dot" class="w-2 h-2 rounded-full
               {% if project.project_status == 'ongoing' %}bg-blue-400
               {% elif project.project_status == 'completed' %}bg-emerald-400
               {% elif project.project_status == 'delayed' %}bg-rose-400 animate-pulse
+              {% elif project.project_status == 'cancelled' %}bg-slate-300
               {% else %}bg-amber-400{% endif %}"></span>
-            <span>{{ project.get_project_status_display|default:project.project_status|title }}</span>
+            <span id="project-live-status-label">{{ project.get_project_status_display|default:project.project_status|title }}</span>
           </span>
         </div>
 
@@ -109,17 +112,18 @@
         <!-- Action Bar Buttons -->
         <div class="pt-2 flex flex-wrap gap-2.5">
           {% if is_responsible %}
-          <a href="{% url 'upload_progress_report' project.id %}" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
-            <iconify-icon icon="solar:document-add-bold" class="text-base"></iconify-icon>
-            <span>Upload Progress Report</span>
-          </a>
-          {% endif %}
+          {% if request.user.role == 'contractor' %}
+            <a href="{% url 'upload_progress_report' project.id %}" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+              <iconify-icon icon="solar:document-add-bold" class="text-base"></iconify-icon>
+              <span>Upload Progress Report</span>
+            </a>
 
-          <a href="{% url 'add_tender' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+            <a href="{% url 'add_tender' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
             <iconify-icon icon="solar:file-send-bold" class="text-base"></iconify-icon>
             <span>Add Tender</span>
           </a>
-
+          {% endif %}
+          {% endif %}
           <a href="{% url 'add_report_issue' %}" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/15 transition flex items-center gap-2">
             <iconify-icon icon="solar:danger-bold" class="text-base text-amber-400"></iconify-icon>
             <span>Report Issue / Risk</span>
@@ -140,6 +144,36 @@
         </div>
       </div>
     </div>
+
+    <section id="delay-watch-panel"
+             class="relative overflow-hidden rounded-3xl border border-rose-200 bg-gradient-to-r from-rose-50 via-white to-amber-50 p-5 md:p-6 shadow-sm {% if project.project_status != 'delayed' %}hidden{% endif %}"
+             aria-live="polite" {% if project.project_status != 'delayed' %}aria-hidden="true"{% endif %}>
+      <div class="absolute -right-10 -top-12 h-40 w-40 rounded-full bg-rose-100/70 blur-2xl" aria-hidden="true"></div>
+      <div class="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-start gap-3">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+            <iconify-icon icon="mdi:clock-alert-outline" class="text-2xl"></iconify-icon>
+          </span>
+          <div>
+            <p class="text-[11px] font-extrabold uppercase tracking-[0.16em] text-rose-700">Schedule exception · Delay watch</p>
+            <h2 class="mt-1 text-lg font-extrabold text-slate-900">This project is delayed</h2>
+            <p class="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
+              Follow the latest site progress and status changes. Updates on this page refresh automatically.
+            </p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 md:justify-end">
+          <span class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white/80 px-3 py-2 text-xs font-bold text-rose-700">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-rose-500"></span>
+            <span id="project-live-refresh">Connecting to live updates…</span>
+          </span>
+          <a href="{% url 'project_tracking' project.id %}" class="inline-flex items-center gap-2 rounded-xl bg-rose-700 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-rose-800">
+            <iconify-icon icon="mdi:timeline-clock-outline"></iconify-icon>
+            Open live tracking
+          </a>
+        </div>
+      </div>
+    </section>
 
     <!-- KPI STATS CARDS GRID -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -183,9 +217,9 @@
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-start">
         <div class="w-full mr-2">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Execution Progress</span>
-          <h3 class="text-xl md:text-2xl font-black text-purple-700 font-mono">{{ project.progress|default:0 }}%</h3>
+          <h3 id="project-live-progress" class="text-xl md:text-2xl font-black text-purple-700 font-mono">{{ live_progress }}%</h3>
           <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
-            <div class="bg-purple-600 h-2 rounded-full" style="width: {{ project.progress|default:0 }}%"></div>
+            <div id="project-live-progress-bar" class="bg-purple-600 h-2 rounded-full transition-all duration-700" style="width: {{ live_progress }}%"></div>
           </div>
         </div>
         <div class="p-3 bg-purple-50 text-purple-600 rounded-2xl shrink-0">
@@ -257,11 +291,9 @@
               </div>
               <div class="ml-auto flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase {% if c.is_blacklisted %}bg-red-100 text-red-700{% else %}bg-emerald-200 text-emerald-800{% endif %}">{% if c.is_blacklisted %}Blacklisted{% else %}Verified{% endif %}</span>
-                {% if c.user %}
-                <a href="/contractor/works/{{ c.user.pk }}/" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold transition shadow-sm" title="View contractor profile & works">
+                <a href="{% url 'contractor_detail' c.pk %}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold transition shadow-sm" title="View contractor profile & works">
                   View Details <iconify-icon icon="solar:eye-bold" class="text-xs"></iconify-icon>
                 </a>
-                {% endif %}
               </div>
             </div>
             {% endfor %}
@@ -295,6 +327,10 @@
                 <span>📍 {{ r.location }}</span>
                 <span>👷 {{ r.contractor.name|default:r.reported_by.full_name|default:r.reported_by.username|default:"Site team" }}</span>
                 <span>🗓 {{ r.created_at|date:"M d, Y" }}</span>
+                <a href="{% url 'contractor_project_works' r.project_id %}?tab=reports" class="ml-auto inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[10px] font-bold text-white transition hover:bg-blue-700">
+                  <iconify-icon icon="solar:eye-bold"></iconify-icon>
+                  View
+                </a>
               </div>
               {% if r.images.all or r.photo %}
               <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
@@ -336,7 +372,7 @@
             </div>
           </div>
 
-          <!-- Inline: Add Stage (entered manually by the official/contractor responsible) -->
+          <!-- Inline: Add Stage (entered manually by the assigned contractor) -->
         {% if can_manage_project_stages %}
           <form x-show="addStage" x-transition method="post" class="rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-3">
             {% csrf_token %}
@@ -380,7 +416,7 @@
           </form>
           {% endif %}
 
-          <!-- Inline: Add Milestone (admin/contractor/responsible only) -->
+          <!-- Inline: Add Milestone (assigned contractor only) -->
         {% if can_manage_project_stages %}
           <form x-show="addMilestone" x-transition method="post" class="rounded-2xl bg-blue-50/60 border border-blue-200 p-5 space-y-3">
             {% csrf_token %}
@@ -444,8 +480,8 @@
                   <div class="h-2 overflow-hidden rounded-full bg-slate-200">
                     <div class="h-full rounded-full {% if st.status == 'completed' %}bg-emerald-500{% elif st.status == 'delayed' %}bg-rose-500{% else %}bg-blue-500{% endif %}" style="width: {{ st.progress_percentage|default:0 }}%"></div>
                   </div>
-                  {% if is_responsible %}
-                  <!-- Update progress of THIS job only (authenticated contractor/official assigned to the project) -->
+                  {% if can_manage_project_stages %}
+                  <!-- Stage progress is managed only by the assigned contractor. -->
                   <form method="post" class="mt-3 flex flex-wrap items-center gap-2 p-3 rounded-xl bg-white border border-slate-200" x-data="{ open: false }">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="job_progress_update">
@@ -469,7 +505,7 @@
                     <span>Planned: {{ st.start_date|date:"d M Y"|default:"Not set" }} – {{ st.end_date|date:"d M Y"|default:"Not set" }}</span>
                     {% if st.completed_on %}<span class="font-bold text-emerald-700">Completed: {{ st.completed_on|date:"d M Y" }}</span>{% endif %}
                   </div>
-                  {% if is_responsible %}
+                  {% if can_manage_project_stages %}
                   <form method="post" class="flex items-center gap-2">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="stage_quick">
@@ -496,11 +532,11 @@
                           </span>
                           <span class="flex items-center gap-2">
                             <span class="font-bold text-slate-500">{{ m.status|title }}</span>
-                            {% if is_responsible %}
+                            {% if can_manage_project_stages %}
                             <button type="button" @click="editMs = !editMs" class="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-300 text-slate-600 text-[10px] font-bold transition">Edit</button>
                             {% endif %}
                           </span>
-                          {% if is_responsible %}
+                          {% if can_manage_project_stages %}
                           <form x-show="editMs" x-transition method="post" class="w-full rounded-xl bg-white border border-blue-200 p-3 flex flex-wrap items-end gap-2 mt-1">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="milestone_quick">
@@ -555,7 +591,7 @@
             </h2>
             <div class="flex items-center gap-3">
               <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ expenses|length }} Recorded Items</span>
-              {% if is_officer %}
+              {% if can_manage_project_stages %}
               <button type="button" @click="addExpense = !addExpense"
                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm">
                 <iconify-icon icon="solar:add-circle-bold" class="text-sm"></iconify-icon>
@@ -565,8 +601,7 @@
             </div>
           </div>
 
-          <!-- Inline: Add Expense -->
-          {% if is_officer %}
+          {% if can_manage_project_stages %}
           <form x-show="addExpense" x-transition method="post" class="rounded-2xl bg-emerald-50/60 border border-emerald-200 p-5 space-y-3">
             {% csrf_token %}
             <input type="hidden" name="action" value="expense_add">
@@ -583,10 +618,14 @@
                 <label class="text-[11px] font-bold text-slate-500 uppercase">Amount (KES)</label>
                 {{ expense_form.amount }}
               </div>
-              <div>
-                <label class="text-[11px] font-bold text-slate-500 uppercase">Date Spent</label>
-                {{ expense_form.date_spent }}
-              </div>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 uppercase">Details</label>
+              {{ expense_form.description }}
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 uppercase">Receipt (optional)</label>
+              {{ expense_form.receipt }}
             </div>
             {% if expense_form.non_field_errors %}<div class="text-rose-600 text-xs">{{ expense_form.non_field_errors }}</div>{% endif %}
             <div class="flex gap-2 pt-1">
@@ -612,7 +651,7 @@
                     <td class="p-3.5 font-bold text-slate-900">{{ exp.title|default:"Expense Line" }}</td>
                     <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{{ exp.category|default:"General" }}</span></td>
                     <td class="p-3.5 font-mono font-extrabold text-red-600">KES {{ exp.amount|floatformat:2 }}</td>
-                    <td class="p-3.5 text-slate-500">{{ exp.date_spent|date:"M d, Y"|default:"N/A" }}</td>
+                    <td class="p-3.5 text-slate-500">{{ exp.date|date:"M d, Y"|default:"N/A" }}</td>
                   </tr>
                   {% if is_officer %}
                   <tr x-data="{ editExp: false }" class="bg-slate-50/50">
@@ -840,6 +879,58 @@
     </div>
 
   </div>
+  <script>
+    (() => {
+      const statusBadge = document.getElementById('project-live-status');
+      const statusLabel = document.getElementById('project-live-status-label');
+      const statusDot = document.getElementById('project-live-status-dot');
+      const progressValue = document.getElementById('project-live-progress');
+      const progressBar = document.getElementById('project-live-progress-bar');
+      const delayPanel = document.getElementById('delay-watch-panel');
+      const refreshLabel = document.getElementById('project-live-refresh');
+      if (!statusBadge || !statusLabel || !statusDot || !progressValue || !progressBar || !delayPanel || !refreshLabel) return;
+
+      const statusThemes = {
+        completed: ['bg-emerald-500/20 text-emerald-300 border-emerald-400/30', 'bg-emerald-400'],
+        ongoing: ['bg-blue-500/20 text-blue-300 border-blue-400/30', 'bg-blue-400'],
+        delayed: ['bg-rose-500/20 text-rose-300 border-rose-400/30', 'bg-rose-400 animate-pulse'],
+        cancelled: ['bg-slate-500/20 text-slate-200 border-slate-400/30', 'bg-slate-300'],
+        stalled: ['bg-amber-500/20 text-amber-300 border-amber-400/30', 'bg-amber-400'],
+        suspended: ['bg-amber-500/20 text-amber-300 border-amber-400/30', 'bg-amber-400'],
+        upcoming: ['bg-violet-500/20 text-violet-300 border-violet-400/30', 'bg-violet-400'],
+        draft: ['bg-slate-500/20 text-slate-200 border-slate-400/30', 'bg-slate-300'],
+      };
+      const feedUrl = "{% url 'project_tracking' project.id %}?format=json&summary=1";
+
+      async function refreshProjectStatus() {
+        try {
+          const response = await fetch(feedUrl, {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+            credentials: 'same-origin',
+          });
+          if (!response.ok) throw new Error(`Project tracking refresh failed (${response.status}).`);
+          const data = await response.json();
+          const theme = statusThemes[data.status] || statusThemes.draft;
+          statusBadge.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md ${theme[0]}`;
+          statusDot.className = `w-2 h-2 rounded-full ${theme[1]}`;
+          statusLabel.textContent = data.status_label;
+          progressValue.textContent = `${data.overall_progress}%`;
+          progressBar.style.width = `${Math.max(0, Math.min(100, data.overall_progress))}%`;
+          const isDelayed = data.status === 'delayed';
+          delayPanel.classList.toggle('hidden', !isDelayed);
+          delayPanel.setAttribute('aria-hidden', String(!isDelayed));
+          refreshLabel.textContent = `Live · updated ${new Intl.DateTimeFormat(undefined, { timeStyle: 'short' }).format(new Date())}`;
+        } catch (error) {
+          console.error('Could not refresh the project status.', error);
+          refreshLabel.textContent = 'Live updates temporarily unavailable; retrying';
+        }
+      }
+
+      refreshProjectStatus();
+      window.setInterval(refreshProjectStatus, 15000);
+    })();
+  </script>
 </main>
 
 {% include "footer.html" %}

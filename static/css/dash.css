@@ -45,6 +45,7 @@
     min-height:100vh;
     transition:background 0.3s,color 0.3s;
   }
+  body.dashboard-page { overflow-x:clip; }
   .mono { font-family:'JetBrains Mono',monospace; }
 
   /* ===== SIDEBAR ===== */
@@ -214,13 +215,36 @@
   /* ===== MAIN ===== */
   .main {
     margin-left:var(--sidebar-w);
+    width:calc(100% - var(--sidebar-w));
+    min-width:0;
     padding-top:var(--header-h);
-    transition:margin-left 0.3s;
+    transition:margin-left 0.3s, width 0.3s;
     min-height:100vh;
   }
-  .main.sidebar-collapsed { margin-left:var(--sidebar-collapsed); }
-  .main.sidebar-hidden { margin-left:0; }
-  .content { padding:24px; }
+  .main.sidebar-collapsed {
+    margin-left:var(--sidebar-collapsed);
+    width:calc(100% - var(--sidebar-collapsed));
+  }
+  .main.sidebar-hidden { margin-left:0; width:100%; }
+  .content { width:100%; min-width:0; padding:24px; }
+
+  body > main[class*="max-w-"][class~="mx-auto"] {
+    width:100%;
+    max-width:none;
+    margin-left:0;
+    margin-right:0;
+  }
+
+  .main > :is(div, section)[class*="max-w-"][class~="mx-auto"],
+  .main > :is(div, section).container.mx-auto,
+  .main > .content > :is(div, section)[class*="max-w-"][class~="mx-auto"],
+  .main > .content > :is(div, section).container.mx-auto {
+    width:100%;
+    max-width:none;
+    margin-left:0;
+    margin-right:0;
+    min-width:0;
+  }
 
   /* ===== CARDS ===== */
   .card {
@@ -568,7 +592,7 @@
     .sidebar { transform:translateX(-100%); }
     .sidebar.mobile-open { transform:translateX(0); }
     .header { left:0 !important; }
-    .main { margin-left:0 !important; }
+    .main { margin-left:0 !important; width:100%; }
     .search-bar { width:180px; }
     .header-links summary span { display:none; }
     .header-links summary { width:40px; justify-content:center; padding:0; }
@@ -605,6 +629,19 @@
   }
   footer.sidebar-collapsed { margin-left:var(--sidebar-collapsed); }
   footer.sidebar-hidden { margin-left:0; }
+  body.dashboard-page footer { width:calc(100% - var(--sidebar-w)); }
+  body.dashboard-page footer.sidebar-collapsed {
+    width:calc(100% - var(--sidebar-collapsed));
+  }
+  body.dashboard-page footer.sidebar-hidden { width:100%; }
+  @media (max-width:1024px) {
+    body.dashboard-page footer,
+    body.dashboard-page footer.sidebar-collapsed,
+    body.dashboard-page footer.sidebar-hidden {
+      width:100%;
+      margin-left:0;
+    }
+  }
   footer h3 { color:#FFFFFF; }
   .footer-link {
     color:var(--footer-ink-dim); text-decoration:none; transition:color 0.15s;

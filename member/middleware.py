@@ -11,7 +11,7 @@ day it runs the same sweep as ``manage.py update_project_statuses``
 
     upcoming -> ongoing    once start_date arrives (or work is reported)
     ongoing  -> delayed    once end_date passes the grace period
-    *        -> completed  when a 100% progress report / milestone exists
+    *        -> completed  when all configured stages and milestones are complete
 
 It is guarded by the Django cache (one sweep per calendar day, per process),
 is fully idempotent, and never lets a sweep failure break the request.
@@ -29,7 +29,7 @@ from .deadline_alerts import create_deadline_alerts
 
 logger = logging.getLogger(__name__)
 
-SWEEP_VERSION = "v2"  # bump to force a fresh sweep after changing sweep logic
+SWEEP_VERSION = "v3"  # bump to force a fresh sweep after changing sweep logic
 
 
 class ProjectStatusSyncMiddleware:

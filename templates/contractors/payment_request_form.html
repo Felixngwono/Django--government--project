@@ -1,15 +1,32 @@
 {% load static %}
-<script src="https://cdn.tailwindcss.com"></script>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="mediaApp()" :class="{ 'dark': darkMode }">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submit Invoice | GovTracker</title>
-  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800">
-  <main class="mx-auto max-w-3xl p-4 md:p-8">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+{% include "heading.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  
     <a href="{% url 'contractor_performance' %}" class="text-sm font-semibold text-blue-700 hover:underline">← Back to contractor dashboard</a>
     <section class="mt-5 rounded-2xl bg-white p-6 shadow-sm">
       <h1 class="text-2xl font-extrabold">Invoice & Payment Request</h1>
@@ -28,6 +45,6 @@
         <button class="w-full rounded-xl bg-blue-700 px-4 py-3 font-bold text-white hover:bg-blue-800">Submit for approval</button>
       </form>
     </section>
-  </main>
-</body>
-</html>
+  
+</main>
+{% include "footer.html" %}

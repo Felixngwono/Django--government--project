@@ -783,6 +783,15 @@ class StageReportAttachment(models.Model):
     caption     = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def media_kind(self):
+        extension = self.file.name.rsplit('.', 1)[-1].lower() if '.' in self.file.name else ''
+        if extension in {'mp4', 'mov', 'avi', 'mkv', 'webm'}:
+            return 'video'
+        if extension in {'jpg', 'jpeg', 'png', 'gif', 'webp'}:
+            return 'image'
+        return 'document'
+
     def __str__(self):
         return f"Attachment for report #{self.report_id}"
 

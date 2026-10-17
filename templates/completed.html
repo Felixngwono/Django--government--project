@@ -105,7 +105,7 @@ Search
 
 </form>
 
-{% if request.user.is_superuser %}
+{% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
 <a href="{% url 'createproject' %}"
 class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold text-center transition shadow">
 + Add Project
@@ -255,4 +255,3 @@ Next
 </div>
 </main>
 {% include "footer.html" %}
-

@@ -6,7 +6,7 @@ so statuses move with time even when nobody saves a progress record:
 
     upcoming -> ongoing      (start_date reached, or stage/progress activity)
     ongoing  -> delayed      (end_date passed beyond the grace period)
-    *        -> completed    (a 100% progress report / milestone exists)
+    *        -> completed    (all configured stages and milestones are complete)
 
 Terminal statuses (completed/cancelled) and deliberate pauses
 (suspended/stalled) are never overwritten automatically.

@@ -43,9 +43,11 @@
           <button @click="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-4 py-2.5 rounded-xl border border-slate-700 shadow text-xs transition flex items-center gap-2">
             <iconify-icon icon="solar:printer-bold"></iconify-icon> Print Report
           </button>
+          {% if request.user.role == 'contractor' %}
           <a href="{% url 'milestone_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-xs">
             <iconify-icon icon="solar:add-circle-bold"></iconify-icon> + Add Milestone
           </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -332,12 +334,14 @@
                   <button type="button" @click="openQuickUpdate({{ milestone.id }}, '{{ milestone.status }}', {{ milestone.progress_percentage }}, '{{ milestone.title|escapejs }}')" title="Quick Update Status" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg font-bold transition">
                     <iconify-icon icon="solar:pen-new-square-bold" class="text-sm"></iconify-icon>
                   </button>
-                  <a href="{% url 'milestone_update' milestone.id %}" title="Edit Full Milestone" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-bold transition">
-                    <iconify-icon icon="solar:settings-bold" class="text-sm"></iconify-icon>
-                  </a>
-                  <a href="{% url 'milestone_delete' milestone.id %}" title="Delete" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition">
-                    <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
-                  </a>
+                  {% if milestone.id in manageable_milestone_ids %}
+                    <a href="{% url 'milestone_update' milestone.id %}" title="Edit Full Milestone" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-bold transition">
+                      <iconify-icon icon="solar:settings-bold" class="text-sm"></iconify-icon>
+                    </a>
+                    <a href="{% url 'milestone_delete' milestone.id %}" title="Delete" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold transition">
+                      <iconify-icon icon="solar:trash-bin-trash-bold" class="text-sm"></iconify-icon>
+                    </a>
+                  {% endif %}
                 </div>
               </td>
             </tr>
@@ -346,7 +350,11 @@
               <td colspan="6" class="p-12 text-center text-slate-400">
                 <iconify-icon icon="solar:flag-2-bold-duotone" style="font-size:48px;" class="mb-2 text-slate-300"></iconify-icon>
                 <p class="font-bold text-slate-700 text-sm">No milestones found.</p>
-                <p class="text-xs text-slate-400 mt-1">Try adjusting your filters or click "+ Add Milestone" to create one.</p>
+                {% if request.user.role == 'contractor' %}
+                <p class="text-xs text-slate-400 mt-1">Try adjusting your filters or add a milestone for an assigned project.</p>
+                {% else %}
+                <p class="text-xs text-slate-400 mt-1">Milestones will appear here when recorded for a project.</p>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}

@@ -62,9 +62,11 @@
           <a href="{% url 'add_budget' %}" class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-blue-700 transition">
             <iconify-icon icon="solar:add-circle-bold-duotone"></iconify-icon> + Allocate Budget
           </a>
+          {% if request.user.role == 'contractor' %}
           <a href="{% url 'add_expense' %}" class="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-emerald-700 transition">
             <iconify-icon icon="solar:bill-check-bold-duotone"></iconify-icon> + Log Expense
           </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -240,9 +242,11 @@
           </h2>
           <p class="text-xs text-slate-500">Verified payment disbursements against project budgets</p>
         </div>
+        {% if request.user.role == 'contractor' %}
         <a href="{% url 'add_expense' %}" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
           + Add New Expense &rarr;
         </a>
+        {% endif %}
       </div>
 
       <div class="overflow-x-auto">

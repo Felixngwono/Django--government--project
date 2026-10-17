@@ -20,7 +20,7 @@ from django.db.models.functions import Coalesce, TruncDate, TruncMonth
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils.timesince import timesince
 from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponseForbidden
@@ -31,9 +31,10 @@ from openpyxl import Workbook
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ExpenseInlineForm, FeedbackForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
+from ai.project_analysis import generate_project_analyses
+from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
 from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,ContractorDocument,ContractorPaymentRequest,ContractorRating,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressReport,ProgressUpdate,Project,ProjectCategory,ProjectDocument,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ProjectStatusHistory,ReportIssue,MilestoneStageEvidence,StageReport,StageReportAttachment,StageReportImage,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
-from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, _contractors_for_user, assigned_projects, apply_status_change, audit, contractor_assigned_to_project, has_role, notify, refresh_project_status, role_required, user_assigned_to_project
+from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, _contractors_for_user, assigned_projects, apply_status_change, audit, contractor_assigned_to_project, has_role, is_forward_transition, notify, refresh_project_status, role_required, user_assigned_to_project
 from .models import ProjectStatusHistory
 
 
@@ -863,7 +864,7 @@ def feedback(request):
 
 
 @login_required(login_url='login')
-@role_required(*PROJECT_ROLES)
+@role_required('official', 'admin')
 def CreateProject(request):
     form = ProjectCreationForm()
     if request.method == 'POST':
@@ -879,6 +880,7 @@ def CreateProject(request):
                 _store_project_evidence_images(
                     project, request.user, form.cleaned_data['evidence_images']
                 )
+                generate_project_analyses(project, requested_by=request.user)
                 messages.success(request, f"Project '{project.project_title}' created successfully.")
                 return redirect('projectoverview')
             except ValidationError as e:
@@ -908,6 +910,7 @@ def updateProject(request,pk):
             )
             # Recompute status in case dates/stages/progress changed
             refresh_project_status(project, actor=request.user, source='manual')
+            generate_project_analyses(project, requested_by=request.user)
             return redirect('projectoverview')
     context={'form':form}
     return render(request,'project_form.html', context)
@@ -1117,7 +1120,9 @@ def delayed(request):
     q = request.GET.get('q', '').strip()
     location = request.GET.get('location', '').strip()
 
-    delaying_qs = Project.objects.filter(project_status__iexact='delayed').select_related('district', 'category', 'project_division')
+    delaying_qs = Project.objects.filter(
+        project_status__iexact='delayed'
+    ).select_related('district', 'category', 'project_division')
 
     if q:
         delaying_qs = delaying_qs.filter(
@@ -1133,18 +1138,60 @@ def delayed(request):
 
     delaying_qs = delaying_qs.order_by('-updated_at', '-id')
 
-    # Aggregates for delayed page summary
+    # Summary values follow the active search and location filters.
     total_delayed = delaying_qs.count()
-    progress_count = delaying_qs.filter(amount_spent__gt=0).count()
+    progress_count = ProgressUpdate.objects.filter(
+        project__in=delaying_qs
+    ).values('project_id').distinct().count()
     total_budget_delayed = delaying_qs.aggregate(total=Sum('project_Budgeting'))['total'] or 0
 
-    locations = Project.objects.filter(project_status='delayed').exclude(
+    locations = Project.objects.filter(project_status__iexact='delayed').exclude(
         project_location__isnull=True
     ).exclude(project_location='').values_list('project_location', flat=True).distinct()
 
     paginator = Paginator(delaying_qs, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    page_projects = list(page_obj.object_list)
+    project_ids = [project.pk for project in page_projects]
+    latest_progress_by_project = {}
+    for update in ProgressUpdate.objects.filter(
+        project_id__in=project_ids
+    ).order_by('project_id', '-date_reported', '-id').values('project_id', 'progress_percentage'):
+        latest_progress_by_project.setdefault(update['project_id'], update['progress_percentage'])
+    stage_progress_by_project = {
+        row['project_id']: round(row['progress'] or 0)
+        for row in ProjectStage.objects.filter(project_id__in=project_ids)
+        .values('project_id')
+        .annotate(progress=Avg('progress_percentage'))
+    }
+    for project in page_projects:
+        project.tracking_progress = latest_progress_by_project.get(
+            project.pk, stage_progress_by_project.get(project.pk, 0)
+        )
+
+    if request.GET.get('format') == 'json':
+        response = JsonResponse({
+            'total_delayed': total_delayed,
+            'progress_count': progress_count,
+            'total_budget_delayed': str(total_budget_delayed),
+            'rows': [{
+                'id': project.pk,
+                'title': project.project_title or 'Untitled project',
+                'description': project.project_description or '',
+                'location': project.project_location or 'Location not set',
+                'budget': str(project.project_Budgeting) if project.project_Budgeting is not None else '',
+                'progress': project.tracking_progress,
+                'end_date': project.end_date.isoformat() if project.end_date else '',
+                'status': project.get_project_status_display(),
+                'image': project.cover_image.url if project.cover_image else (
+                    project.images.url if project.images else ''
+                ),
+                'details_url': reverse('project_details', args=[project.pk]),
+            } for project in page_projects],
+        })
+        response['Cache-Control'] = 'no-store'
+        return response
 
     context = {
         'delaying': page_obj,
@@ -1871,6 +1918,13 @@ def charts(request):
 @login_required(login_url='login')
 def milestone_list(request):
     milestones = Milestone.objects.select_related('project', 'stage').all().order_by('-due_date', '-id')
+    manageable_milestone_ids = set()
+    if request.user.role == 'contractor':
+        manageable_milestone_ids = set(
+            milestones.filter(
+                project__contractors__in=_contractors_for_user(request.user)
+            ).values_list('id', flat=True)
+        )
 
     # Search query
     query = request.GET.get('q', '').strip()
@@ -1923,6 +1977,7 @@ def milestone_list(request):
 
     context = {
         'milestones': milestones,
+        'manageable_milestone_ids': manageable_milestone_ids,
         'participants': participants,
         'projects': projects,
         'stages': stages,
@@ -1962,40 +2017,50 @@ def milestone_detail(request, pk):
         'stage': milestone.stage,
         'sibling_milestones': sibling_milestones,
         'participants': participants,
-        'can_manage_milestone': has_role(request.user, OFFICER_ROLES),
-        'can_update_milestone': user_assigned_to_project(request.user, milestone.project),
+        'can_manage_milestone': (
+            request.user.role == 'contractor'
+            and contractor_assigned_to_project(request.user, milestone.project)
+        ),
+        'can_update_milestone_progress': (
+            user_assigned_to_project(request.user, milestone.project)
+            and not has_role(request.user, OFFICER_ROLES)
+        ),
     }
     return render(request, 'milestone_detail.html', context)
 
 
 @login_required(login_url='login')
 def milestone_create(request):
+    if getattr(request.user, 'role', None) != 'contractor':
+        return HttpResponseForbidden("Only contractors can add project milestones.")
+
     initial = {}
     if request.GET.get('project'):
         initial['project'] = request.GET.get('project')
 
     if request.method == 'POST':
         form = MilestoneForm(request.POST)
+        form.fields['project'].queryset = Project.objects.filter(
+            contractors__in=_contractors_for_user(request.user)
+        ).distinct()
         if form.is_valid():
             milestone_obj = form.save(commit=False)
-            # Only the person assigned to this project (or an officer) may add milestones.
-            if not user_assigned_to_project(request.user, milestone_obj.project):
-                form.add_error('project', 'You can only add milestones to a project you are assigned to work on.')
-            else:
-                if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
-                    milestone_obj.status = 'completed'
-                    if not milestone_obj.completion_date:
-                        milestone_obj.completion_date = date.today()
-                milestone_obj.save()
+            if not contractor_assigned_to_project(request.user, milestone_obj.project):
+                return HttpResponseForbidden("You can only add milestones to projects assigned to you.")
+            if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
+                milestone_obj.status = 'completed'
+                if not milestone_obj.completion_date:
+                    milestone_obj.completion_date = date.today()
+            milestone_obj.save()
 
-                audit(request, 'created', milestone_obj, project=milestone_obj.project, changes={'title': milestone_obj.title})
-                messages.success(request, f"Milestone '{milestone_obj.title}' created successfully!")
-                return redirect('milestone_list')
+            audit(request, 'created', milestone_obj, project=milestone_obj.project, changes={'title': milestone_obj.title})
+            messages.success(request, f"Milestone '{milestone_obj.title}' created successfully!")
+            return redirect('milestone_list')
     else:
         form = MilestoneForm(initial=initial)
-        # Non-officers can only pick projects they are assigned to work on.
-        if not has_role(request.user, OFFICER_ROLES):
-            form.fields['project'].queryset = assigned_projects(request.user)
+        form.fields['project'].queryset = Project.objects.filter(
+            contractors__in=_contractors_for_user(request.user)
+        ).distinct()
 
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
@@ -2008,8 +2073,10 @@ def milestone_create(request):
 @login_required(login_url='login')
 def milestone_update(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if not has_role(request.user, OFFICER_ROLES):
-        return HttpResponseForbidden("Only authorized officers can edit milestone requirements.")
+    if request.user.role != 'contractor':
+        return HttpResponseForbidden("Only contractors can edit milestones.")
+    if not contractor_assigned_to_project(request.user, milestone_obj.project):
+        return HttpResponseForbidden("You can only edit milestones for projects assigned to you.")
     if request.method == 'POST':
         form = MilestoneForm(request.POST, instance=milestone_obj)
         if form.is_valid():
@@ -2038,8 +2105,10 @@ def milestone_update(request, pk):
 @require_POST
 def milestone_quick_update(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if not user_assigned_to_project(request.user, milestone_obj.project):
-        return HttpResponseForbidden("You are not assigned to this milestone's project.")
+    if request.user.role != 'contractor' or not contractor_assigned_to_project(
+        request.user, milestone_obj.project
+    ):
+        return HttpResponseForbidden("Only the contractor assigned to this project can update milestone progress.")
     if milestone_obj.verification_status == 'pending':
         messages.error(request, 'This milestone is awaiting verification and cannot be changed.')
         return redirect('milestone_detail', pk=milestone_obj.pk)
@@ -2087,8 +2156,10 @@ def milestone_quick_update(request, pk):
 @require_POST
 def submit_milestone_verification(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if not user_assigned_to_project(request.user, milestone_obj.project):
-        return HttpResponseForbidden("You are not assigned to this milestone's project.")
+    if request.user.role != 'contractor' or not contractor_assigned_to_project(
+        request.user, milestone_obj.project
+    ):
+        return HttpResponseForbidden("Only the contractor assigned to this project can submit milestone verification.")
     if milestone_obj.progress_percentage < 100 or milestone_obj.status != 'completed':
         messages.error(request, 'Complete the milestone before submitting it for verification.')
         return redirect('milestone_detail', pk=milestone_obj.pk)
@@ -2114,8 +2185,10 @@ def submit_milestone_verification(request, pk):
 @login_required(login_url='login')
 def milestone_delete(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if not has_role(request.user, OFFICER_ROLES):
-        return HttpResponseForbidden("Only authorized officers can delete milestones.")
+    if request.user.role != 'contractor':
+        return HttpResponseForbidden("Only contractors can delete milestones.")
+    if not contractor_assigned_to_project(request.user, milestone_obj.project):
+        return HttpResponseForbidden("You can only delete milestones for projects assigned to you.")
     if request.method == 'POST':
         title = milestone_obj.title
         audit(request, 'deleted', milestone_obj, project=milestone_obj.project, changes={'title': title})
@@ -2309,23 +2382,83 @@ def project_detail(request, pk):
     s_total = float(project.amount_spent or 0)
     remaining = max(0.0, b_total - s_total)
     utilization = round((s_total / b_total * 100), 1) if b_total > 0 else 0.0
+    stage_progress = project.stages.aggregate(v=Avg('progress_percentage'))['v']
+    latest_progress = project.progress_updates.order_by('-date_reported').first()
+    live_progress = (
+        latest_progress.progress_percentage
+        if latest_progress else round(stage_progress or 0)
+    )
 
     is_officer = request.user.is_superuser or (getattr(request.user, 'role', None) in OFFICER_ROLES)
-    can_manage_project_stages = is_officer or (
+    can_manage_project_stages = (
         getattr(request.user, 'role', None) == 'contractor'
         and contractor_assigned_to_project(request.user, project)
     )
-    # Anyone responsible for this project may set up / update its stages:
-    # the project manager (head), the assigned contractor, an active
-    # participant, or a government officer.
+    # Keep general project association separate from contractor-only stage and
+    # milestone management.
     is_responsible = is_officer or user_assigned_to_project(request.user, project)
 
     if request.method == "POST":
         action = request.POST.get('action', 'comment')
 
+        if action in {
+            'stage_add', 'stage_quick', 'job_progress_update',
+            'milestone_add', 'milestone_quick', 'milestone_edit', 'expense_add',
+        } and not can_manage_project_stages:
+            return HttpResponseForbidden(
+                "Only the contractor assigned to this project can manage its stage, milestone, and progress records."
+            )
+
+        if action == 'job_progress_update':
+            stage = get_object_or_404(ProjectStage, pk=request.POST.get('stage_id'), project=project)
+            try:
+                progress = int(request.POST.get('progress_percentage', ''))
+            except (TypeError, ValueError):
+                messages.error(request, "Enter a whole-number progress value from 0 to 100.")
+                return redirect('project_details', pk=project.id)
+            if not 0 <= progress <= 100:
+                messages.error(request, "Progress must be between 0 and 100.")
+                return redirect('project_details', pk=project.id)
+
+            stage.progress_percentage = progress
+            if progress == 100:
+                stage.status = 'completed'
+                stage.completed_on = stage.completed_on or timezone.localdate()
+            elif stage.status == 'completed':
+                stage.status = 'in_progress' if progress else 'not_started'
+                stage.completed_on = None
+            elif progress > 0 and stage.status == 'not_started':
+                stage.status = 'in_progress'
+            try:
+                stage.full_clean()
+                update = ProgressUpdate(
+                    project=project,
+                    stage=stage,
+                    reported_by=request.user,
+                    description=request.POST.get('description', '').strip()
+                    or f"Stage progress updated to {progress}%.",
+                    progress_percentage=progress,
+                )
+                update.full_clean()
+            except ValidationError as exc:
+                messages.error(request, f"Could not update progress: {exc}")
+                return redirect('project_details', pk=project.id)
+
+            with transaction.atomic():
+                stage.save()
+                update.save()
+            audit(
+                request,
+                'stage_progress_updated',
+                stage,
+                project=project,
+                changes={'progress_percentage': progress},
+            )
+            messages.success(request, f"{stage.stage_name} progress updated to {progress}%.")
+            return redirect('project_details', pk=project.id)
+
         if action == 'stage_add' and can_manage_project_stages:
-            # Stages are entered manually by the person responsible for the
-            # project — exactly the fields they fill in, nothing auto-created.
+            # Contractors enter the project stages manually; nothing is auto-created.
             form = ProjectStageInlineForm(request.POST)
             if form.is_valid():
                 stage = form.save(commit=False)
@@ -2339,7 +2472,7 @@ def project_detail(request, pk):
                 return redirect('project_details', pk=project.id)
             messages.error(request, "Could not add stage — check the form fields.")
 
-        elif action == 'stage_quick' and is_responsible:
+        elif action == 'stage_quick' and can_manage_project_stages:
             stage = get_object_or_404(ProjectStage, pk=request.POST.get('stage_id'), project=project)
             status = request.POST.get('status')
             if status in [choice[0] for choice in ProjectStage.STATUS_CHOICES]:
@@ -2387,7 +2520,7 @@ def project_detail(request, pk):
                 return redirect('project_details', pk=project.id)
             messages.error(request, "Could not add milestone — check the form fields.")
 
-        elif action == 'milestone_quick' and is_responsible:
+        elif action == 'milestone_quick' and can_manage_project_stages:
             ms = get_object_or_404(Milestone, pk=request.POST.get('milestone_id'), project=project)
             status = request.POST.get('status')
             progress = request.POST.get('progress_percentage')
@@ -2417,7 +2550,7 @@ def project_detail(request, pk):
             messages.success(request, f"Milestone '{ms.title}' updated.")
             return redirect('project_details', pk=project.id)
 
-        elif action == 'milestone_edit' and is_responsible:
+        elif action == 'milestone_edit' and can_manage_project_stages:
             ms = get_object_or_404(Milestone, pk=request.POST.get('milestone_id'), project=project)
             form = MilestoneInlineForm(request.POST, instance=ms, project=project)
             if form.is_valid():
@@ -2436,7 +2569,7 @@ def project_detail(request, pk):
                 return redirect('project_details', pk=project.id)
             messages.error(request, "Could not update milestone — check the form fields.")
 
-        elif action == 'expense_add':
+        elif action == 'expense_add' and can_manage_project_stages:
             form = ExpenseInlineForm(request.POST, request.FILES)
             if form.is_valid():
                 expense = form.save(commit=False)
@@ -2564,6 +2697,7 @@ def project_detail(request, pk):
         's_total': s_total,
         'remaining': remaining,
         'utilization': utilization,
+        'live_progress': live_progress,
         'form': form,
         'is_officer': is_officer,
         'can_manage_project_stages': can_manage_project_stages,
@@ -2591,15 +2725,197 @@ def contractor_project_works(request, pk):
         messages.error(request, 'You are not associated with this project.')
         return redirect('contractor_performance')
 
+    if request.method == 'POST' and request.POST.get('action') in {
+        'report_update', 'report_delete',
+    }:
+        if request.user.role != 'contractor':
+            return HttpResponseForbidden("Only contractors can edit or delete their progress reports.")
+
+        report = get_object_or_404(
+            StageReport,
+            pk=request.POST.get('report_id'),
+            project=project,
+            reported_by=request.user,
+        )
+        reports_url = f"{reverse('contractor_project_works', args=[project.pk])}?tab=reports"
+
+        if request.POST.get('action') == 'report_delete':
+            files_to_delete = []
+            for field_file in (report.photo, report.supporting_document):
+                if field_file:
+                    files_to_delete.append((field_file.storage, field_file.name))
+            for evidence in report.images.all():
+                if evidence.image:
+                    files_to_delete.append((evidence.image.storage, evidence.image.name))
+            for evidence in report.attachments.all():
+                if evidence.file:
+                    files_to_delete.append((evidence.file.storage, evidence.file.name))
+            with transaction.atomic():
+                audit(
+                    request,
+                    'stage_report_deleted',
+                    report,
+                    project=project,
+                    changes={
+                        'stage': report.stage_description,
+                        'submitted_at': report.created_at.isoformat(),
+                        'evidence_files': [name for _storage, name in files_to_delete],
+                    },
+                )
+                report.delete()
+                transaction.on_commit(
+                    lambda queued_files=files_to_delete: [
+                        storage.delete(name) for storage, name in queued_files
+                    ]
+                )
+            messages.success(request, 'Your progress report and its evidence were deleted.')
+            return redirect(reports_url)
+
+        try:
+            uploads = (
+                list(request.FILES.getlist('photos'))
+                + list(request.FILES.getlist('attachments'))
+            )
+            if request.FILES.get('photo'):
+                uploads.append(request.FILES['photo'])
+            if request.FILES.get('supporting_document'):
+                uploads.append(request.FILES['supporting_document'])
+
+            allowed_extensions = {
+                '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4',
+                '.mov', '.avi', '.mkv', '.webm', '.doc', '.docx', '.xls', '.xlsx',
+            }
+            image_field = StageReportImage._meta.get_field('image')
+            for upload in uploads:
+                extension = '.' + upload.name.rsplit('.', 1)[-1].lower() if '.' in upload.name else ''
+                if extension not in allowed_extensions:
+                    raise ValidationError(f"Unsupported attachment type: {upload.name}")
+                if upload.size > 20 * 1024 * 1024:
+                    raise ValidationError(f"Attachment {upload.name} exceeds the 20 MB limit.")
+                if extension in {'.jpg', '.jpeg', '.png', '.gif', '.webp'}:
+                    image_field.clean(upload, None)
+
+            previous_values = {
+                'stage_description': report.stage_description,
+                'description': report.description,
+                'location': report.location,
+                'progress_percentage': report.progress_percentage,
+                'delay_reason': report.delay_reason,
+                'corrective_actions': report.corrective_actions,
+            }
+            stage_description = (
+                request.POST.get('stage_description', '').strip()
+            )
+            report.stage_description = stage_description
+            report.stage = ProjectStage.objects.filter(
+                project=project,
+                stage_name__iexact=stage_description,
+            ).first() if stage_description else None
+            report.description = request.POST.get('description', '').strip()
+            report.location = request.POST.get('location', '').strip()
+            report.progress_percentage = request.POST.get('progress_percentage', '')
+            report.delay_reason = request.POST.get('delay_reason', '').strip()
+            report.corrective_actions = request.POST.get('corrective_actions', '').strip()
+
+            files_to_delete = []
+            if request.FILES.get('photo'):
+                if report.photo:
+                    files_to_delete.append((report.photo.storage, report.photo.name))
+                report.photo = request.FILES['photo']
+            elif request.POST.get('remove_photo') == 'on' and report.photo:
+                files_to_delete.append((report.photo.storage, report.photo.name))
+                report.photo = None
+
+            if request.FILES.get('supporting_document'):
+                if report.supporting_document:
+                    files_to_delete.append((
+                        report.supporting_document.storage,
+                        report.supporting_document.name,
+                    ))
+                report.supporting_document = request.FILES['supporting_document']
+            elif request.POST.get('remove_supporting_document') == 'on' and report.supporting_document:
+                files_to_delete.append((
+                    report.supporting_document.storage,
+                    report.supporting_document.name,
+                ))
+                report.supporting_document = None
+
+            # Any change to a reviewed submission must be checked again.
+            report.review_status = 'pending'
+            report.reviewer_comments = ''
+            report.reviewed_by = None
+            report.reviewed_at = None
+            report.full_clean()
+
+            with transaction.atomic():
+                report.save()
+                image_ids_to_remove = request.POST.getlist('remove_image_ids')
+                for evidence in report.images.filter(pk__in=image_ids_to_remove):
+                    if evidence.image:
+                        files_to_delete.append((evidence.image.storage, evidence.image.name))
+                    evidence.delete()
+
+                attachment_ids_to_remove = request.POST.getlist('remove_attachment_ids')
+                for evidence in report.attachments.filter(pk__in=attachment_ids_to_remove):
+                    if evidence.file:
+                        files_to_delete.append((evidence.file.storage, evidence.file.name))
+                    evidence.delete()
+
+                for image_file in request.FILES.getlist('photos'):
+                    StageReportImage.objects.create(report=report, image=image_file)
+                for attachment_file in request.FILES.getlist('attachments'):
+                    StageReportAttachment.objects.create(report=report, file=attachment_file)
+
+                if report.stage:
+                    report.stage.progress_percentage = report.progress_percentage
+                    report.stage.save(update_fields=['progress_percentage'])
+
+                audit(
+                    request,
+                    'stage_report_updated',
+                    report,
+                    project=project,
+                    changes={
+                        'before': previous_values,
+                        'after': {
+                            **previous_values,
+                            'stage_description': report.stage_description,
+                            'description': report.description,
+                            'location': report.location,
+                            'progress_percentage': report.progress_percentage,
+                            'delay_reason': report.delay_reason,
+                            'corrective_actions': report.corrective_actions,
+                        },
+                        'review_status': 'pending',
+                    },
+                )
+                transaction.on_commit(
+                    lambda queued_files=files_to_delete: [
+                        storage.delete(name) for storage, name in queued_files
+                    ]
+                )
+
+            messages.success(
+                request,
+                'Your progress report was updated and returned to the review queue.',
+            )
+        except (ValueError, ValidationError) as error:
+            messages.error(request, f'Unable to update report: {error}')
+        return redirect(reports_url)
+
     # The contractor's own work record on this project
     my_reports = StageReport.objects.filter(
         project=project, reported_by=request.user
-    ).select_related('stage').prefetch_related('images').order_by('-created_at')
+    ).select_related('stage').prefetch_related(
+        'images', 'attachments'
+    ).order_by('-created_at')
 
     # Everything the project team (any contractor) has reported
     all_reports = StageReport.objects.filter(
         project=project
-    ).select_related('stage', 'reported_by').prefetch_related('images').order_by('-created_at')
+    ).select_related('stage', 'reported_by').prefetch_related(
+        'images', 'attachments'
+    ).order_by('-created_at')
 
     stages = project.stages.prefetch_related('milestones').all()
     milestones = project.milestones.all()
@@ -2610,10 +2926,63 @@ def contractor_project_works(request, pk):
     progress_reports = project.progress_reports.all()
     expenses = project.expenses.all()
 
+    user_contractors = _contractors_for_user(request.user)
+    awarded_tenders = project.tenders.filter(
+        status='awarded',
+        awarded_to__in=user_contractors,
+    ).select_related('awarded_to').order_by('-award_date', '-created_at')
+    is_officer = request.user.is_superuser or request.user.role in OFFICER_ROLES
+    can_view_contract_documents = (
+        is_officer
+        or contractor_assigned_to_project(request.user, project)
+        or awarded_tenders.exists()
+    )
+    if not can_view_contract_documents:
+        documents = documents.exclude(category='contract')
+    contract_value = sum(
+        (tender.award_amount or Decimal('0.00') for tender in awarded_tenders),
+        Decimal('0.00'),
+    )
+    if not contract_value:
+        contract_value = project.project_Budgeting or Decimal('0.00')
+    contract_value_label = (
+        'Awarded contract value'
+        if awarded_tenders and any(tender.award_amount for tender in awarded_tenders)
+        else 'Project budget'
+    )
+
+    payment_requests = project.contractor_payment_requests.select_related(
+        'contractor', 'submitted_by'
+    )
+    if request.user.role == 'contractor':
+        payment_requests = payment_requests.filter(
+            Q(submitted_by=request.user) | Q(contractor__in=user_contractors)
+        )
+    payment_requests = list(payment_requests.order_by('-created_at'))
+    invoices_submitted = sum((payment.amount for payment in payment_requests), Decimal('0.00'))
+    payments_approved = sum(
+        (payment.amount for payment in payment_requests if payment.status in {'approved', 'paid'}),
+        Decimal('0.00'),
+    )
+    payments_received = sum(
+        (payment.amount for payment in payment_requests if payment.status == 'paid'),
+        Decimal('0.00'),
+    )
+
     b_total = float(project.project_Budgeting or 0)
     s_total = float(project.amount_spent or 0)
 
-    my_progress = my_reports.first().progress_percentage if my_reports.exists() else 0
+    latest_my_report = my_reports.first()
+    my_progress = (
+        latest_my_report.progress_percentage
+        if latest_my_report
+        else round(sum(float(stage.progress_percentage or 0) for stage in stages) / len(stages))
+        if stages
+        else 0
+    )
+    inspections = milestones.filter(
+        Q(title__icontains='inspection') | Q(title__icontains='handover')
+    )
 
     context = {
         'project': project,
@@ -2625,20 +2994,35 @@ def contractor_project_works(request, pk):
         'image_media': image_media,
         'documents': documents,
         'progress_reports': progress_reports,
+        'awarded_tenders': awarded_tenders,
+        'contract_value': contract_value,
+        'contract_value_label': contract_value_label,
+        'payment_requests': payment_requests,
+        'invoices_submitted': invoices_submitted,
+        'payments_approved': payments_approved,
+        'payments_received': payments_received,
+        'inspections': inspections,
         'expenses': expenses,
         'b_total': b_total,
         's_total': s_total,
         'remaining': max(0.0, b_total - s_total),
         'my_progress': my_progress,
+        'latest_my_report': latest_my_report,
         'contractor_display_name': request.user.full_name,
         'is_contractor_role': request.user.role == 'contractor',
+        'is_officer': is_officer,
+        'can_view_contract_documents': can_view_contract_documents,
+        'contractor_record': user_contractors.first(),
     }
-    return render(request, 'contractors/project_works.html', context)
+    return render(request, 'contractors/project_details.html', context)
 
 
 # 🔹 Progress Report View
 @login_required(login_url='login')
 def upload_progress_report(request, project_id):
+    if getattr(request.user, 'role', None) != 'contractor':
+        return HttpResponseForbidden("Only contractor accounts can upload progress reports.")
+
     project = get_object_or_404(Project, id=project_id)
     if request.method == "POST":
         form = ProgressReportForm(request.POST, request.FILES)
@@ -3191,6 +3575,9 @@ def projectstage_details(request, pk):
 
 @login_required(login_url='login')
 def ProjectStageCreate(request):
+    if getattr(request.user, 'role', None) != 'contractor':
+        return HttpResponseForbidden("Only contractors can add project stages.")
+
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
@@ -3202,22 +3589,19 @@ def ProjectStageCreate(request):
 
     if request.method == 'POST':
         form = ProjectStageForm(request.POST, request.FILES)
+        form.fields['project'].queryset = assigned_projects(request.user)
         if form.is_valid():
             stage = form.save(commit=False)
-            # Only the person assigned to this project (or an officer) may add stages.
-            if not user_assigned_to_project(request.user, stage.project):
-                form.add_error('project', 'You can only add stages to a project you are assigned to work on.')
-            else:
-                stage.sync_status()
-                stage.save()
-                audit(request, 'created', stage, project=stage.project, changes={'stage_name': stage.stage_name})
-                messages.success(request, f"Project stage '{stage.stage_name}' created successfully.")
-                return redirect('projectstage_list')
+            if not contractor_assigned_to_project(request.user, stage.project):
+                return HttpResponseForbidden("You can only add stages to projects assigned to you.")
+            stage.sync_status()
+            stage.save()
+            audit(request, 'created', stage, project=stage.project, changes={'stage_name': stage.stage_name})
+            messages.success(request, f"Project stage '{stage.stage_name}' created successfully.")
+            return redirect('projectstage_list')
     else:
         form = ProjectStageForm(initial=initial)
-        # Non-officers can only pick projects they are assigned to work on.
-        if not has_role(request.user, OFFICER_ROLES):
-            form.fields['project'].queryset = assigned_projects(request.user)
+        form.fields['project'].queryset = assigned_projects(request.user)
 
     context = {'form': form, 'participants': participants}
     return render(request, 'projectstage_form.html', context)
@@ -3621,6 +4005,7 @@ def submit_issue(request):
 def contractor_detail(request, pk):
     """Full detail page for a single registered contractor: profile, assigned
     projects, awarded tenders, stage reports, ratings and compliance documents."""
+    is_contractor_role = getattr(request.user, 'role', None) == 'contractor'
     contractor = get_object_or_404(
         Contractor.objects.prefetch_related('projects', 'awarded_tenders',
                                             'contractorrating_set__project',
@@ -3630,14 +4015,69 @@ def contractor_detail(request, pk):
     )
 
     projects = contractor.projects.all()
+    can_rate_contractor = has_role(request.user, OFFICER_ROLES)
+    rating_form = ContractorRatingForm(projects=projects)
+    if request.method == 'POST':
+        if not can_rate_contractor:
+            return HttpResponseForbidden("Only authorized officers can rate contractors.")
+        if request.POST.get('action') != 'save_rating':
+            return HttpResponseBadRequest('Unsupported contractor profile action.')
+
+        rating_form = ContractorRatingForm(request.POST, projects=projects)
+        if rating_form.is_valid():
+            project = rating_form.cleaned_data['project']
+            rating = ContractorRating.objects.filter(
+                contractor=contractor,
+                project=project,
+                rated_by=request.user,
+            ).order_by('-created_at').first()
+            if rating is None:
+                rating = ContractorRating(
+                    contractor=contractor,
+                    project=project,
+                    rated_by=request.user,
+                )
+            rating.quality_score = rating_form.cleaned_data['quality_score']
+            rating.speed_score = rating_form.cleaned_data['speed_score']
+            rating.compliance_score = rating_form.cleaned_data['compliance_score']
+            rating.comment = rating_form.cleaned_data['comment']
+            rating.save()
+            audit(
+                request,
+                'contractor_rated',
+                rating,
+                project=project,
+                changes={'average_score': rating.average_score()},
+            )
+            messages.success(request, 'Contractor performance rating saved.')
+            return redirect('contractor_detail', pk=contractor.pk)
+
     awarded_tenders = contractor.awarded_tenders.select_related('project').all()
     ratings = contractor.contractorrating_set.select_related('project', 'rated_by').order_by('-created_at')
     documents = contractor.documents.order_by('-uploaded_at')
+    can_award_tenders = has_role(request.user, TENDER_AWARD_ROLES)
+    pending_tender_applications = TenderApplication.objects.none()
+    if can_award_tenders:
+        application_identity = Q()
+        if contractor.company:
+            application_identity |= Q(company_name__iexact=contractor.company)
+        if contractor.email:
+            application_identity |= Q(company_email__iexact=contractor.email)
+        if application_identity:
+            pending_tender_applications = TenderApplication.objects.filter(
+                application_identity,
+                status__in=['submitted', 'under_review', 'shortlisted'],
+                tender__status__in=['published', 'closed', 'evaluating'],
+            ).select_related('tender', 'tender__project').order_by(
+                '-submitted_at'
+            )
 
-    reports = StageReport.objects.filter(
-        Q(contractor=contractor) |
-        Q(project__in=projects, contractor__isnull=True)
-    ).select_related('project', 'stage', 'reported_by').order_by('-created_at')
+    reports = StageReport.objects.none()
+    if is_contractor_role:
+        reports = StageReport.objects.filter(
+            Q(contractor=contractor) |
+            Q(project__in=projects, contractor__isnull=True)
+        ).select_related('project', 'stage', 'reported_by').order_by('-created_at')
 
     # Simple stats for the header cards
     total_projects = projects.count()
@@ -3653,6 +4093,15 @@ def contractor_detail(request, pk):
         'ratings': ratings,
         'documents': documents,
         'reports': reports,
+        'is_contractor_role': is_contractor_role,
+        'can_rate_contractor': can_rate_contractor,
+        'rating_form': rating_form,
+        'can_award_tenders': can_award_tenders,
+        'pending_tender_applications': pending_tender_applications,
+        'can_upload_contractor_documents': (
+            is_contractor_role
+            and _contractors_for_user(request.user).filter(pk=contractor.pk).exists()
+        ),
         'total_projects': total_projects,
         'completed_projects': completed_projects,
         'delayed_projects': delayed_projects,
@@ -3798,6 +4247,9 @@ def _detect_projects_for_user(user):
 
 @login_required(login_url='login')
 def submit_stage_report(request):
+    if getattr(request.user, 'role', None) != 'contractor':
+        return HttpResponseForbidden("Only contractor accounts can submit stage reports.")
+
     projects, detected_from_contractor = _detect_projects_for_user(request.user)
 
     # Contractor identity = the current logged-in user (via their role).
@@ -3818,8 +4270,8 @@ def submit_stage_report(request):
             if request.FILES.get('supporting_document'):
                 uploads.append(request.FILES['supporting_document'])
             allowed_extensions = {
-                '.pdf', '.jpg', '.jpeg', '.png', '.mp4', '.mov', '.avi', '.mkv',
-                '.webm', '.doc', '.docx', '.xls', '.xlsx',
+                '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4',
+                '.mov', '.avi', '.mkv', '.webm', '.doc', '.docx', '.xls', '.xlsx',
             }
             for upload in uploads:
                 extension = '.' + upload.name.rsplit('.', 1)[-1].lower() if '.' in upload.name else ''
@@ -3827,6 +4279,10 @@ def submit_stage_report(request):
                     raise ValidationError(f"Unsupported attachment type: {upload.name}")
                 if upload.size > 20 * 1024 * 1024:
                     raise ValidationError(f"Attachment {upload.name} exceeds the 20 MB limit.")
+
+            image_field = StageReportImage._meta.get_field('image')
+            for image_file in request.FILES.getlist('photos'):
+                image_field.clean(image_file, None)
 
             progress_val = request.POST.get('progress') or request.POST.get('progress_percentage') or 0
             # Free-text stage description (contractor types the stage, not a dropdown choice)
@@ -3865,7 +4321,15 @@ def submit_stage_report(request):
             messages.success(request, "Stage report submitted successfully.")
         except (ValueError, ValidationError) as error:
             messages.error(request, f'Unable to submit report: {error}')
+            if request.user.role == 'contractor' and projects.filter(pk=project_id).exists():
+                return redirect(
+                    f"{reverse('contractor_project_works', args=[project_id])}?tab=reports"
+                )
             return redirect('contractor_performance')
+        if request.user.role == 'contractor':
+            return redirect(
+                f"{reverse('contractor_project_works', args=[report.project_id])}?tab=reports"
+            )
         return redirect('contractor_performance')
 
     # If the current user's role is 'contractor', the projects come from their own
@@ -3884,6 +4348,11 @@ def submit_stage_report(request):
     return render(request, 'contractors/report_form.html', {
         'projects': projects,
         'preselected_project': preselected_project,
+        'project_details_url': (
+            reverse('contractor_project_works', args=[preselected_project.id])
+            if preselected_project and request.user.role == 'contractor'
+            else None
+        ),
         'contractor_display_name': request.user.full_name,
         'is_contractor_role': request.user.role == 'contractor',
         'detected_from_contractor': detected_from_contractor,
@@ -3921,10 +4390,23 @@ def contractor_profile_settings(request):
 def contractor_document_upload(request):
     if request.user.role != 'contractor':
         return HttpResponseForbidden("Only contractor accounts can upload compliance documents.")
-    contractor = _contractors_for_user(request.user).first()
+    user_contractors = _contractors_for_user(request.user)
+    contractor_id = request.POST.get('contractor') or request.GET.get('contractor')
+    if contractor_id:
+        contractor = get_object_or_404(user_contractors, pk=contractor_id)
+    else:
+        contractor = user_contractors.first()
     if contractor is None:
         messages.error(request, 'Save your contractor profile before uploading compliance documents.')
         return redirect('contractor_profile_settings')
+
+    next_url = request.POST.get('next') or request.GET.get('next', '')
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = ''
 
     form = ContractorDocumentForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
@@ -3932,8 +4414,12 @@ def contractor_document_upload(request):
         document.contractor = contractor
         document.save()
         messages.success(request, 'Compliance document uploaded.')
-        return redirect('contractor_performance')
-    return render(request, 'contractors/document_upload.html', {'form': form})
+        return redirect(next_url or 'contractor_performance')
+    return render(request, 'contractors/document_upload.html', {
+        'form': form,
+        'next_url': next_url,
+        'contractor_id': contractor.pk,
+    })
 
 
 @login_required(login_url='login')
@@ -4273,10 +4759,19 @@ def add_budget(request):
 
 
 @login_required(login_url='login')
-@role_required(*OFFICER_ROLES)
 def add_expense(request):
+    if getattr(request.user, 'role', None) != 'contractor':
+        return HttpResponseForbidden("Only contractors can add project expenses.")
+
     if request.method == "POST":
         form = ProjectExpenseForm(request.POST, request.FILES)
+        contractor_projects = Project.objects.filter(
+            contractors__in=_contractors_for_user(request.user)
+        ).distinct()
+        form.fields['project'].queryset = contractor_projects
+        project_id = request.POST.get('project')
+        if not project_id or not contractor_projects.filter(pk=project_id).exists():
+            return HttpResponseForbidden("You can only add expenses to projects assigned to you.")
         if form.is_valid():
             expense = form.save(commit=False)
             if request.user.is_authenticated:
@@ -4303,6 +4798,9 @@ def add_expense(request):
             return redirect('budget_dashboard')
     else:
         form = ProjectExpenseForm()
+        form.fields['project'].queryset = Project.objects.filter(
+            contractors__in=_contractors_for_user(request.user)
+        ).distinct()
 
     return render(request, 'finance/add_expenses.html', {'form': form})
 
@@ -5194,42 +5692,108 @@ def export_excel(request):
 def project_tracking(request, pk):
     """Full end-to-end tracking for one project: every status change, progress
     report, stage report and update on a single chronological timeline, so any
-    user can follow the project from its initial point to the end (completed
-    or cancelled). The assigned contractor/PM can also post a status response
-    that moves the project forward."""
+    authenticated user can follow the project from its initial point to the
+    end (completed or cancelled). Only the assigned contractor can post updates."""
     project = get_object_or_404(
         Project.objects.select_related('district', 'category', 'project_division'), id=pk
     )
 
-    # ── Assignee status response (POST) ──────────────────────────────────
+    can_respond = (
+        request.user.role == 'contractor'
+        and contractor_assigned_to_project(request.user, project)
+        and project.project_status not in ('completed', 'cancelled')
+    )
+
+    # ── Assigned contractor status response (POST) ───────────────────────
     if request.method == 'POST':
-        if not user_assigned_to_project(request.user, project):
-            return HttpResponseForbidden('Only the person assigned to this project can post status responses.')
+        if not can_respond:
+            return HttpResponseForbidden(
+                'Only the contractor assigned to this project can post status responses.'
+            )
         new_status = (request.POST.get('new_status') or '').strip()
         note = (request.POST.get('note') or '').strip()
-        progress = request.POST.get('progress_percentage')
+        raw_progress = request.POST.get('progress_percentage', '').strip()
         allowed = {'ongoing', 'delayed', 'stalled', 'suspended', 'completed', 'cancelled'}
-        if new_status and new_status in allowed:
-            old = project.project_status
-            apply_status_change(project, new_status, actor=request.user, source='assignee')
-            if note:
-                project.remarks = (project.remarks + "\n" + note).strip() if project.remarks else note
-                project.save(update_fields=['remarks'])
-        if progress not in (None, ''):
+        if new_status and new_status not in allowed:
+            messages.error(request, 'Choose a valid project status.')
+            return redirect('project_tracking', pk=project.id)
+        if len(note) > 255:
+            messages.error(request, 'Tracking notes must be 255 characters or fewer.')
+            return redirect('project_tracking', pk=project.id)
+        if not new_status and not raw_progress and not note:
+            messages.error(request, 'Provide a status, progress percentage, or tracking note.')
+            return redirect('project_tracking', pk=project.id)
+        if new_status == project.project_status and not raw_progress and not note:
+            messages.error(request, 'The selected status is already current.')
+            return redirect('project_tracking', pk=project.id)
+
+        progress_value = None
+        if raw_progress:
             try:
-                ProgressUpdate.objects.create(
-                    project=project,
-                    reported_by=request.user,
-                    description=note or f'Progress reported by assignee ({request.user.full_name}).',
-                    progress_percentage=max(0, min(100, int(float(progress)))),
-                )
-            except (ValueError, TypeError):
-                pass
-        # Let the engine consolidate (e.g. 100% progress forces completed).
-        refresh_project_status(project, actor=request.user, source='auto')
+                progress_value = int(raw_progress)
+            except ValueError:
+                messages.error(request, 'Progress must be a whole number from 0 to 100.')
+                return redirect('project_tracking', pk=project.id)
+            if not 0 <= progress_value <= 100:
+                messages.error(request, 'Progress must be between 0 and 100.')
+                return redirect('project_tracking', pk=project.id)
+
+        status_changed = False
+        if new_status and new_status != project.project_status:
+            if not is_forward_transition(project.project_status, new_status):
+                messages.error(request, 'Project tracking status can only move forward.')
+                return redirect('project_tracking', pk=project.id)
+            old_status = project.project_status
+            status_changed = apply_status_change(
+                project, new_status, actor=request.user, source='assignee'
+            )
+            if note:
+                project.status_history.filter(
+                    changed_by=request.user,
+                    from_status=old_status,
+                    to_status=new_status,
+                ).order_by('-changed_at').update(note=note)
+
+        if progress_value is not None:
+            if not note and progress_value == 100:
+                progress_description = 'Project work reported as complete.'
+            else:
+                progress_description = note or f'Progress reported as {progress_value}%.'
+            ProgressUpdate.objects.create(
+                project=project,
+                reported_by=request.user,
+                description=progress_description,
+                progress_percentage=progress_value,
+            )
+            refresh_project_status(project, actor=request.user, source='auto')
+        elif note and not status_changed:
+            latest_progress = project.progress_updates.order_by('-date_reported').first()
+            progress_value = latest_progress.progress_percentage if latest_progress else 0
+            ProgressUpdate.objects.create(
+                project=project,
+                reported_by=request.user,
+                description=note,
+                progress_percentage=progress_value,
+            )
         project.refresh_from_db()
         messages.success(request, f'Tracking updated — project is now "{project.get_project_status_display()}".')
         return redirect('project_tracking', pk=project.id)
+
+    stages = project.stages.order_by('order')
+    stage_progress = project.stages.aggregate(v=Avg('progress_percentage'))['v']
+    latest_progress = project.progress_updates.order_by('-date_reported').first()
+    overall_progress = (
+        latest_progress.progress_percentage
+        if latest_progress else round(stage_progress or 0)
+    )
+    if request.GET.get('format') == 'json' and request.GET.get('summary') == '1':
+        response = JsonResponse({
+            'status': project.project_status,
+            'status_label': project.get_project_status_display(),
+            'overall_progress': overall_progress,
+        })
+        response['Cache-Control'] = 'no-store'
+        return response
 
     # ── Build the unified timeline (newest first) ────────────────────────
     events = []
@@ -5240,6 +5804,7 @@ def project_tracking(request, pk):
             'from_status': h.from_status,
             'to_status': h.to_status,
             'source': h.source,
+            'note': h.note,
             'actor': h.changed_by,
             'text': f'Status changed from "{h.from_status or "—"}" to "{h.to_status}" ({h.source}).',
         })
@@ -5269,14 +5834,39 @@ def project_tracking(request, pk):
         })
     events.sort(key=lambda e: e['date'], reverse=True)
 
-    stages = project.stages.order_by('order')
+    if request.GET.get('format') == 'json':
+        json_events = []
+        for event in events:
+            json_event = {
+                'type': event['type'],
+                'date': event['date'].isoformat(),
+                'actor': (
+                    event['actor'].full_name or event['actor'].username
+                    if event['actor'] else ''
+                ),
+                'text': event['text'],
+            }
+            for key in ('from_status', 'to_status', 'source', 'progress', 'note'):
+                if key in event:
+                    json_event[key] = event[key]
+            if event.get('photo'):
+                json_event['photo'] = event['photo'].url
+            json_events.append(json_event)
+        response = JsonResponse({
+            'status': project.project_status,
+            'status_label': project.get_project_status_display(),
+            'overall_progress': overall_progress,
+            'events': json_events,
+        })
+        response['Cache-Control'] = 'no-store'
+        return response
 
     context = {
         'project': project,
         'events': events,
         'stages': stages,
-        'can_respond': user_assigned_to_project(request.user, project) and project.project_status not in ('completed', 'cancelled'),
+        'can_respond': can_respond,
         'status_progress': _status_progress_context(project),
-        'overall_progress': round(project.stages.aggregate(v=Avg('progress_percentage'))['v'] or 0) if project.stages.exists() else 0,
+        'overall_progress': overall_progress,
     }
     return render(request, 'project_tracking.html', context)

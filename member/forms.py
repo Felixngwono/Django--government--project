@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, ContractorDocument, ContractorPaymentRequest, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
+from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -147,8 +147,9 @@ class ProjectCreationForm(ModelForm):
     )
 
     class Meta:
-        model= Project
-        fields='__all__'
+        model = Project
+        fields = '__all__'
+        exclude = ['ai_summary', 'ai_risk_score', 'ai_completion_estimate']
 
     def clean_evidence_images(self):
         images = self.cleaned_data.get('evidence_images', [])
@@ -363,6 +364,46 @@ class ContractorDocumentForm(forms.ModelForm):
             if upload.size > 20 * 1024 * 1024:
                 raise forms.ValidationError('The document must be 20 MB or smaller.')
         return upload
+
+class ContractorRatingForm(forms.Form):
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.none(),
+        widget=forms.Select(attrs={
+            'class': 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm',
+        }),
+    )
+    quality_score = forms.IntegerField(
+        min_value=0, max_value=100,
+        widget=forms.NumberInput(attrs={
+            'min': 0, 'max': 100,
+            'class': 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm',
+        }),
+    )
+    speed_score = forms.IntegerField(
+        min_value=0, max_value=100,
+        widget=forms.NumberInput(attrs={
+            'min': 0, 'max': 100,
+            'class': 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm',
+        }),
+    )
+    compliance_score = forms.IntegerField(
+        min_value=0, max_value=100,
+        widget=forms.NumberInput(attrs={
+            'min': 0, 'max': 100,
+            'class': 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm',
+        }),
+    )
+    comment = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'class': 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm',
+        }),
+    )
+
+    def __init__(self, *args, projects=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['project'].queryset = projects if projects is not None else Project.objects.none()
 
 class TenderForm(forms.ModelForm):
     class Meta:

@@ -33,7 +33,11 @@
         <p class="text-sm font-semibold uppercase tracking-wider text-blue-700">Project Progress</p>
         <h1 class="mt-1 text-2xl font-bold">Submit Stage Report</h1>
       </div>
+      {% if project_details_url %}
+      <a href="{{ project_details_url }}" class="text-sm font-semibold text-blue-700 hover:underline">Back to project</a>
+      {% else %}
       <a href="{% url 'contractor_performance' %}" class="text-sm font-semibold text-blue-700 hover:underline">Back to dashboard</a>
+      {% endif %}
     </div>
 
     <form method="post" enctype="multipart/form-data" class="mt-6 space-y-4">
@@ -69,12 +73,18 @@
       <label class="block text-sm font-semibold">Corrective actions
         <textarea name="corrective_actions" rows="2" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Describe proposed recovery steps"></textarea>
       </label>
-      <label class="block text-sm font-semibold">Progress photos (multiple allowed)</label>
-      <input type="file" name="photos" accept="image/*" multiple class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2">
-      <label class="block text-sm font-semibold">Videos, inspection reports, and supporting documents (multiple allowed; max 20 MB each)</label>
-      <input type="file" name="attachments" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" multiple class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2">
+      <div>
+        <label for="progress-photos" class="block text-sm font-semibold">Progress photos (select multiple)</label>
+        <p class="mt-1 text-xs text-slate-500">Upload several site photos to document work completed. Each file may be up to 20 MB.</p>
+        <input id="progress-photos" type="file" name="photos" accept=".jpg,.jpeg,.png,.gif,.webp" multiple class="mt-2 w-full rounded-lg border border-dashed border-slate-300 px-3 py-2">
+      </div>
+      <div>
+        <label for="progress-attachments" class="block text-sm font-semibold">Videos and supporting documents (select multiple)</label>
+        <p class="mt-1 text-xs text-slate-500">Add site videos, inspection reports, drawings or other evidence. Supported: MP4, MOV, AVI, MKV, WEBM, PDF, DOC/DOCX and XLS/XLSX. Each file may be up to 20 MB.</p>
+        <input id="progress-attachments" type="file" name="attachments" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" multiple class="mt-2 w-full rounded-lg border border-dashed border-slate-300 px-3 py-2">
+      </div>
       <label class="block text-sm font-semibold">Primary inspection report (optional)
-        <input type="file" name="supporting_document" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2">
+        <input type="file" name="supporting_document" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2">
       </label>
       <button type="submit" class="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800">Submit Stage Report</button>
     </form>

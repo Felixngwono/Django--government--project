@@ -163,7 +163,9 @@ STATUS_RANK = {
 
 
 def is_forward_transition(old_status, new_status):
-    """True when new_status is at least as far along the lifecycle as old_status."""
+    """Allow forward lifecycle changes plus recovery from a resolved delay."""
+    if old_status == "delayed" and new_status in {"ongoing", "upcoming"}:
+        return True
     return STATUS_RANK.get(new_status, 0) >= STATUS_RANK.get(old_status or "draft", 0)
 
 # Statuses that mean "work is paused" — the engine won't move them forward
@@ -193,7 +195,7 @@ def compute_status(project):
     """Return the status the project should currently be in, based on its data.
 
     Priority (highest first):
-      1. Progress/milestone completion  → 'completed'
+      1. Configured stage/milestone completion → 'completed'
       2. Manual paused states           → kept (suspended/stalled)
       3. Stage + progress activity      → 'ongoing'
       4. Overdue end_date               → 'delayed'
@@ -201,25 +203,29 @@ def compute_status(project):
     """
     today = timezone.now().date()
 
-    # 1 — anything reported as 100% complete is completed.
-    progress_updates = list(project.progress_updates.values_list("progress_percentage", flat=True))
+    # 1 — completion requires every configured deliverable to be complete.
     milestones = list(project.milestones.values_list("progress_percentage", flat=True))
     stages = ProjectStage.objects.filter(project=project)
-    all_signals = [p for p in progress_updates + milestones if p is not None]
-    # Milestones mean "project done" only when there is no unfinished stage
-    # roadmap — a project WITH stages needs all of them completed; a project
-    # WITHOUT stages falls back to the milestone/progress signals alone.
-    milestones_complete = (
-        bool(milestones) and all(p >= 100 for p in milestones)
-        and not stages.exclude(status="completed").exists()
-    )
-    stages_complete = stages.exists() and not stages.exclude(status="completed").exists()
-    if (progress_updates and max(progress_updates) >= 100) or milestones_complete or stages_complete:
+    has_stages = stages.exists()
+    has_milestones = bool(milestones)
+    stages_complete = not has_stages or not stages.exclude(status="completed").exists()
+    milestones_complete = not has_milestones or all(p >= 100 for p in milestones)
+    if (has_stages or has_milestones) and stages_complete and milestones_complete:
         return "completed"
 
     # 2 — respect deliberate pauses.
     if project.project_status in PAUSED_STATUSES:
         return project.project_status
+    if project.project_status == "delayed":
+        latest_delay = (
+            project.status_history.filter(to_status="delayed")
+            .order_by("-changed_at")
+            .first()
+        )
+        if latest_delay and latest_delay.source != "auto":
+            return "delayed"
+        if not project.end_date or project.end_date < today:
+            return "delayed"
 
     # 3 — real work signals: the furthest stage tells us where the project is.
     latest_stage = (
@@ -234,7 +240,7 @@ def compute_status(project):
     if stage_implied:
         return stage_implied
 
-    reported = max(all_signals) if all_signals else None
+    reported = project.progress_updates.aggregate(value=Max("progress_percentage"))["value"]
     if reported and reported > 0:
         return "ongoing"
 
@@ -254,11 +260,10 @@ def compute_status(project):
 def apply_status_change(project, new_status, actor=None, source="auto"):
     """Set the status and keep dependent fields consistent (dates, remarks).
 
-    Transitions are forward-only (draft → upcoming → ongoing → delayed →
-    completed). A project stays open to change until it reaches the completed
-    status; after that the automatic engine never moves it again. Every change
-    is recorded in ProjectStatusHistory so the statuses page can display the
-    full path the project has taken.
+    Transitions are forward-only along the lifecycle, except that a delayed
+    project may recover after its deadline is corrected. A project stays open
+    to change until it reaches completed; after that the automatic engine
+    never moves it again. Every change is recorded in ProjectStatusHistory.
     """
     old_status = project.project_status
     if new_status == old_status:

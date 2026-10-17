@@ -37,7 +37,7 @@
     </nav>
     <div class="flex flex-wrap items-center gap-4">
       <h1 class="text-3xl font-extrabold">{{ project.project_title }}</h1>
-      <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide
+      <span id="tracking-status" role="status" aria-live="polite" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide
         {% if project.project_status == 'completed' %}bg-green-100 text-green-700
         {% elif project.project_status == 'cancelled' %}bg-gray-200 text-gray-600
         {% elif project.project_status == 'delayed' %}bg-orange-100 text-orange-700
@@ -56,10 +56,10 @@
   <section class="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-8">
     <div class="flex justify-between text-sm font-semibold mb-2">
       <span>Overall progress</span>
-      <span class="text-blue-700">{{ overall_progress }}%</span>
+      <span id="tracking-progress" class="text-blue-700">{{ overall_progress }}%</span>
     </div>
     <div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
-      <div class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full" style="width: {{ overall_progress }}%"></div>
+      <div id="tracking-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full" style="width: {{ overall_progress }}%"></div>
     </div>
     <a href="{% url 'Ongoingstatuses' project.id %}" class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">
       <iconify-icon icon="mdi:timeline-arrow-right"></iconify-icon> View status progression (initial → final)
@@ -133,14 +133,14 @@
   {% if can_respond %}
   <section class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-8">
     <h2 class="text-sm font-extrabold uppercase tracking-wide text-emerald-700 mb-3 flex items-center gap-2">
-      <iconify-icon icon="mdi:account-arrow-right"></iconify-icon> You are assigned to this project — post a status response
+      <iconify-icon icon="mdi:account-arrow-right"></iconify-icon> You are the assigned contractor — post a project update
     </h2>
     <form method="post" class="grid gap-3 sm:grid-cols-3">
       {% csrf_token %}
       <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1">New status</label>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Project status</label>
         <select name="new_status" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white">
-          <option value="">— keep current —</option>
+          <option value="">— keep current status —</option>
           <option value="ongoing">Ongoing</option>
           <option value="delayed">Delayed</option>
           <option value="stalled">Stalled</option>
@@ -151,30 +151,33 @@
       </div>
       <div>
         <label class="block text-xs font-semibold text-gray-600 mb-1">Progress %</label>
-        <input type="number" name="progress_percentage" min="0" max="100" placeholder="0–100"
+        <input type="number" name="progress_percentage" min="0" max="100" step="1" placeholder="0–100"
                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm">
       </div>
       <div class="sm:col-span-3">
         <label class="block text-xs font-semibold text-gray-600 mb-1">Note</label>
-        <textarea name="note" rows="2" placeholder="What is the current state on the ground?"
+        <textarea name="note" rows="2" maxlength="255" placeholder="What is the current state on the ground? (255 characters max)"
                   class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm"></textarea>
       </div>
       <div class="sm:col-span-3">
         <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-6 rounded-xl shadow transition text-sm">
-          Submit response
+          Post project update
         </button>
       </div>
     </form>
-    <p class="text-xs text-emerald-800/70 mt-2">Status only moves forward (draft → upcoming → ongoing → delayed → completed). Completed projects can no longer change.</p>
+    <p class="text-xs text-emerald-800/70 mt-2">Only your assigned contractor account can post updates. Status changes move forward, and completed or cancelled projects are locked.</p>
   </section>
   {% endif %}
 
   <!-- TIMELINE -->
   <section class="bg-white rounded-2xl shadow border border-gray-100 p-6">
-    <h2 class="text-sm font-extrabold uppercase tracking-wide text-gray-500 mb-6 flex items-center gap-2">
-      <iconify-icon icon="mdi:history"></iconify-icon> Tracking timeline — every change, start to end
-    </h2>
-    <ol class="relative border-l-2 border-blue-100 ml-3 space-y-8">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-2">
+      <h2 class="text-sm font-extrabold uppercase tracking-wide text-gray-500 flex items-center gap-2">
+        <iconify-icon icon="mdi:history"></iconify-icon> Tracking timeline — every change, start to end
+      </h2>
+      <p class="text-xs text-gray-500" aria-live="polite">Live refresh: <span id="tracking-refresh-status">Connecting…</span></p>
+    </div>
+    <ol id="tracking-timeline" aria-live="polite" class="relative border-l-2 border-blue-100 ml-3 space-y-8">
       {% for e in events %}
       <li class="ml-6">
         <span class="absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full text-white text-xs
@@ -193,12 +196,13 @@
             <span class="capitalize">{{ e.from_status|default:"—" }}</span>
             <iconify-icon icon="mdi:arrow-right" class="text-gray-400"></iconify-icon>
             <span class="{% if e.to_status == 'completed' %}text-green-700{% elif e.to_status == 'delayed' %}text-orange-600{% elif e.to_status == 'cancelled' %}text-gray-600{% else %}text-blue-700{% endif %}">{{ e.to_status|capfirst }}</span>
-          {% elif e.progress is defined and e.progress is not None %}
+          {% elif e.type == 'progress' %}
             <span class="text-indigo-700">Progress: {{ e.progress }}%</span> — {{ e.text }}
           {% else %}
             {{ e.text }}
           {% endif %}
         </p>
+        {% if e.type == 'status' and e.note %}<p class="text-xs text-gray-600 mt-1">{{ e.note }}</p>{% endif %}
         {% if e.photo %}<img src="{{ e.photo.url }}" alt="" class="mt-2 rounded-xl w-48 border border-gray-200">{% endif %}
       </li>
       {% empty %}
@@ -206,6 +210,117 @@
       {% endfor %}
     </ol>
   </section>
+
+  <script>
+    (() => {
+      const statusNode = document.getElementById('tracking-status');
+      const progressNode = document.getElementById('tracking-progress');
+      const progressBar = document.getElementById('tracking-progress-bar');
+      const timeline = document.getElementById('tracking-timeline');
+      const refreshStatus = document.getElementById('tracking-refresh-status');
+      if (!statusNode || !progressNode || !progressBar || !timeline || !refreshStatus) return;
+
+      const feedUrl = new URL(window.location.href);
+      feedUrl.searchParams.set('format', 'json');
+      const statusClasses = {
+        completed: 'bg-green-100 text-green-700',
+        cancelled: 'bg-gray-200 text-gray-600',
+        delayed: 'bg-orange-100 text-orange-700',
+        ongoing: 'bg-blue-100 text-blue-700',
+        stalled: 'bg-amber-100 text-amber-700',
+        suspended: 'bg-amber-100 text-amber-700',
+        upcoming: 'bg-slate-100 text-slate-600',
+        draft: 'bg-slate-100 text-slate-600',
+      };
+      const eventColors = {
+        status: 'bg-blue-600',
+        progress: 'bg-indigo-500',
+        stage_report: 'bg-purple-500',
+        update: 'bg-slate-400',
+      };
+      const eventIcons = {
+        status: 'mdi:flag',
+        progress: 'mdi:percent',
+        stage_report: 'mdi:camera',
+        update: 'mdi:note-text',
+      };
+
+      function buildTimelineItem(event) {
+        const item = document.createElement('li');
+        item.className = 'ml-6';
+        const marker = document.createElement('span');
+        marker.className = `absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full text-white text-xs ${eventColors[event.type] || 'bg-slate-400'}`;
+        const icon = document.createElement('iconify-icon');
+        icon.setAttribute('icon', eventIcons[event.type] || 'mdi:note-text');
+        marker.appendChild(icon);
+        item.appendChild(marker);
+
+        const dateLine = document.createElement('p');
+        dateLine.className = 'text-xs text-gray-400 font-semibold';
+        const timestamp = new Date(event.date);
+        dateLine.textContent = Number.isNaN(timestamp.getTime())
+          ? event.date
+          : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(timestamp);
+        if (event.actor) dateLine.textContent += ` · ${event.actor}`;
+        if (event.type === 'status' && event.source) dateLine.textContent += ` · ${event.source}`;
+        item.appendChild(dateLine);
+
+        const detail = document.createElement('p');
+        detail.className = 'text-sm font-semibold mt-0.5';
+        if (event.type === 'status') {
+          detail.textContent = `${event.from_status || '—'} → ${event.to_status}`;
+          if (event.note) detail.textContent += ` — ${event.note}`;
+        } else if (event.type === 'progress' && event.progress !== undefined) {
+          detail.textContent = `Progress: ${event.progress}% — ${event.text}`;
+        } else {
+          detail.textContent = event.text;
+        }
+        item.appendChild(detail);
+
+        if (event.photo) {
+          const image = document.createElement('img');
+          image.src = event.photo;
+          image.alt = 'Project progress evidence';
+          image.className = 'mt-2 rounded-xl w-48 border border-gray-200';
+          item.appendChild(image);
+        }
+        return item;
+      }
+
+      async function refreshTracking() {
+        try {
+          const response = await fetch(feedUrl, {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+            credentials: 'same-origin',
+          });
+          if (!response.ok) throw new Error(`Tracking refresh failed (${response.status}).`);
+          const data = await response.json();
+
+          statusNode.textContent = data.status_label;
+          statusNode.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${statusClasses[data.status] || 'bg-slate-100 text-slate-600'}`;
+          progressNode.textContent = `${data.overall_progress}%`;
+          progressBar.style.width = `${Math.max(0, Math.min(100, data.overall_progress))}%`;
+          timeline.replaceChildren();
+          if (!data.events.length) {
+            const empty = document.createElement('li');
+            empty.className = 'ml-6 text-sm text-gray-500';
+            empty.textContent = 'No tracking events yet. Updates will appear here as project activity is recorded.';
+            timeline.appendChild(empty);
+          } else {
+            data.events.forEach((event) => timeline.appendChild(buildTimelineItem(event)));
+          }
+          refreshStatus.textContent = `updated ${new Intl.DateTimeFormat(undefined, { timeStyle: 'short' }).format(new Date())}`;
+        } catch (error) {
+          console.error('Could not refresh project tracking.', error);
+          refreshStatus.textContent = 'temporarily unavailable; retrying';
+        }
+      }
+
+      refreshTracking();
+      window.setInterval(refreshTracking, 15000);
+    })();
+  </script>
 
   <div class="text-center mt-8">
     <a href="{% url 'project_details' project.id %}" class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 px-6 rounded-xl shadow transition">

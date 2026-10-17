@@ -5,8 +5,8 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 
-from member.models import Milestone, ProgressUpdate, Project, ProjectStage, User
-from member.workflow import apply_status_change, compute_status, refresh_project_status
+from member.models import Milestone, Notification, ProgressUpdate, Project, ProjectStage, User
+from member.workflow import apply_status_change, compute_status, is_forward_transition, refresh_project_status
 
 
 def make_project(**overrides):
@@ -20,12 +20,25 @@ def make_project(**overrides):
 
 
 class ComputeStatusTests(TestCase):
-    def test_progress_100_marks_completed(self):
+    def test_progress_100_does_not_complete_project_with_unfinished_stage(self):
         p = make_project(project_status="ongoing")
-        ProgressUpdate.objects.create(project=p, description="done", progress_percentage=100)
-        p = Project.objects.get(pk=p.pk)
-        self.assertEqual(p.project_status, "completed")
-        self.assertIsNotNone(p.actual_end_date)
+        ProjectStage.objects.create(
+            project=p,
+            stage_name="Construction",
+            status="in_progress",
+            progress_percentage=40,
+        )
+        ProgressUpdate.objects.create(project=p, description="Reported complete", progress_percentage=100)
+        p.refresh_from_db()
+        self.assertEqual(p.project_status, "ongoing")
+        self.assertIsNone(p.actual_end_date)
+
+    def test_progress_100_without_structured_deliverables_does_not_complete_project(self):
+        p = make_project(project_status="ongoing")
+        ProgressUpdate.objects.create(project=p, description="Reported complete", progress_percentage=100)
+        p.refresh_from_db()
+        self.assertEqual(p.project_status, "ongoing")
+        self.assertIsNone(p.actual_end_date)
 
     def test_construction_stage_means_ongoing(self):
         p = make_project(project_status="upcoming")
@@ -34,7 +47,10 @@ class ComputeStatusTests(TestCase):
         self.assertEqual(p.project_status, "ongoing")
 
     def test_planning_stage_keeps_upcoming(self):
-        p = make_project(project_status="upcoming")
+        p = make_project(
+            project_status="upcoming",
+            start_date=timezone.now().date() + timedelta(days=30),
+        )
         ProjectStage.objects.create(project=p, stage_name="planning", progress_percentage=0)
         p.refresh_from_db()
         self.assertEqual(p.project_status, "upcoming")
@@ -44,6 +60,23 @@ class ComputeStatusTests(TestCase):
         Milestone.objects.create(project=p, title="M1", description="d", progress_percentage=100)
         p.refresh_from_db()
         self.assertEqual(p.project_status, "completed")
+
+    def test_completed_stages_do_not_complete_project_with_incomplete_milestone(self):
+        p = make_project(project_status="ongoing")
+        Milestone.objects.create(
+            project=p,
+            title="Final inspection",
+            description="Inspection is still pending.",
+            progress_percentage=50,
+        )
+        ProjectStage.objects.create(
+            project=p,
+            stage_name="Handover",
+            status="completed",
+            progress_percentage=100,
+        )
+        p.refresh_from_db()
+        self.assertEqual(p.project_status, "ongoing")
 
     def test_overdue_beyond_grace_marks_delayed(self):
         p = make_project(
@@ -59,6 +92,25 @@ class ComputeStatusTests(TestCase):
             project_status="ongoing",
             end_date=timezone.now().date() - timedelta(days=3),
         )
+        refresh_project_status(p)
+        p.refresh_from_db()
+        self.assertEqual(p.project_status, "ongoing")
+
+    def test_overdue_delayed_project_stays_delayed_while_progress_is_reported(self):
+        p = make_project(
+            project_status="delayed",
+            end_date=timezone.now().date() - timedelta(days=30),
+        )
+        ProgressUpdate.objects.create(
+            project=p,
+            description="Work resumed but the deadline remains overdue.",
+            progress_percentage=60,
+        )
+        p.refresh_from_db()
+        self.assertEqual(p.project_status, "delayed")
+
+        p.end_date = timezone.now().date() + timedelta(days=30)
+        p.save(update_fields=["end_date"])
         refresh_project_status(p)
         p.refresh_from_db()
         self.assertEqual(p.project_status, "ongoing")
@@ -80,6 +132,17 @@ class ComputeStatusTests(TestCase):
 
 
 class ApplyStatusChangeTests(TestCase):
+    def test_delayed_project_can_recover_to_ongoing(self):
+        p = make_project(project_status="delayed")
+
+        self.assertTrue(is_forward_transition("delayed", "ongoing"))
+        self.assertTrue(apply_status_change(p, "ongoing", source="manual"))
+        p.refresh_from_db()
+        self.assertEqual(p.project_status, "ongoing")
+
+    def test_completed_project_cannot_recover_to_ongoing_automatically(self):
+        self.assertFalse(is_forward_transition("completed", "ongoing"))
+
     def test_records_actual_end_date_and_remark(self):
         p = make_project(project_status="ongoing")
         apply_status_change(p, "completed", source="manual")

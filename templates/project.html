@@ -33,7 +33,11 @@
         {% if selected_status %}<input type="hidden" name="status" value="{{ selected_status }}">{% endif %}
         <button class="rounded-lg bg-red-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800" type="submit">Search</button>
       </form>
-      {% if request.user.is_superuser %}<a href="{% url 'createproject' %}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700">Add project</a>{% endif %}
+      {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
+      <a href="{% url 'createproject' %}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700">
+        <iconify-icon icon="solar:add-circle-bold" class="mr-2"></iconify-icon> Add project
+      </a>
+      {% endif %}
     </div>
     <div class="mt-4 flex flex-wrap gap-2" aria-label="Filter projects by status">
       <a href="{% url 'project' %}" class="rounded-full px-3 py-1.5 text-xs font-semibold {% if not selected_status %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">All ({{ total_projects }})</a>
