@@ -3946,7 +3946,7 @@ def citizen_portal(request):
     # Evidence submitted by user
     evidence = CitizenEvidence.objects.filter(user=request.user).order_by('-created_at')
     total_evidence = evidence.count()
-    verified_evidence = evidence.filter(is_verified=True).count()
+    verified_evidence = evidence.filter(status='verified').count()
 
     # Announcements
     announcements = Announcement.objects.all().order_by('-created_at')[:5]
@@ -4642,12 +4642,155 @@ def citizen_evidence(request):
     projects = Project.objects.all()
     stages = ProjectStage.objects.all()
 
-    evidence = CitizenEvidence.objects.filter(user=request.user).order_by('-created_at')
+    evidence_qs = CitizenEvidence.objects.all().order_by('-created_at')
+    paginator = Paginator(evidence_qs, 10)  # 10 evidence items per page
+    page_number = request.GET.get('page', 1)
+    evidence = paginator.get_page(page_number)
 
     return render(request, 'citizen/evidence.html', {
         'projects': projects,
         'stages': stages,
-        'evidence': evidence
+        'evidence': evidence,
+        'paginator': paginator,
+    })
+
+
+@login_required
+def citizen_evidence_detail(request, pk):
+    evidence = get_object_or_404(CitizenEvidence.objects.select_related('user', 'project', 'stage', 'verified_by'), id=pk)
+
+    from .workflow import OFFICER_ROLES
+    is_official = request.user.is_superuser or (getattr(request.user, 'role', None) in OFFICER_ROLES)
+    is_owner = evidence.user_id == request.user.id
+
+    # Any logged-in user may VIEW the evidence record, but only the citizen who
+    # submitted it and authorized officials can post responses.
+    can_respond = is_official or is_owner
+
+    # Endless communication: the two parties may keep exchanging messages
+    # until they both confirm agreement. Once agreed, the thread is closed.
+    dialogue_open = evidence.is_agreed is False
+
+    responses = evidence.responses.select_related('user').order_by('created_at')
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or 'respond').strip()
+
+        # ── Party confirms / withdraws agreement ─────────────────────
+        if action in ('agree', 'withdraw_agreement'):
+            if not can_respond:
+                messages.error(request, 'Only the submitter and authorized officials can change agreement status.')
+                return redirect('citizen_evidence_detail', pk=evidence.pk)
+            party = 'official' if is_official else 'citizen'
+            agreed = action == 'agree'
+            if agreed and evidence.is_agreed:
+                messages.info(request, 'Agreement was already reached on this evidence.')
+                return redirect('citizen_evidence_detail', pk=evidence.pk)
+            evidence.set_party_agreement(party, agreed)
+            from .models import Notification
+            if evidence.is_agreed:
+                Notification.objects.create(
+                    user=evidence.user,
+                    notification_type='system',
+                    title='Agreement reached on evidence report',
+                    message=f"Both parties agreed on the evidence \"{evidence.title}\". The conversation is now closed.",
+                    link=f"/citizen/evidence/{evidence.pk}/",
+                )
+                messages.success(request, 'Agreement reached — the discussion on this evidence is now closed.')
+            elif agreed:
+                other = evidence.user if is_official else None
+                if other:
+                    Notification.objects.create(
+                        user=other,
+                        notification_type='system',
+                        title='Agreement confirmation needed',
+                        message=f"The {party} marked agreement on \"{evidence.title}\". Please confirm your agreement to close this discussion.",
+                        link=f"/citizen/evidence/{evidence.pk}/",
+                    )
+                messages.success(request, 'You marked agreement. Waiting for the other party to confirm.')
+            else:
+                messages.info(request, 'You withdrew your agreement — the discussion is open again.')
+            return redirect('citizen_evidence_detail', pk=evidence.pk)
+
+        # ── Post a message in the thread ──────────────────────────────
+        message = (request.POST.get('response_message') or '').strip()
+        if not message:
+            messages.error(request, 'Please write a message before posting your response.')
+        elif evidence.is_agreed:
+            messages.error(request, 'Agreement was reached on this evidence, so the conversation is closed.')
+        else:
+            from .models import EvidenceResponse, Notification
+            if not can_respond:
+                messages.error(request, 'Only the submitter and authorized officials can post responses here.')
+                return redirect('citizen_evidence_detail', pk=evidence.pk)
+            response = EvidenceResponse.objects.create(
+                evidence=evidence,
+                user=request.user,
+                author_type='official' if is_official else 'citizen',
+                message=message,
+            )
+
+            # A reply keeps the dialogue alive: pending evidence moves to
+            # 'under_discussion', and a rejected record the citizen disputes
+            # re-opens for further exchange until agreement is met.
+            if is_owner and evidence.status == 'rejected':
+                evidence.status = 'under_discussion'
+                evidence.review_notes = None
+                evidence.verified_by = None
+                evidence.verified_at = None
+                evidence.official_agreed = False
+                evidence.save(update_fields=['status', 'review_notes', 'verified_by', 'verified_at', 'official_agreed'])
+            else:
+                evidence.mark_under_discussion()
+
+            # Notify the other party about the new reply.
+            if is_official and not is_owner:
+                Notification.objects.create(
+                    user=evidence.user,
+                    notification_type='system',
+                    title='New response on your evidence report',
+                    message=f"An official responded to your evidence \"{evidence.title}\": {message[:150]}",
+                    link=f"/citizen/evidence/{evidence.pk}/",
+                )
+                messages.success(request, 'Your response has been posted and the citizen has been notified.')
+            elif is_owner:
+                # Notify officials who have previously engaged with this evidence.
+                from .models import User as UserModel
+                officials = UserModel.objects.filter(
+                    Q(is_superuser=True) | Q(role__in=OFFICER_ROLES)
+                ).exclude(pk=request.user.pk)
+                reviewed_official_ids = set(
+                    evidence.responses.filter(author_type='official').values_list('user_id', flat=True)
+                )
+                if evidence.verified_by_id:
+                    reviewed_official_ids.add(evidence.verified_by_id)
+                if reviewed_official_ids:
+                    officials = officials.filter(pk__in=reviewed_official_ids)
+                for official in officials[:20]:
+                    Notification.objects.create(
+                        user=official,
+                        notification_type='system',
+                        title='Citizen replied to an evidence report',
+                        message=f"{request.user.get_full_name() or request.user.username} replied on \"{evidence.title}\": {message[:150]}",
+                        link=f"/citizen/evidence/{evidence.pk}/",
+                    )
+                messages.success(request, 'Your reply has been posted.')
+            else:
+                messages.success(request, 'Your response has been posted.')
+
+            return redirect('citizen_evidence_detail', pk=evidence.pk)
+
+    return render(request, 'citizen/evidence_detail.html', {
+        'evidence': evidence,
+        'responses': responses,
+        'is_official': is_official,
+        'is_owner': is_owner,
+        'can_verify': is_official and evidence.status in ('pending', 'under_discussion'),
+        'can_respond': (is_official or is_owner) and not evidence.is_agreed,
+        'dialogue_open': dialogue_open,
+        'citizen_agreed': evidence.citizen_agreed,
+        'official_agreed': evidence.official_agreed,
+        'is_agreed': evidence.is_agreed,
     })
 
 
@@ -4658,15 +4801,70 @@ def submit_evidence(request):
         if form.is_valid():
             evidence = form.save(commit=False)
             evidence.user = request.user
+            evidence.status = 'pending'
+
+            # Guard: uploaded file should match the declared evidence type
+            f = request.FILES.get('file')
+            if f:
+                if f.size > 25 * 1024 * 1024:  # 25 MB cap
+                    messages.error(request, "File too large — maximum size is 25 MB.")
+                    return redirect('citizen_evidence')
+                ctype = f.content_type or ''
+                etype = evidence.evidence_type
+                type_ok = (
+                    (etype == 'photo' and ctype.startswith('image/')) or
+                    (etype == 'video' and ctype.startswith('video/')) or
+                    (etype == 'audio' and ctype.startswith('audio/')) or
+                    (etype in ('document', 'other'))  # any file acceptable
+                )
+                if not type_ok:
+                    messages.error(request, f"The uploaded file does not match the selected evidence type ({evidence.get_evidence_type_display()}).")
+                    return redirect('citizen_evidence')
+
             evidence.save()
             messages.success(request, 'Citizen evidence submitted successfully for verification.')
             return redirect('citizen_evidence')
 
+        # Show human-friendly validation errors instead of silently swallowing them
         for field, errors in form.errors.items():
+            label = form.fields.get(field).label if form.fields.get(field) else field
             for error in errors:
-                messages.error(request, f"{field}: {error}")
+                messages.error(request, f"{label}: {error}")
 
     return redirect('citizen_evidence')
+
+
+@login_required
+def verify_evidence(request, pk):
+    """Officer action: verify or reject a citizen evidence record."""
+    evidence = get_object_or_404(CitizenEvidence, pk=pk)
+    is_officer = request.user.is_superuser or (getattr(request.user, 'role', None) in OFFICER_ROLES)
+    if not is_officer:
+        messages.error(request, 'Only authorized officers can verify evidence.')
+        return redirect('citizen_evidence_detail', pk=evidence.pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        notes = (request.POST.get('review_notes') or '').strip()
+        if action == 'verify':
+            if evidence.is_agreed:
+                messages.error(request, 'Agreement was reached on this evidence — its outcome can no longer be changed.')
+                return redirect('citizen_evidence_detail', pk=evidence.pk)
+            evidence.verify(request.user, notes)
+            messages.success(request, 'Evidence marked as verified.')
+        elif action == 'reject':
+            if evidence.is_agreed:
+                messages.error(request, 'Agreement was reached on this evidence — its outcome can no longer be changed.')
+                return redirect('citizen_evidence_detail', pk=evidence.pk)
+            if not notes:
+                messages.error(request, 'Please add a comment when rejecting evidence.')
+                return redirect('citizen_evidence_detail', pk=evidence.pk)
+            evidence.reject(request.user, notes)
+            messages.success(request, 'Evidence rejected with reviewer comment.')
+        else:
+            messages.error(request, 'Invalid action.')
+
+    return redirect('citizen_evidence_detail', pk=evidence.pk)
 
 
 @login_required(login_url='login')
@@ -4776,6 +4974,8 @@ def add_expense(request):
             expense = form.save(commit=False)
             if request.user.is_authenticated:
                 expense.recorded_by = request.user
+            if not expense.date:
+                expense.date = timezone.localdate()
             expense.save()
 
             if expense.project:
@@ -5196,8 +5396,8 @@ def system_reports(request):
 
     citizen_evidence = CitizenEvidence.objects.all()
     total_citizen_evidence = citizen_evidence.count()
-    verified_evidence = citizen_evidence.filter(is_verified=True).count()
-    unverified_evidence = citizen_evidence.filter(is_verified=False).count()
+    verified_evidence = citizen_evidence.filter(status='verified').count()
+    unverified_evidence = citizen_evidence.exclude(status='verified').count()
 
     # ── Participation Activity ──
     active_participations = participations.filter(is_active=True).count()
@@ -5623,6 +5823,8 @@ def export_excel(request):
     ws.append(["Total Users", User.objects.count()])
     ws.append(["Verified", User.objects.filter(is_verified=True).count()])
     ws.append(["Citizens", User.objects.filter(role='citizen').count()])
+    ws.append(["Citizen Evidence Total", CitizenEvidence.objects.count()])
+    ws.append(["Citizen Evidence Verified", CitizenEvidence.objects.filter(status='verified').count()])
     ws.append(["Officials", User.objects.filter(role__in=['official', 'staff', 'admin', 'auditor', 'manager']).count()])
     ws.append(["Contractors", User.objects.filter(role='contractor').count()])
     ws.append([])

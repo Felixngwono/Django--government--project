@@ -1,0 +1,318 @@
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>citizen evidencing | GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<div class="content space-y-6">
+
+    <!-- MESSAGES BANNER -->
+    {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold border
+            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-200
+            {% elif message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-200
+            {% else %}bg-slate-50 text-slate-700 border-slate-200{% endif %}">
+            <span>{{ message }}</span>
+            <button type="button" onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100">✖</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-start gap-4 flex-wrap">
+        <div>
+            <div class="flex items-center gap-2 text-sm text-blue-600 font-semibold mb-1">
+                <a href="{% url 'citizen_evidence' %}" class="hover:underline">← Back to My Evidence</a>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">{{ evidence.title }}</h1>
+            <p class="text-sm text-gray-500">Evidence #{{ evidence.id }} — submitted {{ evidence.created_at|date:"M d, Y H:i" }}</p>
+        </div>
+        <span class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wide
+            {% if evidence.severity == 'critical' %}bg-red-100 text-red-700
+            {% elif evidence.severity == 'high' %}bg-orange-100 text-orange-700
+            {% elif evidence.severity == 'moderate' %}bg-yellow-100 text-yellow-700
+            {% else %}bg-green-100 text-green-700{% endif %}">
+            {{ evidence.get_severity_display }} severity
+        </span>
+    </div>
+
+    <!-- STATUS BANNER -->
+    <div class="rounded-xl px-4 py-3 text-sm font-semibold
+        {% if evidence.status == 'verified' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+        {% elif evidence.status == 'rejected' %}bg-rose-50 text-rose-700 border border-rose-200
+        {% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+        {% if evidence.status == 'verified' %}
+            ✓ This evidence has been verified{% if evidence.verified_by %} by {{ evidence.verified_by.get_full_name|default:evidence.verified_by.username }}{% endif %}. Keep discussing below until both sides agree on the outcome.
+        {% elif evidence.status == 'rejected' %}
+            ✖ This evidence was rejected{% if evidence.verified_by %} by {{ evidence.verified_by.get_full_name|default:evidence.verified_by.username }}{% endif %}. If you disagree, reply below — the discussion stays open until an agreement is met.
+        {% elif evidence.status == 'agreed' %}
+            🤝 Agreement reached{% if evidence.agreed_at %} on {{ evidence.agreed_at|date:'d M Y, H:i' }}{% endif %} — both the citizen and the official confirmed. This conversation is now closed.
+        {% elif evidence.status == 'under_discussion' %}
+            💬 This evidence is under discussion. Keep the conversation going below until both sides reach an agreement.
+        {% else %}
+            ⏳ This evidence is awaiting verification by an official.
+        {% endif %}
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="grid md:grid-cols-3 gap-6">
+
+        <!-- LEFT: description + image -->
+        <div class="md:col-span-2 space-y-4">
+
+            {% if evidence.file %}
+            <div class="bg-white rounded-xl shadow overflow-hidden border border-gray-100">
+                {% if evidence.evidence_type == 'photo' %}
+                <img src="{{ evidence.file.url }}" alt="{{ evidence.title }}" class="w-full max-h-96 object-cover">
+                <div class="px-4 py-2 text-xs text-gray-500 bg-gray-50">Attached photo evidence</div>
+                {% elif evidence.evidence_type == 'video' %}
+                <video src="{{ evidence.file.url }}" controls class="w-full max-h-96 bg-black"></video>
+                <div class="px-4 py-2 text-xs text-gray-500 bg-gray-50">Attached video evidence</div>
+                {% elif evidence.evidence_type == 'audio' %}
+                <audio src="{{ evidence.file.url }}" controls class="w-full p-4"></audio>
+                <div class="px-4 py-2 text-xs text-gray-500 bg-gray-50">Attached audio evidence</div>
+                {% else %}
+                <a href="{{ evidence.file.url }}" target="_blank" class="block p-6 text-center text-blue-600 font-semibold hover:underline">
+                    📎 Open attached document: {{ evidence.file.name }}
+                </a>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="bg-white rounded-xl shadow border border-dashed border-gray-200 p-8 text-center text-gray-400 text-sm">
+                No file was attached to this evidence record.
+            </div>
+            {% endif %}
+
+            <div class="bg-white rounded-xl shadow p-5">
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Description</h2>
+                <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{{ evidence.description }}</p>
+            </div>
+
+            {% if evidence.notes %}
+            <div class="bg-white rounded-xl shadow p-5">
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Additional Notes</h2>
+                <p class="text-sm text-gray-600 italic leading-relaxed whitespace-pre-line">{{ evidence.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- RIGHT: metadata card -->
+        <div class="space-y-4">
+            <div class="bg-white rounded-xl shadow p-5 space-y-3 text-sm">
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Details</h2>
+
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Category</span>
+                    <span class="font-semibold text-gray-800">{{ evidence.get_category_display }}</span>
+                </div>
+
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Evidence type</span>
+                    <span class="font-semibold text-gray-800">{{ evidence.get_evidence_type_display }}</span>
+                </div>
+
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Project</span>
+                    <span class="font-semibold text-gray-800 text-right">{{ evidence.project.project_title }}</span>
+                </div>
+
+                {% if evidence.stage %}
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Stage</span>
+                    <span class="font-semibold text-gray-800 text-right">{{ evidence.stage.stage_name }}</span>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Location</span>
+                    <span class="font-semibold text-gray-800 text-right">📍 {{ evidence.location }}</span>
+                </div>
+
+                {% if evidence.coordinates %}
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Coordinates</span>
+                    <span class="font-mono text-xs text-gray-800 text-right">{{ evidence.coordinates }}</span>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Observed</span>
+                    <span class="font-semibold text-gray-800">{{ evidence.observed_at|default:'Not specified' }}</span>
+                </div>
+
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Submitted by</span>
+                    <span class="font-semibold text-gray-800">{{ evidence.user.get_full_name|default:evidence.user.username }}</span>
+                </div>
+
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Status</span>
+                    <span class="font-semibold {% if evidence.status == 'verified' %}text-green-600{% elif evidence.status == 'rejected' %}text-red-600{% else %}text-yellow-600{% endif %}">
+                        {{ evidence.get_status_display }}
+                    </span>
+                </div>
+
+                {% if evidence.verified_at %}
+                <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">Reviewed on</span>
+                    <span class="font-semibold text-gray-800">{{ evidence.verified_at|date:'d M Y, H:i' }}</span>
+                </div>
+                {% endif %}
+
+                {% if evidence.review_notes %}
+                <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                    <p class="text-xs font-semibold text-gray-500 mb-1">Reviewer notes</p>
+                    <p class="text-sm text-gray-700">{{ evidence.review_notes }}</p>
+                </div>
+                {% endif %}
+
+                <!-- AGREEMENT TRACKER -->
+                <div class="mt-3 p-3 rounded-lg bg-indigo-50 border border-indigo-200">
+                    <p class="text-xs font-semibold text-indigo-700 mb-2">Agreement status</p>
+                    <div class="space-y-1 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">Citizen</span>
+                            <span class="font-semibold {% if citizen_agreed %}text-green-600{% else %}text-gray-400{% endif %}">{% if citizen_agreed %}✓ Agreed{% else %}Pending{% endif %}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">Official</span>
+                            <span class="font-semibold {% if official_agreed %}text-green-600{% else %}text-gray-400{% endif %}">{% if official_agreed %}✓ Agreed{% else %}Pending{% endif %}</span>
+                        </div>
+                    </div>
+                    {% if is_agreed %}
+                    <p class="text-xs text-green-700 font-semibold mt-2">🤝 Mutual agreement reached — conversation closed.</p>
+                    {% else %}
+                    <p class="text-xs text-indigo-600 mt-2">Communication continues until both parties agree.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if can_verify %}
+            <div class="bg-white rounded-xl shadow p-5 border border-blue-200">
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-blue-600 mb-3">Officer Review</h2>
+                <form method="post" action="{% url 'verify_evidence' evidence.pk %}">
+                    {% csrf_token %}
+                    <textarea name="review_notes" rows="3" placeholder="Reviewer comment (required when rejecting)"
+                        class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm mb-3"></textarea>
+                    <div class="flex gap-2">
+                        <button type="submit" name="action" value="verify"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-semibold text-sm transition">✓ Verify</button>
+                        <button type="submit" name="action" value="reject"
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-semibold text-sm transition">✖ Reject</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CONVERSATION / OFFICIAL RESPONSES -->
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Responses & Conversation</h2>
+            <span class="text-xs font-semibold text-gray-400">{{ responses|length }} message{{ responses|length|pluralize }}</span>
+        </div>
+
+        {% if responses %}
+        <div class="space-y-4 mb-5">
+            {% for response in responses %}
+            <div class="flex gap-3">
+                <div class="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold
+                    {% if response.author_type == 'official' %}bg-blue-600{% else %}bg-slate-400{% endif %}">
+                    {{ response.user.get_full_name|default:response.user.username|first|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-sm font-bold text-gray-800">{{ response.user.get_full_name|default:response.user.username }}</span>
+                        {% if response.author_type == 'official' %}
+                        <span class="text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-700 rounded-full px-2 py-0.5">Official</span>
+                        {% else %}
+                        <span class="text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">Citizen</span>
+                        {% endif %}
+                        <span class="text-xs text-gray-400">{{ response.created_at|date:'d M Y, H:i' }}</span>
+                    </div>
+                    <div class="mt-1.5 rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-line
+                        {% if response.author_type == 'official' %}bg-blue-50 text-blue-900 border border-blue-100
+                        {% else %}bg-slate-50 text-slate-800 border border-slate-100{% endif %}">
+                        {{ response.message }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rounded-xl border border-dashed border-gray-200 p-6 text-center text-gray-400 text-sm mb-5">
+            {% if is_official %}
+                No official response yet. Post a reply below to inform the citizen about the action taken on this report.
+            {% else %}
+                No responses yet. An official will reply here once this report has been reviewed.
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if can_respond %}
+        <form method="post" action="{% url 'citizen_evidence_detail' evidence.pk %}">
+            {% csrf_token %}
+            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+                {% if is_official %}Post an official response{% else %}Add a reply{% endif %}
+            </label>
+            <textarea name="response_message" rows="3" required
+                placeholder="{% if is_official %}e.g. Thank you for the report. An inspection team will visit the site on Friday...{% else %}Add more details, dispute a rejection, or follow up on this report...{% endif %}"
+                class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"></textarea>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button type="submit" name="action" value="respond"
+                    class="{% if is_official %}bg-blue-600 hover:bg-blue-700{% else %}bg-slate-700 hover:bg-slate-800{% endif %} text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition">
+                    📨 Send response
+                </button>
+                {% if citizen_agreed or official_agreed %}
+                <button type="submit" name="action" value="withdraw_agreement"
+                    class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm transition">
+                    ↩ Withdraw my agreement
+                </button>
+                {% else %}
+                <button type="submit" name="action" value="agree"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition">
+                    🤝 I agree — resolve this
+                </button>
+                {% endif %}
+            </div>
+        </form>
+        {% elif is_agreed %}
+        <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-700 font-semibold">
+            🤝 Agreement was reached between the citizen and the official — this conversation is closed.
+        </div>
+        {% else %}
+        <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 text-sm text-slate-500">
+            🔒 Responses are limited to the citizen who submitted this report and authorized officials. You are viewing this conversation in read-only mode.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+</main>
+{% include "footer.html" %}
+{% endblock content %}

@@ -434,7 +434,7 @@ class CitizenEvidenceForm(forms.ModelForm):
         fields = [
             'project', 'stage', 'category', 'severity', 'evidence_type',
             'title', 'description', 'location', 'coordinates', 'observed_at',
-            'notes', 'image'
+            'notes', 'file'
         ]
         widgets = {
             'project': forms.Select(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
@@ -448,7 +448,7 @@ class CitizenEvidenceForm(forms.ModelForm):
             'coordinates': forms.TextInput(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none', 'placeholder': 'Latitude, Longitude'}),
             'observed_at': forms.DateInput(attrs={'type': 'date', 'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none'}),
             'notes': forms.Textarea(attrs={'class': 'w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none', 'rows': 3, 'placeholder': 'Additional notes for officials or reviewers'}),
-            'image': forms.FileInput(attrs={'class': 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'}),
+            'file': forms.FileInput(attrs={'class': 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100', 'accept': 'image/*,video/*,audio/*,.pdf,.doc,.docx'}),
         }
 
 
@@ -687,7 +687,7 @@ class BudgetForm(forms.ModelForm):
 class ProjectExpenseForm(forms.ModelForm):
     class Meta:
         model = ProjectExpense
-        fields = ['project', 'title', 'category', 'amount', 'description', 'receipt']
+        fields = ['project', 'stage', 'title', 'category', 'amount', 'date', 'description', 'receipt']
         widgets = {
             'project': forms.Select(attrs={
                 'class': 'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200'
@@ -710,6 +710,13 @@ class ProjectExpenseForm(forms.ModelForm):
             }),
             'receipt': forms.ClearableFileInput(attrs={
                 'class': 'block w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700'
+            }),
+            'date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200'
+            }),
+            'stage': forms.Select(attrs={
+                'class': 'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200'
             }),
         }
 

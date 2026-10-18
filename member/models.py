@@ -520,13 +520,15 @@ class ProjectExpense(models.Model):
     ]
 
     project     = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='expenses', null=True)
+    stage       = models.ForeignKey('ProjectStage', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', help_text="Optional: which stage this expense belongs to.")
+    budget      = models.ForeignKey('Budget', on_delete=models.SET_NULL, null=True, blank=True, related_name='expense_items', help_text="Optional: budget line this expense is charged against.")
     title       = models.CharField(max_length=255, null=True)
     category    = models.CharField(max_length=20, choices=CATEGORY_CHOICES, null=True)
     amount      = models.DecimalField(max_digits=15, decimal_places=2, null=True)
     description = models.TextField(blank=True, null=True)
     receipt     = models.FileField(upload_to='receipts/', null=True, blank=True)
     recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    date        = models.DateField(auto_now_add=True, null=True)
+    date        = models.DateField(default=timezone.localdate, null=True, help_text="Date the expense was incurred (can be backdated).")
 
     def __str__(self):
         return self.title or "Expense"
@@ -991,9 +993,37 @@ class CitizenEvidence(models.Model):
     coordinates     = models.CharField(max_length=255, blank=True, null=True)
     observed_at     = models.DateField(null=True, blank=True)
     notes           = models.TextField(blank=True, null=True)
-    image           = models.ImageField(upload_to='citizen_evidence/', blank=True, null=True)
-    is_verified     = models.BooleanField(default=False)
+    file            = models.FileField(
+                        upload_to='citizen_evidence/%Y/%m/',
+                        blank=True, null=True,
+                        help_text="Photo, video, audio or document supporting this report.")
+    # Verification workflow — status instead of a bare boolean, so reviewers
+    # can record WHY evidence was accepted or rejected.
+    STATUS_CHOICES = [
+        ('pending',  'Pending Review'),
+        ('under_discussion', 'Under Discussion'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+        ('agreed',   'Agreed / Resolved'),
+    ]
+
+    # Chat workflow:
+    #  - endless two-way dialogue between the citizen and officials is allowed
+    #    while the evidence is 'pending' or 'under_discussion' (or after a
+    #    rejection the citizen disputes), so both sides can keep talking until
+    #    they reach a shared understanding.
+    #  - the conversation is only closed once BOTH parties confirm agreement
+    #    (status becomes 'agreed').
+    status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     verified_by     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_evidence')
+    verified_at     = models.DateTimeField(null=True, blank=True)
+    review_notes    = models.TextField(blank=True, null=True, help_text="Reviewer comments (required when rejecting).")
+    # Agreement tracking for the citizen ↔ official dialogue: each side marks
+    # agreement independently; the evidence is only 'agreed' when both flags
+    # are set. Until then the conversation stays open — endless communication.
+    citizen_agreed  = models.BooleanField(default=False)
+    official_agreed = models.BooleanField(default=False)
+    agreed_at       = models.DateTimeField(null=True, blank=True)
     created_at      = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -1002,6 +1032,88 @@ class CitizenEvidence(models.Model):
     def clean(self):
         if self.stage_id and self.stage.project_id != self.project_id:
             raise ValidationError({'stage': 'Stage must belong to this project.'})
+
+    @property
+    def is_verified(self):
+        """Backwards-compatible: templates/views still use evidence.is_verified."""
+        return self.status == 'verified'
+
+    def verify(self, user, notes=''):
+        self.status = 'verified'
+        self.verified_by = user
+        self.verified_at = timezone.now()
+        if notes:
+            self.review_notes = notes
+        self.save(update_fields=['status', 'verified_by', 'verified_at', 'review_notes'])
+
+    def reject(self, user, notes=''):
+        self.status = 'rejected'
+        self.verified_by = user
+        self.verified_at = timezone.now()
+        self.review_notes = notes or 'Rejected without comment.'
+        self.save(update_fields=['status', 'verified_by', 'verified_at', 'review_notes'])
+
+    # ── Endless-dialogue / agreement workflow ─────────────────────────────
+    @property
+    def discussion_open(self):
+        """True while the two parties can keep exchanging messages.
+        The conversation only closes once mutual agreement is reached."""
+        return self.status in ('pending', 'under_discussion', 'rejected', 'verified') \
+            and self.status != 'agreed' \
+            and not (self.citizen_agreed and self.official_agreed)
+
+    @property
+    def is_agreed(self):
+        return self.status == 'agreed' or (self.citizen_agreed and self.official_agreed)
+
+    def mark_under_discussion(self):
+        """Move evidence into the discussion phase (e.g. after a reply)."""
+        if self.status == 'pending':
+            self.status = 'under_discussion'
+            self.save(update_fields=['status'])
+
+    def set_party_agreement(self, party, agreed):
+        """Record one side's agreement. Only when BOTH sides agree does the
+        evidence move to the final 'agreed' state and the conversation close."""
+        if party == 'citizen':
+            self.citizen_agreed = agreed
+        elif party == 'official':
+            self.official_agreed = agreed
+        else:
+            raise ValueError("party must be 'citizen' or 'official'")
+
+        if self.citizen_agreed and self.official_agreed:
+            self.status = 'agreed'
+            self.agreed_at = timezone.now()
+        elif self.status == 'agreed':
+            # One side withdrew agreement — reopen the dialogue.
+            self.status = 'under_discussion'
+            self.agreed_at = None
+        self.save(update_fields=['citizen_agreed', 'official_agreed', 'status', 'agreed_at'])
+
+
+class EvidenceResponse(models.Model):
+    """A threaded conversation on a citizen evidence record.
+
+    Officials / superusers can post responses so the citizen knows their
+    submission was actually reviewed and acted upon, and the citizen can
+    reply back with follow-up information."""
+    AUTHOR_TYPES = [
+        ('official', 'Official / Responsible Person'),
+        ('citizen', 'Citizen'),
+    ]
+
+    evidence    = models.ForeignKey(CitizenEvidence, on_delete=models.CASCADE, related_name='responses')
+    user        = models.ForeignKey(User, on_delete=models.CASCADE, related_name='evidence_responses')
+    author_type = models.CharField(max_length=10, choices=AUTHOR_TYPES, default='citizen')
+    message     = models.TextField()
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.get_author_type_display()} reply on {self.evidence.title}"
 
 
 class Participation(models.Model):

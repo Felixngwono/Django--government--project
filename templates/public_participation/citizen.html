@@ -295,8 +295,8 @@
       <div class="submission-item">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
           <h3 style="font-weight:600;color:var(--text);">{{ e.title }}</h3>
-          <span class="status-badge {% if e.is_verified %}approved{% else %}pending{% endif %}">
-            {% if e.is_verified %}Verified{% else %}Pending{% endif %}
+          <span class="status-badge {% if e.status == 'verified' %}approved{% elif e.status == 'rejected' %}rejected{% else %}pending{% endif %}">
+            {% if e.status == 'verified' %}Verified{% elif e.status == 'rejected' %}Rejected{% else %}Pending{% endif %}
           </span>
         </div>
         <p style="font-size:0.85rem;color:var(--text-sec);margin-top:8px;">{{ e.description }}</p>

@@ -19,6 +19,7 @@ from member.forms import MyUserCreationForm, ProjectCreationForm, ReportIssueFor
 from member.models import (
     AIProjectAnalysis,
     AuditLog,
+    CitizenEvidence,
     Contractor,
     ContractorDocument,
     ContractorPaymentRequest,
@@ -29,6 +30,7 @@ from member.models import (
     ProjectStage,
     ProjectStatusHistory,
     ProgressUpdate,
+    Notification,
     ReportIssue,
     StageReport,
     StageReportAttachment,
@@ -1987,3 +1989,96 @@ class ContractorDashboardWorkflowTests(TestCase):
         self.assertEqual(milestone.verification_status, 'rejected')
         self.assertEqual(milestone.verification_comments, 'Provide the signed inspection record.')
         self.assertEqual(milestone.verified_by, reviewer)
+
+
+class CitizenEvidenceAgreementTest(TestCase):
+    """Endless communication between evidence provider and official until
+    mutual agreement is met."""
+
+    def setUp(self):
+        self.citizen = User.objects.create_user(email='c@example.com', username='citizen', password='pass12345')
+        self.official = User.objects.create_user(email='o@example.com', username='official', password='pass12345', role='official')
+        self.project = Project.objects.create(
+            project_title='Water Project',
+            project_description='Borehole',
+            project_location='Kisumu',
+            project_status='ongoing',
+        )
+        self.stage = self.project.stages.create(stage_name='drilling', description='Borehole drilling', order=1)
+        self.evidence = CitizenEvidence.objects.create(
+            user=self.citizen,
+            project=self.project,
+            stage=self.stage,
+            category='water',
+            severity='high',
+            evidence_type='document',
+            title='Broken borehole pump',
+            description='The pump has not worked for two weeks.',
+            location='Village A',
+        )
+
+    def _detail_url(self):
+        return reverse('citizen_evidence_detail', args=[self.evidence.pk])
+
+    def test_official_reply_moves_pending_to_under_discussion(self):
+        self.client.force_login(self.official)
+        r = self.client.post(self._detail_url(), {'action': 'respond', 'response_message': 'Inspection scheduled.'})
+        self.assertEqual(r.status_code, 302)
+        self.evidence.refresh_from_db()
+        self.assertEqual(self.evidence.status, 'under_discussion')
+        self.assertEqual(self.evidence.responses.count(), 1)
+        # Citizen got notified.
+        self.assertTrue(Notification.objects.filter(user=self.citizen, title='New response on your evidence report').exists())
+
+    def test_citizen_can_reply_after_rejection_reopening_discussion(self):
+        self.evidence.reject(self.official, 'Photo unclear.')
+        self.client.force_login(self.citizen)
+        r = self.client.post(self._detail_url(), {'action': 'respond', 'response_message': 'Here are clearer photos.'})
+        self.assertEqual(r.status_code, 302)
+        self.evidence.refresh_from_db()
+        self.assertEqual(self.evidence.status, 'under_discussion')
+        self.assertIsNone(self.evidence.verified_by)
+        self.assertEqual(self.evidence.responses.count(), 1)
+
+    def test_agreement_requires_both_parties(self):
+        self.client.force_login(self.citizen)
+        self.client.post(self._detail_url(), {'action': 'agree'})
+        self.evidence.refresh_from_db()
+        self.assertTrue(self.evidence.citizen_agreed)
+        self.assertFalse(self.evidence.official_agreed)
+        self.assertEqual(self.evidence.status, 'pending')  # not closed yet
+
+        self.client.logout()
+        self.client.force_login(self.official)
+        self.client.post(self._detail_url(), {'action': 'agree'})
+        self.evidence.refresh_from_db()
+        self.assertTrue(self.evidence.is_agreed)
+        self.assertEqual(self.evidence.status, 'agreed')
+
+    def test_no_messaging_after_agreement(self):
+        self.evidence.set_party_agreement('citizen', True)
+        self.evidence.set_party_agreement('official', True)
+        self.client.force_login(self.citizen)
+        r = self.client.post(self._detail_url(), {'action': 'respond', 'response_message': 'One more thing.'})
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Agreement was reached on this evidence, so the conversation is closed.')
+        self.evidence.refresh_from_db()
+        self.assertEqual(self.evidence.responses.count(), 0)  # message blocked
+
+    def test_withdraw_agreement_reopens(self):
+        self.evidence.set_party_agreement('citizen', True)
+        self.evidence.set_party_agreement('official', True)
+        self.client.force_login(self.citizen)
+        self.client.post(self._detail_url(), {'action': 'withdraw_agreement'})
+        self.evidence.refresh_from_db()
+        self.assertFalse(self.evidence.citizen_agreed)
+        self.assertEqual(self.evidence.status, 'under_discussion')
+
+    def test_official_cannot_reject_after_agreement(self):
+        self.evidence.set_party_agreement('citizen', True)
+        self.evidence.set_party_agreement('official', True)
+        self.client.force_login(self.official)
+        r = self.client.post(reverse('verify_evidence', args=[self.evidence.pk]), {'action': 'reject', 'review_notes': 'no'})
+        self.assertEqual(r.status_code, 302)
+        self.evidence.refresh_from_db()
+        self.assertEqual(self.evidence.status, 'agreed')  # unchanged

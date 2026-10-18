@@ -1,22 +1,19 @@
 {% load static %}
 {% load widget_tweaks %}
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="mediaUploadApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>GovTracker — Upload Media Asset</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -29,84 +26,167 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
- <div class="max-w-2xl mx-auto bg-white shadow-xl rounded-2xl p-6">
+  <div class="content p-6 max-w-3xl mx-auto space-y-6">
 
-<h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-📤 Upload Media
-</h2>
+    <!-- ================= HERO BANNER ================= -->
+    <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+      <div class="absolute -right-10 -bottom-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 backdrop-blur-md mb-3">
+          <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+          GovTracker Central Media Center
+        </span>
+        <h1 class="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+          <i class="fas fa-cloud-upload-alt text-indigo-400"></i> Upload Media Asset
+        </h1>
+        <p class="mt-2 max-w-xl text-sm text-slate-300 leading-relaxed">
+          Attach site progress photos, drone or inspection videos, and audit PDF documents to a government project for public verification.
+        </p>
+      </div>
+    </div>
 
-<form method="POST" enctype="multipart/form-data" class="space-y-6" id="uploadForm">
-{% csrf_token %}
+    <!-- ================= UPLOAD FORM CARD ================= -->
+    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 md:p-8">
 
-<!-- PROJECT -->
-<div>
-<label class="block text-sm font-semibold mb-2">Project</label>
-{% render_field form.project class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500" %}
-</div>
+      {% if messages %}
+      {% for message in messages %}
+      <div class="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
+        {% if message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800
+        {% else %}bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800{% endif %}">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+      {% endif %}
 
-<!-- DRAG & DROP FILE -->
-<div>
-<label class="block text-sm font-semibold mb-2">Upload File</label>
+      <form method="POST" enctype="multipart/form-data" class="space-y-6" id="uploadForm">
+        {% csrf_token %}
 
-<div id="dropArea"
-     class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition">
+        <!-- PROJECT -->
+        <div>
+          <label class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+            <i class="fas fa-folder text-[10px] text-indigo-500"></i> Target Government Project
+          </label>
+          {% render_field form.project class="w-full px-4 py-3 rounded-2xl text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" %}
+        </div>
 
-    <p class="text-gray-500">Drag & Drop file here or click to select</p>
-    {% render_field form.file class="hidden" id="fileInput" %}
+        <!-- MEDIA TYPE -->
+        <div>
+          <label class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+            <i class="fas fa-tags text-[10px] text-indigo-500"></i> Media Category
+          </label>
+          {% render_field form.media_type class="w-full px-4 py-3 rounded-2xl text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" %}
+        </div>
 
-</div>
+        <!-- DRAG & DROP FILE -->
+        <div>
+          <label class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+            <i class="fas fa-file-arrow-up text-[10px] text-indigo-500"></i> File Asset
+          </label>
 
-<!-- PREVIEW -->
-<div id="preview" class="mt-4 hidden"></div>
+          <div id="dropArea"
+               class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-3xl p-8 text-center cursor-pointer transition-all
+                      hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10">
 
-</div>
+            <div id="dropPlaceholder" class="flex flex-col items-center gap-3">
+              <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl">
+                <i class="fas fa-cloud-arrow-up"></i>
+              </div>
+              <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Drag &amp; drop your file here</p>
+              <p class="text-xs text-slate-400">or <span class="text-indigo-600 dark:text-indigo-400 font-semibold">click to browse</span> — photos, videos and PDFs supported</p>
+            </div>
 
-<!-- MEDIA TYPE -->
-<div>
-<label class="block text-sm font-semibold mb-2">Media Type</label>
-{% render_field form.media_type class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500" %}
-</div>
+            {% render_field form.file class="hidden" id="fileInput" %}
+          </div>
 
-<!-- PROGRESS BAR -->
-<div class="hidden" id="progressContainer">
-<div class="w-full bg-gray-200 rounded-full h-2">
-<div id="progressBar" class="bg-blue-600 h-2 rounded-full w-0"></div>
-</div>
-</div>
+          <!-- PREVIEW -->
+          <div id="preview" class="mt-4 hidden"></div>
+        </div>
 
-<!-- SUBMIT -->
-<button type="submit"
-class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">
-Upload Media
-</button>
+        <!-- CAPTION -->
+        <div>
+          <label class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+            <i class="fas fa-pen text-[10px] text-indigo-500"></i> Caption / Description
+          </label>
+          {% render_field form.caption class="w-full px-4 py-3 rounded-2xl text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="e.g. Roofing works, Block C — site inspection photo" %}
+        </div>
 
-</form>
+        <!-- PROGRESS BAR -->
+        <div class="hidden" id="progressContainer">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+            <span><i class="fas fa-circle-notch fa-spin text-indigo-500 mr-1.5"></i> Uploading asset…</span>
+            <span id="progressLabel" class="font-mono">0%</span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+            <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full w-0 transition-all duration-200"></div>
+          </div>
+        </div>
 
-</div>
+        <!-- ACTIONS -->
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-5 border-t border-slate-100 dark:border-slate-700">
+          <a href="{% url 'media_list' %}"
+             class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Gallery
+          </a>
+          <button type="submit"
+                  class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
+            <i class="fas fa-cloud-upload-alt"></i> Upload Asset
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
 </main>
+<script>
+function mediaUploadApp() {
+  return {
+    darkMode: false,
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    },
+
+    init() {
+      window.addEventListener('resize', () => {
+        this.isMobile = window.innerWidth < 1024;
+        if (!this.isMobile) this.mobileSidebarOpen = false;
+      });
+    }
+  }
+}
+</script>
+
 <script>
 const dropArea = document.getElementById("dropArea");
 const fileInput = document.getElementById("fileInput");
 const preview = document.getElementById("preview");
+const dropPlaceholder = document.getElementById("dropPlaceholder");
 const form = document.getElementById("uploadForm");
 const progressBar = document.getElementById("progressBar");
+const progressLabel = document.getElementById("progressLabel");
 const progressContainer = document.getElementById("progressContainer");
 
-// CLICK → OPEN FILE
+// CLICK → OPEN FILE PICKER
 dropArea.addEventListener("click", () => fileInput.click());
 
 // DRAG EVENTS
 dropArea.addEventListener("dragover", e => {
     e.preventDefault();
-    dropArea.classList.add("border-blue-500");
+    dropArea.classList.add("border-indigo-500", "bg-indigo-50/50", "dark:bg-indigo-900/10");
 });
 
 dropArea.addEventListener("dragleave", () => {
-    dropArea.classList.remove("border-blue-500");
+    dropArea.classList.remove("border-indigo-500", "bg-indigo-50/50", "dark:bg-indigo-900/10");
 });
 
 dropArea.addEventListener("drop", e => {
     e.preventDefault();
+    dropArea.classList.remove("border-indigo-500", "bg-indigo-50/50", "dark:bg-indigo-900/10");
     fileInput.files = e.dataTransfer.files;
     showPreview(fileInput.files[0]);
 });
@@ -118,31 +198,51 @@ fileInput.addEventListener("change", () => {
 
 // PREVIEW FUNCTION
 function showPreview(file) {
+    if (!file) return;
     preview.classList.remove("hidden");
+    dropPlaceholder.classList.add("opacity-40");
 
+    const url = URL.createObjectURL(file);
     if (file.type.startsWith("image")) {
-        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full rounded-lg">`;
+        preview.innerHTML = `
+          <div class="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
+            <img src="${url}" class="w-full max-h-72 object-cover">
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-600 text-white shadow-md">Photo Selected</span>
+          </div>
+          <p class="mt-2 text-xs text-slate-500 font-mono">${file.name}</p>`;
     } else if (file.type.startsWith("video")) {
-        preview.innerHTML = `<video controls class="w-full rounded-lg">
-                                <source src="${URL.createObjectURL(file)}">
-                             </video>`;
+        preview.innerHTML = `
+          <div class="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
+            <video controls class="w-full max-h-72 bg-black">
+              <source src="${url}">
+            </video>
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-purple-600 text-white shadow-md">Video Selected</span>
+          </div>
+          <p class="mt-2 text-xs text-slate-500 font-mono">${file.name}</p>`;
     } else {
-        preview.innerHTML = `<p class="text-gray-600">${file.name}</p>`;
+        preview.innerHTML = `
+          <div class="flex items-center gap-3 p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            <i class="fas fa-file-pdf text-2xl text-emerald-500"></i>
+            <div>
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">${file.name}</p>
+              <p class="text-xs text-slate-400">Document Selected</p>
+            </div>
+          </div>`;
     }
 }
 
-// PROGRESS (FAKE but UI ready)
+// PROGRESS BAR ON SUBMIT
 form.addEventListener("submit", function () {
     progressContainer.classList.remove("hidden");
-
     let width = 0;
-    let interval = setInterval(() => {
-        if (width >= 100) clearInterval(interval);
+    const interval = setInterval(() => {
+        if (width >= 90) clearInterval(interval);
         else {
             width += 10;
             progressBar.style.width = width + "%";
+            progressLabel.textContent = width + "%";
         }
-    }, 200);
+    }, 150);
 });
 </script>
 {% include "footer.html" %}

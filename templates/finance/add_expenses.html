@@ -63,12 +63,21 @@
         </div>
         {% endif %}
 
-        <!-- PROJECT -->
-        <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1.5">
-            Target Project
-          </label>
-          {{ form.project }}
+        <!-- PROJECT & STAGE -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+              Target Project
+            </label>
+            {{ form.project }}
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+              Project Stage <span class="text-slate-400 font-normal">(optional)</span>
+            </label>
+            {{ form.stage }}
+          </div>
         </div>
 
         <!-- TITLE & CATEGORY -->
@@ -94,6 +103,14 @@
             Dismitted Amount (KES)
           </label>
           {{ form.amount }}
+        </div>
+
+        <!-- DATE INCURRED -->
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+            Date Incurred
+          </label>
+          {{ form.date }}
         </div>
 
         <!-- RECEIPT FILE -->
