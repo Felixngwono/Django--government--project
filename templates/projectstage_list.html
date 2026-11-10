@@ -5,20 +5,20 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Project Stages — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -27,162 +27,261 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
+{% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
-
-<div class="proj_container">
-    <div >
-        <div class="flex-1 p-8 bg-gray-50 min-h-screen">
-    <div class="flex justify-between items-center mb-6">
+    <!-- HERO / STATS BANNER -->
+    <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-xl border border-slate-800 relative overflow-hidden mb-8">
+      <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <h2 class="text-3xl font-bold text-white-800">Project Stages</h2>
-            <p class="text-gray-500 mt-1">Track progress and manage project development stages</p>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 backdrop-blur-md mb-3">
+            <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+            Project Stages
+          </div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Project Stages</h1>
+          <p class="mt-2 max-w-xl text-sm text-slate-300 leading-relaxed">
+            Track progress and manage project development stages across all government initiatives.
+          </p>
         </div>
-
-        {% if request.user.role == 'contractor' %}
+        {% if request.user.role == 'contractor' or request.user.is_superuser %}
         <a href="{% url 'projectstage_create' %}"
-           class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-lg shadow transition duration-200">
-           + Add New Stage
+           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
+          <i class="fas fa-plus"></i> Add New Stage
         </a>
         {% endif %}
+      </div>
     </div>
 
-    <div class="bg-white shadow-xl rounded-2xl p-8 w-full border border-gray-100">
+    <!-- STATS OVERVIEW -->
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Stages</span>
+          <iconify-icon icon="solar:folder-open-bold-duotone" class="text-2xl text-indigo-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ total_stages }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">All development stages</span>
+      </div>
 
-    <!-- Search & Filter Bar -->
-    <form method="get" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-        <div>
-            <input type="text" name="q" value="{{ q }}" placeholder="Search stage or project..." class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Completed</span>
+          <iconify-icon icon="solar:check-bold-duotone" class="text-2xl text-emerald-600"></iconify-icon>
         </div>
-        <div>
-            <select name="project" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                <option value="">All Projects</option>
-                {% for proj in projects %}
-                    <option value="{{ proj.id }}" {% if selected_project == proj.id|stringformat:"i" %}selected{% endif %}>{{ proj.project_title }}</option>
-                {% endfor %}
-            </select>
+        <div class="text-2xl font-bold text-emerald-600 mt-2">{{ completed_stages }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Finished stages</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">In Progress</span>
+          <iconify-icon icon="solar:clock-bold-duotone" class="text-2xl text-blue-600"></iconify-icon>
         </div>
-        <div>
-            <select name="stage_name" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                <option value="">All Stage Types</option>
-                {% for code, label in stage_choices %}
-                    <option value="{{ code }}" {% if selected_stage_name == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
+        <div class="text-2xl font-bold text-blue-600 mt-2">{{ in_progress_stages }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Actively being built</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Not Started</span>
+          <iconify-icon icon="solar:circle-bold-duotone" class="text-2xl text-slate-400"></iconify-icon>
         </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ not_started_stages }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Pending kickoff</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Delayed</span>
+          <iconify-icon icon="solar:alert-circle-bold-duotone" class="text-2xl text-rose-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-rose-600 mt-2">{{ delayed_stages }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Past end date</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Avg Progress</span>
+          <iconify-icon icon="solar:percent-bold-duotone" class="text-2xl text-purple-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-purple-600 mt-2">{{ avg_progress }}%</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Across all stages</span>
+      </div>
+    </div>
+
+    <!-- SEARCH & FILTER BAR -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center gap-3">
+        <form id="stage-filter-form" method="GET" class="relative flex-1 min-w-[240px]">
+          <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input name="q" type="text" placeholder="Search stage or project..." value="{{ q }}"
+                 class="w-full pl-9 pr-4 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </form>
+
+        <form method="GET" class="flex-1 min-w-[200px]">
+          <select name="project" class="w-full px-3 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All Projects</option>
+            {% for proj in projects %}
+            <option value="{{ proj.id }}" {% if selected_project == proj.id|stringformat:"i" %}selected{% endif %}>{{ proj.project_title }}</option>
+            {% endfor %}
+          </select>
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+        </form>
+
+        <form method="GET" class="flex-1 min-w-[180px]">
+          <select name="stage_name" class="w-full px-3 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All Stage Types</option>
+            {% for code, label in stage_choices %}
+            <option value="{{ code }}" {% if selected_stage_name == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+        </form>
+
         <div class="flex gap-2">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition shadow w-full">Filter</button>
-            {% if q or selected_project or selected_stage_name %}
-                <a href="{% url 'projectstage_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg text-sm transition flex items-center justify-center">Reset</a>
-            {% endif %}
+          <button type="submit" form="stage-filter-form" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm shadow-indigo-600/20 transition-all">
+            Filter
+          </button>
+          {% if q or selected_project or selected_stage_name %}
+          <a href="{% url 'projectstage_list' %}" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+            Reset
+          </a>
+          {% endif %}
         </div>
-    </form>
-
-    {% if stages %}
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-
-        {% for stage in stages %}
-        <a href="{% url 'projectstage_detail' stage.pk %}"
-           class="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-
-            <!-- Project Image -->
-            <div class="relative w-full h-52 overflow-hidden">
-                {% if stage.project.images %}
-                    <img src="{{ stage.project.images.url }}"
-                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                {% else %}
-                    <img src="{% static 'images/default_project.jpg' %}"
-                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                {% endif %}
-
-                <!-- Project Status Badge -->
-                <div class="absolute top-3 right-3 bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow">
-                    {{ stage.project.project_status }}
-                </div>
-            </div>
-
-            <div class="p-6">
-
-                <!-- Title & Stage Badge -->
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition">
-                        {{ stage.project.project_title }}
-                    </h3>
-
-                    <span class="text-xs font-medium px-3 py-1 rounded-full
-                        {% if stage.progress_percentage == 100 %}
-                            bg-green-100 text-green-700
-                        {% elif stage.progress_percentage > 50 %}
-                            bg-yellow-100 text-yellow-700
-                        {% else %}
-                            bg-red-100 text-red-700
-                        {% endif %}">
-                        {{ stage.stage_name }}
-                    </span>
-                </div>
-
-                <!-- Description -->
-                <p class="text-gray-500 text-sm leading-relaxed mb-4">
-                    {{ stage.description|truncatewords:20 }}
-                </p>
-
-                <!-- Progress -->
-                <div class="mb-4">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Progress</span>
-                        <span class="font-semibold text-gray-700">
-                            {{ stage.progress_percentage }}%
-                        </span>
-                    </div>
-
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                             style="width: {{ stage.progress_percentage }}%">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Dates -->
-                <div class="flex justify-between text-xs text-gray-400 border-t pt-3">
-                    <span>Start: {{ stage.start_date|date:"M d, Y" }}</span>
-                    <span>End: {{ stage.end_date|date:"M d, Y" }}</span>
-                </div>
-
-            </div>
-        </a>
-        {% endfor %}
-
+      </div>
     </div>
 
-    {% else %}
-    <div class="text-center py-16">
-        <div class="text-gray-400 text-lg mb-3">
-            📂 No project stages available
+    <!-- STAGE CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for stage in stages %}
+      <a href="{% url 'projectstage_detail' stage.pk %}"
+         class="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+        <!-- Project Image -->
+        <div class="relative w-full h-56 overflow-hidden">
+          {% if stage.project.cover_image %}
+            <img src="{{ stage.project.cover_image.url }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="{{ stage.project.project_title }}">
+          {% elif stage.project.images %}
+            <img src="{{ stage.project.images.url }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="{{ stage.project.project_title }}">
+          {% else %}
+            <img src="https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?q=80&w=800&auto=format&fit=crop"
+                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="Public Project">
+          {% endif %}
+
+          <!-- Project Status Badge -->
+          <div class="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-bold shadow-md"
+               {% if stage.project.project_status == 'completed' %}class="bg-emerald-100 text-emerald-700 border border-emerald-200"
+               {% elif stage.project.project_status == 'upcoming' %}class="bg-indigo-100 text-indigo-700 border border-indigo-200"
+               {% elif stage.project.project_status == 'ongoing' %}class="bg-blue-100 text-blue-700 border border-blue-200"
+               {% elif stage.project.project_status == 'delayed' %}class="bg-rose-100 text-rose-700 border border-rose-200"
+               {% else %}class="bg-slate-100 text-slate-700 border border-slate-200"{% endif %}>
+              {{ stage.project.project_status }}
+          </div>
         </div>
-        {% if request.user.role == 'contractor' %}
+
+        <div class="p-5 flex-1 flex flex-col">
+          <!-- Title & Stage Badge -->
+          <div class="flex justify-between items-start mb-3">
+            <h3 class="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition">
+              {{ stage.project.project_title }}
+            </h3>
+
+            <span class="text-xs font-medium px-3 py-1 rounded-full border
+              {% if stage.status == 'completed' %}bg-emerald-50 text-emerald-700 border-emerald-100
+              {% elif stage.status == 'in_progress' %}bg-blue-50 text-blue-700 border-blue-100
+              {% elif stage.status == 'not_started' %}bg-slate-50 text-slate-700 border-slate-100
+              {% elif stage.status == 'delayed' %}bg-rose-50 text-rose-700 border-rose-100
+              {% else %}bg-slate-50 text-slate-700 border-slate-100{% endif %}">
+              {{ stage.get_status_display }}
+            </span>
+          </div>
+
+          <!-- Stage Name -->
+          <p class="text-sm font-semibold text-slate-600 truncate mb-3">{{ stage.stage_name }}</p>
+
+          <!-- Description -->
+          {% if stage.description %}
+          <p class="text-xs text-slate-500 line-clamp-2 mb-4">{{ stage.description }}</p>
+          {% endif %}
+
+          <!-- Progress -->
+          <div class="mb-4 flex-grow">
+            <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+              <span>Progress</span>
+              <span class="font-semibold text-slate-800">{{ stage.progress_percentage }}%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                   style="width: {{ stage.progress_percentage }}%"></div>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="flex justify-between text-xs text-slate-400 border-t border-slate-100 pt-3 mt-auto">
+            <span>Start: {% if stage.start_date %}{{ stage.start_date|date:"M d, Y" }}{% else %}—{% endif %}</span>
+            <span>End: {% if stage.end_date %}{{ stage.end_date|date:"M d, Y" }}{% else %}—{% endif %}</span>
+          </div>
+        </div>
+      </a>
+      {% empty %}
+      <div class="col-span-full bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center flex flex-col items-center gap-3">
+        <iconify-icon icon="solar:folder-open-bold-duotone" class="text-4xl text-slate-400"></iconify-icon>
+        <h3 class="text-base font-bold text-slate-900">No project stages available</h3>
+        <p class="text-sm text-slate-500">Try adjusting your search or filters.</p>
+        {% if request.user.role == 'contractor' or request.user.is_superuser %}
         <a href="{% url 'projectstage_create' %}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-md transition">
-           Create First Stage
+           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 text-xs font-semibold text-white shadow-sm shadow-indigo-600/20 transition-all">
+          <i class="fas fa-plus"></i> Create First Stage
         </a>
         {% endif %}
+      </div>
+      {% endfor %}
     </div>
-    {% endif %}
 
-</div>
-</div>
-</div>
-{% include "recent_activities.html" %}
-</div>
-</div>
-</div>
+    <!-- PAGINATION -->
+    <div class="flex items-center justify-between flex-wrap gap-3 mt-6">
+      <p class="text-sm text-slate-500">
+        Showing page {{ stages.number }} of {{ paginator.num_pages }}
+        <span class="text-slate-400">({{ total_stages }} stage{{ total_stages|pluralize }} total)</span>
+      </p>
+      <div class="flex items-center gap-1">
+        {% if stages.has_previous %}
+        <a href="?page={{ stages.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_project %}&project={{ selected_project }}{% endif %}{% if selected_stage_name %}&stage_name={{ selected_stage_name }}{% endif %}"
+           class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+           ← Prev
+        </a>
+        {% else %}
+        <span class="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-sm text-slate-400 cursor-not-allowed">← Prev</span>
+        {% endif %}
+        {% for num in stages.paginator.page_range %}
+          {% if num == stages.number %}
+          <span class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold">{{ num }}</span>
+          {% elif num <= stages.number|add:2 and num >= stages.number|add:-2 %}
+          <a href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if selected_project %}&project={{ selected_project }}{% endif %}{% if selected_stage_name %}&stage_name={{ selected_stage_name }}{% endif %}"
+             class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">{{ num }}</a>
+          {% elif num == 1 or num == stages.paginator.num_pages %}
+          <a href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if selected_project %}&project={{ selected_project }}{% endif %}{% if selected_stage_name %}&stage_name={{ selected_stage_name }}{% endif %}"
+             class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">{{ num }}</a>
+          {% elif num == stages.number|add:3 or num == stages.number|add:-3 %}
+          <span class="px-1.5 text-slate-400">…</span>
+          {% endif %}
+        {% endfor %}
+        {% if stages.has_next %}
+        <a href="?page={{ stages.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_project %}&project={{ selected_project }}{% endif %}{% if selected_stage_name %}&stage_name={{ selected_stage_name }}{% endif %}"
+           class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+           Next →
+        </a>
+        {% else %}
+        <span class="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-sm text-slate-400 cursor-not-allowed">Next →</span>
+        {% endif %}
+      </div>
+    </div>
+
 </main>
+
 {% include "footer.html" %}
 {% endblock %}

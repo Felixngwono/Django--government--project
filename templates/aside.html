@@ -222,7 +222,7 @@
       <iconify-icon icon="solar:report-bold-duotone"></iconify-icon>
       <span class="nav-text">Citizen Evidencing</span>
       </a>
-      {% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' or request.user.role == 'auditor' %}
+      {% if request.user.is_superuser or request.user.is_staff or request.user.role == 'official' or request.user.role == 'manager' or request.user.role == 'auditor' or request.user.role == 'citizen' %}
       <a href="{% url 'contractor_performance' %}" class="nav-item">
       <iconify-icon icon="solar:building-bold-duotone"></iconify-icon>
       <i class="fa-solid fa-helmet-safety nav-text" style="font-size:20px;"></i>
@@ -268,6 +268,13 @@
       <a href="{% url 'user' %}" class="nav-item">
       <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
       <span class="nav-text">User Directory</span>
+      </a>
+      {% endif %}
+
+      {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' or request.user.role == 'manager' %}
+      <a href="{% url 'government_agencies' %}" class="nav-item">
+      <iconify-icon icon="solar:buildings-2-bold-duotone"></iconify-icon>
+      <span class="nav-text">Agency Registry</span>
       </a>
       {% endif %}
 

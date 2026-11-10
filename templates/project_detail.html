@@ -171,6 +171,10 @@
             <iconify-icon icon="mdi:timeline-clock-outline"></iconify-icon>
             Open live tracking
           </a>
+          <a href="{% url 'project_tracking_public' project.id %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-800">
+            <iconify-icon icon="mdi:timeline-arrow-right"></iconify-icon>
+            Public tracking
+          </a>
         </div>
       </div>
     </section>
@@ -713,6 +717,29 @@
                   <span class="absolute bottom-1 left-1 right-1 truncate rounded bg-slate-900/70 px-1.5 py-0.5 text-[9px] font-semibold text-white">{{ m.caption|default:'Evidence photo' }}</span>
                 </a>
               {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- Media Videos Gallery -->
+          {% if video_media %}
+            <div class="mt-4 pt-4 border-t border-slate-100">
+              <h3 class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <iconify-icon icon="solar:video-frame-play-bold" class="text-purple-600"></iconify-icon>
+                <span>Site Videos</span>
+              </h3>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {% for m in video_media %}
+                <a href="{{ m.file.url }}" target="_blank" class="relative block group aspect-video" title="{{ m.caption|default:'Site video evidence' }}">
+                  <video src="{{ m.file.url }}" class="w-full h-full object-cover rounded-xl border border-slate-200 shadow-xs group-hover:opacity-90 transition" poster="{{ m.file.url }}" muted playsinline></video>
+                  <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                    <span class="w-10 h-10 rounded-full bg-white/90 text-purple-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                      <i class="fas fa-play text-xs pl-0.5"></i>
+                    </span>
+                  </div>
+                  <span class="absolute bottom-1 left-1 right-1 truncate rounded bg-slate-900/70 px-1.5 py-0.5 text-[9px] font-semibold text-white">{{ m.caption|default:'Site video' }}</span>
+                </a>
+                {% endfor %}
+              </div>
             </div>
           {% endif %}
 

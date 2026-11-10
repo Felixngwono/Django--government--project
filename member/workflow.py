@@ -3,6 +3,7 @@
 from functools import wraps
 
 from django.contrib import messages
+from django.db.models import Q
 from django.http import HttpResponseForbidden
 
 from .models import AuditLog, Notification
@@ -70,6 +71,38 @@ def contractor_assigned_to_project(user, project):
     return _contractors_for_user(user).filter(projects=project).exists()
 
 
+def contractor_is_blacklisted(contractor):
+    """True when a Contractor record is flagged as blacklisted.
+
+    Used to block tender awards and contractor registration so a
+    disqualified supplier cannot silently win public work.
+    """
+    if contractor is None:
+        return False
+    return bool(getattr(contractor, 'is_blacklisted', False))
+
+
+def blacklisted_contractor_for_application(application):
+    """Return the blacklisted Contractor matching a TenderApplication, if any.
+
+    Matches by company name or company email — the same identity fields used
+    by ``_contractors_for_user``. Returns None when the application's supplier
+    is clean or has no Contractor record at all.
+    """
+    from .models import Contractor
+    if application is None:
+        return None
+    query = None
+    if application.company_name:
+        query = Q(company__iexact=application.company_name)
+    if application.company_email:
+        sub = Q(email__iexact=application.company_email)
+        query = sub if query is None else (query | sub)
+    if query is None:
+        return None
+    return Contractor.objects.filter(query, is_blacklisted=True).first()
+
+
 def user_assigned_to_project(user, project):
     """True only if this user is the one working on the given project:
     listed project manager, the project's assigned contractor (by company
@@ -100,6 +133,56 @@ def role_required(*roles):
             if not has_role(request.user, set(roles)):
                 messages.error(request, "You do not have permission to perform that action.")
                 return HttpResponseForbidden("You do not have permission to perform this action.")
+            return view(request, *args, **kwargs)
+        return wrapped
+    return decorator
+
+
+def user_has_permission(user, permission_name):
+    """Fine-grained, data-driven permission check backed by
+    ``UserPermissionGroup``.
+
+    Resolution order:
+      1. Superusers and staff always pass (break-glass).
+      2. Find every permission group whose ``roles`` list includes the user's
+         role. If any group grants the requested flag, allow it.
+      3. Otherwise deny.
+
+    This lets an admin revoke, say, ``can_close_requests`` from the
+    ``official`` role without touching code — the JSON dict is the source of
+    truth, the decorator is just enforcement.
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    from .models import UserPermissionGroup
+    user_role = getattr(user, 'role', '') or ''
+    if not user_role:
+        return False
+    groups = UserPermissionGroup.objects.filter(roles__contains=[user_role])
+    for group in groups:
+        perms = group.permissions or {}
+        value = perms.get(permission_name)
+        if value is True:
+            return True
+    return False
+
+
+def permission_required(permission_name):
+    """Require a named fine-grained permission (see ``user_has_permission``)."""
+    def decorator(view):
+        @wraps(view)
+        def wrapped(request, *args, **kwargs):
+            if not user_has_permission(request.user, permission_name):
+                messages.error(
+                    request,
+                    f"You do not have permission to perform that action "
+                    f"(missing '{permission_name}')."
+                )
+                return HttpResponseForbidden(
+                    f"You do not have permission to perform this action."
+                )
             return view(request, *args, **kwargs)
         return wrapped
     return decorator
@@ -330,3 +413,24 @@ def sync_project_from_progress(project, reported_by=None):
     if project.project_status in TERMINAL_STATUSES:
         return project.project_status
     return refresh_project_status(project, actor=reported_by)
+
+
+def record_request_status_change(request_obj, to_status, actor=None, source="manual", note=None):
+    """Record a government-request status transition in the ordered history.
+
+    Mirrors the project status engine: one row per transition, in order, with
+    who changed it and when. Returns True if a new row was created.
+    """
+    from .models import RequestStatusHistory
+    old_status = request_obj.status
+    if to_status == old_status:
+        return False
+    RequestStatusHistory.objects.create(
+        request=request_obj,
+        from_status=old_status,
+        to_status=to_status,
+        source=source,
+        note=note,
+        changed_by=actor,
+    )
+    return True

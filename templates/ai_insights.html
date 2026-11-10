@@ -503,10 +503,16 @@
                 </div>
               </td>
               <td class="py-3.5 px-4 text-right">
-                <a href="{% url 'project_details' project.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-bold transition text-[11px]">
-                  <span>Details</span>
-                  <iconify-icon icon="solar:alt-arrow-right-bold" class="text-xs"></iconify-icon>
-                </a>
+                <div class="flex items-center justify-end gap-1.5">
+                  <a href="{% url 'project_tracking_public' project.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold transition text-[11px]" title="Track">
+                    <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs"></iconify-icon>
+                    <span>Track</span>
+                  </a>
+                  <a href="{% url 'project_details' project.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-bold transition text-[11px]">
+                    <span>Details</span>
+                    <iconify-icon icon="solar:alt-arrow-right-bold" class="text-xs"></iconify-icon>
+                  </a>
+                </div>
               </td>
             </tr>
             {% empty %}

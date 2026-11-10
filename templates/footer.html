@@ -1,83 +1,81 @@
 {% load static %}
-<!-- ===== PLATFORM FOOTER (theme-aware, sits inside .main content area) ===== -->
-<footer class="mt-12 w-full" :class="{ 'sidebar-collapsed': !isMobile && sidebarCollapsed, 'sidebar-hidden': isMobile }" style="background:var(--footer-bg); color:var(--footer-ink); padding:28px 4px 16px;">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+<footer class="site-footer mt-12" :class="{ 'sidebar-collapsed': !isMobile && sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="site-footer__glow" aria-hidden="true"></div>
+    <div class="site-footer__inner">
+        <div class="site-footer__grid">
+            <section class="site-footer__brand" aria-labelledby="footer-brand-title">
+                <a href="{% url 'index' %}" class="site-footer__brand-link">
+                    <span class="site-footer__logo">
+                        <img src="{% static 'images/GOK.png' %}" alt="" />
+                    </span>
+                    <span>
+                        <span id="footer-brand-title" class="site-footer__brand-name">GovTracker</span>
+                        <span class="site-footer__brand-caption">Public project accountability</span>
+                    </span>
+                </a>
+                <p class="site-footer__mission">
+                    National Public Works &amp; Infrastructure Project Monitoring Portal. Enhancing transparency,
+                    accountability, and citizen participation in government projects.
+                </p>
+                <div class="site-footer__status">
+                    <span class="site-footer__status-dot" aria-hidden="true"></span>
+                    <span>System status</span>
+                    <strong>Operational</strong>
+                </div>
+            </section>
 
-        <!-- Column 1: Brand & Mission -->
-        <div class="space-y-3">
-            <a href="{% url 'index' %}" class="flex items-center gap-3">
-                <img src="{% static 'images/GOK.png' %}" class="h-9 w-auto object-contain" alt="GovTracker Logo" />
-                <span class="text-lg font-extrabold tracking-tight text-white">GovTracker</span>
-            </a>
-            <p class="text-xs leading-relaxed" style="color:var(--footer-ink-dim);">
-                National Public Works & Infrastructure Project Monitoring Portal. Enhancing transparency, accountability, and citizen participation in government projects.
-            </p>
-            <div class="flex items-center gap-2 text-xs" style="color:var(--footer-ink-dim);">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>System Status: <strong class="text-emerald-400">Operational</strong></span>
-            </div>
+            <nav class="site-footer__section" aria-label="Quick navigation">
+                <h2>Explore</h2>
+                <ul>
+                    <li><a href="{% url 'dashboard' %}">Dashboard &amp; Analytics</a></li>
+                    <li><a href="{% url 'projectoverview' %}">Project Overview</a></li>
+                    <li><a href="{% url 'projectstage_list' %}">Project Stages &amp; Progress</a></li>
+                    <li><a href="{% url 'division_details' %}">Project Divisions</a></li>
+                    <li><a href="{% url 'budget_dashboard' %}">Budget &amp; Financial Tracker</a></li>
+                    <li><a href="{% url 'tender_list' %}">Tenders &amp; Procurement</a></li>
+                </ul>
+            </nav>
+
+            <nav class="site-footer__section" aria-label="Public services">
+                <h2>Public services</h2>
+                <ul>
+                    <li><a href="{% url 'citizen_portal' %}">Citizen Portal &amp; Submissions</a></li>
+                    <li><a href="{% url 'citizen_evidence' %}">Citizen Verification &amp; Evidence</a></li>
+                    <li><a href="{% url 'issue_list' %}">Report Project Issues</a></li>
+                    <li><a href="{% url 'announcements' %}">Official Announcements</a></li>
+                    <li><a href="{% url 'AboutUs' %}">About Government Tracker</a></li>
+                    <li><a href="{% url 'contactus' %}">Helpdesk &amp; Contact</a></li>
+                </ul>
+            </nav>
+
+            <section class="site-footer__section site-footer__contact" aria-labelledby="footer-contact-title">
+                <h2 id="footer-contact-title">Official contact</h2>
+                <p class="site-footer__office">Government Public Information Office</p>
+                <a href="mailto:support@govtracker.go.ke" class="site-footer__contact-link">
+                    <span class="site-footer__contact-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+                    <span>support@govtracker.go.ke</span>
+                </a>
+                <a href="tel:+254800720000" class="site-footer__contact-link">
+                    <span class="site-footer__contact-icon" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+                    <span>+254 (0) 800 720 000</span>
+                </a>
+                <p class="site-footer__address">
+                    <span class="site-footer__contact-icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+                    <span>Capital Complex, Block B, Nairobi</span>
+                </p>
+                <a href="{% url 'contactus' %}" class="site-footer__contact-cta">
+                    Contact the helpdesk <span aria-hidden="true">→</span>
+                </a>
+            </section>
         </div>
 
-        <!-- Column 2: Core Navigation -->
-        <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider pb-2 mb-3" style="border-bottom:1px solid rgba(255,255,255,0.1);">Quick Navigation</h3>
-            <ul class="space-y-2 text-xs">
-                <li><a href="{% url 'dashboard' %}" class="footer-link">Dashboard & Analytics</a></li>
-                <li><a href="{% url 'projectoverview' %}" class="footer-link">Project Overview</a></li>
-                <li><a href="{% url 'projectstage_list' %}" class="footer-link">Project Stages & Progress</a></li>
-                <li><a href="{% url 'division_details' %}" class="footer-link">Project Divisions</a></li>
-                <li><a href="{% url 'budget_dashboard' %}" class="footer-link">Budget & Financial Tracker</a></li>
-                <li><a href="{% url 'tender_list' %}" class="footer-link">Tenders & Procurement</a></li>
-            </ul>
-        </div>
-
-        <!-- Column 3: Citizen & Public Services -->
-        <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider pb-2 mb-3" style="border-bottom:1px solid rgba(255,255,255,0.1);">Public Services</h3>
-            <ul class="space-y-2 text-xs">
-                <li><a href="{% url 'citizen_portal' %}" class="footer-link">Citizen Portal & Submissions</a></li>
-                <li><a href="{% url 'citizen_evidence' %}" class="footer-link">Citizen Verification & Evidence</a></li>
-                <li><a href="{% url 'issue_list' %}" class="footer-link">Report Project Issues</a></li>
-                <li><a href="{% url 'announcements' %}" class="footer-link">Official Announcements</a></li>
-                <li><a href="{% url 'AboutUs' %}" class="footer-link">About Government Tracker</a></li>
-                <li><a href="{% url 'contactus' %}" class="footer-link">Helpdesk & Contact</a></li>
-            </ul>
-        </div>
-
-        <!-- Column 4: Contact & Social Links -->
-        <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider pb-2 mb-3" style="border-bottom:1px solid rgba(255,255,255,0.1);">Official Contact</h3>
-            <p class="text-xs leading-relaxed mb-2" style="color:var(--footer-ink-dim);">Government Public Information Office</p>
-            <p class="text-xs"><strong class="text-white">Email:</strong> support@govtracker.go.ke</p>
-            <p class="text-xs"><strong class="text-white">Toll-Free:</strong> +254 (0) 800 720 000</p>
-            <p class="text-xs"><strong class="text-white">Address:</strong> Capital Complex, Block B, Nairobi</p>
-
-            <div class="mt-4 flex items-center gap-2">
-                <a href="#" class="footer-social" title="Facebook">
-                    <iconify-icon icon="solar:letter-bold-duotone"></iconify-icon>
-                </a>
-                <a href="#" class="footer-social" title="Twitter / X">
-                    <iconify-icon icon="solar:share-bold-duotone"></iconify-icon>
-                </a>
-                <a href="#" class="footer-social" title="LinkedIn">
-                    <iconify-icon icon="solar:user-rounded-bold-duotone"></iconify-icon>
-                </a>
-                <a href="#" class="footer-social" title="Global Portal">
-                    <iconify-icon icon="solar:global-bold-duotone"></iconify-icon>
-                </a>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Bottom Copyright Bar -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-5 flex flex-col sm:flex-row justify-between items-center text-xs gap-3"
-         style="border-top:1px solid rgba(255,255,255,0.1); color:var(--footer-ink-dim);">
-        <p>© {% now "Y" %} Republic Information Portal — GovTracker System. All Rights Reserved.</p>
-        <div class="flex gap-4">
-            <a href="{% url 'AboutUs' %}" class="footer-link">Privacy Policy</a>
-            <a href="{% url 'contactus' %}" class="footer-link">Terms of Use</a>
-            <a href="{% url 'citizen_portal' %}" class="footer-link">Accessibility</a>
+        <div class="site-footer__bottom">
+            <p>© {% now "Y" %} Republic Information Portal — GovTracker System. All Rights Reserved.</p>
+            <nav class="site-footer__legal" aria-label="Policies and accessibility">
+                <a href="{% url 'AboutUs' %}">Privacy Policy</a>
+                <a href="{% url 'contactus' %}">Terms of Use</a>
+                <a href="{% url 'citizen_portal' %}">Accessibility</a>
+            </nav>
         </div>
     </div>
 </footer>

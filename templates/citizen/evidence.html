@@ -5,20 +5,18 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Citizen Evidence Portal — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="citizenEvidenceApp()" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -26,290 +24,399 @@
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <div class="content p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
 
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }" x-data="{ openForm: false, openContractorForm: false }">
+    <script id="citizen-evidence-json" type="application/json">{{ evidence_json|safe }}</script>
 
-<div class="content space-y-6">
-
-    <!-- MESSAGES BANNER -->
-    {% if messages %}
-    <div class="space-y-2">
-        {% for message in messages %}
-        <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold border
-            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-200
-            {% elif message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-200
-            {% else %}bg-slate-50 text-slate-700 border-slate-200{% endif %}
-            {% if message.tags == 'success' %}success-toast{% else %}error-toast{% endif %}">
-            <span class="flex items-center gap-2">
-                {% if message.tags == 'success' %}✅{% else %}⚠️{% endif %} {{ message }}
-            </span>
-            <button type="button" onclick="this.parentElement.remove()" class="text-lg leading-none opacity-60 hover:opacity-100">✖</button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- HEADER -->
-    <div class="flex justify-between items-center">
-
+    <!-- HERO BANNER -->
+    <div class="rounded-3xl bg-indigo-50 p-8 md:p-10 text-slate-900 shadow-sm border border-indigo-100 relative overflow-hidden">
+      <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-indigo-100 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">
-                Citizen Evidence Portal
-            </h1>
-            <p class="text-sm text-gray-500">
-                Report project issues, upload photos, verify progress
-            </p>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200 backdrop-blur-md mb-3">
+            <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+            Civic Engagement Center
+          </div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Citizen Evidence Portal</h1>
+          <p class="mt-2 max-w-xl text-sm text-slate-600 leading-relaxed">
+            Report infrastructure issues, upload photo/video/audio evidence, and track official verification until a shared agreement is reached.
+          </p>
         </div>
-
-        <button @click="openForm = true"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            + Submit Evidence
+        <button @click="openForm = true" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
+          <i class="fas fa-cloud-upload-alt"></i> Submit New Evidence
         </button>
-
+      </div>
     </div>
 
-    <!-- ================= EVIDENCE LIST ================= -->
-    <div class="grid md:grid-cols-2 gap-4">
+    <!-- STATS OVERVIEW -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Reports</span>
+          <iconify-icon icon="solar:folder-open-bold-duotone" class="text-2xl text-indigo-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ paginator.count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Citizen submissions</span>
+      </div>
 
-        {% for e in evidence %}
-        <div class="bg-white p-4 rounded-xl shadow">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pending Verification</span>
+          <iconify-icon icon="solar:clock-bold-duotone" class="text-2xl text-slate-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ pending_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Awaiting official review</span>
+      </div>
 
-            <div class="flex items-center justify-between gap-3 mb-2">
-                <h2 class="font-semibold text-gray-800">{{ e.title }}</h2>
-                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide
-                    {% if e.severity == 'critical' %}bg-red-100 text-red-700
-                    {% elif e.severity == 'high' %}bg-orange-100 text-orange-700
-                    {% elif e.severity == 'moderate' %}bg-yellow-100 text-yellow-700
-                    {% else %}bg-green-100 text-green-700{% endif %}">
-                    {{ e.get_severity_display }}
-                </span>
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Verified</span>
+          <iconify-icon icon="solar:check-bold-duotone" class="text-2xl text-slate-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ verified_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Confirmed by officials</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Rejected</span>
+          <iconify-icon icon="solar:close-bold-duotone" class="text-2xl text-slate-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ rejected_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Requires resubmission</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Agreed / Closed</span>
+          <iconify-icon icon="solar:handshake-bold-duotone" class="text-2xl text-slate-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ agreed_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Mutual agreement reached</span>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center gap-3">
+        <div class="relative flex-1 min-w-[240px]">
+          <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input x-model="searchQuery" @input="filter" type="text" placeholder="Search title, project, location..." class="w-full pl-9 pr-4 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <select x-model="statusFilter" @change="filter" class="px-3 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending Verification</option>
+          <option value="under_discussion">Under Discussion</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+          <option value="agreed">Agreed / Closed</option>
+        </select>
+
+        <select x-model="categoryFilter" @change="filter" class="px-3 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="all">All Categories</option>
+          {% for key, label in category_choices %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- EVIDENCE GRID -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <template x-for="e in filteredEvidence" :key="e.id">
+      <div x-show="matchesFilter(e)" class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
+        <!-- Media Preview -->
+        <div class="relative h-48 bg-slate-100 overflow-hidden flex items-center justify-center group">
+          <template x-if="e.evidence_type === 'photo' && e.file_url">
+            <img :src="e.file_url" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-indigo-600 text-white shadow-md">Photo</span>
+          </template>
+          <template x-if="e.evidence_type === 'video' && e.file_url">
+            <video :src="e.file_url" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"></video>
+            <div class="absolute inset-0 flex items-center justify-center bg-slate-200/30 group-hover:bg-slate-300 transition-colors">
+              <span class="w-10 h-10 rounded-full bg-white/90 text-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                <i class="fas fa-play text-base pl-0.5"></i>
+              </span>
             </div>
-
-            <p class="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1">{{ e.get_category_display }}</p>
-            <p class="text-sm text-gray-600 mt-1">{{ e.description }}</p>
-
-            <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-500">
-                <div>📍 {{ e.location }}</div>
-                <div>🗓 {{ e.observed_at|default:'Not specified' }}</div>
-                <div>🏗 {{ e.project.project_title }}</div>
-                <div>📌 {{ e.stage.stage_name }}</div>
-                <div>📎 {{ e.get_evidence_type_display }}</div>
-                <div>🧭 {{ e.coordinates|default:'No coordinates' }}</div>
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-indigo-600 text-white shadow-md">Video</span>
+          </template>
+          <template x-if="(e.evidence_type === 'audio' || e.evidence_type === 'document' || e.evidence_type === 'other') && e.file_url">
+            <div class="w-full h-full bg-slate-100 flex flex-col items-center justify-center text-slate-400 p-4">
+              <i class="fas fa-file text-5xl mb-2" :class="e.evidence_type === 'audio' ? 'text-amber-500' : 'text-slate-500'"></i>
+              <span class="text-xs font-semibold text-slate-600 text-center line-clamp-1" x-text="e.evidence_type_display"></span>
             </div>
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-600 text-white shadow-md" x-text="e.evidence_type_display"></span>
+          </template>
+          <template x-if="!e.file_url">
+            <div class="w-full h-full bg-slate-100 flex flex-col items-center justify-center text-slate-400 p-4">
+              <i class="fas fa-file-import text-4xl mb-2"></i>
+              <span class="text-xs font-semibold text-slate-500">No attachment</span>
+            </div>
+          </template>
+          <span class="absolute bottom-3 right-3 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-700 text-white backdrop-blur-md" x-text="e.created_date"></span>
+        </div>
 
-            {% if e.notes %}
-            <p class="text-xs text-gray-600 mt-2 italic">{{ e.notes }}</p>
-            {% endif %}
+        <!-- Card Body -->
+        <div class="p-5 flex-1 flex flex-col gap-3">
+          <div class="flex items-center justify-between gap-2">
+            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 border border-slate-200" x-text="e.severity_display"></span>
+            <span class="text-[10px] font-medium text-slate-400" x-text="e.category_display"></span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900 line-clamp-2 leading-snug" x-text="e.title"></h3>
+          <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed" x-text="e.description"></p>
 
-            {% if e.file %}
-            {% if e.evidence_type == 'photo' %}
-            <img src="{{ e.file.url }}" class="mt-3 rounded-lg w-full h-48 object-cover">
-            {% elif e.evidence_type == 'video' %}
-            <video src="{{ e.file.url }}" controls class="mt-3 rounded-lg w-full h-48 bg-black"></video>
-            {% elif e.evidence_type == 'audio' %}
-            <audio src="{{ e.file.url }}" controls class="mt-3 w-full"></audio>
-            {% else %}
-            <a href="{{ e.file.url }}" target="_blank" class="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-blue-600 hover:underline">
-                📎 {{ e.file.name|cut:'citizen_evidence/' }}
+          <div class="mt-2 grid grid-cols-2 gap-2 text-[10px] text-slate-400">
+            <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> <span x-text="e.location"></span></span>
+            <span class="flex items-center gap-1"><i class="fas fa-calendar"></i> <span x-text="e.observed_date"></span></span>
+            <span class="flex items-center gap-1"><i class="fas fa-layer-group"></i> <span x-text="e.project_title"></span></span>
+            <span class="flex items-center gap-1"><i class="fas fa-tags"></i> <span x-text="e.evidence_type_display"></span></span>
+          </div>
+
+          <!-- Status + Actions -->
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600" x-text="e.status_label"></span>
+            <a :href="e.detail_url" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold transition shadow-sm shadow-indigo-600/20">
+              View Details <i class="fas fa-arrow-right text-[9px]"></i>
             </a>
-            {% endif %}
-            {% endif %}
-
-            <p class="text-xs mt-3 flex items-center gap-3">
-                {% if e.status == 'verified' %}
-                <span class="text-green-600 font-semibold">✓ Verified</span>
-                {% elif e.status == 'rejected' %}
-                <span class="text-red-600 font-semibold">✖ Rejected</span>
-                {% else %}
-                <span class="text-yellow-600 font-semibold">⏳ Pending Verification</span>
-                {% endif %}
-                <a href="{% url 'citizen_evidence_detail' e.id %}"
-                   class="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition">
-                    View Details →
-                </a>
-            </p>
-
+          </div>
         </div>
-        {% empty %}
-        <p class="text-gray-500">No evidence submitted yet.</p>
+      </div>
+      </template>
+      <div x-show="filteredEvidence.length === 0" class="col-span-full bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center flex flex-col items-center gap-3">
+        <iconify-icon icon="solar:search-empty-bold-duotone" class="text-4xl text-slate-400"></iconify-icon>
+        <h3 class="text-base font-bold text-slate-900">No matching evidence reports</h3>
+        <p class="text-sm text-slate-500">Try adjusting your search or filters.</p>
+      </div>
+    </div>
+
+    <!-- PAGINATION (fallback when JS filter not applied - shown only for full list) -->
+    <div x-show="!searchQuery && statusFilter === 'all' && categoryFilter === 'all'" class="flex items-center justify-between flex-wrap gap-3 mt-6">
+      <p class="text-sm text-slate-500">
+        Showing page {{ evidence.number }} of {{ paginator.num_pages }} <span class="text-slate-400">({{ paginator.count }} report{{ paginator.count|pluralize }} total)</span>
+      </p>
+      <div class="flex items-center gap-1">
+        {% if evidence.has_previous %}
+        <a href="?page={{ evidence.previous_page_number }}" class="px-3 py-1.5 rounded-lg bg-white border text-sm text-slate-700 hover:bg-indigo-50">← Prev</a>
+        {% else %}
+        <span class="px-3 py-1.5 rounded-lg bg-slate-100 border text-sm text-slate-400 cursor-not-allowed">← Prev</span>
+        {% endif %}
+        {% for num in evidence.paginator.page_range %}
+          {% if num == evidence.number %}
+          <span class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold">{{ num }}</span>
+          {% elif num <= evidence.number|add:2 and num >= evidence.number|add:-2 %}
+          <a href="?page={{ num }}" class="px-3 py-1.5 rounded-lg bg-white border text-sm text-slate-700 hover:bg-indigo-50">{{ num }}</a>
+          {% elif num == 1 or num == evidence.paginator.num_pages %}
+          <a href="?page={{ num }}" class="px-3 py-1.5 rounded-lg bg-white border text-sm text-slate-700 hover:bg-indigo-50">{{ num }}</a>
+          {% elif num == evidence.number|add:3 or num == evidence.number|add:-3 %}
+          <span class="px-1.5 text-slate-400">…</span>
+          {% endif %}
         {% endfor %}
-
+        {% if evidence.has_next %}
+        <a href="?page={{ evidence.next_page_number }}" class="px-3 py-1.5 rounded-lg bg-white border text-sm text-slate-700 hover:bg-indigo-50">Next →</a>
+        {% else %}
+        <span class="px-3 py-1.5 rounded-lg bg-slate-100 border text-sm text-slate-400 cursor-not-allowed">Next →</span>
+        {% endif %}
+      </div>
     </div>
 
-    <!-- ================= PAGINATION ================= -->
-    {% if evidence.paginator.num_pages > 1 %}
-    <div class="flex items-center justify-between flex-wrap gap-3 mt-4">
-        <p class="text-sm text-gray-500">
-            Showing page {{ evidence.number }} of {{ evidence.paginator.num_pages }}
-            ({{ evidence.paginator.count }} evidence item{{ evidence.paginator.count|pluralize }})
-        </p>
-        <div class="flex items-center gap-1">
-            {% if evidence.has_previous %}
-            <a href="?page={{ evidence.previous_page_number }}"
-               class="px-3 py-1.5 rounded-lg bg-white border text-sm text-gray-700 hover:bg-blue-50">← Prev</a>
-            {% else %}
-            <span class="px-3 py-1.5 rounded-lg bg-gray-100 border text-sm text-gray-400 cursor-not-allowed">← Prev</span>
-            {% endif %}
-
-            {% for num in evidence.paginator.page_range %}
-                {% if num == evidence.number %}
-                <span class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-semibold">{{ num }}</span>
-                {% elif num <= evidence.number|add:2 and num >= evidence.number|add:-2 %}
-                <a href="?page={{ num }}"
-                   class="px-3 py-1.5 rounded-lg bg-white border text-sm text-gray-700 hover:bg-blue-50">{{ num }}</a>
-                {% elif num == 1 or num == evidence.paginator.num_pages %}
-                <a href="?page={{ num }}"
-                   class="px-3 py-1.5 rounded-lg bg-white border text-sm text-gray-700 hover:bg-blue-50">{{ num }}</a>
-                {% elif num == evidence.number|add:3 or num == evidence.number|add:-3 %}
-                <span class="px-1.5 text-gray-400">…</span>
-                {% endif %}
-            {% endfor %}
-
-            {% if evidence.has_next %}
-            <a href="?page={{ evidence.next_page_number }}"
-               class="px-3 py-1.5 rounded-lg bg-white border text-sm text-gray-700 hover:bg-blue-50">Next →</a>
-            {% else %}
-            <span class="px-3 py-1.5 rounded-lg bg-gray-100 border text-sm text-gray-400 cursor-not-allowed">Next →</span>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-
-</div>
-
-<!-- ================= MODAL FORM ================= -->
-<div x-show="openForm"
-     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-     style="display:none;">
-
-    <div class="bg-white w-full max-w-2xl p-6 rounded-xl shadow-lg">
-
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">Submit Evidence</h2>
-            <button @click="openForm = false" class="text-red-500 text-xl">✖</button>
-        </div>
-
-        <form method="POST" action="{% url 'submit_evidence' %}" enctype="multipart/form-data" class="space-y-4">
-            {% csrf_token %}
-
-            <div class="grid md:grid-cols-2 gap-4">
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
-                    <select name="project" id="projectSelect" class="w-full border p-2 rounded" required>
-                        <option value="">Select Project</option>
-                        {% for p in projects %}
-                        <option value="{{ p.id }}">{{ p.project_title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Stage</label>
-                    <select name="stage" id="stageSelect" class="w-full border p-2 rounded" required>
-                        <option value="">Select Stage</option>
-                        {% for s in stages %}
-                        <option value="{{ s.id }}" data-project="{{ s.project_id }}">{{ s.stage_name }} ({{ s.project.project_title }})</option>
-                        {% endfor %}
-                    </select>
-                    <p class="text-xs text-gray-400 mt-1">Stages shown belong to the selected project.</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select name="category" class="w-full border p-2 rounded" required>
-                        <option value="infrastructure">Infrastructure</option>
-                        <option value="water">Water & Sanitation</option>
-                        <option value="health">Health</option>
-                        <option value="education">Education</option>
-                        <option value="security">Security</option>
-                        <option value="environment">Environment</option>
-                        <option value="corruption">Corruption</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Severity</label>
-                    <select name="severity" class="w-full border p-2 rounded" required>
-                        <option value="low">Low</option>
-                        <option value="moderate" selected>Moderate</option>
-                        <option value="high">High</option>
-                        <option value="critical">Critical</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Evidence Type</label>
-                    <select name="evidence_type" class="w-full border p-2 rounded" required>
-                        <option value="photo" selected>Photo</option>
-                        <option value="video">Video</option>
-                        <option value="document">Document</option>
-                        <option value="audio">Audio</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Observed Date</label>
-                    <input type="date" name="observed_at" class="w-full border p-2 rounded">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Evidence Title</label>
-                    <input type="text" name="title" placeholder="Evidence Title" class="w-full border p-2 rounded" required>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea name="description" placeholder="Describe issue or observation..." class="w-full border p-2 rounded" rows="4" required></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input type="text" name="location" placeholder="Location" class="w-full border p-2 rounded" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Coordinates</label>
-                    <input type="text" name="coordinates" placeholder="Latitude, Longitude" class="w-full border p-2 rounded">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
-                    <textarea name="notes" placeholder="Additional notes for officials or reviewers" class="w-full border p-2 rounded" rows="3"></textarea>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
-                    <input type="file" name="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx" class="w-full border p-2 rounded">
-                </div>
-            </div>
-
-            <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-                Submit Evidence
-            </button>
-
-        </form>
-
-    </div>
-</div>
+  </div>
 </main>
 
+<!-- ================= SUBMIT EVIDENCE MODAL ================= -->
+<div x-show="openForm" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak x-transition>
+  <div class="bg-white rounded-3xl max-w-2xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+    <button @click="openForm = false" class="absolute top-4 right-4 text-slate-400 hover:text-indigo-600 transition-colors">
+      <i class="fas fa-times text-lg"></i>
+    </button>
+
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold">
+        <i class="fas fa-cloud-upload-alt"></i>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-slate-900">Submit New Evidence</h2>
+        <p class="text-xs text-slate-500">Attach photo, video, audio, or documents to report a project issue.</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{% url 'submit_evidence' %}" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Project</label>
+          <select name="project" id="projectSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+            <option value="">Select Project</option>
+            {% for p in projects %}
+            <option value="{{ p.id }}">{{ p.project_title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Stage</label>
+          <select name="stage" id="stageSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+            <option value="">Select Stage</option>
+            {% for s in stages %}
+            <option value="{{ s.id }}" data-project="{{ s.project_id }}">{{ s.stage_name }} ({{ s.project.project_title }})</option>
+            {% endfor %}
+          </select>
+          <p class="text-[10px] text-slate-400 mt-1">Stages shown belong to the selected project.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Category</label>
+          <select name="category" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+            {% for key, label in category_choices %}
+            <option value="{{ key }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Severity</label>
+          <select name="severity" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+            <option value="low">Low</option>
+            <option value="moderate" selected>Moderate</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Evidence Type</label>
+          <select name="evidence_type" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+            <option value="photo" selected>Photo</option>
+            <option value="video">Video</option>
+            <option value="document">Document</option>
+            <option value="audio">Audio</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Observed Date</label>
+          <input type="date" name="observed_at" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Evidence Title</label>
+          <input type="text" name="title" placeholder="Evidence Title" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Description</label>
+          <textarea name="description" placeholder="Describe the issue or observation..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="4" required></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Location</label>
+          <input type="text" name="location" placeholder="Location" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Coordinates</label>
+          <input type="text" name="coordinates" placeholder="Latitude, Longitude" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Additional Notes</label>
+          <textarea name="notes" placeholder="Additional notes for officials or reviewers" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="3"></textarea>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Upload File</label>
+          <input type="file" name="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        <button type="button" @click="openForm = false" class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          Cancel
+        </button>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all">
+          Submit Evidence
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
-// Filter stage dropdown by the selected project so users can't submit a
-// mismatched stage (which previously failed silently with a ValidationError).
+function citizenEvidenceApp() {
+  return {
+    // Shared dashboard state (sidebar, mobile)
+    sidebarCollapsed: false,
+    mobileSidebarOpen: false,
+    isMobile: window.innerWidth < 1024,
+
+    // Evidence filter state
+    searchQuery: '',
+    statusFilter: 'all',
+    categoryFilter: 'all',
+    evidence: JSON.parse(document.getElementById('citizen-evidence-json').textContent || '[]'),
+    filteredEvidence: [],
+    openForm: false,
+
+    init() {
+      window.addEventListener('resize', () => {
+        this.isMobile = window.innerWidth < 1024;
+        if (!this.isMobile) this.mobileSidebarOpen = false;
+      });
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') this.mobileSidebarOpen = false;
+      });
+      this.filter();
+    },
+
+    toggleSidebar() {
+      if (this.isMobile) { this.mobileSidebarOpen = !this.mobileSidebarOpen; }
+      else { this.sidebarCollapsed = !this.sidebarCollapsed; }
+    },
+
+    filter() {
+      const q = this.searchQuery.toLowerCase();
+      this.filteredEvidence = this.evidence.filter(e => {
+        const matchesSearch = !q ||
+          e.title.toLowerCase().includes(q) ||
+          e.description.toLowerCase().includes(q) ||
+          e.location.toLowerCase().includes(q) ||
+          e.project_title.toLowerCase().includes(q);
+        const matchesStatus = this.statusFilter === 'all' || e.status === this.statusFilter;
+        const matchesCategory = this.categoryFilter === 'all' || e.category === this.categoryFilter;
+        return matchesSearch && matchesStatus && matchesCategory;
+      });
+    },
+
+    matchesFilter(e) {
+      const q = this.searchQuery.toLowerCase();
+      const matchesSearch = !q ||
+        e.title.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q) ||
+        e.location.toLowerCase().includes(q) ||
+        e.project_title.toLowerCase().includes(q);
+      const matchesStatus = this.statusFilter === 'all' || e.status === this.statusFilter;
+      const matchesCategory = this.categoryFilter === 'all' || e.category === this.categoryFilter;
+      return matchesSearch && matchesStatus && matchesCategory;
+    }
+  }
+}
+</script>
+
+<script>
+// Filter stage dropdown by selected project
 (function () {
     const projectSelect = document.getElementById('projectSelect');
     const stageSelect = document.getElementById('stageSelect');
     if (!projectSelect || !stageSelect) return;
-
     projectSelect.addEventListener('change', function () {
         const pid = projectSelect.value;
         let firstVisible = '';
         stageSelect.querySelectorAll('option').forEach(opt => {
-            if (!opt.value) return; // keep placeholder
+            if (!opt.value) return;
             const match = !pid || opt.dataset.project === pid;
             opt.hidden = !match;
             if (match && !firstVisible) firstVisible = opt.value;

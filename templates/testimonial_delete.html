@@ -1,59 +1,55 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Delete Testimonial — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
+<style>
+  body { padding-bottom: 270px; }
+</style>
+
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center px-4">
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
-
-<!-- ===== HEADER ===== -->
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
-
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-lg p-6 text-center">
-        <h2 class="text-2xl font-bold text-gray-900">Are you sure?</h2>
-        <p class="text-gray-700 mt-2">You are about to delete <strong>{{ testimonial }}</strong>. This action cannot be undone.</p>
-
-        <div class="mt-6 flex justify-center gap-4">
-            <form method="POST" action="">
-                {% csrf_token %}
-                <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-500 transition-all shadow-md">
-                    ✅ Confirm Delete
-                </button>
-            </form>
-
-            <a href="{% url 'testimonials' %}" class="bg-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-400 transition-all shadow-md">
-                ❌ Cancel
-            </a>
-        </div>
-    </div>
-</div>
-</main>
 {% include "footer.html" %}
-{% endblock %}
+
+<main class="flex-1 flex items-center justify-center w-full h-full max-h-screen">
+  <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-8 w-full max-w-md">
+    <div class="flex items-center justify-center gap-3 mb-4">
+      <div class="bg-rose-100 p-2 rounded-lg">
+        <iconify-icon icon="solar:trash-bold-duotone" class="text-rose-600 w-6 h-6"></iconify-icon>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Delete Testimonial</h1>
+        <p class="text-sm text-slate-600 mt-1">Are you sure you want to permanently delete this testimonial?</p>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+      <p class="text-sm font-medium text-slate-700 mb-1">{{ testimonial }}</p>
+      <p class="text-xs text-slate-500">This action cannot be undone.</p>
+    </div>
+
+    <form method="POST" action="" class="mt-2">
+      {% csrf_token %}
+      <div class="flex gap-3">
+        <button type="submit" class="flex-1 bg-rose-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-rose-700 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2">
+          Yes, Delete
+        </button>
+        <a href="{% url 'testimonials' %}" class="flex-1 bg-white text-slate-700 border border-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-100 transition-colors text-center">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</main>
+
+</body>
+</html>

@@ -77,7 +77,9 @@
       <form method="post" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 py-4">
         {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
         <div><p class="font-bold">{{ payment.title }} · {{ payment.amount|floatformat:2 }}</p><p class="text-xs text-slate-500">{{ payment.project.project_title }} · {{ payment.contractor|default:payment.submitted_by.full_name }}</p></div>
-        <button name="action" value="paid" class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-bold text-white">Mark as paid</button>
+        <label class="sr-only" for="disbursement-reference-{{ payment.id }}">Government payment or transfer reference</label>
+        <input id="disbursement-reference-{{ payment.id }}" name="disbursement_reference" required class="min-w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Payment / transfer reference">
+        <button name="action" value="paid" class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-bold text-white">Record disbursement</button>
       </form>
       {% empty %}<p class="text-sm text-slate-500">No approved payments are awaiting processing.</p>{% endfor %}
     </section>

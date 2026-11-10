@@ -222,9 +222,14 @@
                 <span class="text-gray-400 block">Location</span>
                 <span class="font-medium text-gray-700">{{ project.project_location|default:"National" }}</span>
               </div>
-              <a href="{% url 'project_details' project.id %}" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700 transition">
-                View
-              </a>
+              <div class="flex gap-1.5">
+                <a href="{% url 'project_tracking_public' project.id %}" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition">
+                  Track
+                </a>
+                <a href="{% url 'project_details' project.id %}" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700 transition">
+                  View
+                </a>
+              </div>
             </div>
           </div>
         {% endfor %}

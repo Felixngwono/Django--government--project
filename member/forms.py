@@ -1,7 +1,7 @@
 
 from django import forms
 from django.forms import ModelForm
-from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact,ProgressReport, ProjectDocument,  ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
+from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, GovernmentAgency, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact, ProgressReport, ProjectChangeRequest, ProjectDocument, ProjectInspection, ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 
@@ -157,6 +157,70 @@ class ProjectCreationForm(ModelForm):
             raise forms.ValidationError('Please upload no more than 12 images at a time.')
         return images
 
+    def clean(self):
+        cleaned_data = super().clean()
+        agency = cleaned_data.get('agency')
+        if agency:
+            cleaned_data['implementing_agency'] = agency.name
+        return cleaned_data
+
+
+class GovernmentAgencyForm(forms.ModelForm):
+    class Meta:
+        model = GovernmentAgency
+        fields = ['name', 'code', 'description', 'contact_email', 'contact_phone', 'is_active']
+
+
+class ProjectChangeRequestForm(forms.ModelForm):
+    class Meta:
+        model = ProjectChangeRequest
+        fields = [
+            'tender', 'proposed_budget', 'proposed_start_date',
+            'proposed_end_date', 'proposed_contract_value', 'reason',
+            'supporting_document',
+        ]
+        widgets = {
+            'proposed_start_date': forms.DateInput(attrs={'type': 'date'}),
+            'proposed_end_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if project is not None:
+            self.fields['tender'].queryset = Tender.objects.filter(project=project)
+        else:
+            self.fields['tender'].queryset = Tender.objects.none()
+        self.fields['tender'].required = False
+
+
+class ProjectInspectionForm(forms.ModelForm):
+    class Meta:
+        model = ProjectInspection
+        fields = [
+            'stage', 'inspected_at', 'outcome', 'findings',
+            'corrective_deadline', 'latitude', 'longitude', 'evidence',
+        ]
+        widgets = {
+            'inspected_at': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M',
+            ),
+            'corrective_deadline': forms.DateInput(attrs={'type': 'date'}),
+            'findings': forms.Textarea(attrs={'rows': 5}),
+            'latitude': forms.NumberInput(attrs={'step': '0.000001', 'min': '-90', 'max': '90'}),
+            'longitude': forms.NumberInput(attrs={'step': '0.000001', 'min': '-180', 'max': '180'}),
+        }
+
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['inspected_at'].required = False
+        self.fields['stage'].required = False
+        self.fields['stage'].queryset = (
+            ProjectStage.objects.filter(project=project) if project is not None
+            else ProjectStage.objects.none()
+        )
+
 
 class ProjectDivisionForm(ModelForm):
     class Meta:
@@ -304,9 +368,36 @@ class ContractorPaymentRequestForm(forms.ModelForm):
             'invoice_file', 'supporting_document',
         ]
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'invoice_file': forms.ClearableFileInput(attrs={'accept': '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx'}),
-            'supporting_document': forms.ClearableFileInput(attrs={'accept': '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx'}),
+            'project': forms.Select(attrs={
+                'class': INLINE_INPUT_CLASSES,
+            }),
+            'invoice_number': forms.TextInput(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'INV-2026-001',
+            }),
+            'title': forms.TextInput(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'Monthly progress invoice',
+            }),
+            'amount': forms.NumberInput(attrs={
+                'class': INLINE_INPUT_CLASSES,
+                'min': '0',
+                'step': '0.01',
+                'placeholder': '0.00',
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 4,
+                'class': INLINE_INPUT_CLASSES,
+                'placeholder': 'Describe the work completed and payment due...',
+            }),
+            'invoice_file': forms.ClearableFileInput(attrs={
+                'accept': '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx',
+                'class': 'block w-full text-sm text-slate-500 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100',
+            }),
+            'supporting_document': forms.ClearableFileInput(attrs={
+                'accept': '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx',
+                'class': 'block w-full text-sm text-slate-500 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700 hover:file:bg-slate-200',
+            }),
         }
 
     def __init__(self, *args, project_queryset=None, **kwargs):
@@ -340,7 +431,38 @@ class ContractorProfileForm(forms.ModelForm):
             'email', 'location', 'profile',
         ]
         widgets = {
-            'profile': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+            'company': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+                'placeholder': 'Enter company name'
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+                'placeholder': 'Authorized representative name'
+            }),
+            'registration_no': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+                'placeholder': 'Business registration number'
+            }),
+            'category': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+                'placeholder': 'e.g. Civil works, roofing, electrical'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+                'placeholder': '+254 700 000 000'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3 text-sm text-slate-600 shadow-sm outline-none cursor-not-allowed',
+                'placeholder': 'Business email'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+                'placeholder': 'Physical location or office address'
+            }),
+            'profile': forms.ClearableFileInput(attrs={
+                'accept': 'image/*',
+                'class': 'block w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700'
+            }),
         }
 
     def __init__(self, *args, contact_email='', **kwargs):

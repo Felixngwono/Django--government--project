@@ -328,6 +328,9 @@
 
               <td class="p-4 text-center">
                 <div class="flex items-center justify-center gap-1.5">
+                  <a href="{% url 'project_tracking_public' milestone.project.id %}" title="Track Project" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold transition">
+                    <iconify-icon icon="mdi:timeline-arrow-right" class="text-sm"></iconify-icon>
+                  </a>
                   <a href="{% url 'milestone_detail' milestone.id %}" title="View Details" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">
                     <iconify-icon icon="solar:eye-bold" class="text-sm"></iconify-icon>
                   </a>

@@ -31,6 +31,14 @@ The system's foundation is **project registration**. Once a project is registere
 ### 5. Supporting Modules
 - Budget tracking with revisions and expenses; AI insights and an AI chatbot for querying project data; notifications, SMS alerts, deadline alerts, regional analytics, and role-based access (citizen, official, contractor, engineer, auditor, etc.).
 
+### 6. Governance and Field Accountability
+- Project records can use a managed government-agency registry and geographic coordinates. Public tracking pages show project and inspection points on an OpenStreetMap map when coordinates are available.
+- Each project preserves its initial approved budget and schedule as a baseline. Budget, schedule, and awarded contract-value changes are recorded with a reason and supporting document, and project change proposals require authorized review before taking effect.
+- Authorized staff can record independent site inspections with findings, outcomes, corrective-action deadlines, coordinates, and evidence. Inspections appear in the project tracking history.
+- Citizen issues can be assigned, responded to, and tracked against configurable severity-based response targets. Internal staff notes are hidden from the reporting citizen.
+- Contractor payment requests retain the existing review workflow and require a government transfer/disbursement reference before a payment can be marked paid. No bank integration is implied.
+- The application remains English-first; the new workflows use labeled controls and semantic headings, while production/deployment settings are documented separately from these application features.
+
 ## Project Structure
 
 | Path | Purpose |
@@ -59,3 +67,5 @@ python manage.py test member
 ```
 
 The test suite covers the status engine (`tests_status_engine.py`): forward-only transitions, completion signals, the time-driven sweep, stage/milestone rollups, and deadline alerts — plus core flows like tender bidding and citizen evidence submission.
+
+The tracking governance workflow tests are in `member/tests_tracking_features.py`.

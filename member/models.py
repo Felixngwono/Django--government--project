@@ -131,6 +131,21 @@ class District(models.Model):
         return f"{self.name} — {self.region.name}"
 
 
+class GovernmentAgency(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    code = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    description = models.TextField(blank=True)
+    contact_email = models.EmailField(blank=True)
+    contact_phone = models.CharField(max_length=30, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 # ─────────────────────────────────────────────
 # PROJECTS
 # ─────────────────────────────────────────────
@@ -173,6 +188,11 @@ class Project(models.Model):
     project_location    = models.CharField(max_length=200, null=True)
     district            = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
     category            = models.ForeignKey(ProjectCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
+    agency              = models.ForeignKey(GovernmentAgency, on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
+    latitude            = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True,
+                                               validators=[MinValueValidator(-90), MaxValueValidator(90)])
+    longitude           = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True,
+                                               validators=[MinValueValidator(-180), MaxValueValidator(180)])
 
     # Agencies
     implementing_agency = models.CharField(max_length=200, null=True)
@@ -246,6 +266,8 @@ class Project(models.Model):
 
     def clean(self):
         errors = {}
+        if (self.latitude is None) != (self.longitude is None):
+            errors['latitude'] = 'Provide both map coordinates, or leave both blank.'
         if self.start_date and self.end_date and self.end_date < self.start_date:
             errors['end_date'] = 'End date cannot be before start date.'
         if self.project_Budgeting is not None and self.project_Budgeting < 0:
@@ -256,9 +278,122 @@ class Project(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        is_new = self._state.adding
         if not self.reference_code:
             self.reference_code = f"PRJ-{uuid.uuid4().hex[:8].upper()}"
         super().save(*args, **kwargs)
+        if is_new:
+            ProjectBaseline.objects.get_or_create(
+                project=self,
+                defaults={
+                    'approved_budget': self.project_Budgeting,
+                    'approved_start_date': self.start_date,
+                    'approved_end_date': self.end_date,
+                    'approved_by': self.created_by,
+                },
+            )
+
+
+class ProjectBaseline(models.Model):
+    """Original approved project cost and schedule, preserved for variance reporting."""
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='baseline')
+    approved_budget = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    approved_start_date = models.DateField(null=True, blank=True)
+    approved_end_date = models.DateField(null=True, blank=True)
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Approved baseline — {self.project}"
+
+
+class ProjectChangeRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='change_requests')
+    tender = models.ForeignKey('Tender', on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='change_requests')
+    proposed_budget = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    proposed_start_date = models.DateField(null=True, blank=True)
+    proposed_end_date = models.DateField(null=True, blank=True)
+    proposed_contract_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    reason = models.TextField()
+    supporting_document = models.FileField(upload_to='project_change_requests/', null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='project_change_requests')
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='reviewed_project_changes')
+    reviewer_comments = models.TextField(blank=True)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-requested_at']
+
+    def clean(self):
+        errors = {}
+        if not any(value is not None for value in (
+            self.proposed_budget, self.proposed_start_date,
+            self.proposed_end_date, self.proposed_contract_value,
+        )):
+            errors['reason'] = 'Provide at least one proposed budget, schedule, or contract value change.'
+        if self.proposed_budget is not None and self.proposed_budget < 0:
+            errors['proposed_budget'] = 'Proposed budget cannot be negative.'
+        if self.proposed_contract_value is not None and self.proposed_contract_value < 0:
+            errors['proposed_contract_value'] = 'Proposed contract value cannot be negative.'
+        if self.proposed_contract_value is not None and not self.tender_id:
+            errors['tender'] = 'Select the project tender before proposing a contract value change.'
+        if self.proposed_start_date and self.proposed_end_date and self.proposed_end_date < self.proposed_start_date:
+            errors['proposed_end_date'] = 'Proposed end date cannot be before proposed start date.'
+        if self.tender_id and self.tender.project_id != self.project_id:
+            errors['tender'] = 'The selected tender must belong to this project.'
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        return f"Change request for {self.project}"
+
+
+class ProjectInspection(models.Model):
+    OUTCOME_CHOICES = [
+        ('passed', 'Passed'),
+        ('corrective_action', 'Corrective Action Required'),
+        ('blocked', 'Work Blocked'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='inspections')
+    stage = models.ForeignKey('ProjectStage', on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='inspections')
+    inspected_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='project_inspections')
+    inspected_at = models.DateTimeField(default=timezone.now)
+    outcome = models.CharField(max_length=24, choices=OUTCOME_CHOICES)
+    findings = models.TextField()
+    corrective_deadline = models.DateField(null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True,
+                                   validators=[MinValueValidator(-90), MaxValueValidator(90)])
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True,
+                                    validators=[MinValueValidator(-180), MaxValueValidator(180)])
+    evidence = models.FileField(upload_to='project_inspections/%Y/%m/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-inspected_at']
+
+    def clean(self):
+        errors = {}
+        if self.stage_id and self.stage.project_id != self.project_id:
+            errors['stage'] = 'Inspection stage must belong to the selected project.'
+        if (self.latitude is None) != (self.longitude is None):
+            errors['latitude'] = 'Provide both inspection coordinates, or leave both blank.'
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        return f"Inspection of {self.project} on {self.inspected_at:%Y-%m-%d}"
 
 
 class ProjectTag(models.Model):
@@ -821,6 +956,7 @@ class ContractorPaymentRequest(models.Model):
     reviewed_at         = models.DateTimeField(null=True, blank=True)
     paid_at             = models.DateTimeField(null=True, blank=True)
     paid_by             = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_contractor_payments')
+    disbursement_reference = models.CharField(max_length=100, blank=True)
     created_at          = models.DateTimeField(auto_now_add=True)
     updated_at          = models.DateTimeField(auto_now=True)
 
@@ -922,6 +1058,32 @@ class GovernmentRequest(models.Model):
         super().save(*args, **kwargs)
 
 
+class RequestStatusHistory(models.Model):
+    """Every government-request status transition, in order.
+
+    Mirrors ``ProjectStatusHistory`` so a citizen (or an auditor) can follow
+    exactly how their request moved from the initial point to the final one:
+    pending → in_progress → responded → resolved/closed/rejected, with who
+    changed it and when. That is the accountability backbone for the
+    citizen-request channel.
+    """
+    request      = models.ForeignKey(GovernmentRequest, on_delete=models.CASCADE,
+                                     related_name='status_history')
+    from_status  = models.CharField(max_length=20, null=True, blank=True)
+    to_status    = models.CharField(max_length=20)
+    source       = models.CharField(max_length=20, default='manual')  # manual | auto
+    note         = models.CharField(max_length=255, null=True, blank=True)
+    changed_by   = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
+                                     blank=True, related_name='request_status_changes_made')
+    changed_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['changed_at']
+
+    def __str__(self):
+        return f"{self.request.reference_no}: {self.from_status or '—'} → {self.to_status} ({self.source})"
+
+
 class ReportIssue(models.Model):
     STATUS_CHOICES = [
         ('pending',       'Pending'),
@@ -944,14 +1106,53 @@ class ReportIssue(models.Model):
     evidence          = models.FileField(upload_to='issue_evidence/', null=True, blank=True)
     severity          = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='moderate')
     status            = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    assigned_to       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                          related_name='assigned_project_issues')
+    response_due_at   = models.DateTimeField(null=True, blank=True)
     resolved          = models.BooleanField(default=False)
     resolution_notes  = models.TextField(null=True, blank=True)
     resolved_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_issues')
+    closed_at         = models.DateTimeField(null=True, blank=True)
     created_at        = models.DateTimeField(auto_now_add=True)
     updated_at        = models.DateTimeField(auto_now=True)
 
+    @property
+    def is_response_overdue(self):
+        return (
+            self.response_due_at is not None
+            and timezone.now() > self.response_due_at
+            and self.status not in {'resolved', 'dismissed'}
+        )
+
     def __str__(self):
         return f"Issue on {self.project.project_title} by {self.user.username if self.user else 'Anonymous'}"
+
+
+class IssueResponsePolicy(models.Model):
+    severity = models.CharField(max_length=10, choices=ReportIssue.SEVERITY_CHOICES, unique=True)
+    target_hours = models.PositiveIntegerField()
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['severity']
+
+    def __str__(self):
+        return f"{self.get_severity_display()} response target: {self.target_hours} hours"
+
+
+class IssueResponse(models.Model):
+    issue = models.ForeignKey(ReportIssue, on_delete=models.CASCADE, related_name='responses')
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='issue_responses')
+    response = models.TextField()
+    is_internal = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Response to issue #{self.issue_id}"
 
 
 class CitizenEvidence(models.Model):
@@ -1377,11 +1578,64 @@ class AuditLog(models.Model):
     project    = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
 
+    # ── Append-only governance ──────────────────────────────────────────
+    # The audit trail is the accountability backbone of the platform: it must
+    # never be quietly erased. Rows are therefore append-only by default. If a
+    # record genuinely must be hidden from public view, an officer with the
+    # override role marks it "suppressed" (with a written reason) instead of
+    # deleting it. The raw row, including the suppression metadata, stays in
+    # the database forever.
+    SUPPRESSION_REASONS = [
+        ('privacy',   'Contains personal / private data'),
+        ('duplicate', 'Duplicate entry'),
+        ('error',     'Recorded in error'),
+        ('legal',     'Legal hold / court order'),
+        ('other',     'Other — see suppression_reason'),
+    ]
+    is_suppressed      = models.BooleanField(default=False, db_index=True)
+    suppressed_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                            related_name='suppressed_audit_logs')
+    suppressed_at      = models.DateTimeField(null=True, blank=True)
+    suppression_reason = models.CharField(max_length=20, choices=SUPPRESSION_REASONS, null=True, blank=True)
+    suppression_note   = models.TextField(null=True, blank=True)
+
     class Meta:
         ordering = ['-timestamp']
 
     def __str__(self):
         return f"{self.user} — {self.action} — {self.timestamp}"
+
+    def delete(self, *args, **kwargs):
+        # Hard deletion of an audit record is forbidden — it destroys the
+        # accountability trail. Use ``suppress()`` to hide a row instead.
+        raise ValidationError(
+            'AuditLog records are append-only and cannot be deleted. '
+            'Use the suppression workflow to hide a record.'
+        )
+
+    def suppress(self, by_user, reason=None, note=None):
+        """Mark this audit record as suppressed (hidden) without deleting it."""
+        self.is_suppressed = True
+        self.suppressed_by = by_user
+        self.suppressed_at = timezone.now()
+        self.suppression_reason = reason or 'other'
+        self.suppression_note = (note or '').strip() or None
+        self.save(update_fields=[
+            'is_suppressed', 'suppressed_by', 'suppressed_at',
+            'suppression_reason', 'suppression_note',
+        ])
+
+    def restore(self, by_user):
+        """Un-suppress a previously hidden audit record."""
+        self.is_suppressed = False
+        self.suppressed_by = by_user
+        self.suppressed_at = timezone.now()
+        self.suppression_reason = None
+        self.suppression_note = None
+        self.save(update_fields=[
+            'is_suppressed', 'suppressed_by', 'suppressed_at',
+            'suppression_reason', 'suppression_note',
+        ])
 
 
 class ProjectStatusHistory(models.Model):

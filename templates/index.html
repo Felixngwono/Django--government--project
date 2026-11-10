@@ -38,7 +38,7 @@
   
 <div class='proj_container'>
   <div>
-<div   style="background-image: url('{% static "images/wel.jpg" %}" class="w-full h-full bg-cover bg-center">
+<div   style="background-image: url('{% static "images/wel.jpg" %}');" class="w-full h-full bg-cover bg-center">
   <!-- Header -->
   <div class="mb-8 p-8 pb-0">
     <h1 class="text-4xl font-bold text-gray-800">Welcome, {{ user.name }}</h1>
@@ -126,6 +126,19 @@
       </div>
     </a>
 
+    <!-- Stalled Projects -->
+    <a href='{% url "stalled" %}' class="bg-gradient-to-b from-orange-200 to-orange-100 border-b-4 border-orange-500 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
+      <div class="flex items-center">
+        <div class="rounded-full p-5 bg-orange-600 text-white mr-4">
+          <i class="fas fa-pause-circle fa-2x"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold">{{stalledcount}}</h3>
+          <h5 class="text-sm font-bold uppercase text-gray-600">Stalled Projects</h5>
+        </div>
+      </div>
+    </a>
+
     <!-- Completed Projects -->
     <a href='{% url "completed" %}' class="bg-gradient-to-b from-indigo-200 to-indigo-100 border-b-4 border-indigo-500 rounded-lg shadow-xl p-6 hover:shadow-2xl transition">
       <div class="flex items-center">
@@ -158,10 +171,10 @@
   <section class="bg-white p-8 rounded-lg shadow-lg mb-12 mx-8">
     <h2 class="text-3xl font-semibold text-gray-800 mb-6">Recent Activity</h2>
     <ul class="space-y-4">
-      <li class="border-l-4 border-blue-500 pl-4 py-2">🔔 New user registration:<b> {{user.name}}</b></li>
-      <li class="border-l-4 border-green-500 pl-4 py-2">💼 New order received: <b>{{project}}</b></li>
-      <li class="border-l-4 border-purple-500 pl-4 py-2">📈 Analytics update completed</li>
-      <li class="border-l-4 border-orange-500 pl-4 py-2">🔧 System maintenance scheduled</li>
+      <li class="border-l-4 border-blue-500 pl-4 py-2">🔔 Welcome back: <b>{{ user.name|default:user.username }}</b></li>
+      <li class="border-l-4 border-green-500 pl-4 py-2">💼 Total projects tracked: <b>{{allproject}}</b></li>
+      <li class="border-l-4 border-yellow-500 pl-4 py-2">⏳ Delayed projects: <b>{{delayedcount}}</b> · Stalled: <b>{{stalledcount}}</b></li>
+      <li class="border-l-4 border-purple-500 pl-4 py-2">📈 Analytics updated from current project status data</li>
     </ul>
   </section>
 

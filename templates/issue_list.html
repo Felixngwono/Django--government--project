@@ -55,7 +55,9 @@
           <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 border-y border-slate-100">
             <tr>
               <th class="py-3 px-6 font-semibold">Title</th>
+              <th class="py-3 px-6 font-semibold">Project</th>
               <th class="py-3 px-6 font-semibold">Status</th>
+              <th class="py-3 px-6 font-semibold">Response target / owner</th>
               <th class="py-3 px-6 font-semibold text-right">Actions</th>
             </tr>
           </thead>
@@ -63,6 +65,7 @@
             {% for issue in issues %}
             <tr class="hover:bg-slate-50/70 transition">
               <td class="py-3 px-6 font-semibold text-slate-700">{{ issue.title }}</td>
+              <td class="py-3 px-6 text-slate-600">{{ issue.project.project_title }}</td>
               <td class="py-3 px-6">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
                   {% if issue.status == 'resolved' %}bg-emerald-50 text-emerald-600 border border-emerald-200
@@ -71,6 +74,12 @@
                   {% else %}bg-amber-50 text-amber-600 border border-amber-200{% endif %}">
                   {{ issue.get_status_display }}
                 </span>
+              </td>
+              <td class="py-3 px-6 text-xs">
+                {% if issue.is_response_overdue %}<span class="font-bold text-rose-700">Overdue</span>
+                {% elif issue.response_due_at %}<span class="text-slate-600">Due {{ issue.response_due_at|date:"M d, Y H:i" }}</span>
+                {% else %}<span class="text-slate-500">Target not set</span>{% endif %}
+                <span class="block text-slate-500">{% if issue.assigned_to %}{{ issue.assigned_to.full_name|default:issue.assigned_to.username }}{% else %}Unassigned{% endif %}</span>
               </td>
               <td class="py-3 px-6 text-right">
                 <a href="{% url 'issue_detail' issue.id %}"
@@ -82,7 +91,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="3" class="py-10 text-center text-slate-400">
+              <td colspan="5" class="py-10 text-center text-slate-400">
                 <iconify-icon icon="solar:inbox-linear" class="text-3xl block mx-auto mb-2 text-slate-300"></iconify-icon>
                 No issues reported yet.
               </td>

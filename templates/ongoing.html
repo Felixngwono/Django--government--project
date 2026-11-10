@@ -176,9 +176,14 @@
                             </td>
                             <td class="px-6 py-4 text-gray-600 line-clamp-2">{{ project.project_description }}</td>
                             <td class="px-6 py-4 text-right">
-                                <a href="{% url 'Ongoingstatuses' project.id %}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
-                                    View
-                                </a>
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'project_tracking_public' project.id %}" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-100 transition text-xs font-bold">
+                                        <iconify-icon icon="mdi:timeline-arrow-right"></iconify-icon> Track
+                                    </a>
+                                    <a href="{% url 'Ongoingstatuses' project.id %}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                                        View
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}

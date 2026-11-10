@@ -1,0 +1,41 @@
+{% extends "heading.html" %}
+{% block content %}
+<main class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+  <a href="{% url 'project_tracking_public' project.pk %}" class="text-sm font-semibold text-blue-700 hover:underline">Back to public project tracking</a>
+  <header>
+    <h1 class="text-2xl font-extrabold text-slate-900">Independent site inspections</h1>
+    <p class="mt-1 text-slate-600">{{ project.project_title }} · {{ project.project_location|default:"Location not specified" }}</p>
+  </header>
+
+  {% if can_record_inspection %}
+  <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <h2 class="mb-3 text-lg font-bold">Record inspection</h2>
+    <form method="post" enctype="multipart/form-data" class="space-y-3">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white" type="submit">Save inspection</button>
+    </form>
+  </section>
+  {% endif %}
+
+  <section class="space-y-3" aria-labelledby="inspection-history">
+    <h2 id="inspection-history" class="text-lg font-bold">Inspection history</h2>
+    {% for inspection in inspections %}
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h3 class="font-bold">{{ inspection.get_outcome_display }}{% if inspection.stage %} · {{ inspection.stage.stage_name }}{% endif %}</h3>
+        <time class="text-sm text-slate-500" datetime="{{ inspection.inspected_at|date:'c' }}">{{ inspection.inspected_at|date:"M d, Y H:i" }}</time>
+      </div>
+      <p class="mt-2 whitespace-pre-line text-sm text-slate-700">{{ inspection.findings }}</p>
+      <p class="mt-2 text-xs text-slate-500">Inspected by {{ inspection.inspected_by.full_name|default:inspection.inspected_by.username|default:"Authorized inspector" }}{% if inspection.corrective_deadline %} · Corrective action due {{ inspection.corrective_deadline|date:"M d, Y" }}{% endif %}</p>
+      {% if inspection.evidence %}<a class="mt-2 inline-block text-sm font-semibold text-blue-700 underline" href="{{ inspection.evidence.url }}">Open inspection evidence</a>{% endif %}
+      {% if inspection.latitude != None and inspection.longitude != None %}
+      <a class="mt-2 block text-sm font-semibold text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat={{ inspection.latitude }}&mlon={{ inspection.longitude }}#map=16/{{ inspection.latitude }}/{{ inspection.longitude }}">View inspection location on OpenStreetMap</a>
+      {% endif %}
+    </article>
+    {% empty %}
+    <p class="rounded-xl bg-white p-5 text-sm text-slate-500">No independent inspections have been recorded.</p>
+    {% endfor %}
+  </section>
+</main>
+{% endblock %}

@@ -174,9 +174,14 @@
                         </td>
                         <td class="px-5 py-3 text-slate-600">{{ p.project_location|default:"—" }}</td>
                         <td class="px-5 py-3 text-right">
-                            <a href="{% url 'project_details' p.id %}" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">
-                                <i class="fa-solid fa-eye"></i> Open
-                            </a>
+                            <div class="flex items-center justify-end gap-1.5">
+                                <a href="{% url 'project_tracking_public' p.id %}" class="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold transition" title="Track Project">
+                                    <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs"></iconify-icon> Track
+                                </a>
+                                <a href="{% url 'project_details' p.id %}" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                    <i class="fa-solid fa-eye"></i> Open
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

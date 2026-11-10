@@ -1,32 +1,28 @@
-﻿{% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+﻿
+{% extends "heading.html" %}
+{% block content %}
+{% load static %}
+{% load widget_tweaks %}
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>{{ project.project_title }} — Project Details | GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 
 <!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
-{% load widget_tweaks %}<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
-
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
 
@@ -307,9 +303,14 @@
       <!-- ASSIGNED PROJECTS QUICK CHIPS -->
       <div class="mt-5 flex flex-wrap gap-2">
         {% for c in contractors %}{% for project in c.projects.all %}
-        <a href="{% url 'project_details' project.id %}" class="bg-white border border-slate-200 hover:border-blue-400 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
-          <i class="fa-solid fa-diagram-project mr-1 text-blue-500"></i>{{ project.project_title|truncatechars:30 }}
-        </a>
+        <div class="flex items-center gap-1 bg-white border border-slate-200 hover:border-blue-400 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
+          <a href="{% url 'project_tracking_public' project.id %}" class="text-emerald-700 hover:text-emerald-900" title="Track">
+            <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs"></iconify-icon>
+          </a>
+          <a href="{% url 'project_details' project.id %}" class="text-blue-700">
+            <i class="fa-solid fa-diagram-project mr-1 text-blue-500"></i>{{ project.project_title|truncatechars:30 }}
+          </a>
+        </div>
         {% endfor %}{% endfor %}
       </div>
 
@@ -519,3 +520,4 @@
 </main>
 
 {% include "footer.html" %}
+{% endblock content%}

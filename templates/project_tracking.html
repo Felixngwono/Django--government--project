@@ -50,6 +50,11 @@
       {% if project.project_contractor %} · Contractor: <strong>{{ project.project_contractor }}</strong>{% endif %}
       {% if project.end_date %} · Due {{ project.end_date }}{% endif %}
     </p>
+    <nav aria-label="Project accountability" class="mt-4 flex flex-wrap gap-3 text-sm font-semibold text-blue-700">
+      <a class="underline" href="{% url 'project_inspections' project.pk %}">Site inspection history</a>
+      <a class="underline" href="{% url 'project_change_requests' project.pk %}">Baseline and change requests</a>
+      <a class="underline" href="{% url 'project_tracking_public' project.pk %}">Public tracking page and map</a>
+    </nav>
   </header>
 
   <!-- OVERALL PROGRESS -->

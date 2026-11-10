@@ -4,20 +4,21 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Upcoming Projects — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -31,126 +32,206 @@
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
 
-
-
-    <!-- Title -->
-    <h2 class="text-center  font-bold text-gray-800 underline mb-8">Upcoming Projects</h2>
-
-    <div class="container mx-auto px-8">
-        <div class="bg-white shadow-md rounded-lg overflow-hidden">
-
-            <!-- Search & Add Button -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 p-6 border-b border-gray-200">
-                <!-- Search Field -->
-                <form method="GET" class="w-full md:w-2/3 flex flex-wrap items-center gap-3">
-                    <input type="text" name="q" placeholder="Search upcoming projects..." value="{{ q }}" class="flex-1 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <select name="location" onchange="this.form.submit()" class="border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Locations</option>
-                        {% for loc in locations %}
-                            <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-5 py-2 text-sm transition shadow">
-                        Search
-                    </button>
-                    {% if q or selected_location %}
-                        <a href="{% url 'upcoming' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-xl transition">Reset</a>
-                    {% endif %}
-                </form>
-
-                {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
-                <!-- Add New Button -->
-                <a href="{% url 'createproject' %}"
-                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition duration-200 shadow">
-                    + Add New Project
-                </a>
-                {% endif %}
-            </div>
-
-            <!-- Project Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-700">
-                    <thead class="uppercase text-xs bg-gray-100 text-gray-600">
-                        <tr>
-                            <th scope="col" class="px-6 py-4">Title</th>
-                            <th scope="col" class="px-6 py-4">Description</th>
-                            <th scope="col" class="px-6 py-4 text-center">Status</th>
-                            <th scope="col" class="px-6 py-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for project in projects %}
-                        <tr class="border-b hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ project.project_title }}</td>
-                            <td class="px-6 py-4 text-gray-700">{{ project.project_description }}</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
-                                    {{ project.project_status }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <a href="{% url 'Upcomingstatus' project.id %}"
-                                    class="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-1.5 rounded-lg transition">
-                                    View
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
-                                No upcoming projects found.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-<div class="flex justify-between items-center mt-6">
-
-    <span class="text-sm text-gray-600">
-        Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
-    </span>
-
-    <div class="flex space-x-2">
-
-        {% if projects.has_previous %}
-        <a href="?page={{ projects.previous_page_number }}&q={{ request.GET.q }}"
-           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-            Previous
-        </a>
-        {% endif %}
-
-        {% for num in projects.paginator.page_range %}
-
-            {% if projects.number == num %}
-                <span class="px-3 py-1 bg-blue-600 text-white rounded">
-                    {{ num }}
-                </span>
-            {% else %}
-                <a href="?page={{ num }}&q={{ request.GET.q }}"
-                   class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-                    {{ num }}
-                </a>
-            {% endif %}
-
-        {% endfor %}
-
-        {% if projects.has_next %}
-        <a href="?page={{ projects.next_page_number }}&q={{ request.GET.q }}"
-           class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
-            Next
-        </a>
-        {% endif %}
-
-    </div>
-
-</div>
+    <!-- HERO / STATS BANNER -->
+    <div class="rounded-3xl bg-gradient-to-r from-indigo-50 via-indigo-100 to-indigo-50 p-8 text-slate-900 shadow-sm border border-indigo-100 relative overflow-hidden mb-8">
+      <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-indigo-100 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200 mb-3">
+            <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+            Upcoming Projects
+          </div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Upcoming Projects</h1>
+          <p class="mt-2 max-w-xl text-sm text-slate-600 leading-relaxed">
+            Projects scheduled to begin soon. Track budgets, timelines, and delivery status before groundbreaking.
+          </p>
         </div>
+        {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
+        <a href="{% url 'createproject' %}"
+           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
+          <i class="fas fa-plus"></i> Add New Project
+        </a>
+        {% endif %}
+      </div>
     </div>
-</div>
-</div>
+
+    <!-- STATS OVERVIEW -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Upcoming</span>
+          <iconify-icon icon="solar:folder-open-bold-duotone" class="text-2xl text-indigo-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ total_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Scheduled projects</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Budget</span>
+          <iconify-icon icon="solar:wallet-bold-duotone" class="text-2xl text-blue-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-blue-600 mt-2">${{ total_budget|floatformat:0 }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Allocated funding</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Amount Spent</span>
+          <iconify-icon icon="solar:coins-bold-duotone" class="text-2xl text-purple-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-purple-600 mt-2">${{ total_spent|floatformat:0 }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Pre-committed funds</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Budget Utilized</span>
+          <iconify-icon icon="solar:percent-bold-duotone" class="text-2xl text-emerald-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-emerald-600 mt-2">{{ budget_utilization }}%</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Of allocated budget</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Featured</span>
+          <iconify-icon icon="solar:star-bold-duotone" class="text-2xl text-amber-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-amber-600 mt-2">{{ featured_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Priority projects</span>
+      </div>
+    </div>
+
+    <!-- SEARCH & FILTER BAR -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center gap-3">
+        <form method="GET" class="relative flex-1 min-w-[240px]">
+          <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input name="q" type="text" placeholder="Search upcoming projects..." value="{{ q }}"
+                 class="w-full pl-9 pr-4 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </form>
+
+        <form method="GET" class="flex-1 min-w-[200px]">
+          <select name="location" onchange="this.form.submit()" class="w-full px-3 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All Locations</option>
+            {% for loc in locations %}
+            <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+          </select>
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+        </form>
+
+        {% if q or selected_location %}
+        <a href="{% url 'upcoming' %}" class="px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+          Reset
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- PROJECT TABLE -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-slate-700">
+          <thead class="bg-slate-50 text-slate-600 text-xs font-semibold uppercase border-b border-slate-200">
+            <tr>
+              <th scope="col" class="px-6 py-4 w-28">Image</th>
+              <th scope="col" class="px-6 py-4">Title</th>
+              <th scope="col" class="px-6 py-4">Description</th>
+              <th scope="col" class="px-6 py-4 text-center">Status</th>
+              <th scope="col" class="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for project in projects %}
+            <tr class="hover:bg-slate-50 transition-colors">
+                 <td class="px-6 py-4">
+                  {% if project.cover_image %}
+                    <img src="{{ project.cover_image.url }}" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="{{ project.project_title }}">
+                  {% elif project.images %}
+                    <img src="{{ project.images.url }}" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="{{ project.project_title }}">
+                  {% else %}
+                    <img src="https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?q=80&w=400&auto=format&fit=crop" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="Public Project">
+                  {% endif %}
+                </td>
+                
+                <td class="px-6 py-4 font-medium text-slate-900">{{ project.project_title }}</td>
+                <td class="px-6 py-4 text-slate-600 line-clamp-2">{{ project.project_description }}</td>
+                <td class="px-6 py-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full border border-yellow-200">
+                        {{ project.project_status }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <a href="{% url 'project_tracking_public' project.id %}"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold shadow-sm transition-all">
+                            <iconify-icon icon="mdi:timeline-arrow-right"></iconify-icon> Track
+                        </a>
+                        <a href="{% url 'Upcomingstatus' project.id %}"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm shadow-indigo-600/20 transition-all">
+                            View Details <i class="fas fa-arrow-right text-[9px]"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                    <iconify-icon icon="solar:folder-open-bold-duotone" class="text-4xl mb-3 opacity-25 block mx-auto"></iconify-icon>
+                    <p class="text-sm font-medium">No upcoming projects found.</p>
+                    <p class="text-xs text-slate-400 mt-1">Try adjusting your search or location filter.</p>
+                </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="flex items-center justify-between flex-wrap gap-3 mt-6">
+      <p class="text-sm text-slate-500">
+        Showing page {{ projects.number }} of {{ projects.paginator.num_pages }}
+        <span class="text-slate-400">({{ total_count }} project{{ total_count|pluralize }} total)</span>
+      </p>
+      <div class="flex items-center gap-1">
+        {% if projects.has_previous %}
+        <a href="?page={{ projects.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}"
+           class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+           ← Prev
+        </a>
+        {% else %}
+        <span class="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-sm text-slate-400 cursor-not-allowed">← Prev</span>
+        {% endif %}
+        {% for num in projects.paginator.page_range %}
+          {% if num == projects.number %}
+          <span class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold">{{ num }}</span>
+          {% elif num <= projects.number|add:2 and num >= projects.number|add:-2 %}
+          <a href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}"
+             class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">{{ num }}</a>
+          {% elif num == 1 or num == projects.paginator.num_pages %}
+          <a href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}"
+             class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">{{ num }}</a>
+          {% elif num == projects.number|add:3 or num == projects.number|add:-3 %}
+          <span class="px-1.5 text-slate-400">…</span>
+          {% endif %}
+        {% endfor %}
+        {% if projects.has_next %}
+        <a href="?page={{ projects.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}"
+           class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+           Next →
+        </a>
+        {% else %}
+        <span class="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-sm text-slate-400 cursor-not-allowed">Next →</span>
+        {% endif %}
+      </div>
+    </div>
+
 </main>
 
 {% include "footer.html" %}
+
+</body>
+</html>

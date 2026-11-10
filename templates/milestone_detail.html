@@ -115,6 +115,9 @@
           <p class="text-xs text-slate-500 mt-1">
             Associated Project: <a href="{% url 'project_details' milestone.project.id %}" class="text-blue-600 font-bold hover:underline">{{ milestone.project.project_title }}</a>
             {% if milestone.stage %} &bull; Stage: <span class="font-bold text-slate-700">{{ milestone.stage.stage_name }}</span>{% endif %}
+            <a href="{% url 'project_tracking_public' milestone.project.id %}" class="ml-3 inline-flex items-center gap-1 text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition">
+              <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs"></iconify-icon> Track Project
+            </a>
           </p>
         </div>
 
@@ -185,9 +188,14 @@
             <p class="text-xs text-slate-300">Location: {{ milestone.project.project_location|default:"National" }} &bull; Implementing Agency: {{ milestone.project.implementing_agency|default:"Gov Body" }}</p>
           </div>
 
-          <a href="{% url 'project_details' milestone.project.id %}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow transition shrink-0 self-start md:self-auto">
-            View Full Project &rarr;
-          </a>
+          <div class="flex flex-wrap gap-2 shrink-0 self-start md:self-auto">
+            <a href="{% url 'project_tracking_public' milestone.project.id %}" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow transition">
+              <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs mr-1"></iconify-icon> Track Project
+            </a>
+            <a href="{% url 'project_details' milestone.project.id %}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow transition">
+              View Full Project &rarr;
+            </a>
+          </div>
         </div>
       </div>
 

@@ -642,9 +642,14 @@
             {% for p in data1.projects_list %}
             <div class="p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 hover:border-blue-400 transition-colors">
               <div class="space-y-1 min-w-0 flex-1">
-                <a href="{% url 'project_details' p.id %}" class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:text-blue-600 truncate block">
-                  {{ p.project_title }}
-                </a>
+                <div class="flex items-center gap-1.5">
+                  <a href="{% url 'project_tracking_public' p.id %}" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold transition" title="Track Project">
+                    <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs"></iconify-icon>
+                  </a>
+                  <a href="{% url 'project_details' p.id %}" class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:text-blue-600 truncate block">
+                    {{ p.project_title }}
+                  </a>
+                </div>
                 <div class="flex items-center gap-2 text-[11px] text-slate-500">
                   <span class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-semibold">{{ p.category.name|default:"General" }}</span>
                   <span>&middot; KSh {{ p.project_Budgeting|floatformat:0|default:"—" }}</span>
@@ -679,9 +684,14 @@
             {% for p in data2.projects_list %}
             <div class="p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3 hover:border-emerald-400 transition-colors">
               <div class="space-y-1 min-w-0 flex-1">
-                <a href="{% url 'project_details' p.id %}" class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:text-emerald-600 truncate block">
-                  {{ p.project_title }}
-                </a>
+                <div class="flex items-center gap-1.5">
+                  <a href="{% url 'project_tracking_public' p.id %}" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold transition" title="Track Project">
+                    <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs"></iconify-icon>
+                  </a>
+                  <a href="{% url 'project_details' p.id %}" class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:text-emerald-600 truncate block">
+                    {{ p.project_title }}
+                  </a>
+                </div>
                 <div class="flex items-center gap-2 text-[11px] text-slate-500">
                   <span class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-semibold">{{ p.category.name|default:"General" }}</span>
                   <span>&middot; KSh {{ p.project_Budgeting|floatformat:0|default:"—" }}</span>

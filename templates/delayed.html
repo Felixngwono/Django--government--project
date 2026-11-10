@@ -113,9 +113,14 @@
                 <td class="whitespace-nowrap px-4 py-4 text-sm text-slate-600">{{ project.end_date|date:"d M Y"|default:"Not set" }}</td>
                 <td class="px-4 py-4"><span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700">{{ project.get_project_status_display|default:"Delayed" }}</span></td>
                 <td class="whitespace-nowrap px-4 py-4 text-right">
-                  <a href="{% url 'project_details' project.id %}" class="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white transition hover:bg-blue-700">
-                    View details <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
-                  </a>
+                  <div class="flex items-center justify-end gap-2">
+                    <a href="{% url 'project_tracking_public' project.id %}" class="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition">
+                      <iconify-icon icon="mdi:timeline-arrow-right"></iconify-icon> Track
+                    </a>
+                    <a href="{% url 'project_details' project.id %}" class="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white transition hover:bg-blue-700">
+                      View details <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+                    </a>
+                  </div>
                 </td>
               </tr>
               {% empty %}

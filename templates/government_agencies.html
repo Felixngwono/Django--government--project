@@ -1,0 +1,35 @@
+{% extends "heading.html" %}
+{% block content %}
+<main class="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
+  <header>
+    <h1 class="text-2xl font-extrabold text-slate-900">Government agency registry</h1>
+    <p class="mt-1 text-sm text-slate-600">Maintain a shared agency list for consistent project ownership and reporting.</p>
+  </header>
+  <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <h2 class="mb-3 text-lg font-bold">{% if editing_agency %}Edit agency{% else %}Add an agency{% endif %}</h2>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      {% if editing_agency %}<input type="hidden" name="agency_id" value="{{ editing_agency.pk }}">{% endif %}
+      {{ form.as_p }}
+      <button class="rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white" type="submit">{% if editing_agency %}Update agency{% else %}Save agency{% endif %}</button>
+      {% if editing_agency %}<a class="ml-2 text-sm font-semibold text-slate-600 underline" href="{% url 'government_agencies' %}">Cancel</a>{% endif %}
+    </form>
+  </section>
+  <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <h2 class="border-b border-slate-100 p-5 text-lg font-bold">Registered agencies</h2>
+    <ul class="divide-y divide-slate-100">
+      {% for agency in agencies %}
+      <li class="flex flex-wrap items-center justify-between gap-3 p-5">
+        <div><h3 class="font-bold">{{ agency.name }}</h3><p class="text-sm text-slate-500">{{ agency.code|default:"No code" }}{% if agency.contact_email %} · {{ agency.contact_email }}{% endif %}</p></div>
+        <div class="flex items-center gap-3">
+          <span class="rounded-full px-3 py-1 text-xs font-bold {% if agency.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-slate-100 text-slate-600{% endif %}">{% if agency.is_active %}Active{% else %}Inactive{% endif %}</span>
+          <a class="text-sm font-semibold text-blue-700 underline" href="{% url 'government_agencies' %}?edit={{ agency.pk }}">Edit</a>
+        </div>
+      </li>
+      {% empty %}
+      <li class="p-5 text-sm text-slate-500">No agencies have been registered.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</main>
+{% endblock %}

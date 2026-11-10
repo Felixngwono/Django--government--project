@@ -32,9 +32,9 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
 from ai.project_analysis import generate_project_analyses
-from .forms import ( AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
-from .models import (PDF,Announcement,AuditLog,Budget,CitizenEvidence,CitizenSubmission,Comment,Contractor,ContractorDocument,ContractorPaymentRequest,ContractorRating,DiscussionReply,DiscussionTopic,Feedback,GovernmentRequest,Media,Milestone,Notification,Participation,ProgramImpact,ProgressReport,ProgressUpdate,Project,ProjectCategory,ProjectDocument,Project_Division,Project_type,ProjectExpense,ProjectRisk,ProjectStage,ProjectStatusHistory,ReportIssue,MilestoneStageEvidence,StageReport,StageReportAttachment,StageReportImage,Stakeholder,Team,Tender,TenderApplication,Testimonial,User,)
-from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, _contractors_for_user, assigned_projects, apply_status_change, audit, contractor_assigned_to_project, has_role, is_forward_transition, notify, refresh_project_status, role_required, user_assigned_to_project
+from .forms import (AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentAgencyForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectChangeRequestForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectInspectionForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
+from .models import (PDF, Announcement, AuditLog, Budget, BudgetRevision, CitizenEvidence, CitizenSubmission, Comment, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, DiscussionReply, DiscussionTopic, Feedback, GovernmentAgency, GovernmentRequest, IssueResponse, IssueResponsePolicy, Media, Milestone, Notification, Participation, ProgramImpact, ProgressReport, ProgressUpdate, Project, ProjectBaseline, ProjectCategory, ProjectChangeRequest, ProjectDocument, Project_Division, Project_type, ProjectExpense, ProjectInspection, ProjectRisk, ProjectStage, ProjectStatusHistory, ReportIssue, MilestoneStageEvidence, StageReport, StageReportAttachment, StageReportImage, Stakeholder, Team, Tender, TenderApplication, Testimonial, User,)
+from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, _contractors_for_user, assigned_projects, apply_status_change, audit, blacklisted_contractor_for_application, contractor_assigned_to_project, contractor_is_blacklisted, has_role, is_forward_transition, notify, record_request_status_change, refresh_project_status, role_required, user_assigned_to_project, user_has_permission
 from .models import ProjectStatusHistory
 
 
@@ -904,14 +904,31 @@ def updateProject(request,pk):
     if request.method=='POST':
         form= ProjectCreationForm(request.POST,request.FILES,instance=project)
         if form.is_valid():
-            form.save()
-            _store_project_evidence_images(
-                project, request.user, form.cleaned_data['evidence_images']
+            ProjectBaseline.objects.get_or_create(
+                project=project,
+                defaults={
+                    'approved_budget': project.project_Budgeting,
+                    'approved_start_date': project.start_date,
+                    'approved_end_date': project.end_date,
+                    'approved_by': project.created_by,
+                },
             )
-            # Recompute status in case dates/stages/progress changed
-            refresh_project_status(project, actor=request.user, source='manual')
-            generate_project_analyses(project, requested_by=request.user)
-            return redirect('projectoverview')
+            protected_fields = {
+                'project_Budgeting', 'start_date', 'end_date',
+            } & set(form.changed_data)
+            if protected_fields:
+                form.add_error(
+                    None,
+                    'Budget and schedule changes must be submitted as a proposal and approved before they take effect.',
+                )
+            else:
+                form.save()
+                _store_project_evidence_images(
+                    project, request.user, form.cleaned_data['evidence_images']
+                )
+                refresh_project_status(project, actor=request.user, source='manual')
+                generate_project_analyses(project, requested_by=request.user)
+                return redirect('projectoverview')
     context={'form':form}
     return render(request,'project_form.html', context)
 
@@ -2622,43 +2639,71 @@ def project_detail(request, pk):
                 issue = form.save(commit=False)
                 issue.project = project
                 issue.user = request.user
-                issue.save()
-                audit(request, 'issue_reported', issue, project=project)
-                if project.created_by:
-                    notify(project.created_by, 'issue', 'New project issue', issue.title, f'/issues/{issue.id}/')
-                messages.success(request, "Issue reported successfully.")
-                return redirect('project_details', pk=project.id)
+                try:
+                    issue.response_due_at = _issue_response_deadline(issue.severity)
+                except IssueResponsePolicy.DoesNotExist:
+                    form.add_error(None, 'No response-time target is configured for this issue severity.')
+                else:
+                    issue.save()
+                    audit(request, 'issue_reported', issue, project=project)
+                    if project.created_by:
+                        notify(project.created_by, 'issue', 'New project issue', issue.title, f'/issues/{issue.id}/')
+                    messages.success(request, "Issue reported successfully.")
+                    return redirect('project_details', pk=project.id)
             messages.error(request, "Could not report issue — check the form fields.")
 
         elif action == 'issue_edit' and is_officer:
             iss = get_object_or_404(ReportIssue, pk=request.POST.get('issue_id'), project=project)
             form = IssueInlineForm(request.POST, request.FILES, instance=iss)
             if form.is_valid():
-                form.save()
-                audit(request, 'issue_updated', iss, project=project, changes={'title': iss.title, 'status': iss.status})
-                if iss.user and iss.user != request.user:
-                    notify(iss.user, 'issue', 'Issue updated', f"'{iss.title}' was updated by an officer.", f'/issues/{iss.id}/')
-                messages.success(request, f"Issue '{iss.title}' updated.")
-                return redirect('project_details', pk=project.id)
+                updated_issue = form.save(commit=False)
+                if updated_issue.severity != iss.severity:
+                    try:
+                        updated_issue.response_due_at = _issue_response_deadline(updated_issue.severity)
+                    except IssueResponsePolicy.DoesNotExist:
+                        form.add_error(None, 'No response-time target is configured for this issue severity.')
+                if not form.errors:
+                    updated_issue.save()
+                    audit(request, 'issue_updated', updated_issue, project=project,
+                          changes={'title': updated_issue.title, 'status': updated_issue.status})
+                    if updated_issue.user and updated_issue.user != request.user:
+                        notify(updated_issue.user, 'issue', 'Issue updated',
+                               f"'{updated_issue.title}' was updated by an officer.",
+                               f'/issues/{updated_issue.id}/')
+                    messages.success(request, f"Issue '{updated_issue.title}' updated.")
+                    return redirect('project_details', pk=project.id)
             messages.error(request, "Could not update issue — check the form fields.")
 
         elif action == 'issue_status' and is_officer:
             iss = get_object_or_404(ReportIssue, pk=request.POST.get('issue_id'), project=project)
             new_status = request.POST.get('status')
             if new_status in [c[0] for c in ReportIssue.STATUS_CHOICES]:
-                iss.status = new_status
-                if new_status == 'resolved':
-                    iss.resolved = True
                 notes = request.POST.get('resolution_notes', '').strip()
-                if notes:
-                    iss.resolution_notes = notes
-                if new_status == 'resolved' and not iss.resolved_by:
-                    iss.resolved_by = request.user
-                iss.save()
-                audit(request, 'issue_status_changed', iss, project=project, changes={'status': new_status})
-                if iss.user:
-                    notify(iss.user, 'issue', 'Issue status updated', f"'{iss.title}' is now {iss.get_status_display()}.", f'/issues/{iss.id}/')
-                messages.success(request, f"Issue '{iss.title}' marked {iss.get_status_display()}.")
+                closing = new_status in {'resolved', 'dismissed'}
+                if closing and not notes:
+                    messages.error(request, 'Add a resolution note before closing this issue.')
+                else:
+                    iss.status = new_status
+                    iss.resolved = closing
+                    iss.closed_at = timezone.now() if closing else None
+                    iss.resolved_by = request.user if closing else None
+                    if notes:
+                        iss.resolution_notes = notes
+                    iss.save()
+                    if notes:
+                        IssueResponse.objects.create(
+                            issue=iss,
+                            author=request.user,
+                            response=notes,
+                            is_internal=False,
+                        )
+                    audit(request, 'issue_status_changed', iss, project=project,
+                          changes={'status': new_status})
+                    if iss.user:
+                        notify(iss.user, 'issue', 'Issue status updated',
+                               f"'{iss.title}' is now {iss.get_status_display()}.",
+                               f'/issues/{iss.id}/')
+                    messages.success(request, f"Issue '{iss.title}' marked {iss.get_status_display()}.")
             return redirect('project_details', pk=project.id)
 
         else:  # comment
@@ -3059,8 +3104,16 @@ def upload_tender(request, project_id):
 
 @login_required(login_url='login')
 def issue_list(request):
-    issues = ReportIssue.objects.all() if (request.user.is_superuser or request.user.role in OFFICER_ROLES) else ReportIssue.objects.filter(user=request.user)
-    return render(request, 'issue_list.html', {'issues': issues})
+    issues = ReportIssue.objects.select_related('project', 'user', 'assigned_to')
+    if not (request.user.is_superuser or request.user.role in OFFICER_ROLES):
+        issues = issues.filter(user=request.user)
+    return render(request, 'issue_list.html', {'issues': issues.order_by('-created_at')})
+
+
+def _issue_response_deadline(severity):
+    policy = IssueResponsePolicy.objects.get(severity=severity)
+    return timezone.now() + timedelta(hours=policy.target_hours)
+
 
 @login_required(login_url='login')
 def add_report_issue(request):
@@ -3070,18 +3123,239 @@ def add_report_issue(request):
         if form.is_valid():
             issue = form.save(commit=False)
             issue.user = request.user
-            issue.save()
-            audit(request, 'issue_reported', issue, project=issue.project)
-            if issue.project.created_by:
-                notify(issue.project.created_by, 'issue', 'New project issue', issue.title, f'/issues/{issue.id}/')
-            return redirect('issue_list')
+            try:
+                issue.response_due_at = _issue_response_deadline(issue.severity)
+            except IssueResponsePolicy.DoesNotExist:
+                form.add_error(None, 'No response-time target is configured for this issue severity.')
+            else:
+                issue.save()
+                audit(request, 'issue_reported', issue, project=issue.project)
+                if issue.project.created_by:
+                    notify(issue.project.created_by, 'issue', 'New project issue', issue.title, f'/issues/{issue.id}/')
+                return redirect('issue_list')
 
     return render(request, 'report_issue.html', {'form': form})
 
 @login_required(login_url='login')
 def issue_detail(request, issue_id):
-    issue = get_object_or_404(ReportIssue, id=issue_id)
-    return render(request, 'issue_detail.html', {'issue': issue})
+    issue = get_object_or_404(
+        ReportIssue.objects.select_related('project', 'user', 'assigned_to'),
+        id=issue_id,
+    )
+    is_officer = request.user.is_superuser or request.user.role in OFFICER_ROLES
+    can_view = is_officer or issue.user_id == request.user.id
+    if not can_view:
+        return HttpResponseForbidden('You can only view your own reported issues.')
+
+    if request.method == 'POST':
+        if not is_officer:
+            return HttpResponseForbidden('Only authorized staff can manage issue responses.')
+        action = request.POST.get('action')
+        if action == 'respond':
+            response_text = request.POST.get('response', '').strip()
+            is_internal = request.POST.get('is_internal') == 'on'
+            if not response_text:
+                messages.error(request, 'Enter a response before submitting.')
+            elif len(response_text) > 10000:
+                messages.error(request, 'The response must be 10,000 characters or fewer.')
+            else:
+                IssueResponse.objects.create(
+                    issue=issue,
+                    author=request.user,
+                    response=response_text,
+                    is_internal=is_internal,
+                )
+                audit(request, 'issue_response_added', issue, project=issue.project)
+                if issue.user and not is_internal:
+                    notify(
+                        issue.user,
+                        'issue',
+                        'Update on your reported issue',
+                        issue.title or 'Your issue received a response.',
+                        reverse('issue_detail', args=[issue.pk]),
+                    )
+                messages.success(request, 'Issue response recorded.')
+        elif action == 'manage':
+            valid_statuses = {value for value, _label in ReportIssue.STATUS_CHOICES}
+            status = request.POST.get('status', issue.status)
+            assignee_id = request.POST.get('assigned_to', '').strip()
+            resolution_notes = request.POST.get('resolution_notes', '').strip()
+            if status not in valid_statuses:
+                messages.error(request, 'Choose a valid issue status.')
+            elif status in {'resolved', 'dismissed'} and not resolution_notes:
+                messages.error(request, 'Add a resolution note before closing this issue.')
+            else:
+                issue.status = status
+                issue.resolved = status in {'resolved', 'dismissed'}
+                issue.closed_at = timezone.now() if issue.resolved else None
+                issue.resolved_by = request.user if issue.resolved else None
+                issue.resolution_notes = resolution_notes
+                if assignee_id:
+                    assignee = get_object_or_404(
+                        User.objects.filter(
+                            Q(role__in=OFFICER_ROLES) | Q(is_superuser=True)
+                        ),
+                        pk=assignee_id,
+                    )
+                    issue.assigned_to = assignee
+                else:
+                    issue.assigned_to = None
+                issue.save(update_fields=[
+                    'status', 'resolved', 'closed_at', 'resolved_by',
+                    'resolution_notes', 'assigned_to', 'updated_at',
+                ])
+                audit(request, 'issue_status_updated', issue, project=issue.project,
+                      changes={'status': issue.status, 'assigned_to': issue.assigned_to_id})
+                messages.success(request, 'Issue assignment and status updated.')
+        else:
+            messages.error(request, 'Choose a valid issue action.')
+        return redirect('issue_detail', issue_id=issue.pk)
+
+    responses = issue.responses.select_related('author')
+    if not is_officer:
+        responses = responses.filter(is_internal=False)
+    return render(request, 'issue_detail.html', {
+        'issue': issue,
+        'responses': responses,
+        'is_officer': is_officer,
+        'status_choices': ReportIssue.STATUS_CHOICES,
+        'officers': User.objects.filter(
+            Q(role__in=OFFICER_ROLES) | Q(is_superuser=True)
+        ).order_by('name', 'username'),
+    })
+
+
+@login_required(login_url='login')
+@role_required('official', 'admin', 'manager')
+def government_agencies(request):
+    agency_id = request.POST.get('agency_id') if request.method == 'POST' else request.GET.get('edit')
+    agency = get_object_or_404(GovernmentAgency, pk=agency_id) if agency_id else None
+    form = GovernmentAgencyForm(request.POST or None, instance=agency)
+    if request.method == 'POST' and form.is_valid():
+        agency = form.save()
+        action = 'government_agency_updated' if agency_id else 'government_agency_created'
+        audit(request, action, agency)
+        verb = 'updated' if agency_id else 'added'
+        messages.success(request, f'{agency.name} {verb} in the agency registry.')
+        return redirect('government_agencies')
+    return render(request, 'government_agencies.html', {
+        'form': form,
+        'editing_agency': agency,
+        'agencies': GovernmentAgency.objects.all(),
+    })
+
+
+def project_inspections(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    is_officer = request.user.is_authenticated and (
+        request.user.is_superuser or getattr(request.user, 'role', '') in OFFICER_ROLES
+    )
+    can_view = is_officer or user_assigned_to_project(request.user, project) or project.is_public
+    if not can_view:
+        return HttpResponseForbidden('You are not allowed to view this project inspection record.')
+    form = ProjectInspectionForm(request.POST or None, request.FILES or None, project=project)
+    if request.method == 'POST':
+        if not is_officer:
+            return HttpResponseForbidden('Only authorized staff can record independent site inspections.')
+        if form.is_valid():
+            inspection = form.save(commit=False)
+            inspection.project = project
+            inspection.inspected_by = request.user
+            inspection.full_clean()
+            inspection.save()
+            audit(request, 'project_inspection_recorded', inspection, project=project,
+                  changes={'outcome': inspection.outcome})
+            messages.success(request, 'Independent site inspection recorded.')
+            return redirect('project_inspections', pk=project.pk)
+    inspections = project.inspections.select_related('stage', 'inspected_by').all()
+    return render(request, 'project_inspections.html', {
+        'project': project,
+        'inspections': inspections,
+        'form': form,
+        'can_record_inspection': is_officer,
+    })
+
+
+def project_change_requests(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    can_request = user_assigned_to_project(request.user, project)
+    can_review = request.user.is_authenticated and (
+        request.user.is_superuser or getattr(request.user, 'role', '') in OFFICER_ROLES
+    )
+    if not (can_request or can_review or project.is_public):
+        return HttpResponseForbidden('You are not allowed to view this project change history.')
+    form = ProjectChangeRequestForm(request.POST or None, request.FILES or None, project=project)
+    if request.method == 'POST':
+        if not can_request:
+            return HttpResponseForbidden('Only project participants and assigned contractors can propose a change.')
+        if form.is_valid():
+            change = form.save(commit=False)
+            change.project = project
+            change.requested_by = request.user
+            change.full_clean()
+            change.save()
+            audit(request, 'project_change_requested', change, project=project,
+                  changes={'reason': change.reason})
+            messages.success(request, 'Change proposal submitted for official review.')
+            return redirect('project_change_requests', pk=project.pk)
+    change_requests = project.change_requests.select_related(
+        'requested_by', 'reviewed_by', 'tender'
+    ).all()
+    if not (can_request or can_review):
+        change_requests = change_requests.filter(status='approved')
+    return render(request, 'project_change_requests.html', {
+        'project': project,
+        'baseline': ProjectBaseline.objects.filter(project=project).first(),
+        'change_requests': change_requests,
+        'form': form,
+        'can_request_change': can_request,
+        'can_review_changes': can_review,
+    })
+
+
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
+@require_POST
+def review_project_change(request, change_id):
+    change = get_object_or_404(
+        ProjectChangeRequest.objects.select_related('project', 'tender'),
+        pk=change_id,
+        status='pending',
+    )
+    decision = request.POST.get('decision')
+    comments = request.POST.get('reviewer_comments', '').strip()
+    if decision not in {'approved', 'rejected'}:
+        return HttpResponseBadRequest('Choose approve or reject.')
+    if decision == 'rejected' and not comments:
+        messages.error(request, 'A reason is required when rejecting a change request.')
+        return redirect('project_change_requests', pk=change.project_id)
+    if decision == 'approved' and change.proposed_contract_value is not None and not change.tender_id:
+        messages.error(request, 'A tender must be linked before a contract value can be changed.')
+        return redirect('project_change_requests', pk=change.project_id)
+
+    with transaction.atomic():
+        if decision == 'approved':
+            project = Project.objects.select_for_update().get(pk=change.project_id)
+            if change.proposed_budget is not None:
+                project.project_Budgeting = change.proposed_budget
+            if change.proposed_start_date is not None:
+                project.start_date = change.proposed_start_date
+            if change.proposed_end_date is not None:
+                project.end_date = change.proposed_end_date
+            project.clean()
+            project.save()
+            if change.proposed_contract_value is not None:
+                change.tender.award_amount = change.proposed_contract_value
+                change.tender.save(update_fields=['award_amount'])
+        change.status = decision
+        change.reviewed_by = request.user
+        change.reviewed_at = timezone.now()
+        change.reviewer_comments = comments
+        change.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'reviewer_comments'])
+        audit(request, f'project_change_{decision}', change, project=change.project,
+              changes={'reason': change.reason, 'comments': comments})
+    messages.success(request, f'Project change request {decision}.')
+    return redirect('project_change_requests', pk=change.project_id)
 
 
 
@@ -3233,6 +3507,25 @@ def award_tender(request, tender_id):
             messages.error(request, 'This tender has no applications to award.')
             return redirect('tender_detail', tender_id=tender.id)
 
+        # Blacklist guard: a disqualified supplier must never win public work,
+        # whether they applied under their company name or their company email.
+        blacklisted = blacklisted_contractor_for_application(winner)
+        if blacklisted:
+            audit(
+                request,
+                'tender_award_blocked_blacklist',
+                tender,
+                project=tender.project,
+                changes={'application_id': winner.id, 'contractor_id': blacklisted.id,
+                         'blacklist_reason': blacklisted.blacklist_reason or 'No reason recorded'},
+            )
+            messages.error(
+                request,
+                f"Award blocked: the supplier '{blacklisted.company or blacklisted.name}' "
+                f"is blacklisted ({blacklisted.blacklist_reason or 'no reason recorded'})."
+            )
+            return redirect('tender_detail', tender_id=tender.id)
+
         tender.applications.exclude(pk=winner.pk).update(status='rejected')
         winner.status = 'awarded'
         winner.save(update_fields=['status'])
@@ -3311,7 +3604,6 @@ def delete_tender(request, tender_id):
         tender.delete()
         messages.success(request, "Tender deleted successfully.")
         return redirect('tender_list')
-    return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
     return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
 
 
@@ -3394,20 +3686,22 @@ def discussion_close(request, pk):
 
 @login_required(login_url='login')
 def add_comment(request, pk):
-    projects = get_object_or_404(Comment, id=pk)
+    project = get_object_or_404(Project, id=pk)
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
-            comment.projects = projects
+            comment.project = project
+            comment.user = request.user
             comment.save()
+            audit(request, 'created', comment, project=project, changes={'content': comment.content})
             messages.success(request, 'Comment added successfully!')
-            return redirect('projectoverview')  # Or redirect to a detail page for the project
+            return redirect('project_details', pk=project.id)
     else:
         form = CommentForm()
 
     return render(request, "add_comment.html", {
-        'project': projects,
+        'project': project,
         'form': form
     })
 @login_required(login_url='login')
@@ -3415,8 +3709,15 @@ def AuditLogs(request):
     query = request.GET.get('q', '').strip()
     action_filter = request.GET.get('action', '').strip()
     project_filter = request.GET.get('project', '').strip()
+    suppression_filter = request.GET.get('suppression', 'visible').strip()  # visible | suppressed | all
 
     auditing = AuditLog.objects.select_related('user', 'project').all().order_by('-timestamp')
+
+    if suppression_filter == 'visible':
+        auditing = auditing.filter(is_suppressed=False)
+    elif suppression_filter == 'suppressed':
+        auditing = auditing.filter(is_suppressed=True)
+    # 'all' shows everything, including hidden records.
 
     if query:
         auditing = auditing.filter(
@@ -3439,6 +3740,7 @@ def AuditLogs(request):
     today_count = AuditLog.objects.filter(timestamp__date=today).count()
     active_users = AuditLog.objects.values('user').distinct().count()
     unique_actions = AuditLog.objects.values('action').distinct().count()
+    suppressed_count = AuditLog.objects.filter(is_suppressed=True).count()
 
     paginator = Paginator(auditing, 15)
     page_number = request.GET.get('page')
@@ -3453,6 +3755,9 @@ def AuditLogs(request):
         'today_count': today_count,
         'active_users': active_users,
         'unique_actions': unique_actions,
+        'suppressed_count': suppressed_count,
+        'suppression_filter': suppression_filter,
+        'suppression_choices': [('visible', 'Visible only'), ('suppressed', 'Hidden only'), ('all', 'All records')],
         'query': query,
         'action_filter': action_filter,
         'project_filter': project_filter,
@@ -3490,17 +3795,45 @@ def add_audit(request):
 def audit_details(request, pk):
     audit_item = get_object_or_404(AuditLog.objects.select_related('user', 'project'), id=pk)
     if request.method == 'POST':
-        form = AuditLogForm(request.POST, request.FILES, instance=audit_item)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Audit log updated successfully.')
+        action = request.POST.get('action', 'edit')
+        if action == 'suppress':
+            if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)):
+                messages.error(request, 'You do not have permission to hide audit records.')
+                return redirect('audit_details', pk=pk)
+            reason = request.POST.get('suppression_reason') or None
+            note = request.POST.get('suppression_note', '').strip() or None
+            if not reason:
+                messages.error(request, 'A suppression reason is required to hide an audit record.')
+                return redirect('audit_details', pk=pk)
+            audit_item.suppress(request.user, reason=reason, note=note)
+            audit(request, 'audit_suppressed', audit_item,
+                  changes={'is_suppressed': True, 'suppressed_by': request.user.username,
+                           'suppression_reason': reason})
+            messages.success(request, f'Audit record #{audit_item.id} hidden from the public trail.')
             return redirect('AuditLog')
+        elif action == 'restore':
+            if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)):
+                messages.error(request, 'You do not have permission to restore audit records.')
+                return redirect('audit_details', pk=pk)
+            audit_item.restore(request.user)
+            audit(request, 'audit_restored', audit_item,
+                  changes={'is_suppressed': False, 'restored_by': request.user.username})
+            messages.success(request, f'Audit record #{audit_item.id} restored to the visible trail.')
+            return redirect('audit_details', pk=pk)
+        else:
+            form = AuditLogForm(request.POST, request.FILES, instance=audit_item)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Audit log updated successfully.')
+                return redirect('AuditLog')
     else:
         form = AuditLogForm(instance=audit_item)
 
     context = {
         'audit_details': audit_item,
         'form': form,
+        'can_manage_audit': request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES),
+        'reason_choices': AuditLog.SUPPRESSION_REASONS,
     }
     return render(request, 'audit_details.html', context)
 
@@ -3509,15 +3842,34 @@ def audit_details(request, pk):
 def delete_audit(request, pk):
     audit_item = get_object_or_404(AuditLog, id=pk)
     if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)):
-        messages.error(request, "You do not have permission to delete audit records.")
+        messages.error(request, "You do not have permission to manage audit records.")
         return redirect('AuditLog')
 
     if request.method == 'POST':
-        audit_item.delete()
-        messages.success(request, 'Audit log deleted successfully.')
+        action = request.POST.get('action', 'suppress')
+        reason = request.POST.get('suppression_reason') or None
+        note = request.POST.get('suppression_note', '').strip() or None
+        if action == 'restore':
+            audit_item.restore(request.user)
+            audit(request, 'audit_restored', audit_item,
+                  changes={'is_suppressed': False, 'restored_by': request.user.username})
+            messages.success(request, f'Audit record #{audit_item.id} restored to the visible trail.')
+        else:
+            if not reason:
+                messages.error(request, 'A suppression reason is required to hide an audit record.')
+                return redirect('AuditLog')
+            audit_item.suppress(request.user, reason=reason, note=note)
+            audit(request, 'audit_suppressed', audit_item,
+                  changes={'is_suppressed': True, 'suppressed_by': request.user.username,
+                           'suppression_reason': reason})
+            messages.success(request, f'Audit record #{audit_item.id} hidden from the public trail.')
         return redirect('AuditLog')
 
-    return render(request, 'confirm_delete.html', {'object': f'Audit #{audit_item.id} - {audit_item.action}', 'title': 'Delete Audit Record'})
+    return render(request, 'audit_suppress.html', {
+        'audit_item': audit_item,
+        'reason_choices': AuditLog.SUPPRESSION_REASONS,
+        'title': 'Hide Audit Record',
+    })
 
 # 🔹 List All Project Stages
 
@@ -3549,9 +3901,13 @@ def projectstage(request):
         stages = stages.filter(stage_name=stage_name)
 
     stages = stages.order_by('order', '-start_date')
+    paginator = Paginator(stages, 9)
+    stages = paginator.get_page(request.GET.get('page'))
 
     context = {
         'stages': stages,
+        'paginator': paginator,
+        'total_stages': paginator.count,
         'participants': participants,
         'q': q,
         'selected_project': project_id,
@@ -4123,10 +4479,10 @@ def contractor_dashboard(request):
     stages = ProjectStage.objects.select_related('project').all()
     form = contractorForm(request.POST or None, request.FILES or None)
 
-    if request.method == "POST" and not (request.user.is_superuser or request.user.role in OFFICER_ROLES):
-        return HttpResponseForbidden("Only authorized officers can register a contractor.")
+    if request.method not in {"GET", "HEAD", "OPTIONS"} and not (request.user.is_superuser or request.user.role in OFFICER_ROLES):
+        return HttpResponseForbidden("You can view contractor performance, but you cannot create, update, or delete contractor records.")
 
-    if request.method == "POST" and form.is_valid():
+    if request.method == "POST" and form.is_valid() and (request.user.is_superuser or request.user.role in OFFICER_ROLES):
         form.save()
         messages.success(request, "Contractor added successfully.")
         return redirect('contractor_performance')
@@ -4217,7 +4573,24 @@ def contractor_dashboard(request):
 def register_contractor(request):
     form = contractorForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        contractor = form.save(commit=False)
+        # A blacklisted supplier must never be (re)registered through the
+        # official portal — block before anything is persisted.
+        if contractor_is_blacklisted(contractor):
+            audit(
+                request,
+                'contractor_registration_blocked_blacklist',
+                contractor,
+                changes={'company': contractor.company,
+                         'blacklist_reason': contractor.blacklist_reason or 'No reason recorded'},
+            )
+            messages.error(
+                request,
+                f"Registration blocked: '{contractor.company or contractor.name}' is blacklisted."
+            )
+            return redirect('contractor_performance')
+        contractor.save()
+        audit(request, 'created', contractor, changes={'company': contractor.company})
         messages.success(request, 'Contractor registered successfully.')
         return redirect('contractor_performance')
     return render(request, 'contractors/register.html', {'form': form})
@@ -4576,12 +4949,17 @@ def contractor_review_queue(request):
             if action == 'rejected' and not comments:
                 messages.error(request, 'Add a reviewer comment when rejecting a payment request.')
                 return redirect('contractor_review_queue')
+            disbursement_reference = request.POST.get('disbursement_reference', '').strip()
+            if action == 'paid' and not disbursement_reference:
+                messages.error(request, 'Enter the government payment or transfer reference before marking paid.')
+                return redirect('contractor_review_queue')
             submission.status = action
             update_fields = ['status', 'updated_at']
             if action == 'paid':
                 submission.paid_at = timezone.now()
                 submission.paid_by = request.user
-                update_fields.extend(['paid_at', 'paid_by'])
+                submission.disbursement_reference = disbursement_reference
+                update_fields.extend(['paid_at', 'paid_by', 'disbursement_reference'])
             else:
                 submission.reviewer_comments = comments
                 submission.reviewed_by = request.user
@@ -4842,6 +5220,9 @@ def verify_evidence(request, pk):
     if not is_officer:
         messages.error(request, 'Only authorized officers can verify evidence.')
         return redirect('citizen_evidence_detail', pk=evidence.pk)
+    if not user_has_permission(request.user, 'can_verify_evidence'):
+        messages.error(request, 'Your role does not grant the permission to verify citizen evidence.')
+        return redirect('citizen_evidence_detail', pk=evidence.pk)
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -4940,16 +5321,60 @@ def budget_dashboard(request):
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def add_budget(request):
+    if not user_has_permission(request.user, 'can_allocate_budget'):
+        messages.error(request, 'Your role does not grant permission to allocate budgets.')
+        return redirect('budget_dashboard')
     if request.method == "POST":
-        form = BudgetForm(request.POST, request.FILES)
+        project_id = request.POST.get('project', '')
+        budget_instance = (
+            Budget.objects.filter(project_id=project_id).order_by('pk').first()
+            if project_id.isdigit() else None
+        )
+        form = BudgetForm(request.POST, request.FILES, instance=budget_instance)
         if form.is_valid():
-            budget = form.save()
-            if budget.project:
-                budget.project.project_Budgeting = budget.allocated_amount
-                budget.project.amount_spent = budget.spent_amount
-                budget.project.save()
-            messages.success(request, f"Budget allocated successfully for {budget.project.project_title}!")
-            return redirect('budget_dashboard')
+            project = form.cleaned_data['project']
+            reason = (form.cleaned_data.get('notes') or '').strip()
+            current_amount = project.project_Budgeting
+            proposed_amount = form.cleaned_data['allocated_amount']
+            if current_amount != proposed_amount and not reason:
+                form.add_error('notes', 'A written justification is required when the approved project budget changes.')
+            else:
+                with transaction.atomic():
+                    project = Project.objects.select_for_update().get(pk=project.pk)
+                    budget = form.save()
+                    project.project_Budgeting = budget.allocated_amount
+                    project.amount_spent = budget.spent_amount
+                    project.save()
+                    if current_amount != proposed_amount:
+                        change = ProjectChangeRequest(
+                            project=project,
+                            proposed_budget=proposed_amount,
+                            reason=reason,
+                            status='approved',
+                            requested_by=request.user,
+                            reviewed_by=request.user,
+                            reviewed_at=timezone.now(),
+                            reviewer_comments='Approved through the authorized budget-allocation workflow.',
+                        )
+                        change.full_clean()
+                        change.save()
+                        if current_amount is not None:
+                            BudgetRevision.objects.create(
+                                budget=budget,
+                                old_amount=current_amount,
+                                new_amount=proposed_amount,
+                                reason=reason,
+                                approved_by=request.user,
+                            )
+                        audit(
+                            request,
+                            'project_budget_revised',
+                            change,
+                            project=project,
+                            changes={'old_amount': str(current_amount), 'new_amount': str(proposed_amount)},
+                        )
+                messages.success(request, f"Budget allocated successfully for {project.project_title}!")
+                return redirect('budget_dashboard')
     else:
         form = BudgetForm()
 
@@ -5185,6 +5610,9 @@ def request_detail(request, pk):
 @login_required(login_url='login')
 def respond_request(request, pk):
     req = get_object_or_404(GovernmentRequest, pk=pk)
+    if not user_has_permission(request.user, 'can_respond_requests'):
+        messages.error(request, 'You do not have permission to respond to government requests.')
+        return redirect('request_detail', pk=pk)
 
     if request.method == 'POST':
         response_text = request.POST.get('response') or request.POST.get('official_response')
@@ -5196,6 +5624,8 @@ def respond_request(request, pk):
         req.status = new_status
         req.save()
 
+        record_request_status_change(req, new_status, actor=request.user,
+                                      source='manual', note=(response_text or '')[:255])
         audit(request, 'responded_request', req, changes={'status': req.status})
         notify(req.citizen, 'system', 'Request Response', f'An official response was posted for {req.reference_no or req.title}.', f'/government-requests/{req.id}/')
         messages.success(request, f"Response saved for Request #{req.reference_no or req.id}.")
@@ -5207,9 +5637,14 @@ def respond_request(request, pk):
 @login_required(login_url='login')
 def close_request(request, pk):
     req = get_object_or_404(GovernmentRequest, pk=pk)
+    if not user_has_permission(request.user, 'can_close_requests'):
+        messages.error(request, 'You do not have permission to close government requests.')
+        return redirect('request_detail', pk=pk)
+    old_status = req.status
     req.status = 'closed'
     req.save()
-    audit(request, 'closed_request', req, changes={'status': 'closed'})
+    record_request_status_change(req, 'closed', actor=request.user, source='manual')
+    audit(request, 'closed_request', req, changes={'status': 'closed', 'old_status': old_status})
     messages.info(request, f"Request '{req.reference_no or req.title}' marked as closed.")
     return redirect('all_requests')
 
@@ -5236,8 +5671,85 @@ def progress_report(request):
         'progress_percentage': progress_percentage,
         'projects': projects
     }
-
     return render(request, 'Reports/progress_report.html', context)
+
+
+@login_required(login_url='login')
+def export_progress_pdf(request):
+    projects = Project.objects.all()
+    total_projects = projects.count()
+    completed = projects.filter(project_status='completed').count()
+    ongoing = projects.filter(project_status='ongoing').count()
+    delayed = projects.filter(project_status='delayed').count()
+    upcoming = projects.filter(project_status='upcoming').count()
+
+    progress_percentage = 0
+    if total_projects > 0:
+        progress_percentage = int((completed / total_projects) * 100)
+
+    context = {
+        'total_projects': total_projects,
+        'completed': completed,
+        'ongoing': ongoing,
+        'delayed': delayed,
+        'upcoming': upcoming,
+        'progress_percentage': progress_percentage,
+        'projects': projects,
+        'today': timezone.localdate(),
+    }
+    template = get_template('Reports/progress_report_pdf.html')
+    html = template.render(context)
+
+    options = {
+        'page-size': 'A4',
+        'margin-top': '2cm',
+        'margin-right': '2cm',
+        'margin-bottom': '2cm',
+        'margin-left': '2cm',
+        'encoding': 'UTF-8',
+        'no-outline': None,
+    }
+    pdf = pdfkit.from_string(html, False, options=options)
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="progress_report.pdf"'
+    return response
+
+
+@login_required(login_url='login')
+def export_progress_excel(request):
+    projects = Project.objects.all()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Progress Report"
+
+    headers = ['Project Title', 'Status', 'Progress %', 'Budget', 'Amount Spent', 'Start Date', 'End Date']
+    ws.append(headers)
+
+    for p in projects:
+        ws.append([
+            p.project_title or 'Untitled',
+            p.project_status or 'draft',
+            getattr(p, 'progress', 0) or 0,
+            float(p.project_Budgeting) if getattr(p, 'project_Budgeting', None) else 0,
+            float(p.amount_spent) if getattr(p, 'amount_spent', None) else 0,
+            p.start_date.strftime('%Y-%m-%d') if p.start_date else '',
+            p.end_date.strftime('%Y-%m-%d') if p.end_date else '',
+        ])
+
+    from io import BytesIO
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="progress_report.xlsx"'
+    return response
+
 
 @login_required
 def account_settings(request):
@@ -5896,6 +6408,18 @@ def project_tracking(request, pk):
     report, stage report and update on a single chronological timeline, so any
     authenticated user can follow the project from its initial point to the
     end (completed or cancelled). Only the assigned contractor can post updates."""
+    from datetime import datetime, time as _time
+
+    def _to_datetime(value):
+        """Normalise date-only values to timezone-aware datetimes so the
+        template's time format specifiers and the timeline sort work for
+        every event type (updates/expenses use plain dates)."""
+        if value is None:
+            return value
+        if isinstance(value, datetime):
+            return timezone.make_aware(value) if timezone.is_naive(value) else value
+        return datetime.combine(value, _time.min, tzinfo=timezone.utc)
+
     project = get_object_or_404(
         Project.objects.select_related('district', 'category', 'project_division'), id=pk
     )
@@ -6030,10 +6554,25 @@ def project_tracking(request, pk):
     for u in project.updates.all()[:100]:
         events.append({
             'type': 'update',
-            'date': u.update_date,
+            'date': _to_datetime(u.update_date),
             'actor': u.posted_by,
             'text': f'{u.title}: {u.description}',
         })
+    for inspection in project.inspections.select_related('inspected_by', 'stage').all():
+        events.append({
+            'type': 'inspection',
+            'date': inspection.inspected_at,
+            'actor': inspection.inspected_by,
+            'text': f'Independent site inspection: {inspection.get_outcome_display()}. {inspection.findings}',
+        })
+    for change in project.change_requests.filter(status='approved').select_related('reviewed_by'):
+        if change.reviewed_at:
+            events.append({
+                'type': 'change',
+                'date': change.reviewed_at,
+                'actor': change.reviewed_by,
+                'text': f'Project plan change approved: {change.reason}',
+            })
     events.sort(key=lambda e: e['date'], reverse=True)
 
     if request.GET.get('format') == 'json':
@@ -6070,5 +6609,182 @@ def project_tracking(request, pk):
         'can_respond': can_respond,
         'status_progress': _status_progress_context(project),
         'overall_progress': overall_progress,
+        'inspections': project.inspections.select_related('stage', 'inspected_by').all(),
+        'inspection_points': [
+            {
+                'latitude': float(inspection.latitude),
+                'longitude': float(inspection.longitude),
+                'outcome': inspection.get_outcome_display(),
+                'date': inspection.inspected_at.strftime('%Y-%m-%d'),
+            }
+            for inspection in project.inspections.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+        ],
+        'baseline': ProjectBaseline.objects.filter(project=project).first(),
     }
     return render(request, 'project_tracking.html', context)
+
+
+def project_tracking_public(request, pk):
+    """Public end-to-end tracking timeline for citizens — no login required.
+    Shows the complete project history from registration to current status."""
+    from datetime import datetime, time as _time
+
+    def _to_datetime(value):
+        """Normalise date-only values to timezone-aware datetimes so the
+        template's time format specifiers and the timeline sort work for
+        every event type (updates/expenses use plain dates)."""
+        if value is None:
+            return value
+        if isinstance(value, datetime):
+            return timezone.make_aware(value) if timezone.is_naive(value) else value
+        return datetime.combine(value, _time.min, tzinfo=timezone.utc)
+
+    project = get_object_or_404(
+        Project.objects.select_related('district', 'category', 'project_division'), id=pk
+    )
+
+    # Only show public projects, or all if staff
+    if not project.is_public and not (request.user.is_authenticated and (request.user.is_superuser or request.user.role in OFFICER_ROLES)):
+        return HttpResponseForbidden('This project is not publicly visible.')
+
+    stages = project.stages.order_by('order')
+    stage_progress = project.stages.aggregate(v=Avg('progress_percentage'))['v']
+    latest_progress = project.progress_updates.order_by('-date_reported').first()
+    overall_progress = (
+        latest_progress.progress_percentage
+        if latest_progress else round(stage_progress or 0)
+    )
+
+    # ── Computed metrics the template renders (kept on the view so the public
+    # page never depends on a model property that could drift from the expense
+    # sum — see the budget fields note in the audit section). ──────────────
+    total_spent = float(project.expenses.aggregate(s=Sum('amount'))['s'] or 0)
+    total_budget = float(project.project_Budgeting or 0)
+    budget_utilization = round((total_spent / total_budget) * 100, 1) if total_budget else 0.0
+    stages_completed_count = stages.filter(status='completed').count()
+    current_stage = stages.filter(is_current=True).first() or (
+        stages.exclude(status='not_started').order_by('-order').first()
+    ) or None
+    months_on_site = 0
+    anchor = project.start_date or project.created_at
+    if anchor:
+        today = timezone.now().date()
+        anchor_date = anchor.date() if hasattr(anchor, 'date') else anchor
+        months_on_site = max(0, (today.year - anchor_date.year) * 12 + (today.month - anchor_date.month))
+
+    # Build unified timeline (newest first)
+    events = []
+    for h in project.status_history.all():
+        events.append({
+            'type': 'status',
+            'date': h.changed_at,
+            'from_status': h.from_status,
+            'to_status': h.to_status,
+            'source': h.source,
+            'note': h.note,
+            'actor': h.changed_by,
+            'text': f'Status changed from "{h.from_status or "—"}" to "{h.to_status}" ({h.source}).',
+        })
+    for r in project.progress_updates.all()[:200]:
+        events.append({
+            'type': 'progress',
+            'date': r.date_reported,
+            'progress': r.progress_percentage,
+            'actor': r.reported_by,
+            'text': r.description,
+        })
+    for r in project.reports.all()[:200]:
+        events.append({
+            'type': 'stage_report',
+            'date': r.created_at,
+            'progress': r.progress_percentage,
+            'actor': r.reported_by,
+            'photo': r.photo,
+            'text': f'{(r.stage_description or (r.stage.stage_name if r.stage_id else "")) or "Stage report"}: {r.description}',
+        })
+    for u in project.updates.all()[:100]:
+        events.append({
+            'type': 'update',
+            'date': _to_datetime(u.update_date),
+            'actor': u.posted_by,
+            'text': u.description,
+        })
+    for e in project.expenses.all()[:50]:
+        events.append({
+            'type': 'expense',
+            'date': _to_datetime(e.date),
+            'actor': e.recorded_by,
+            'text': f'Expense: {e.title} — KES {e.amount} ({e.category})',
+        })
+    for inspection in project.inspections.select_related('inspected_by', 'stage').all():
+        events.append({
+            'type': 'inspection',
+            'date': inspection.inspected_at,
+            'actor': inspection.inspected_by,
+            'text': f'Independent site inspection: {inspection.get_outcome_display()}. {inspection.findings}',
+        })
+    for change in project.change_requests.filter(status='approved').select_related('reviewed_by'):
+        if change.reviewed_at:
+            events.append({
+                'type': 'change',
+                'date': change.reviewed_at,
+                'actor': change.reviewed_by,
+                'text': f'Project plan change approved: {change.reason}',
+            })
+
+    events.sort(key=lambda e: e['date'], reverse=True)
+
+    # JSON endpoint for live refresh (public)
+    if request.GET.get('format') == 'json':
+        json_events = []
+        for event in events:
+            json_event = {
+                'type': event['type'],
+                'date': event['date'].isoformat(),
+                'actor': (
+                    event['actor'].full_name or event['actor'].username
+                    if event['actor'] else ''
+                ),
+                'text': event['text'],
+            }
+            for key in ('from_status', 'to_status', 'source', 'progress', 'note'):
+                if key in event:
+                    json_event[key] = event[key]
+            if event.get('photo'):
+                json_event['photo'] = event['photo'].url
+            json_events.append(json_event)
+        response = JsonResponse({
+            'status': project.project_status,
+            'status_label': project.get_project_status_display(),
+            'overall_progress': overall_progress,
+            'events': json_events,
+        })
+        response['Cache-Control'] = 'no-store'
+        return response
+
+    context = {
+        'project': project,
+        'stages': stages,
+        'overall_progress': overall_progress,
+        'latest_progress': latest_progress,
+        'events': events,
+        'can_respond': False,
+        'total_budget': total_budget,
+        'total_spent': total_spent,
+        'budget_utilization': budget_utilization,
+        'current_stage': current_stage,
+        'stages_completed_count': stages_completed_count,
+        'months_on_site': months_on_site,
+        'inspections': project.inspections.select_related('stage', 'inspected_by').all(),
+        'inspection_points': [
+            {
+                'latitude': float(inspection.latitude),
+                'longitude': float(inspection.longitude),
+                'outcome': inspection.get_outcome_display(),
+                'date': inspection.inspected_at.strftime('%Y-%m-%d'),
+            }
+            for inspection in project.inspections.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+        ],
+        'baseline': ProjectBaseline.objects.filter(project=project).first(),
+    }
+    return render(request, 'project_tracking_public.html', context)

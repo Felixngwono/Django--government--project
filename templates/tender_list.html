@@ -1,12 +1,12 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Project Overview — GovTracker</title>
+<title>Government Tenders & Bids — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 <link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
+<body class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -27,138 +27,185 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-<div class="proj_container flex">
-    <div class="w-full">
-        <div class="container mx-auto space-y-6 p-4">
+<div class="content p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
 
-            <!-- Hero Banner -->
-            <div class="relative w-full h-56 bg-slate-900 rounded-2xl overflow-hidden shadow-md text-white p-6 md:p-8 flex flex-col justify-end">
-                <img src="https://images.unsplash.com/photo-1450133064473-71024230f91b?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay" alt="Government Procurement Banner">
-                <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <span class="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full uppercase tracking-wider mb-2 border border-indigo-500/30">Public Procurement Portal</span>
-                        <h1 class="text-2xl md:text-3xl font-extrabold">Available Government Tenders & Bids</h1>
-                        <p class="text-xs text-slate-300 mt-1 max-w-xl">Open tenders, competitive bidding opportunities, and procurement contracts for national & county projects.</p>
-                    </div>
-
-                    {% if is_officer or request.user.is_superuser %}
-                    <a href="{% url 'add_tender' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition duration-300 shrink-0 inline-flex items-center gap-2 text-sm">
-                        <iconify-icon icon="solar:add-circle-bold"></iconify-icon> + Add Tender
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-
-
-            <!-- Tender Table Card -->
-            <div class="bg-white shadow-sm rounded-2xl border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50 text-slate-700 uppercase text-xs">
-                            <tr>
-                                <th class="py-3.5 px-4">Tender Title & Project</th>
-                                <th class="py-3.5 px-4">Reference</th>
-                                <th class="py-3.5 px-4">Estimated Budget</th>
-                                <th class="py-3.5 px-4">Bids Recv</th>
-                                <th class="py-3.5 px-4">Awarded Contractor</th>
-                                <th class="py-3.5 px-4 text-center">Status</th>
-                                <th class="py-3.5 px-4 text-center">Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
-                            {% for tender in tenders %}
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="py-3.5 px-4">
-                                    <a href="{% url 'tender_detail' tender.id %}" class="font-bold text-slate-900 hover:text-indigo-600 transition">
-                                        {{ tender.title }}
-                                    </a>
-                                    <p class="text-xs text-slate-400">Project: {{ tender.project.project_title|default:"Unassigned" }}</p>
-                                </td>
-
-                                <td class="py-3.5 px-4 font-semibold text-indigo-600 text-xs">
-                                    {{ tender.reference_number }}
-                                </td>
-
-                                <td class="py-3.5 px-4 font-bold text-slate-800">
-                                    KES {{ tender.estimated_budget|floatformat:2|default:"N/A" }}
-                                </td>
-
-                                <td class="py-3.5 px-4">
-                                    <span class="inline-flex items-center gap-1 font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full text-xs">
-                                        <iconify-icon icon="solar:folder-open-bold"></iconify-icon> {{ tender.applications.count }} Bid(s)
-                                    </span>
-                                </td>
-
-                                <td class="py-3.5 px-4 text-xs font-semibold">
-                                    {% if tender.awarded_to %}
-                                    <span class="text-emerald-700 flex items-center gap-1">
-                                        <iconify-icon icon="solar:medal-ribbon-star-bold"></iconify-icon> {{ tender.awarded_to.company|default:tender.awarded_to.name }}
-                                    </span>
-                                    {% else %}
-                                    <span class="text-slate-400 italic">Not Awarded</span>
-                                    {% endif %}
-                                </td>
-
-                                {% now "Y-m-d" as today %}
-                                <td class="py-3.5 px-4 text-center">
-                                    {% if tender.status == 'awarded' %}
-                                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
-                                            Awarded
-                                        </span>
-                                    {% elif tender.closing_date|date:"Y-m-d" >= today %}
-                                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
-                                            Open
-                                        </span>
-                                    {% else %}
-                                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">
-                                            Closed
-                                        </span>
-                                    {% endif %}
-                                </td>
-
-                                <td class="py-3.5 px-4 text-center">
-                                    <div class="flex items-center justify-center gap-2 text-xs font-bold">
-                                        <a href="{% url 'tender_detail' tender.id %}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition">
-                                            View
-                                        </a>
-
-                                        {% if tender.status == 'published' or tender.status == 'open' %}
-                                        <a href="{% url 'apply_tender' tender.id %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg shadow transition">
-                                            Apply / Bid
-                                        </a>
-                                        {% endif %}
-
-                                        {% if is_officer or request.user.is_superuser %}
-                                        <a href="{% url 'update_tender' tender.id %}" class="text-emerald-600 hover:underline">
-                                            Edit
-                                        </a>
-                                        <a href="{% url 'delete_tender' tender.id %}" onclick="return confirm('Delete this tender?')" class="text-red-600 hover:underline">
-                                            Delete
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center py-10 text-slate-400">
-                                    <p class="text-base font-bold text-slate-700">No Tenders Available</p>
-                                    <p class="text-xs mt-1">Click "Add Tender" to create an open tender opportunity.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+    <!-- HERO BANNER -->
+    <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 text-white shadow-xl border border-indigo-800 relative overflow-hidden">
+      <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 backdrop-blur-md mb-3">
+            <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+            Public Procurement Portal
+          </div>
+          <h1 class="text-3xl font-extrabold tracking-tight">Government Tenders & Bids</h1>
+          <p class="mt-2 max-w-xl text-sm text-slate-300 leading-relaxed">
+            Open tenders, competitive bidding opportunities, and procurement contracts for national & county projects.
+          </p>
         </div>
+        {% if is_officer or request.user.is_superuser %}
+        <a href="{% url 'add_tender' %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
+          <i class="fas fa-plus"></i> + Add Tender
+        </a>
+        {% endif %}
+      </div>
     </div>
 
-        {% include "recent_activities.html" %}
+    <!-- STATS OVERVIEW -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Tenders</span>
+          <iconify-icon icon="solar:folder-open-bold-duotone" class="text-2xl text-indigo-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-slate-900 mt-2">{{ tenders.count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Active procurement opportunities</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Open Tenders</span>
+          <iconify-icon icon="solar:clock-bold-duotone" class="text-2xl text-blue-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-blue-600 mt-2">{{ open_tenders_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Accepting applications</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Evaluating</span>
+          <iconify-icon icon="solar:calculator-bold-duotone" class="text-2xl text-purple-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-purple-600 mt-2">{{ evaluating_tenders_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Under official review</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Awarded</span>
+          <iconify-icon icon="solar:medal-ribbon-star-bold-duotone" class="text-2xl text-emerald-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-emerald-600 mt-2">{{ awarded_tenders_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">Contracts awarded</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Closed</span>
+          <iconify-icon icon="solar:close-bold-duotone" class="text-2xl text-rose-600"></iconify-icon>
+        </div>
+        <div class="text-2xl font-bold text-rose-600 mt-2">{{ closed_tenders_count }}</div>
+        <span class="text-[11px] text-slate-400 mt-1 block">No longer active</span>
+      </div>
     </div>
-</div>
+
+    <!-- TENDER TABLE -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-700">
+          <thead class="bg-slate-50 text-slate-600 text-xs font-semibold uppercase border-b border-slate-100">
+            <tr>
+              <th scope="col" class="px-6 py-4">Tender Title & Project</th>
+              <th scope="col" class="px-6 py-4">Reference</th>
+              <th scope="col" class="px-6 py-4">Estimated Budget</th>
+              <th scope="col" class="px-6 py-4 text-center">Bids</th>
+              <th scope="col" class="px-6 py-4">Awarded Contractor</th>
+              <th scope="col" class="px-6 py-4 text-center">Status</th>
+              <th scope="col" class="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for tender in tenders %}
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="px-6 py-4">
+                <a href="{% url 'tender_detail' tender.id %}" class="font-bold text-slate-900 hover:text-indigo-600 transition">
+                  {{ tender.title }}
+                </a>
+                <p class="text-xs text-slate-400">Project: {{ tender.project.project_title|default:"Unassigned" }}</p>
+              </td>
+
+              <td class="px-6 py-4 font-semibold text-indigo-600 text-xs">
+                {{ tender.reference_number }}
+              </td>
+
+              <td class="px-6 py-4 font-bold text-slate-800">
+                KES {{ tender.estimated_budget|floatformat:2|default:"N/A" }}
+              </td>
+
+              <td class="px-6 py-4 text-center">
+                <span class="inline-flex items-center gap-1 font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full text-xs border border-purple-100">
+                  <iconify-icon icon="solar:folder-open-bold"></iconify-icon> {{ tender.applications.count }} Bid(s)
+                </span>
+              </td>
+
+              <td class="px-6 py-4 text-xs font-semibold">
+                {% if tender.awarded_to %}
+                <span class="flex items-center gap-1 text-emerald-700">
+                  <iconify-icon icon="solar:medal-ribbon-star-bold"></iconify-icon> {{ tender.awarded_to.company|default:tender.awarded_to.name }}
+                </span>
+                {% else %}
+                <span class="text-slate-400 italic">Not Awarded</span>
+                {% endif %}
+              </td>
+
+              {% now "Y-m-d" as today %}
+              <td class="px-6 py-4 text-center">
+                {% if tender.status == 'awarded' %}
+                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                        Awarded
+                    </span>
+                {% elif tender.closing_date|date:"Y-m-d" >= today %}
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
+                        Open
+                    </span>
+                {% else %}
+                    <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold border border-slate-200">
+                        Closed
+                    </span>
+                {% endif %}
+              </td>
+
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2 text-xs font-bold">
+                  <a href="{% url 'tender_detail' tender.id %}" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                    View
+                  </a>
+
+                  {% if tender.status == 'published' or tender.status == 'open' %}
+                  <a href="{% url 'apply_tender' tender.id %}" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/20 transition-all">
+                    Apply / Bid
+                  </a>
+                  {% endif %}
+
+                  {% if is_officer or request.user.is_superuser %}
+                  <a href="{% url 'update_tender' tender.id %}" class="px-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors" title="Edit">
+                    <iconify-icon icon="solar:edit-bold-duotone"></iconify-icon>
+                  </a>
+                  <a href="{% url 'delete_tender' tender.id %}" class="px-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-500 transition-colors" title="Delete">
+                    <iconify-icon icon="solar:trash-bold-duotone"></iconify-icon>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="px-6 py-12 text-center text-slate-500">
+                <iconify-icon icon="solar:folder-open-bold-duotone" class="text-4xl mb-3 opacity-25 block mx-auto"></iconify-icon>
+                <p class="text-sm font-medium">No tenders available.</p>
+                <p class="text-xs text-slate-400 mt-1">Click "Add Tender" to create an open tender opportunity.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
 </div>
 </main>
+
 {% include "footer.html" %}
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_expense, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, evaluate_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_evidence_detail, citizen_portal, verify_evidence, close_request, comment, contractor_dashboard, contractor_detail, contractor_document_upload, contractor_export, contractor_payment_request, contractor_profile_settings, contractor_review_queue, register_contractor, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_team, delete_testimonial, edit_division, export_excel, export_pdf, feedback_details, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, regional_analysis, reportedissuesdetails, request_detail, respond_request, delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, delete_audit, comment_list, discussion_thread, discussion_close, community_discussion, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_detail, milestone_create, milestone_update, milestone_quick_update, submit_milestone_verification, milestone_delete, project_detail, add_report_issue, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile, stalled, cancelled, suspended, draft,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial, project_tracking, api_unread_notifications, api_mark_notification_read, api_mark_all_read, contractor_project_works, password_reset_request, password_reset_done, password_reset_confirm, password_reset_sms
+from .views import Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_expense, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, evaluate_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_evidence_detail, citizen_portal, verify_evidence, close_request, comment, contractor_dashboard, contractor_detail, contractor_document_upload, contractor_export, contractor_payment_request, contractor_profile_settings, contractor_review_queue, register_contractor, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_team, delete_testimonial, edit_division, export_excel, export_pdf, export_progress_excel, export_progress_pdf, feedback_details, government_agencies, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, project_change_requests, project_inspections, regional_analysis, reportedissuesdetails, request_detail, respond_request, delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, delete_audit, comment_list, discussion_thread, discussion_close, community_discussion, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_detail, milestone_create, milestone_update, milestone_quick_update, submit_milestone_verification, milestone_delete, project_detail, add_report_issue, review_project_change, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile, stalled, cancelled, suspended, draft,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial, project_tracking, project_tracking_public, api_unread_notifications, api_mark_notification_read, api_mark_all_read, contractor_project_works, password_reset_request, password_reset_done, password_reset_confirm, password_reset_sms
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -75,6 +75,7 @@ urlpatterns = [
     path('completed/', completed, name="completed"),
     path('project_details/<str:pk>/', project_detail, name="project_details"),
     path('project/<int:pk>/track/', project_tracking, name='project_tracking'),
+    path('project/<int:pk>/track/public/', project_tracking_public, name='project_tracking_public'),
     path('statuses/<str:pk>/', OngoingStatuses, name="Ongoingstatuses"),
     path('CompletedStatuses/<str:pk>/', CompletedStatuses, name="CompletedStatuses"),
     path('Upcomingstatus/<str:pk>/', UpcomingStatuses, name="Upcomingstatus"),
@@ -116,6 +117,10 @@ urlpatterns = [
     path('add_report_issue/', add_report_issue, name='add_report_issue'),
     path('issues/', issue_list, name='issue_list'),
     path('issues/<int:issue_id>/', issue_detail, name='issue_detail'),
+    path('agencies/', government_agencies, name='government_agencies'),
+    path('project/<int:pk>/inspections/', project_inspections, name='project_inspections'),
+    path('project/<int:pk>/changes/', project_change_requests, name='project_change_requests'),
+    path('project/changes/<int:change_id>/review/', review_project_change, name='review_project_change'),
 
     path('tenders/', tender_list, name='tender_list'),
     path('apply_tender/<str:pk>/', apply_tender,name='apply_tender'),
@@ -198,6 +203,8 @@ urlpatterns = [
     path('system_reports/', system_reports, name='system_reports'),
     path('reports/pdf/', export_pdf, name='export_pdf'),
     path('reports/excel/', export_excel, name='export_excel'),
+    path('reports/progress/pdf/', export_progress_pdf, name='export_progress_pdf'),
+    path('reports/progress/excel/', export_progress_excel, name='export_progress_excel'),
 
 
 

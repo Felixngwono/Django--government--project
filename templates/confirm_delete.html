@@ -1,56 +1,44 @@
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Tender - GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
 
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8">
+    <div class="flex items-start gap-3 mb-4">
+      <iconify-icon icon="solar:trash-bold-duotone" class="text-rose-600 w-6 h-6 flex-shrink-0 mt-0.5"></iconify-icon>
+      <div>
+        <h1 class="text-xl font-semibold text-slate-900">Delete Tender</h1>
+        <p class="text-sm text-slate-600 mt-1">Are you sure you want to delete <strong>"{{ object.title }}"</strong>?</p>
+      </div>
+    </div>
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
-
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-    <div class="page-section" :class="{ active: currentPage==='dashboard' }">
-
-<div class="container mx-auto px-4 py-6">
-    <h1 class="text-2xl font-semibold text-red-600">Delete Tender</h1>
-    <p>Are you sure you want to delete "{{ object.title }}"?</p>
-
-    <form method="post" class="mt-4">
-        {% csrf_token %}
-        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-            Yes, Delete
+    <form method="post" class="mt-6">
+      {% csrf_token %}
+      <div class="flex gap-3">
+        <button type="submit" class="flex-1 bg-rose-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-rose-500 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2">
+          Yes, Delete
         </button>
-        <a href="{% url 'tender_list' %}" class="ml-4 text-gray-500 hover:underline">Cancel</a>
+        <a href="{% url 'tender_list' %}" class="flex-1 bg-slate-100 text-slate-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors text-center">
+          Cancel
+        </a>
+      </div>
     </form>
-</div>
-</div>
-
-</div>
-</div>
+  </div>
 </main>
 {% include "footer.html" %}
