@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from smtplib import SMTPException
 from urllib.parse import quote
 from django.core.exceptions import ValidationError
 from datetime import datetime
@@ -14,7 +15,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
+from django.utils.crypto import get_random_string
 from django.db import models, transaction
+from django.db.models.deletion import ProtectedError
 from django.db.models import Avg, Count, FloatField, Max, Q, Sum, Subquery, OuterRef, Value
 from django.db.models.functions import Coalesce, TruncDate, TruncMonth
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
@@ -32,9 +35,9 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
 from ai.project_analysis import generate_project_analyses
-from .forms import (AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentAgencyForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProgressReportForm, ProjectChangeRequestForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectInspectionForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, contractorForm, participationForm,)
+from .forms import (AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentAgencyForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProfessionalAccountRegistrationForm, ProgressReportForm, ProjectChangeRequestForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectInspectionForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, UserManagementForm, participationForm,)
 from .models import (PDF, Announcement, AuditLog, Budget, BudgetRevision, CitizenEvidence, CitizenSubmission, Comment, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, DiscussionReply, DiscussionTopic, Feedback, GovernmentAgency, GovernmentRequest, IssueResponse, IssueResponsePolicy, Media, Milestone, Notification, Participation, ProgramImpact, ProgressReport, ProgressUpdate, Project, ProjectBaseline, ProjectCategory, ProjectChangeRequest, ProjectDocument, Project_Division, Project_type, ProjectExpense, ProjectInspection, ProjectRisk, ProjectStage, ProjectStatusHistory, ReportIssue, MilestoneStageEvidence, StageReport, StageReportAttachment, StageReportImage, Stakeholder, Team, Tender, TenderApplication, Testimonial, User,)
-from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, TENDER_AWARD_ROLES, _contractors_for_user, assigned_projects, apply_status_change, audit, blacklisted_contractor_for_application, contractor_assigned_to_project, contractor_is_blacklisted, has_role, is_forward_transition, notify, record_request_status_change, refresh_project_status, role_required, user_assigned_to_project, user_has_permission
+from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, PROJECT_WORKER_ROLES, TENDER_AWARD_ROLES, USER_MANAGEMENT_ROLES, _contractors_for_user, assigned_projects, apply_status_change, audit, blacklisted_contractor_for_application, contractor_assigned_to_project, contractor_is_blacklisted, has_role, is_forward_transition, notify, project_worker_assigned_to_project, record_request_status_change, refresh_project_status, role_required, user_assigned_to_project, user_has_permission
 from .models import ProjectStatusHistory
 
 
@@ -99,7 +102,7 @@ def get_participants_for_request(request, limit=None):
     return queryset
 
 
-@login_required(login_url='login')
+
 @role_required(*OFFICER_ROLES)
 def generate_report(request):
     # Fetch data for reports
@@ -647,24 +650,50 @@ def welcomingpage(request):
 def loginpage(request):
     next_url = request.GET.get('next') or request.POST.get('next')
     if request.method == 'POST':
-        email = request.POST.get('email')
+        email = (request.POST.get('email') or '').strip()
         password = request.POST.get('password')
 
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return HttpResponse('User does not exist')
+        account = User.objects.filter(email__iexact=email).first()
+        if account and not account.is_active:
+            return render(request, 'login.html', {
+                'next': next_url,
+                'login_notice': {
+                    'type': 'error',
+                    'title': 'Account suspended',
+                    'message': 'This account is suspended. Contact a government administrator for assistance.',
+                },
+            })
 
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
             login(request, user)
-            messages.info(request, 'Login successful')
-            if next_url:
-                return redirect(next_url)
-            return redirect('dashboard')
+            redirect_url = (
+                next_url
+                if next_url and url_has_allowed_host_and_scheme(
+                    next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                )
+                else reverse('dashboard')
+            )
+            return render(request, 'login.html', {
+                'next': redirect_url,
+                'login_notice': {
+                    'type': 'success',
+                    'title': 'Login successful',
+                    'message': f'Welcome back, {user.full_name}. Redirecting you to your dashboard.',
+                },
+            })
         else:
-            messages.warning(request, 'Wrong username or password')
+            return render(request, 'login.html', {
+                'next': next_url,
+                'login_notice': {
+                    'type': 'error',
+                    'title': 'Login unsuccessful',
+                    'message': 'The email or password is incorrect. Please check your details and try again.',
+                },
+            })
     return render(request, 'login.html', {'next': next_url})
 
 
@@ -759,6 +788,8 @@ def registrationpage(request):
         form = MyUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(commit=False)
+            user.role = 'citizen'
+            user.is_enduser = True
             user.save()
             messages.success(request, 'Account created successfully. Please sign in to continue.')
             return redirect('login')
@@ -784,11 +815,42 @@ def updateprofile(request,pk):
 
 @login_required(login_url='login')
 def deleteprofile(request, pk):
-    project= User.objects.get(id=pk)
-    if request.method== 'POST':
-        project.delete()
-        return redirect ('index')
-    return render(request, 'deleteprofile.html')
+    target = get_object_or_404(User, pk=pk)
+    if target.pk != request.user.pk and not has_role(request.user, USER_MANAGEMENT_ROLES):
+        return HttpResponseForbidden("You do not have permission to delete this account.")
+    if target.is_superuser:
+        return HttpResponseForbidden("Superuser accounts cannot be deleted here.")
+    if target.pk != request.user.pk and not _can_manage_user(request.user, target):
+        return HttpResponseForbidden("You do not have permission to delete this account.")
+
+    return_url = reverse('user') if has_role(request.user, USER_MANAGEMENT_ROLES) else reverse('index')
+    if request.method == 'POST':
+        was_self = target.pk == request.user.pk
+        try:
+            with transaction.atomic():
+                audit(
+                    request,
+                    'user_deleted',
+                    target,
+                    changes={'email': target.email, 'role': target.role},
+                )
+                target.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                'This account is linked to protected records and cannot be deleted. '
+                'Suspend access instead.',
+            )
+            return redirect(return_url)
+
+        if was_self:
+            logout(request)
+            messages.success(request, 'Your account has been deleted.')
+            return redirect('login')
+        messages.success(request, f'{target.email} was deleted.')
+        return redirect(return_url)
+
+    return render(request, 'deleteprofile.html', {'target_user': target, 'return_url': return_url})
 
 
 
@@ -828,9 +890,109 @@ def index(request):
 
 @login_required(login_url='login')
 def people(request):
-    pp = User.objects.all().order_by('-date_joined')
-    context = {'pp': pp}
+    query = request.GET.get('q', '').strip()
+    status = request.GET.get('status', 'all')
+    users = User.objects.all()
+    if query:
+        users = users.filter(
+            Q(name__icontains=query) |
+            Q(username__icontains=query) |
+            Q(email__icontains=query) |
+            Q(organization__icontains=query)
+        )
+    if status == 'active':
+        users = users.filter(is_active=True)
+    elif status == 'inactive':
+        users = users.filter(is_active=False)
+    else:
+        status = 'all'
+
+    users = users.order_by('-date_joined', '-pk')
+    page_obj = Paginator(users, 12).get_page(request.GET.get('page'))
+    can_manage_users = has_role(request.user, USER_MANAGEMENT_ROLES)
+    manageable_user_ids = [
+        user.pk for user in page_obj.object_list
+        if can_manage_users and _can_manage_user(request.user, user)
+    ]
+    context = {
+        'pp': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'query': query,
+        'status': status,
+        'total_users': User.objects.count(),
+        'active_users': User.objects.filter(is_active=True).count(),
+        'inactive_users': User.objects.filter(is_active=False).count(),
+        'can_manage_users': can_manage_users,
+        'manageable_user_ids': manageable_user_ids,
+    }
     return render(request, 'users.html', context)
+
+
+def _can_manage_user(actor, target):
+    if target.is_superuser:
+        return False
+    if target.pk == actor.pk:
+        return True
+    privileged_roles = {'admin', 'official', 'auditor', 'manager', 'staff'}
+    if target.is_staff or target.role in privileged_roles:
+        return actor.is_superuser or actor.role == 'admin'
+    return True
+
+
+@login_required(login_url='login')
+@role_required(*USER_MANAGEMENT_ROLES)
+def edit_user(request, pk):
+    target = get_object_or_404(User, pk=pk)
+    if not _can_manage_user(request.user, target):
+        return HttpResponseForbidden("You do not have permission to edit this account.")
+
+    old_values = {
+        field: getattr(target, field)
+        for field in ('name', 'email', 'phone_number', 'organization', 'role')
+    }
+    can_manage_officer_roles = request.user.is_superuser or request.user.role == 'admin'
+    form = UserManagementForm(
+        request.POST or None,
+        instance=target,
+        can_manage_officer_roles=can_manage_officer_roles,
+    )
+    if request.method == 'POST' and form.is_valid():
+        with transaction.atomic():
+            updated_user = form.save()
+            changes = {
+                field: {'from': old_values[field], 'to': getattr(updated_user, field)}
+                for field in old_values
+                if old_values[field] != getattr(updated_user, field)
+            }
+            if changes:
+                audit(request, 'user_updated', updated_user, changes=changes)
+        messages.success(request, f'{updated_user.email} was updated.')
+        return redirect('user')
+
+    return render(request, 'user_edit.html', {
+        'form': form,
+        'target_user': target,
+        'can_manage_officer_roles': can_manage_officer_roles,
+    })
+
+
+@login_required(login_url='login')
+@role_required(*USER_MANAGEMENT_ROLES)
+@require_POST
+def toggle_user_access(request, pk):
+    target = get_object_or_404(User, pk=pk)
+    if target.pk == request.user.pk or not _can_manage_user(request.user, target):
+        return HttpResponseForbidden("You do not have permission to change this account's access.")
+
+    with transaction.atomic():
+        target.is_active = not target.is_active
+        target.save(update_fields=['is_active', 'updated'])
+        action = 'user_access_reactivated' if target.is_active else 'user_access_suspended'
+        audit(request, action, target, changes={'is_active': target.is_active})
+    state = 'reactivated' if target.is_active else 'suspended'
+    messages.success(request, f'{target.email} access was {state}.')
+    return redirect('user')
 
 def sidebar(request):
     return render(request,'sidebar.html')
@@ -1936,11 +2098,9 @@ def charts(request):
 def milestone_list(request):
     milestones = Milestone.objects.select_related('project', 'stage').all().order_by('-due_date', '-id')
     manageable_milestone_ids = set()
-    if request.user.role == 'contractor':
+    if request.user.role in PROJECT_WORKER_ROLES:
         manageable_milestone_ids = set(
-            milestones.filter(
-                project__contractors__in=_contractors_for_user(request.user)
-            ).values_list('id', flat=True)
+            milestones.filter(project__in=assigned_projects(request.user)).values_list('id', flat=True)
         )
 
     # Search query
@@ -1995,6 +2155,7 @@ def milestone_list(request):
     context = {
         'milestones': milestones,
         'manageable_milestone_ids': manageable_milestone_ids,
+        'can_manage_project_work': request.user.role in PROJECT_WORKER_ROLES,
         'participants': participants,
         'projects': projects,
         'stages': stages,
@@ -2035,12 +2196,10 @@ def milestone_detail(request, pk):
         'sibling_milestones': sibling_milestones,
         'participants': participants,
         'can_manage_milestone': (
-            request.user.role == 'contractor'
-            and contractor_assigned_to_project(request.user, milestone.project)
+            project_worker_assigned_to_project(request.user, milestone.project)
         ),
         'can_update_milestone_progress': (
-            user_assigned_to_project(request.user, milestone.project)
-            and not has_role(request.user, OFFICER_ROLES)
+            project_worker_assigned_to_project(request.user, milestone.project)
         ),
     }
     return render(request, 'milestone_detail.html', context)
@@ -2048,8 +2207,8 @@ def milestone_detail(request, pk):
 
 @login_required(login_url='login')
 def milestone_create(request):
-    if getattr(request.user, 'role', None) != 'contractor':
-        return HttpResponseForbidden("Only contractors can add project milestones.")
+    if getattr(request.user, 'role', None) not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can add project milestones.")
 
     initial = {}
     if request.GET.get('project'):
@@ -2057,12 +2216,10 @@ def milestone_create(request):
 
     if request.method == 'POST':
         form = MilestoneForm(request.POST)
-        form.fields['project'].queryset = Project.objects.filter(
-            contractors__in=_contractors_for_user(request.user)
-        ).distinct()
+        form.fields['project'].queryset = assigned_projects(request.user)
         if form.is_valid():
             milestone_obj = form.save(commit=False)
-            if not contractor_assigned_to_project(request.user, milestone_obj.project):
+            if not project_worker_assigned_to_project(request.user, milestone_obj.project):
                 return HttpResponseForbidden("You can only add milestones to projects assigned to you.")
             if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
                 milestone_obj.status = 'completed'
@@ -2075,9 +2232,7 @@ def milestone_create(request):
             return redirect('milestone_list')
     else:
         form = MilestoneForm(initial=initial)
-        form.fields['project'].queryset = Project.objects.filter(
-            contractors__in=_contractors_for_user(request.user)
-        ).distinct()
+        form.fields['project'].queryset = assigned_projects(request.user)
 
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
@@ -2090,14 +2245,17 @@ def milestone_create(request):
 @login_required(login_url='login')
 def milestone_update(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if request.user.role != 'contractor':
-        return HttpResponseForbidden("Only contractors can edit milestones.")
-    if not contractor_assigned_to_project(request.user, milestone_obj.project):
+    if request.user.role not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can edit milestones.")
+    if not project_worker_assigned_to_project(request.user, milestone_obj.project):
         return HttpResponseForbidden("You can only edit milestones for projects assigned to you.")
     if request.method == 'POST':
         form = MilestoneForm(request.POST, instance=milestone_obj)
+        form.fields['project'].queryset = assigned_projects(request.user)
         if form.is_valid():
             milestone_obj = form.save(commit=False)
+            if not project_worker_assigned_to_project(request.user, milestone_obj.project):
+                return HttpResponseForbidden("You can only edit milestones for projects assigned to you.")
             if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
                 milestone_obj.status = 'completed'
                 if not milestone_obj.completion_date:
@@ -2109,6 +2267,7 @@ def milestone_update(request, pk):
             return redirect('milestone_list')
     else:
         form = MilestoneForm(instance=milestone_obj)
+        form.fields['project'].queryset = assigned_projects(request.user)
 
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
@@ -2122,10 +2281,8 @@ def milestone_update(request, pk):
 @require_POST
 def milestone_quick_update(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if request.user.role != 'contractor' or not contractor_assigned_to_project(
-        request.user, milestone_obj.project
-    ):
-        return HttpResponseForbidden("Only the contractor assigned to this project can update milestone progress.")
+    if not project_worker_assigned_to_project(request.user, milestone_obj.project):
+        return HttpResponseForbidden("Only an assigned project delivery professional can update milestone progress.")
     if milestone_obj.verification_status == 'pending':
         messages.error(request, 'This milestone is awaiting verification and cannot be changed.')
         return redirect('milestone_detail', pk=milestone_obj.pk)
@@ -2135,8 +2292,8 @@ def milestone_quick_update(request, pk):
     if status and status not in {choice[0] for choice in Milestone.STATUS_CHOICES}:
         messages.error(request, 'Choose a valid milestone status.')
         return redirect('milestone_detail', pk=milestone_obj.pk)
-    if request.user.role == 'contractor' and status == 'missed':
-        return HttpResponseForbidden("Contractors cannot mark a milestone as missed.")
+    if status == 'missed':
+        return HttpResponseForbidden("Project delivery professionals cannot mark a milestone as missed.")
     if not status and (progress is None or progress == ''):
         messages.error(request, 'Provide a milestone status or completion percentage.')
         return redirect('milestone_detail', pk=milestone_obj.pk)
@@ -2173,10 +2330,8 @@ def milestone_quick_update(request, pk):
 @require_POST
 def submit_milestone_verification(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if request.user.role != 'contractor' or not contractor_assigned_to_project(
-        request.user, milestone_obj.project
-    ):
-        return HttpResponseForbidden("Only the contractor assigned to this project can submit milestone verification.")
+    if not project_worker_assigned_to_project(request.user, milestone_obj.project):
+        return HttpResponseForbidden("Only an assigned project delivery professional can submit milestone verification.")
     if milestone_obj.progress_percentage < 100 or milestone_obj.status != 'completed':
         messages.error(request, 'Complete the milestone before submitting it for verification.')
         return redirect('milestone_detail', pk=milestone_obj.pk)
@@ -2202,9 +2357,9 @@ def submit_milestone_verification(request, pk):
 @login_required(login_url='login')
 def milestone_delete(request, pk):
     milestone_obj = get_object_or_404(Milestone, pk=pk)
-    if request.user.role != 'contractor':
-        return HttpResponseForbidden("Only contractors can delete milestones.")
-    if not contractor_assigned_to_project(request.user, milestone_obj.project):
+    if request.user.role not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can delete milestones.")
+    if not project_worker_assigned_to_project(request.user, milestone_obj.project):
         return HttpResponseForbidden("You can only delete milestones for projects assigned to you.")
     if request.method == 'POST':
         title = milestone_obj.title
@@ -2408,11 +2563,8 @@ def project_detail(request, pk):
 
     is_officer = request.user.is_superuser or (getattr(request.user, 'role', None) in OFFICER_ROLES)
     can_manage_project_stages = (
-        getattr(request.user, 'role', None) == 'contractor'
-        and contractor_assigned_to_project(request.user, project)
+        project_worker_assigned_to_project(request.user, project)
     )
-    # Keep general project association separate from contractor-only stage and
-    # milestone management.
     is_responsible = is_officer or user_assigned_to_project(request.user, project)
 
     if request.method == "POST":
@@ -2423,7 +2575,7 @@ def project_detail(request, pk):
             'milestone_add', 'milestone_quick', 'milestone_edit', 'expense_add',
         } and not can_manage_project_stages:
             return HttpResponseForbidden(
-                "Only the contractor assigned to this project can manage its stage, milestone, and progress records."
+                "Only an assigned project delivery professional can manage this project's work records."
             )
 
         if action == 'job_progress_update':
@@ -2773,8 +2925,8 @@ def contractor_project_works(request, pk):
     if request.method == 'POST' and request.POST.get('action') in {
         'report_update', 'report_delete',
     }:
-        if request.user.role != 'contractor':
-            return HttpResponseForbidden("Only contractors can edit or delete their progress reports.")
+        if request.user.role not in PROJECT_WORKER_ROLES:
+            return HttpResponseForbidden("Only project delivery professionals can edit or delete their progress reports.")
 
         report = get_object_or_404(
             StageReport,
@@ -2999,7 +3151,7 @@ def contractor_project_works(request, pk):
     payment_requests = project.contractor_payment_requests.select_related(
         'contractor', 'submitted_by'
     )
-    if request.user.role == 'contractor':
+    if request.user.role in PROJECT_WORKER_ROLES:
         payment_requests = payment_requests.filter(
             Q(submitted_by=request.user) | Q(contractor__in=user_contractors)
         )
@@ -3054,7 +3206,7 @@ def contractor_project_works(request, pk):
         'my_progress': my_progress,
         'latest_my_report': latest_my_report,
         'contractor_display_name': request.user.full_name,
-        'is_contractor_role': request.user.role == 'contractor',
+        'is_contractor_role': request.user.role in PROJECT_WORKER_ROLES,
         'is_officer': is_officer,
         'can_view_contract_documents': can_view_contract_documents,
         'contractor_record': user_contractors.first(),
@@ -3065,10 +3217,10 @@ def contractor_project_works(request, pk):
 # 🔹 Progress Report View
 @login_required(login_url='login')
 def upload_progress_report(request, project_id):
-    if getattr(request.user, 'role', None) != 'contractor':
-        return HttpResponseForbidden("Only contractor accounts can upload progress reports.")
-
     project = get_object_or_404(Project, id=project_id)
+    if not project_worker_assigned_to_project(request.user, project):
+        return HttpResponseForbidden("Only assigned project delivery professionals can upload progress reports.")
+
     if request.method == "POST":
         form = ProgressReportForm(request.POST, request.FILES)
         if form.is_valid():
@@ -3908,6 +4060,7 @@ def projectstage(request):
         'stages': stages,
         'paginator': paginator,
         'total_stages': paginator.count,
+        'can_manage_project_work': request.user.role in PROJECT_WORKER_ROLES,
         'participants': participants,
         'q': q,
         'selected_project': project_id,
@@ -3926,13 +4079,17 @@ def projectstage_details(request, pk):
         participants = Participation.objects.filter(user=request.user)
 
     stage = get_object_or_404(ProjectStage.objects.select_related('project'), pk=pk)
-    return render(request, 'projectstage_detail.html', {'stage': stage, 'participants': participants})
+    return render(request, 'projectstage_detail.html', {
+        'stage': stage,
+        'participants': participants,
+        'can_manage_project_work': project_worker_assigned_to_project(request.user, stage.project),
+    })
 
 
 @login_required(login_url='login')
 def ProjectStageCreate(request):
-    if getattr(request.user, 'role', None) != 'contractor':
-        return HttpResponseForbidden("Only contractors can add project stages.")
+    if getattr(request.user, 'role', None) not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can add project stages.")
 
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
@@ -3948,7 +4105,7 @@ def ProjectStageCreate(request):
         form.fields['project'].queryset = assigned_projects(request.user)
         if form.is_valid():
             stage = form.save(commit=False)
-            if not contractor_assigned_to_project(request.user, stage.project):
+            if not project_worker_assigned_to_project(request.user, stage.project):
                 return HttpResponseForbidden("You can only add stages to projects assigned to you.")
             stage.sync_status()
             stage.save()
@@ -3971,10 +4128,15 @@ def ProjectStageUpdate(request, pk):
         participants = Participation.objects.filter(user=request.user)
 
     updatestage = get_object_or_404(ProjectStage.objects.select_related('project'), pk=pk)
+    if not project_worker_assigned_to_project(request.user, updatestage.project):
+        return HttpResponseForbidden("Only an assigned project delivery professional can edit this project stage.")
     if request.method == 'POST':
         form = ProjectStageForm(request.POST, request.FILES, instance=updatestage)
+        form.fields['project'].queryset = assigned_projects(request.user)
         if form.is_valid():
             stage = form.save(commit=False)
+            if not project_worker_assigned_to_project(request.user, stage.project):
+                return HttpResponseForbidden("You can only edit stages for projects assigned to you.")
             stage.sync_status()
             stage.save()
             refresh_project_status(stage.project, actor=request.user)
@@ -3983,6 +4145,7 @@ def ProjectStageUpdate(request, pk):
             return redirect('projectstage_list')
     else:
         form = ProjectStageForm(instance=updatestage)
+        form.fields['project'].queryset = assigned_projects(request.user)
 
     context = {'form': form, 'participants': participants, 'updatestage': updatestage, 'stage': updatestage}
     return render(request, 'projectstage_update.html', context)
@@ -3994,6 +4157,8 @@ def ProjectStageUpdate(request, pk):
 @login_required(login_url='login')
 def ProjectStageDelete(request, pk):
     stage = get_object_or_404(ProjectStage.objects.select_related('project'), id=pk)
+    if not project_worker_assigned_to_project(request.user, stage.project):
+        return HttpResponseForbidden("Only an assigned project delivery professional can delete this project stage.")
     if request.method == 'POST':
         stage_title = f"{stage.project.project_title} - {stage.stage_name}"
         audit(request, 'deleted', stage, project=stage.project, changes={'stage_name': stage.stage_name})
@@ -4468,7 +4633,7 @@ def contractor_detail(request, pk):
 
 @login_required(login_url='login')
 def contractor_dashboard(request):
-    is_contractor_role = getattr(request.user, 'role', '') == 'contractor'
+    is_contractor_role = getattr(request.user, 'role', '') in PROJECT_WORKER_ROLES
     con, detected_from_contractor = _detect_projects_for_user(request.user)
     contractors = Contractor.objects.none() if is_contractor_role else Contractor.objects.all().prefetch_related(
         'projects', 'awarded_tenders'
@@ -4477,24 +4642,17 @@ def contractor_dashboard(request):
         'project', 'stage', 'contractor', 'reported_by', 'reviewed_by'
     ).all().order_by('-created_at')
     stages = ProjectStage.objects.select_related('project').all()
-    form = contractorForm(request.POST or None, request.FILES or None)
-
     if request.method not in {"GET", "HEAD", "OPTIONS"} and not (request.user.is_superuser or request.user.role in OFFICER_ROLES):
         return HttpResponseForbidden("You can view contractor performance, but you cannot create, update, or delete contractor records.")
-
-    if request.method == "POST" and form.is_valid() and (request.user.is_superuser or request.user.role in OFFICER_ROLES):
-        form.save()
-        messages.success(request, "Contractor added successfully.")
-        return redirect('contractor_performance')
 
     context = {
         'contractors': contractors,
         'reports': reports,
         'con': con,
         'stages': stages,
-        'form': form,
         'contractor_display_name': request.user.full_name,
         'is_contractor_role': is_contractor_role,
+        'is_business_contractor': request.user.role == 'contractor',
         'detected_from_contractor': detected_from_contractor,
         'can_review_contractor_submissions': request.user.is_superuser or request.user.role in OFFICER_ROLES,
     }
@@ -4571,34 +4729,76 @@ def contractor_dashboard(request):
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def register_contractor(request):
-    form = contractorForm(request.POST or None, request.FILES or None)
+    form = ProfessionalAccountRegistrationForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
-        contractor = form.save(commit=False)
-        # A blacklisted supplier must never be (re)registered through the
-        # official portal — block before anything is persisted.
-        if contractor_is_blacklisted(contractor):
-            audit(
-                request,
-                'contractor_registration_blocked_blacklist',
-                contractor,
-                changes={'company': contractor.company,
-                         'blacklist_reason': contractor.blacklist_reason or 'No reason recorded'},
-            )
-            messages.error(
-                request,
-                f"Registration blocked: '{contractor.company or contractor.name}' is blacklisted."
-            )
-            return redirect('contractor_performance')
-        contractor.save()
-        audit(request, 'created', contractor, changes={'company': contractor.company})
-        messages.success(request, 'Contractor registered successfully.')
+        data = form.cleaned_data
+        role = data['role']
+        company = data.get('company', '').strip()
+        email = data['email']
+        if role == 'contractor':
+            blacklisted = Contractor.objects.filter(is_blacklisted=True).filter(
+                Q(email__iexact=email) | Q(company__iexact=company)
+            ).first()
+            if blacklisted:
+                audit(
+                    request,
+                    'contractor_registration_blocked_blacklist',
+                    blacklisted,
+                    changes={'company': blacklisted.company},
+                )
+                messages.error(
+                    request,
+                    f"Registration blocked: '{blacklisted.company or blacklisted.name}' is blacklisted."
+                )
+                return redirect('contractor_performance')
+
+        username_base = ''.join(
+            character for character in email.split('@', 1)[0].lower()
+            if character.isalnum()
+        )[:12] or 'account'
+        username = username_base
+        while User.objects.filter(username__iexact=username).exists():
+            username = f"{username_base[:13]}{get_random_string(6).lower()}"[:20]
+
+        user = User(
+            username=username,
+            email=email,
+            name=data['name'],
+            role=role,
+            phone_number=data.get('phone', ''),
+            organization=company if role == 'contractor' else data.get('organization', ''),
+            profile=data.get('profile') or 'avatar.png',
+            is_enduser=False,
+        )
+        user.set_password(data['password1'])
+        with transaction.atomic():
+            user.save()
+            if role == 'contractor':
+                contractor = Contractor.objects.create(
+                    name=data['name'],
+                    company=company,
+                    phone=data.get('phone', ''),
+                    email=email,
+                    location=data['location'],
+                    registration_no=data['registration_no'],
+                    category=data['category'],
+                    profile=data['profile'],
+                )
+                audit(request, 'created', contractor, changes={'company': company})
+            audit(request, 'professional_account_created', user, changes={'role': role})
+
+        role_label = user.get_role_display()
+        messages.success(
+            request,
+            f'{role_label} account created for {user.email}. Give the account holder the password directly.',
+        )
         return redirect('contractor_performance')
     return render(request, 'contractors/register.html', {'form': form})
 
 
 def _detect_projects_for_user(user):
     """Return projects a contractor is assigned to, or a user's own project activity."""
-    if getattr(user, 'role', '') == 'contractor':
+    if getattr(user, 'role', '') in PROJECT_WORKER_ROLES:
         return assigned_projects(user), True
 
     project_ids = set()
@@ -4620,8 +4820,8 @@ def _detect_projects_for_user(user):
 
 @login_required(login_url='login')
 def submit_stage_report(request):
-    if getattr(request.user, 'role', None) != 'contractor':
-        return HttpResponseForbidden("Only contractor accounts can submit stage reports.")
+    if getattr(request.user, 'role', None) not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can submit stage reports.")
 
     projects, detected_from_contractor = _detect_projects_for_user(request.user)
 
@@ -4632,7 +4832,7 @@ def submit_stage_report(request):
 
     if request.method == "POST":
         project_id = request.POST.get('project')
-        if request.user.role == 'contractor' and not projects.filter(pk=project_id).exists():
+        if not projects.filter(pk=project_id).exists():
             messages.error(request, "You can only submit a stage report for a project assigned to you.")
             return redirect('contractor_performance')
 
@@ -4694,16 +4894,14 @@ def submit_stage_report(request):
             messages.success(request, "Stage report submitted successfully.")
         except (ValueError, ValidationError) as error:
             messages.error(request, f'Unable to submit report: {error}')
-            if request.user.role == 'contractor' and projects.filter(pk=project_id).exists():
+            if projects.filter(pk=project_id).exists():
                 return redirect(
                     f"{reverse('contractor_project_works', args=[project_id])}?tab=reports"
                 )
             return redirect('contractor_performance')
-        if request.user.role == 'contractor':
-            return redirect(
-                f"{reverse('contractor_project_works', args=[report.project_id])}?tab=reports"
-            )
-        return redirect('contractor_performance')
+        return redirect(
+            f"{reverse('contractor_project_works', args=[report.project_id])}?tab=reports"
+        )
 
     # If the current user's role is 'contractor', the projects come from their own
     # assignments. Single = locked; multiple = choose unless the project was
@@ -4723,11 +4921,11 @@ def submit_stage_report(request):
         'preselected_project': preselected_project,
         'project_details_url': (
             reverse('contractor_project_works', args=[preselected_project.id])
-            if preselected_project and request.user.role == 'contractor'
+            if preselected_project
             else None
         ),
         'contractor_display_name': request.user.full_name,
-        'is_contractor_role': request.user.role == 'contractor',
+        'is_contractor_role': request.user.role in PROJECT_WORKER_ROLES,
         'detected_from_contractor': detected_from_contractor,
     })
 
@@ -4797,8 +4995,8 @@ def contractor_document_upload(request):
 
 @login_required(login_url='login')
 def contractor_payment_request(request):
-    if request.user.role != 'contractor':
-        return HttpResponseForbidden("Only contractor accounts can submit payment requests.")
+    if request.user.role not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can submit payment requests.")
 
     projects, _detected = _detect_projects_for_user(request.user)
     form = ContractorPaymentRequestForm(
@@ -4809,6 +5007,8 @@ def contractor_payment_request(request):
     if request.method == 'POST':
         if form.is_valid():
             payment_request = form.save(commit=False)
+            if not project_worker_assigned_to_project(request.user, payment_request.project):
+                return HttpResponseForbidden("You can only submit payment requests for projects assigned to you.")
             payment_request.submitted_by = request.user
             payment_request.contractor = _contractors_for_user(request.user).first()
             payment_request.save()
@@ -4830,8 +5030,8 @@ def contractor_payment_request(request):
 
 @login_required(login_url='login')
 def contractor_export(request):
-    if request.user.role != 'contractor':
-        return HttpResponseForbidden("Only contractor accounts can export contractor project records.")
+    if request.user.role not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can export assigned project records.")
 
     projects, _detected = _detect_projects_for_user(request.user)
     project_ids = projects.values_list('id', flat=True)
@@ -5307,6 +5507,7 @@ def budget_dashboard(request):
     context = {
         'budgets': budget_list,
         'spendings': expenses[:25],
+        'can_manage_project_work': request.user.role in PROJECT_WORKER_ROLES,
         'total_budget': total_budget,
         'total_spent': total_spent,
         'remaining': remaining,
@@ -5383,14 +5584,12 @@ def add_budget(request):
 
 @login_required(login_url='login')
 def add_expense(request):
-    if getattr(request.user, 'role', None) != 'contractor':
-        return HttpResponseForbidden("Only contractors can add project expenses.")
+    if getattr(request.user, 'role', None) not in PROJECT_WORKER_ROLES:
+        return HttpResponseForbidden("Only project delivery professionals can add project expenses.")
 
+    contractor_projects = assigned_projects(request.user)
     if request.method == "POST":
         form = ProjectExpenseForm(request.POST, request.FILES)
-        contractor_projects = Project.objects.filter(
-            contractors__in=_contractors_for_user(request.user)
-        ).distinct()
         form.fields['project'].queryset = contractor_projects
         project_id = request.POST.get('project')
         if not project_id or not contractor_projects.filter(pk=project_id).exists():
@@ -5423,9 +5622,7 @@ def add_expense(request):
             return redirect('budget_dashboard')
     else:
         form = ProjectExpenseForm()
-        form.fields['project'].queryset = Project.objects.filter(
-            contractors__in=_contractors_for_user(request.user)
-        ).distinct()
+        form.fields['project'].queryset = contractor_projects
 
     return render(request, 'finance/add_expenses.html', {'form': form})
 

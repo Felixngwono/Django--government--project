@@ -37,14 +37,25 @@
     ============================= -->
 
 <div class="max-w-7xl mx-auto px-6 py-12">
-<div class="mb-8 flex gap-4">
-    <input type="text" placeholder="Search by name or username..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-    <button class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Search</button>
-</div>
+<form method="get" class="mb-8 flex flex-wrap gap-4">
+    <input name="q" value="{{ query }}" type="search" aria-label="Search users" placeholder="Search by name, username, email, or organization..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    <select name="status" aria-label="Filter by access status" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <option value="all" {% if status == 'all' %}selected{% endif %}>All accounts</option>
+        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Suspended</option>
+    </select>
+    <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Search</button>
+    {% if can_manage_users %}
+    <a href="{% url 'register_contractor' %}" class="px-6 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800">Create Professional Account</a>
+    {% endif %}
+</form>
     <!-- Page Header -->
     <div class="mb-10 text-center">
         <h1 class="text-4xl font-extrabold text-indigo-700">People Directory</h1>
         <p class="text-gray-500 mt-2">All registered users and professionals</p>
+        {% if can_manage_users %}
+        <p class="text-sm text-gray-500 mt-2">{{ total_users }} accounts · {{ active_users }} active · {{ inactive_users }} suspended</p>
+        {% endif %}
     </div>
 
     {% if pp %}
@@ -127,6 +138,11 @@
                     Internal User
                 </span>
                 {% endif %}
+                {% if user.is_active %}
+                <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">Active</span>
+                {% else %}
+                <span class="text-xs bg-amber-100 text-amber-700 px-3 py-1 rounded-full">Suspended</span>
+                {% endif %}
             </div>
 
             <!-- Last Active -->
@@ -135,6 +151,22 @@
                 Last active: {{ user.last_active|timesince }} ago
             </div>
 
+            {% endif %}
+
+            {% if can_manage_users and user.pk in manageable_user_ids %}
+            <div class="flex flex-wrap justify-center gap-2 border-t border-gray-200 pt-4 w-full">
+                <a href="{% url 'edit_user' user.pk %}" class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Update</a>
+                {% if user.pk != request.user.pk %}
+                <form method="post" action="{% url 'toggle_user_access' user.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="px-3 py-2 rounded-lg text-sm font-semibold {% if user.is_active %}bg-amber-100 text-amber-800 hover:bg-amber-200{% else %}bg-green-100 text-green-800 hover:bg-green-200{% endif %}">{% if user.is_active %}Suspend access{% else %}Restore access{% endif %}</button>
+                </form>
+                <form method="post" action="{% url 'deleteprofile' user.pk %}" onsubmit="return confirm('Permanently delete {{ user.email|escapejs }}? Related records may prevent deletion. Use Suspend to block access while preserving account history.');">
+                    {% csrf_token %}
+                    <button type="submit" class="px-3 py-2 rounded-lg bg-red-100 text-red-700 text-sm font-semibold hover:bg-red-200">Delete</button>
+                </form>
+                {% endif %}
+            </div>
             {% endif %}
 
         </div>
@@ -153,8 +185,8 @@
 <div class="flex justify-center items-center gap-4 mt-12">
     <nav class="flex gap-2">
         {% if page_obj.has_previous %}
-        <a href="?page=1" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">First</a>
-        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Previous</a>
+        <a href="?q={{ query|urlencode }}&status={{ status }}&page=1" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">First</a>
+        <a href="?q={{ query|urlencode }}&status={{ status }}&page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Previous</a>
         {% endif %}
 
         <span class="px-4 py-2 text-gray-600">
@@ -162,8 +194,8 @@
         </span>
 
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Next</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Last</a>
+        <a href="?q={{ query|urlencode }}&status={{ status }}&page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Next</a>
+        <a href="?q={{ query|urlencode }}&status={{ status }}&page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Last</a>
         {% endif %}
     </nav>
 </div>

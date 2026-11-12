@@ -43,7 +43,7 @@
           <button @click="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-4 py-2.5 rounded-xl border border-slate-700 shadow text-xs transition flex items-center gap-2">
             <iconify-icon icon="solar:printer-bold"></iconify-icon> Print Report
           </button>
-          {% if request.user.role == 'contractor' %}
+          {% if can_manage_project_work %}
           <a href="{% url 'milestone_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-xs">
             <iconify-icon icon="solar:add-circle-bold"></iconify-icon> + Add Milestone
           </a>
@@ -353,7 +353,7 @@
               <td colspan="6" class="p-12 text-center text-slate-400">
                 <iconify-icon icon="solar:flag-2-bold-duotone" style="font-size:48px;" class="mb-2 text-slate-300"></iconify-icon>
                 <p class="font-bold text-slate-700 text-sm">No milestones found.</p>
-                {% if request.user.role == 'contractor' %}
+                {% if can_manage_project_work %}
                 <p class="text-xs text-slate-400 mt-1">Try adjusting your filters or add a milestone for an assigned project.</p>
                 {% else %}
                 <p class="text-xs text-slate-400 mt-1">Milestones will appear here when recorded for a project.</p>

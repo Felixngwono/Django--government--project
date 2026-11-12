@@ -5,162 +5,268 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ stage.stage_name }} — Project Stage | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+      <a href="{% url 'projectstage_list' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 transition hover:text-indigo-900">
+        <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+        Back to project stages
+      </a>
 
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
-
-<!-- ===== HEADER ===== -->
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
-
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-<link href="{% static 'css/pro_overview.css' %}" rel="stylesheet">
-
-<div class="proj_container">
-    <div >
-<div class="flex justify-center bg-gray-50 min-h-screen p-6">
-        
-
-    <div class="bg-white shadow-xl rounded-2xl w-full max-w-4xl p-8 space-y-6">
-
-        <!-- Project Title & Stage -->
-        <div class="text-center">
-            <h2 class="text-3xl font-bold text-gray-800 mb-2">
-                {{ stage.project.project_title }}
-            </h2>
-            <span class="text-sm font-medium px-3 py-1 rounded-full 
-                {% if stage.progress_percentage == 100 %}
-                    bg-green-100 text-green-700
-                {% elif stage.progress_percentage > 50 %}
-                    bg-yellow-100 text-yellow-700
-                {% else %}
-                    bg-red-100 text-red-700
-                {% endif %}">
-                {{ stage.stage_name }}
-            </span>
-        </div>
-
-        <!-- Project Image -->
-        <div class="w-full h-72 rounded-lg overflow-hidden shadow-md">
-            {% if stage.project.images %}
-                <img src="{{ stage.project.images.url }}" 
-                     alt="{{ stage.project.project_title }}" 
-                     class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
-            {% else %}
-                <img src="{% static 'images/default_project.jpg' %}" 
-                     alt="Default Project Image" 
-                     class="w-full h-full object-cover">
-            {% endif %}
-        </div>
-
-        <!-- Project Details -->
-        <div class="space-y-4 text-gray-700">
-            <p><strong>Description:</strong> {{ stage.description }}</p>
-            <p><strong>Start Date:</strong> {{ stage.start_date|date:"M d, Y" }}</p>
-            <p><strong>End Date:</strong> {{ stage.end_date|date:"M d, Y" }}</p>
-
-            <!-- Progress Bar -->
-            <div class="mt-2">
-                <div class="flex justify-between text-sm text-gray-500 mb-1">
-                    <span>Progress</span>
-                    <span class="font-semibold text-gray-700">{{ stage.progress_percentage }}%</span>
-                </div>
-                <div class="w-full bg-gray-200 h-3 rounded-full">
-                    <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" 
-                         style="width: {{ stage.progress_percentage }}%"></div>
-                </div>
+      <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-xl">
+        {% if stage.project.cover_image %}
+          <img src="{{ stage.project.cover_image.url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-20">
+        {% elif stage.project.images %}
+          <img src="{{ stage.project.images.url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-20">
+        {% else %}
+          <img src="{% static 'images/default_project.jpg' %}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-15">
+        {% endif %}
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-indigo-950/70"></div>
+        <div class="relative grid gap-6 p-6 md:grid-cols-[minmax(0,1fr)_230px] md:items-end md:p-9">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-2 rounded-full border border-indigo-300/25 bg-indigo-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-indigo-200">
+                <iconify-icon icon="solar:layers-bold-duotone" class="text-base"></iconify-icon>
+                Project stage
+              </span>
+              {% if stage.is_current %}
+                <span class="inline-flex items-center gap-1 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
+                  <iconify-icon icon="solar:play-circle-bold-duotone"></iconify-icon>
+                  Current phase
+                </span>
+              {% endif %}
             </div>
-
-            {% if stage.project.project_status %}
-            <p class="mt-2"><strong>Project Status:</strong> 
-                <span class="text-blue-600 font-semibold">{{ stage.project.project_status }}</span>
+            <p class="mt-5 text-sm font-semibold text-slate-300">{{ stage.project.project_title|default:"Untitled project" }}</p>
+            <h1 class="mt-1 text-3xl font-extrabold tracking-tight md:text-4xl">{{ stage.stage_name }}</h1>
+            <p class="mt-3 flex items-center gap-2 text-sm text-slate-300">
+              <iconify-icon icon="solar:map-point-bold-duotone" class="text-lg text-indigo-300"></iconify-icon>
+              {{ stage.project.project_location|default:"Project location not specified" }}
             </p>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-300">Stage status</p>
+              <span class="rounded-full px-3 py-1 text-xs font-bold
+                {% if stage.status == 'completed' %}bg-emerald-100 text-emerald-800
+                {% elif stage.status == 'in_progress' %}bg-blue-100 text-blue-800
+                {% elif stage.status == 'delayed' %}bg-rose-100 text-rose-800
+                {% elif stage.status == 'on_hold' %}bg-amber-100 text-amber-800
+                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                {{ stage.get_status_display }}
+              </span>
+            </div>
+            <div class="mt-5 flex items-end justify-between">
+              <p class="text-4xl font-extrabold">{{ stage.progress_percentage|floatformat:0 }}<span class="text-xl text-slate-300">%</span></p>
+              <p class="pb-1 text-xs text-slate-400">Reported progress</p>
+            </div>
+            <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-label="Stage progress" aria-valuenow="{{ stage.progress_percentage|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="h-full rounded-full bg-gradient-to-r from-indigo-400 to-emerald-400 transition-all" style="width: {{ stage.progress_percentage }}%"></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
+        <div class="space-y-6">
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+            <div class="flex items-center gap-3">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+                <iconify-icon icon="solar:document-text-bold-duotone" class="text-2xl"></iconify-icon>
+              </span>
+              <div>
+                <h2 class="font-bold text-slate-900">Stage overview</h2>
+                <p class="text-xs text-slate-500">Scope and delivery schedule</p>
+              </div>
+            </div>
+            <div class="mt-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Description</h3>
+              <p class="mt-2 whitespace-pre-line text-sm leading-7 text-slate-700">{% if stage.description %}{{ stage.description }}{% else %}No description has been added for this stage.{% endif %}</p>
+            </div>
+            <div class="mt-6 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <iconify-icon icon="solar:calendar-date-bold-duotone" class="text-lg text-indigo-600"></iconify-icon>
+                  Start date
+                </p>
+                <p class="mt-2 font-semibold text-slate-900">{% if stage.start_date %}{{ stage.start_date|date:"M d, Y" }}{% else %}Not scheduled{% endif %}</p>
+              </div>
+              <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <iconify-icon icon="solar:calendar-mark-bold-duotone" class="text-lg text-indigo-600"></iconify-icon>
+                  Target completion
+                </p>
+                <p class="mt-2 font-semibold {% if stage.is_stage_overdue %}text-rose-700{% else %}text-slate-900{% endif %}">
+                  {% if stage.end_date %}{{ stage.end_date|date:"M d, Y" }}{% else %}Not scheduled{% endif %}
+                  {% if stage.is_stage_overdue %}<span class="ml-1 text-xs font-bold uppercase">Overdue</span>{% endif %}
+                </p>
+              </div>
+              {% if stage.completed_on %}
+              <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 sm:col-span-2">
+                <p class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700">
+                  <iconify-icon icon="solar:check-circle-bold-duotone" class="text-lg"></iconify-icon>
+                  Completed on
+                </p>
+                <p class="mt-2 font-semibold text-emerald-900">{{ stage.completed_on|date:"M d, Y" }}</p>
+              </div>
+              {% endif %}
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6" aria-labelledby="milestone-heading">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+                  <iconify-icon icon="solar:flag-bold-duotone" class="text-2xl"></iconify-icon>
+                </span>
+                <div>
+                  <h2 id="milestone-heading" class="font-bold text-slate-900">Stage milestones</h2>
+                  <p class="text-xs text-slate-500">Deliverables and completion status</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{{ stage.milestones.all|length }}</span>
+            </div>
+            <ol class="mt-5 space-y-3">
+              {% for milestone in stage.milestones.all %}
+                <li class="flex gap-3 rounded-xl border border-slate-100 p-4">
+                  <span class="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full
+                    {% if milestone.status == 'completed' %}bg-emerald-100 text-emerald-700
+                    {% elif milestone.status == 'in_progress' %}bg-blue-100 text-blue-700
+                    {% elif milestone.status == 'missed' %}bg-rose-100 text-rose-700
+                    {% else %}bg-amber-100 text-amber-700{% endif %}">
+                    {% if milestone.status == 'completed' %}
+                      <iconify-icon icon="solar:check-read-bold-duotone"></iconify-icon>
+                    {% elif milestone.status == 'in_progress' %}
+                      <iconify-icon icon="solar:clock-circle-bold-duotone"></iconify-icon>
+                    {% elif milestone.status == 'missed' %}
+                      <iconify-icon icon="solar:close-circle-bold-duotone"></iconify-icon>
+                    {% else %}
+                      <iconify-icon icon="solar:flag-bold-duotone"></iconify-icon>
+                    {% endif %}
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <h3 class="font-semibold text-slate-800">{{ milestone.title }}</h3>
+                      <span class="rounded-full px-2.5 py-1 text-[11px] font-bold
+                        {% if milestone.status == 'completed' %}bg-emerald-50 text-emerald-700
+                        {% elif milestone.status == 'in_progress' %}bg-blue-50 text-blue-700
+                        {% elif milestone.status == 'missed' %}bg-rose-50 text-rose-700
+                        {% else %}bg-amber-50 text-amber-800{% endif %}">
+                        {{ milestone.get_status_display }}
+                      </span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                      <span>{{ milestone.progress_percentage }}% complete</span>
+                      {% if milestone.due_date %}<span>Due {{ milestone.due_date|date:"M d, Y" }}</span>{% endif %}
+                      {% if milestone.completion_date %}<span class="text-emerald-700">Completed {{ milestone.completion_date|date:"M d, Y" }}</span>{% endif %}
+                    </div>
+                  </div>
+                </li>
+              {% empty %}
+                <li class="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
+                  <p class="text-sm font-semibold text-slate-700">No milestones defined</p>
+                  <p class="mt-1 text-xs text-slate-500">Milestones will appear here when added to this stage.</p>
+                </li>
+              {% endfor %}
+            </ol>
+          </section>
+        </div>
+
+        <aside class="space-y-6">
+          <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {% if stage.project.cover_image %}
+              <img src="{{ stage.project.cover_image.url }}" alt="{{ stage.project.project_title }}" class="h-44 w-full object-cover">
+            {% elif stage.project.images %}
+              <img src="{{ stage.project.images.url }}" alt="{{ stage.project.project_title }}" class="h-44 w-full object-cover">
+            {% else %}
+              <img src="{% static 'images/default_project.jpg' %}" alt="{{ stage.project.project_title }}" class="h-44 w-full object-cover">
             {% endif %}
-
-            <div class="mt-4">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Team Members:</h3>
-                <ul class="list-disc list-inside text-gray-600">
-                    {% for member in stage.project.team_members.all %}
-                        <li>{{ member.name }} - {{ member.role }}</li>
-                    {% empty %}
-                        <li>No team members assigned.</li>
-                    {% endfor %}
-                </ul>
+            <div class="p-5">
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Related project</p>
+              <h2 class="mt-2 text-lg font-bold text-slate-900">{{ stage.project.project_title|default:"Untitled project" }}</h2>
+              {% if stage.project.project_description %}
+                <p class="mt-2 line-clamp-4 text-sm leading-6 text-slate-600">{{ stage.project.project_description }}</p>
+              {% endif %}
+              {% if stage.project.project_status %}
+                <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+                  <span class="text-xs font-semibold text-slate-500">Project status</span>
+                  <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-800">{{ stage.project.get_project_status_display|default:stage.project.project_status }}</span>
+                </div>
+              {% endif %}
             </div>
+          </section>
 
-            <div class="mt-4">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Milestones:</h3>
-                <ul class="space-y-2 text-gray-600">
-                    {% for milestone in stage.milestones.all %}
-                        <li class="flex flex-wrap items-center gap-2">
-                            <span class="w-2 h-2 rounded-full shrink-0 {% if milestone.status == 'completed' %}bg-emerald-500{% elif milestone.status == 'in_progress' %}bg-blue-500{% elif milestone.status == 'missed' %}bg-rose-500{% else %}bg-amber-400{% endif %}"></span>
-                            <span class="font-semibold text-gray-700">{{ milestone.title }}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {% if milestone.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif milestone.status == 'in_progress' %}bg-blue-100 text-blue-700{% elif milestone.status == 'missed' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-700{% endif %}">
-                                {{ milestone.get_status_display }}
-                            </span>
-                            <span class="text-xs text-gray-500">
-                                {{ milestone.progress_percentage }}%
-                                {% if milestone.due_date %}&middot; Due: {{ milestone.due_date|date:"M d, Y" }}{% endif %}
-                                {% if milestone.completion_date %}&middot; Done: {{ milestone.completion_date|date:"M d, Y" }}{% endif %}
-                            </span>
-                        </li>
-                    {% empty %}
-                        <li>No milestones defined.</li>
-                    {% endfor %}
-                </ul>
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center gap-3">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+                <iconify-icon icon="solar:users-group-rounded-bold-duotone" class="text-2xl"></iconify-icon>
+              </span>
+              <div>
+                <h2 class="font-bold text-slate-900">Project team</h2>
+                <p class="text-xs text-slate-500">Assigned team members</p>
+              </div>
             </div>
+            <ul class="mt-4 divide-y divide-slate-100">
+              {% for member in stage.project.team_members.all %}
+                <li class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <span class="font-semibold text-slate-700">{{ member.name }}</span>
+                  <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{{ member.role }}</span>
+                </li>
+              {% empty %}
+                <li class="rounded-xl bg-slate-50 p-3 text-sm text-slate-500">No team members assigned.</li>
+              {% endfor %}
+            </ul>
+          </section>
 
-        </div>
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="font-bold text-slate-900">Stage actions</h2>
+            <div class="mt-4 flex flex-col gap-2">
+              {% if can_manage_project_work %}
+                <a href="{% url 'projectstage_update' stage.pk %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-800">
+                  <iconify-icon icon="solar:pen-new-square-bold-duotone" class="text-lg"></iconify-icon>
+                  Edit stage
+                </a>
+                <a href="{% url 'projectstage_delete' stage.pk %}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-bold text-rose-700 transition hover:bg-rose-100">
+                  <iconify-icon icon="solar:trash-bin-trash-bold-duotone" class="text-lg"></iconify-icon>
+                  Delete stage
+                </a>
+              {% else %}
+                <p class="rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">Stage management actions are available only to assigned project delivery professionals.</p>
+              {% endif %}
+              <a href="{% url 'projectstage_list' %}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                <iconify-icon icon="solar:list-bold-duotone" class="text-lg"></iconify-icon>
+                All project stages
+              </a>
+            </div>
+          </section>
+        </aside>
+      </div>
 
-        <!-- Action Buttons -->
-        <div class="flex flex-wrap justify-center gap-4 mt-6">
-            <a href="{% url 'projectstage_update' stage.pk %}" 
-               class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-xl shadow transition">
-               Edit
-            </a>
-            <a href="{% url 'projectstage_delete' stage.pk %}" 
-               class="bg-red-500 hover:bg-red-600 text-white py-2 px-6 rounded-xl shadow transition">
-               Delete
-            </a>
-            <a href="{% url 'projectstage_list' %}" 
-               class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-xl shadow transition">
-               Back to List
-            </a>
-        </div>
-
-        <!-- Optional Extra Section -->
-        <div class="mt-6 p-4 bg-gray-50 rounded-xl shadow-inner text-gray-600 text-sm">
-            <p><strong>Note:</strong> This stage represents the current phase of the project. All data is up-to-date as of {{ stage.end_date|date:"M d, Y" }}.</p>
-        </div>
-
+      <div class="rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 text-sm text-indigo-900">
+        <p class="flex items-start gap-2">
+          <iconify-icon icon="solar:info-circle-bold-duotone" class="mt-0.5 shrink-0 text-lg text-indigo-700"></iconify-icon>
+          <span>Stage progress and milestones provide a delivery snapshot for this project phase. Use the project record to review overall project progress and reporting history.</span>
+        </p>
+      </div>
     </div>
-</div>
-</div>
-{% include "recent_activities.html" %}
-</div>
-</div>
-</main>
-{% include "footer.html" %}
+    <div class="content">
+      <div class="proj_container">
+        {% include "recent_activities.html" %}
+      </div>
+    </div>
+  </main>
+  {% include "footer.html" %}
 {% endblock %}

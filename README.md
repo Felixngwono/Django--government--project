@@ -30,6 +30,7 @@ The system's foundation is **project registration**. Once a project is registere
 
 ### 5. Supporting Modules
 - Budget tracking with revisions and expenses; AI insights and an AI chatbot for querying project data; notifications, SMS alerts, deadline alerts, regional analytics, and role-based access (citizen, official, contractor, engineer, auditor, etc.).
+- Public self-registration creates citizen accounts only. Authorized government staff can create contractor, engineer, architect, surveyor, and planner accounts with a confirmed initial password that they give directly to the professional. Admins and government officials can manage user profiles, suspend or restore sign-in access, and delete accounts; account-management actions are audit logged and superuser accounts are protected. Assigned project-delivery professionals can submit work reports and manage project stages, milestones, and project-scoped expenses, while government review and approval actions remain staff-only.
 
 ### 6. Governance and Field Accountability
 - Project records can use a managed government-agency registry and geographic coordinates. Public tracking pages show project and inspection points on an OpenStreetMap map when coordinates are available.

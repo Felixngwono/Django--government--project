@@ -55,6 +55,26 @@ class ProjectGovernanceWorkflowTests(TestCase):
         self.assertEqual(response.context['total_stages'], 10)
         self.assertContains(response, f'?page=1&q=Construction&project={self.project.pk}')
 
+    def test_project_stage_detail_renders_stage_context_and_keeps_actions_restricted(self):
+        stage = ProjectStage.objects.create(
+            project=self.project,
+            stage_name='Foundation works',
+            description='Prepare and inspect the foundations.',
+            progress_percentage=Decimal('45.00'),
+            status='in_progress',
+        )
+
+        response = self.client.get(reverse('projectstage_detail', args=[stage.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Foundation works')
+        self.assertContains(response, 'Stage overview')
+        self.assertContains(response, 'Stage milestones')
+        self.assertContains(response, '45')
+        self.assertContains(response, 'text-xl text-slate-300">%</span>')
+        self.assertContains(response, 'No milestones defined')
+        self.assertNotContains(response, 'Edit stage')
+
     def test_project_creation_records_approved_baseline(self):
         baseline = ProjectBaseline.objects.get(project=self.project)
 

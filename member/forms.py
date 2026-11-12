@@ -1,6 +1,8 @@
 
 from django import forms
 from django.forms import ModelForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, GovernmentAgency, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact, ProgressReport, ProjectChangeRequest, ProjectDocument, ProjectInspection, ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
@@ -9,19 +11,7 @@ class MyUserCreationForm(UserCreationForm):
 
     class Meta:
         model = User
-        # Publicly selectable roles. Privileged roles (admin, staff, official,
-        # auditor, manager) are assigned internally only -- never at signup.
-        SAFE_ROLE_CHOICES = [
-            ('citizen',    'Citizen'),
-            ('contractor', 'Contractor'),
-            ('engineer',   'Engineer'),
-            ('architect',  'Architect'),
-            ('surveyor',   'Surveyor'),
-            ('planner',    'Urban Planner'),
-            ('developer',  'Software Developer'),
-            ('analyst',    'Data Analyst'),
-        ]
-        fields = ['name', 'username', 'email', 'role', 'phone_number', 'bio', 'profile', 'is_enduser']
+        fields = ['name', 'username', 'email', 'phone_number', 'bio', 'profile']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
@@ -39,9 +29,6 @@ class MyUserCreationForm(UserCreationForm):
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
                 'placeholder': '+254 700 000 000'
             }),
-            'role': forms.Select(attrs={
-                'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200'
-            }),
             'bio': forms.Textarea(attrs={
                 'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200',
                 'rows': 4,
@@ -50,15 +37,7 @@ class MyUserCreationForm(UserCreationForm):
             'profile': forms.ClearableFileInput(attrs={
                 'class': 'block w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700'
             }),
-            'is_enduser': forms.CheckboxInput(attrs={
-                'class': 'h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500'
-            }),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if 'role' in self.fields:
-            self.fields['role'].choices = self.Meta.SAFE_ROLE_CHOICES
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
@@ -843,26 +822,101 @@ class ProjectExpenseForm(forms.ModelForm):
         }
 
 
-class contractorForm(forms.ModelForm):
-    name = forms.CharField(required=True, label='Contact person')
-    company = forms.CharField(required=True, label='Company name')
-    phone = forms.CharField(required=True, label='Phone number')
-    email = forms.EmailField(required=True, label='Business email')
-    location = forms.CharField(required=True, label='Business location')
-    profile = forms.ImageField(
-        required=True,
-        label='Identification photo or company logo',
-        help_text='Upload a clear face photo or company logo for the registry.',
+class ProfessionalAccountRegistrationForm(forms.Form):
+    PROFESSIONAL_ROLES = (
+        ('contractor', 'Contractor'),
+        ('engineer', 'Engineer'),
+        ('architect', 'Architect'),
+        ('surveyor', 'Surveyor'),
+        ('planner', 'Urban Planner'),
     )
-    registration_no = forms.CharField(required=True, label='Registration number')
-    category = forms.CharField(required=True, label='Contractor category')
 
+    role = forms.ChoiceField(choices=PROFESSIONAL_ROLES, label='Account role')
+    name = forms.CharField(max_length=50, label='Full name')
+    email = forms.EmailField(label='Login email')
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+        help_text='Set the initial password and give it directly to the account holder.',
+    )
+    password2 = forms.CharField(
+        label='Confirm password',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+    )
+    phone = forms.CharField(max_length=20, required=False, label='Phone number')
+    organization = forms.CharField(max_length=255, required=False, label='Organization')
+    company = forms.CharField(max_length=255, required=False, label='Company name')
+    location = forms.CharField(max_length=255, required=False, label='Business location')
+    registration_no = forms.CharField(max_length=100, required=False, label='Registration number')
+    category = forms.CharField(max_length=100, required=False, label='Contractor category')
+    profile = forms.ImageField(required=False, label='Profile photo or company logo')
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('An account already exists for this email address.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', 'The passwords do not match.')
+        elif password1 and cleaned_data.get('email'):
+            email = cleaned_data['email']
+            username = ''.join(
+                character for character in email.split('@', 1)[0].lower()
+                if character.isalnum()
+            )[:12] or 'account'
+            candidate = User(
+                name=cleaned_data.get('name', ''),
+                email=email,
+                username=username,
+            )
+            try:
+                validate_password(password1, user=candidate)
+            except ValidationError as error:
+                self.add_error('password1', error)
+
+        if cleaned_data.get('role') == 'contractor':
+            for field in ('company', 'location', 'registration_no', 'category', 'profile'):
+                if not cleaned_data.get(field):
+                    self.add_error(field, 'This field is required for contractor accounts.')
+        return cleaned_data
+
+
+class UserManagementForm(forms.ModelForm):
     class Meta:
-        model = Contractor
-        fields = [
-            'profile', 'company', 'name', 'registration_no', 'category',
-            'phone', 'email', 'location',
-        ]
+        model = User
+        fields = ('name', 'email', 'phone_number', 'organization', 'role')
+        widgets = {
+            'name': forms.TextInput(attrs={'autocomplete': 'name'}),
+            'email': forms.EmailInput(attrs={'autocomplete': 'email'}),
+            'phone_number': forms.TextInput(attrs={'autocomplete': 'tel'}),
+            'organization': forms.TextInput(),
+            'role': forms.Select(),
+        }
+
+    def __init__(self, *args, can_manage_officer_roles=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not can_manage_officer_roles:
+            protected_roles = {'official', 'admin', 'auditor', 'manager', 'staff'}
+            self.fields['role'].choices = [
+                choice for choice in User.ROLE_CHOICES
+                if choice[0] not in protected_roles
+            ]
+            if self.instance.pk and self.instance.role in protected_roles:
+                self.fields['role'].choices.append(
+                    (self.instance.role, self.instance.get_role_display())
+                )
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip()
+        if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('An account already exists for this email address.')
+        return email
 
 
 class GovernmentRequestForm(forms.ModelForm):

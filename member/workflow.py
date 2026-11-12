@@ -10,6 +10,8 @@ from .models import AuditLog, Notification
 
 
 OFFICER_ROLES = {"official", "admin", "auditor", "manager", "staff"}
+USER_MANAGEMENT_ROLES = {"official", "admin"}
+PROJECT_WORKER_ROLES = {"contractor", "engineer", "architect", "surveyor", "planner"}
 # Only these roles may award a tender to a contractor.
 TENDER_AWARD_ROLES = {"official", "admin"}
 # Only admins (plus Django superusers) may permanently delete a project.
@@ -123,6 +125,15 @@ def user_assigned_to_project(user, project):
     if Participation.objects.filter(user=user, project=project, is_active=True).exists():
         return True
     return False
+
+
+def project_worker_assigned_to_project(user, project):
+    """Whether an authorized project-delivery role is assigned to this project."""
+    return (
+        user.is_authenticated
+        and getattr(user, 'role', '') in PROJECT_WORKER_ROLES
+        and user_assigned_to_project(user, project)
+    )
 
 
 def role_required(*roles):

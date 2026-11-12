@@ -2,227 +2,271 @@
 <!DOCTYPE html>
 <html lang="en" x-data="overviewApp()" :class="{ 'dark': darkMode }">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ milestone.title }} — Milestone Details — GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-<link rel="icon" href="{% static 'images/GOK.png' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ milestone.title }} — Milestone Details — GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
-<body x-data="overviewApp()" :class="{ 'dark': darkMode }">
+<body x-data="overviewApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
-
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="max-w-5xl mx-auto space-y-6 p-4 md:p-6">
-
-    <!-- BREADCRUMB & BACK BUTTON -->
-    <div class="flex items-center justify-between">
-      <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
-        <a href="{% url 'milestone_list' %}" class="hover:text-blue-600 transition">Milestones</a>
-        <span>&rsaquo;</span>
-        <span class="text-slate-800 font-bold truncate max-w-xs">{{ milestone.title }}</span>
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+      <nav class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex min-w-0 items-center gap-2 text-sm text-slate-500">
+          <a href="{% url 'milestone_list' %}" class="font-semibold transition hover:text-indigo-700">Milestones</a>
+          <iconify-icon icon="solar:alt-arrow-right-linear" class="shrink-0"></iconify-icon>
+          <span class="truncate font-bold text-slate-800">{{ milestone.title }}</span>
+        </div>
+        {% if can_manage_milestone %}
+          <div class="flex shrink-0 items-center gap-2">
+            <a href="{% url 'milestone_update' milestone.id %}" class="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800 transition hover:bg-amber-100">
+              <iconify-icon icon="solar:pen-new-square-bold-duotone" class="text-base"></iconify-icon>
+              Edit Milestone
+            </a>
+            <a href="{% url 'milestone_delete' milestone.id %}" class="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 transition hover:bg-rose-100">
+              <iconify-icon icon="solar:trash-bin-trash-bold-duotone" class="text-base"></iconify-icon>
+              Delete
+            </a>
+          </div>
+        {% endif %}
       </nav>
 
-      <div class="flex items-center gap-2">
-        {% if can_manage_milestone %}
-        <a href="{% url 'milestone_update' milestone.id %}" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1">
-          <iconify-icon icon="solar:pen-bold"></iconify-icon> Edit Milestone
-        </a>
-        <a href="{% url 'milestone_delete' milestone.id %}" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1">
-          <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon> Delete
-        </a>
-        {% endif %}
-      </div>
-    </div>
-
-    {% if can_update_milestone_progress %}
-    <section class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
-      <h2 class="font-extrabold text-slate-900">Update milestone progress</h2>
-      {% if milestone.verification_status == 'pending' %}
-      <p class="mt-2 text-sm font-semibold text-amber-700">This milestone is awaiting verification. Progress updates are locked until it is reviewed.</p>
-      {% elif milestone.verification_status == 'approved' %}
-      <p class="mt-2 text-sm font-semibold text-emerald-700">This milestone has been verified.</p>
-      {% else %}
-      <form method="post" action="{% url 'milestone_quick_update' milestone.id %}" class="mt-3 flex flex-wrap items-end gap-3">
-        {% csrf_token %}
-        <label class="text-sm font-semibold">Progress %
-          <input type="number" name="progress_percentage" min="0" max="100" value="{{ milestone.progress_percentage }}" class="mt-1 block w-32 rounded-lg border border-slate-300 px-3 py-2">
-        </label>
-        <label class="text-sm font-semibold">Status
-          <select name="status" class="mt-1 block rounded-lg border border-slate-300 px-3 py-2">
-            <option value="pending" {% if milestone.status == 'pending' %}selected{% endif %}>Pending</option>
-            <option value="in_progress" {% if milestone.status == 'in_progress' %}selected{% endif %}>In progress</option>
-            <option value="completed" {% if milestone.status == 'completed' %}selected{% endif %}>Completed</option>
-          </select>
-        </label>
-        <button class="rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-bold text-white">Save progress</button>
-      </form>
-      {% if milestone.status == 'completed' and milestone.progress_percentage == 100 %}
-      <form method="post" action="{% url 'submit_milestone_verification' milestone.id %}" class="mt-3">
-        {% csrf_token %}
-        <button class="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white">Submit completed milestone for verification</button>
-      </form>
-      {% endif %}
-      {% endif %}
-      {% if milestone.verification_comments %}<p class="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Reviewer comments: {{ milestone.verification_comments }}</p>{% endif %}
-    </section>
-    {% endif %}
-
-    <!-- MAIN HEADER CARD -->
-    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
-        <div>
-          <div class="flex items-center gap-2 mb-2 flex-wrap">
-            {% if milestone.status == 'completed' %}
-            <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1">
-              <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Completed
-            </span>
-            {% elif milestone.status == 'in_progress' %}
-            <span class="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1">
-              <iconify-icon icon="solar:restart-bold"></iconify-icon> In Progress
-            </span>
-            {% elif milestone.status == 'missed' %}
-            <span class="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1">
-              <iconify-icon icon="solar:close-circle-bold"></iconify-icon> Missed
-            </span>
-            {% else %}
-            <span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1">
-              <iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Pending
-            </span>
-            {% endif %}
-
-            {% if milestone.is_overdue %}
-            <span class="px-3 py-1 bg-rose-100 text-rose-800 rounded-full font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1">
-              <iconify-icon icon="solar:danger-triangle-bold"></iconify-icon> Overdue
-            </span>
-            {% endif %}
-          </div>
-
-          <h1 class="text-2xl md:text-3xl font-black text-slate-900">{{ milestone.title }}</h1>
-          <p class="text-xs text-slate-500 mt-1">
-            Associated Project: <a href="{% url 'project_details' milestone.project.id %}" class="text-blue-600 font-bold hover:underline">{{ milestone.project.project_title }}</a>
-            {% if milestone.stage %} &bull; Stage: <span class="font-bold text-slate-700">{{ milestone.stage.stage_name }}</span>{% endif %}
-            <a href="{% url 'project_tracking_public' milestone.project.id %}" class="ml-3 inline-flex items-center gap-1 text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition">
-              <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs"></iconify-icon> Track Project
-            </a>
-          </p>
-        </div>
-
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center min-w-[180px]">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Deliverable Progress</span>
-          <span class="text-3xl font-black text-slate-900">{{ milestone.progress_percentage }}%</span>
-          <div class="w-full bg-slate-200 h-2 rounded-full mt-2 overflow-hidden">
-            <div class="h-full rounded-full {% if milestone.progress_percentage == 100 %}bg-emerald-500{% elif milestone.progress_percentage > 50 %}bg-blue-600{% else %}bg-amber-500{% endif %}" style="width: {{ milestone.progress_percentage }}%;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- KEY METRICS GRID -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Target Due Date</p>
-          <p class="text-sm font-bold text-slate-800 mt-1">
-            {% if milestone.due_date %}{{ milestone.due_date|date:"F d, Y" }}{% else %}<span class="text-slate-400 italic">Not set</span>{% endif %}
-          </p>
-        </div>
-        <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Verification</p>
-          <p class="mt-1 text-sm font-bold {% if milestone.verification_status == 'approved' %}text-emerald-700{% elif milestone.verification_status == 'rejected' %}text-rose-700{% elif milestone.verification_status == 'pending' %}text-amber-700{% else %}text-slate-700{% endif %}">{{ milestone.get_verification_status_display }}</p>
-          {% if milestone.verified_by %}<p class="text-xs text-slate-500">Reviewed by {{ milestone.verified_by.full_name }}{% if milestone.verified_at %} · {{ milestone.verified_at|date:"M d, Y" }}{% endif %}</p>{% endif %}
-          {% if milestone.verification_comments %}<p class="mt-1 text-xs text-slate-600">{{ milestone.verification_comments }}</p>{% endif %}
-        </div>
-
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Actual Completion Date</p>
-          <p class="text-sm font-bold text-slate-800 mt-1">
-            {% if milestone.completion_date %}{{ milestone.completion_date|date:"F d, Y" }}{% else %}<span class="text-slate-400 italic">Pending completion</span>{% endif %}
-          </p>
-        </div>
-
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Days Remaining / Status</p>
-          <p class="text-sm font-bold mt-1">
-            {% if milestone.status == 'completed' %}
-            <span class="text-emerald-600">Completed On Schedule</span>
-            {% elif milestone.is_overdue %}
-            <span class="text-rose-600">Overdue Target</span>
-            {% elif milestone.days_left is not None %}
-            <span class="text-blue-600">{{ milestone.days_left }} Days Remaining</span>
-            {% else %}
-            <span class="text-slate-500">Unscheduled</span>
-            {% endif %}
-          </p>
-        </div>
-      </div>
-
-      <!-- DESCRIPTION & SCOPE -->
-      <div class="space-y-3 pt-2">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700">Detailed Scope & Objectives</h3>
-        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-xs text-slate-700 leading-relaxed space-y-2">
-          {{ milestone.description|linebreaks|default:"No description provided for this milestone." }}
-        </div>
-      </div>
-
-      <!-- ASSOCIATED PROJECT SNAPSHOT -->
-      <div class="pt-4 border-t border-slate-100 space-y-3">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700">Associated Project Context</h3>
-        <div class="bg-slate-900 text-white p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="space-y-1 relative z-10">
-            <span class="px-2.5 py-0.5 bg-blue-500/20 text-blue-300 text-[10px] font-bold rounded-full border border-blue-500/30 uppercase">
-              Project Status: {{ milestone.project.project_status|title }}
-            </span>
-            <h4 class="text-lg font-bold">{{ milestone.project.project_title }}</h4>
-            <p class="text-xs text-slate-300">Location: {{ milestone.project.project_location|default:"National" }} &bull; Implementing Agency: {{ milestone.project.implementing_agency|default:"Gov Body" }}</p>
-          </div>
-
-          <div class="flex flex-wrap gap-2 shrink-0 self-start md:self-auto">
-            <a href="{% url 'project_tracking_public' milestone.project.id %}" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow transition">
-              <iconify-icon icon="mdi:timeline-arrow-right" class="text-xs mr-1"></iconify-icon> Track Project
-            </a>
-            <a href="{% url 'project_details' milestone.project.id %}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow transition">
-              View Full Project &rarr;
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- SIBLING MILESTONES FOR PROJECT -->
-      {% if sibling_milestones %}
-      <div class="pt-4 border-t border-slate-100 space-y-3">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700">Other Milestones for this Project</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {% for sib in sibling_milestones %}
-          <a href="{% url 'milestone_detail' sib.id %}" class="p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex items-center justify-between">
-            <div>
-              <p class="font-bold text-xs text-slate-800">{{ sib.title }}</p>
-              <span class="text-[10px] text-slate-500">Status: {{ sib.status|title }} &bull; {{ sib.progress_percentage }}%</span>
+      <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-xl md:p-9">
+        <div class="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl"></div>
+        <div class="relative grid gap-6 md:grid-cols-[minmax(0,1fr)_230px] md:items-end">
+          <div class="min-w-0">
+            <div class="mb-4 flex flex-wrap items-center gap-2">
+              {% if milestone.status == 'completed' %}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-200">
+                  <iconify-icon icon="solar:check-circle-bold"></iconify-icon> Completed
+                </span>
+              {% elif milestone.status == 'in_progress' %}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-300/25 bg-blue-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-200">
+                  <iconify-icon icon="solar:restart-bold"></iconify-icon> In progress
+                </span>
+              {% elif milestone.status == 'missed' %}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-300/25 bg-rose-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-200">
+                  <iconify-icon icon="solar:close-circle-bold"></iconify-icon> Missed
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-200">
+                  <iconify-icon icon="solar:clock-circle-bold"></iconify-icon> Pending
+                </span>
+              {% endif %}
+              {% if milestone.is_overdue %}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-300/25 bg-rose-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-200">
+                  <iconify-icon icon="solar:danger-triangle-bold"></iconify-icon> Overdue
+                </span>
+              {% endif %}
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-300">
+                <iconify-icon icon="solar:shield-check-bold-duotone"></iconify-icon>
+                {{ milestone.get_verification_status_display }}
+              </span>
             </div>
-            <iconify-icon icon="solar:alt-arrow-right-bold" class="text-slate-400"></iconify-icon>
-          </a>
-          {% endfor %}
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-indigo-200">Project milestone</p>
+            <h1 class="mt-2 break-words text-3xl font-extrabold tracking-tight md:text-4xl">{{ milestone.title }}</h1>
+            <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-300">
+              <a href="{% url 'project_details' milestone.project.id %}" class="inline-flex items-center gap-1.5 font-semibold text-white transition hover:text-indigo-200">
+                <iconify-icon icon="solar:folder-with-files-bold-duotone" class="text-indigo-300"></iconify-icon>
+                {{ milestone.project.project_title }}
+              </a>
+              {% if milestone.stage %}
+                <span class="inline-flex items-center gap-1.5">
+                  <iconify-icon icon="solar:route-bold-duotone" class="text-indigo-300"></iconify-icon>
+                  {{ milestone.stage.stage_name }}
+                </span>
+              {% endif %}
+              <a href="{% url 'project_tracking_public' milestone.project.id %}" class="inline-flex items-center gap-1.5 font-semibold text-emerald-300 transition hover:text-emerald-200">
+                Track project <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+              </a>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+            <div class="flex items-end justify-between gap-3">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Deliverable progress</p>
+                <p class="mt-2 text-4xl font-extrabold tracking-tight">{{ milestone.progress_percentage }}<span class="ml-1 text-xl text-slate-400">%</span></p>
+              </div>
+              <iconify-icon icon="solar:chart-square-bold-duotone" class="mb-1 text-3xl text-indigo-300"></iconify-icon>
+            </div>
+            <div class="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+              <div class="h-full rounded-full {% if milestone.progress_percentage == 100 %}bg-emerald-400{% elif milestone.progress_percentage > 50 %}bg-indigo-400{% else %}bg-amber-400{% endif %}" style="width: {{ milestone.progress_percentage }}%;"></div>
+            </div>
+            <p class="mt-2 text-xs text-slate-400">Completion recorded for this milestone</p>
+          </div>
         </div>
-      </div>
+      </header>
+
+      {% if can_update_milestone_progress %}
+        <section class="overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm">
+          <div class="flex items-start gap-3 border-b border-slate-100 bg-indigo-50/60 px-5 py-4 md:px-6">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-xl text-indigo-700 shadow-sm">
+              <iconify-icon icon="solar:chart-2-bold-duotone"></iconify-icon>
+            </span>
+            <div>
+              <h2 class="font-bold text-slate-900">Update milestone progress</h2>
+              <p class="mt-1 text-sm text-slate-500">Record the latest completion status for this deliverable.</p>
+            </div>
+          </div>
+          <div class="p-5 md:p-6">
+            {% if milestone.verification_status == 'pending' %}
+              <p class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">This milestone is awaiting verification. Progress updates are locked until it is reviewed.</p>
+            {% elif milestone.verification_status == 'approved' %}
+              <p class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">This milestone has been verified.</p>
+            {% else %}
+              <form method="post" action="{% url 'milestone_quick_update' milestone.id %}" class="flex flex-col items-stretch gap-4 sm:flex-row sm:items-end">
+                {% csrf_token %}
+                <label class="flex-1 text-sm font-semibold text-slate-700">Progress percentage
+                  <div class="relative mt-1.5">
+                    <input type="number" name="progress_percentage" min="0" max="100" value="{{ milestone.progress_percentage }}" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-10 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    <span class="absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-400">%</span>
+                  </div>
+                </label>
+                <label class="flex-1 text-sm font-semibold text-slate-700">Status
+                  <select name="status" class="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    <option value="pending" {% if milestone.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="in_progress" {% if milestone.status == 'in_progress' %}selected{% endif %}>In progress</option>
+                    <option value="completed" {% if milestone.status == 'completed' %}selected{% endif %}>Completed</option>
+                  </select>
+                </label>
+                <button class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-800 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                  <iconify-icon icon="solar:diskette-bold-duotone" class="text-lg"></iconify-icon>
+                  Save progress
+                </button>
+              </form>
+              {% if milestone.status == 'completed' and milestone.progress_percentage == 100 %}
+                <form method="post" action="{% url 'submit_milestone_verification' milestone.id %}" class="mt-4">
+                  {% csrf_token %}
+                  <button class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800">
+                    <iconify-icon icon="solar:verified-check-bold-duotone" class="text-lg"></iconify-icon>
+                    Submit completed milestone for verification
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </div>
+        </section>
       {% endif %}
 
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+        <div class="mb-5 flex items-center gap-3">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-xl text-slate-700">
+            <iconify-icon icon="solar:calendar-date-bold-duotone"></iconify-icon>
+          </span>
+          <div>
+            <h2 class="font-bold text-slate-900">Milestone schedule</h2>
+            <p class="mt-1 text-sm text-slate-500">Target and completion dates, current timing, and verification.</p>
+          </div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Target due date</p>
+            <p class="mt-2 text-sm font-bold text-slate-900">{% if milestone.due_date %}{{ milestone.due_date|date:"F d, Y" }}{% else %}<span class="font-medium text-slate-400">Not set</span>{% endif %}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Actual completion</p>
+            <p class="mt-2 text-sm font-bold text-slate-900">{% if milestone.completion_date %}{{ milestone.completion_date|date:"F d, Y" }}{% else %}<span class="font-medium text-slate-400">Pending completion</span>{% endif %}</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Timing</p>
+            <p class="mt-2 text-sm font-bold">
+              {% if milestone.status == 'completed' %}
+                <span class="text-emerald-700">Completed</span>
+              {% elif milestone.is_overdue %}
+                <span class="text-rose-700">Overdue target</span>
+              {% elif milestone.days_left is not None %}
+                <span class="text-indigo-700">{{ milestone.days_left }} days remaining</span>
+              {% else %}
+                <span class="text-slate-500">Unscheduled</span>
+              {% endif %}
+            </p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Verification</p>
+            <p class="mt-2 text-sm font-bold {% if milestone.verification_status == 'approved' %}text-emerald-700{% elif milestone.verification_status == 'rejected' %}text-rose-700{% elif milestone.verification_status == 'pending' %}text-amber-700{% else %}text-slate-700{% endif %}">{{ milestone.get_verification_status_display }}</p>
+            {% if milestone.verified_by %}<p class="mt-1 text-xs text-slate-500">Reviewed by {{ milestone.verified_by.full_name }}{% if milestone.verified_at %} · {{ milestone.verified_at|date:"M d, Y" }}{% endif %}</p>{% endif %}
+          </div>
+        </div>
+        {% if milestone.verification_comments %}
+          <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p class="text-xs font-bold uppercase tracking-wider text-amber-800">Verification notes</p>
+            <p class="mt-1 text-sm leading-6 text-amber-900">{{ milestone.verification_comments }}</p>
+          </div>
+        {% endif %}
+      </section>
+
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+          <div class="mb-5 flex items-center gap-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-700">
+              <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
+            </span>
+            <div>
+              <h2 class="font-bold text-slate-900">Scope and objectives</h2>
+              <p class="mt-1 text-sm text-slate-500">Description and completion criteria for this deliverable.</p>
+            </div>
+          </div>
+          <div class="rounded-xl bg-slate-50 p-4 text-sm leading-7 text-slate-700 md:p-5">
+            {{ milestone.description|linebreaks|default:"No description provided for this milestone." }}
+          </div>
+        </section>
+
+        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 to-indigo-950 p-5 text-white shadow-lg md:p-6">
+          <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-indigo-500/20 blur-2xl"></div>
+          <div class="relative">
+            <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-indigo-200">Associated project</p>
+            <h2 class="mt-3 text-xl font-extrabold leading-snug">{{ milestone.project.project_title }}</h2>
+            <div class="mt-4 space-y-2 text-sm text-slate-300">
+              <p class="flex gap-2"><iconify-icon icon="solar:flag-bold-duotone" class="mt-0.5 shrink-0 text-indigo-300"></iconify-icon><span>Project status: {{ milestone.project.project_status|title }}</span></p>
+              <p class="flex gap-2"><iconify-icon icon="solar:map-point-bold-duotone" class="mt-0.5 shrink-0 text-indigo-300"></iconify-icon><span>Location: {{ milestone.project.project_location|default:"National" }}</span></p>
+              <p class="flex gap-2"><iconify-icon icon="solar:buildings-2-bold-duotone" class="mt-0.5 shrink-0 text-indigo-300"></iconify-icon><span>Implementing agency: {{ milestone.project.implementing_agency|default:"Gov Body" }}</span></p>
+            </div>
+            <div class="mt-6 flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
+              <a href="{% url 'project_tracking_public' milestone.project.id %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-500">
+                <iconify-icon icon="mdi:timeline-arrow-right"></iconify-icon> Track project
+              </a>
+              <a href="{% url 'project_details' milestone.project.id %}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/15">
+                View full project <iconify-icon icon="solar:arrow-right-up-linear"></iconify-icon>
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {% if sibling_milestones %}
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <h2 class="font-bold text-slate-900">Other project milestones</h2>
+              <p class="mt-1 text-sm text-slate-500">Related deliverables for {{ milestone.project.project_title }}.</p>
+            </div>
+            <iconify-icon icon="solar:layers-bold-duotone" class="text-2xl text-indigo-600"></iconify-icon>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            {% for sib in sibling_milestones %}
+              <a href="{% url 'milestone_detail' sib.id %}" class="group flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-indigo-200 hover:bg-indigo-50/50">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-bold text-slate-800 transition group-hover:text-indigo-700">{{ sib.title }}</p>
+                  <span class="mt-1 block text-xs text-slate-500">Status: {{ sib.status|title }} · {{ sib.progress_percentage }}% complete</span>
+                </div>
+                <iconify-icon icon="solar:alt-arrow-right-bold" class="shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-indigo-600"></iconify-icon>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
     </div>
-
-  </div>
-</main>
-
-{% include "footer.html" %}
-
+  </main>
+  {% include "footer.html" %}
 </body>
 </html>

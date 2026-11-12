@@ -7,7 +7,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Respond to Request — GovTracker</title>
+<title>Budget Dashboard — GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -62,7 +62,7 @@
           <a href="{% url 'add_budget' %}" class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-blue-700 transition">
             <iconify-icon icon="solar:add-circle-bold-duotone"></iconify-icon> + Allocate Budget
           </a>
-          {% if request.user.role == 'contractor' %}
+          {% if can_manage_project_work %}
           <a href="{% url 'add_expense' %}" class="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:bg-emerald-700 transition">
             <iconify-icon icon="solar:bill-check-bold-duotone"></iconify-icon> + Log Expense
           </a>
@@ -242,7 +242,7 @@
           </h2>
           <p class="text-xs text-slate-500">Verified payment disbursements against project budgets</p>
         </div>
-        {% if request.user.role == 'contractor' %}
+        {% if can_manage_project_work %}
         <a href="{% url 'add_expense' %}" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
           + Add New Expense &rarr;
         </a>

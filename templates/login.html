@@ -20,6 +20,7 @@
                 </h1>
                 <form class="space-y-8 md:space-y-10 " action="" method="POST">
                     {% csrf_token %}
+                    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
                     <div>
 
                         <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
@@ -50,6 +51,59 @@
             </div>
         </div>
     </div>
+    {% if login_notice %}
+    <div id="login-notice" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4" role="presentation">
+        <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="login-notice-title"
+            aria-describedby="login-notice-message"
+            class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/10"
+            data-notice-type="{{ login_notice.type }}"
+        >
+            <div class="flex items-start gap-4">
+                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full {% if login_notice.type == 'success' %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+                    {% if login_notice.type == 'success' %}
+                    <i class="fas fa-check text-xl" aria-hidden="true"></i>
+                    {% else %}
+                    <i class="fas fa-exclamation text-xl" aria-hidden="true"></i>
+                    {% endif %}
+                </span>
+                <div>
+                    <h2 id="login-notice-title" class="text-lg font-bold text-slate-900">{{ login_notice.title }}</h2>
+                    <p id="login-notice-message" class="mt-2 text-sm leading-6 text-slate-600">{{ login_notice.message }}</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                {% if login_notice.type == 'success' %}
+                <button id="login-notice-continue" type="button" class="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-200">Continue</button>
+                {% else %}
+                <button id="login-notice-close" type="button" class="rounded-lg bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-300">Return to login</button>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+    <script>
+        (() => {
+            const notice = document.getElementById('login-notice');
+            const redirectUrl = "{{ next|default:''|escapejs }}" || "{% url 'dashboard' %}";
+            const continueButton = document.getElementById('login-notice-continue');
+            const closeButton = document.getElementById('login-notice-close');
+
+            if (continueButton) {
+                const continueToDashboard = () => window.location.assign(redirectUrl);
+                continueButton.addEventListener('click', continueToDashboard);
+                continueButton.focus();
+                window.setTimeout(continueToDashboard, 1800);
+            }
+
+            if (closeButton) {
+                closeButton.addEventListener('click', () => notice.remove());
+                closeButton.focus();
+            }
+        })();
+    </script>
+    {% endif %}
   </section>
 <script src="{% static 'js/login.js' %}"></script>
   <div>

@@ -1,15 +1,36 @@
+{% extends "heading.html" %}
+{% block content %}
 {% load static %}
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contractor Review Queue | GovTracker</title>
-  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contractor Review Queue | GovTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800">
-  <main class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+{% load widget_tweaks %}
+<!-- ===== SIDEBAR ===== -->
+{% include "aside.html" %}
+
+<!-- ===== HEADER ===== -->
+
+<!-- ===== MAIN ===== -->
+<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+
     <a href="{% url 'contractor_performance' %}" class="text-sm font-semibold text-blue-700 hover:underline">← Back to contractor dashboard</a>
     <header><h1 class="text-2xl font-extrabold">Contractor Submission Review</h1><p class="mt-1 text-sm text-slate-500">Review progress reports and invoices, provide comments, and record payment completion.</p></header>
 
@@ -84,5 +105,5 @@
       {% empty %}<p class="text-sm text-slate-500">No approved payments are awaiting processing.</p>{% endfor %}
     </section>
   </main>
-</body>
-</html>
+{% include "footer.html" %}
+{% endblock content%}

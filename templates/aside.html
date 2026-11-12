@@ -26,7 +26,7 @@
       <iconify-icon icon="solar:home-2-bold-duotone"></iconify-icon>
       <span class="nav-text">Dashboard</span>
       </a>
-      {% if request.user.role == 'contractor' %}
+      {% if request.user.role == 'contractor' or request.user.role == 'engineer' or request.user.role == 'architect' or request.user.role == 'surveyor' or request.user.role == 'planner' %}
       <a href="{% url 'contractor_performance' %}" class="nav-item">
       <iconify-icon icon="solar:building-bold-duotone"></iconify-icon>
       <i class="fa-solid fa-helmet-safety nav-text" style="font-size:20px;"></i>
@@ -167,7 +167,7 @@
       <span class="nav-text">Budget Allocation</span>
       </a>
       {% endif %}
-      {% if request.user.role == 'contractor' %}
+      {% if request.user.role == 'contractor' or request.user.role == 'engineer' or request.user.role == 'architect' or request.user.role == 'surveyor' or request.user.role == 'planner' %}
       <a href="{% url 'add_expense' %}" class="nav-item">
       <iconify-icon icon="solar:money-bag-bold-duotone"></iconify-icon>
       <span class="nav-text">Record Expense</span>
@@ -246,7 +246,7 @@
       <span class="nav-text">SMS Integration</span>
       </a>
 
-      {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'manager' or request.user.role == 'auditor' %}
+      {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' or request.user.role == 'manager' or request.user.role == 'auditor' %}
       <div class="nav-section-title" style="margin-top:12px;">WORKSPACE & TEAM</div>
 
       <a href="{% url 'AuditLog' %}" class="nav-item">

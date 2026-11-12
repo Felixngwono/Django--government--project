@@ -1,6 +1,7 @@
 from io import BytesIO
 from tempfile import TemporaryDirectory
 from datetime import date, timedelta
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -25,6 +26,7 @@ from member.models import (
     ContractorPaymentRequest,
     ContractorRating,
     Milestone,
+    Participation,
     Project,
     ProjectExpense,
     ProjectStage,
@@ -112,6 +114,69 @@ class DelayedProjectMonitoringTests(TestCase):
         self.assertContains(response, self.project.project_title)
         self.assertNotContains(response, other.project_title)
         self.assertEqual(json_response.json()['total_delayed'], 1)
+
+    def test_ongoing_list_renders_projects_and_preserves_search_filters(self):
+        ongoing_project = Project.objects.create(
+            project_title='Central Clinic Upgrade',
+            project_description='Renovation works are in progress.',
+            project_location='Central District',
+            project_status='ongoing',
+        )
+        for index in range(6):
+            Project.objects.create(
+                project_title=f'Central Clinic Project {index}',
+                project_location='Central District',
+                project_status='ongoing',
+            )
+        Project.objects.create(
+            project_title='Western School Build',
+            project_description='New school construction.',
+            project_location='Western District',
+            project_status='ongoing',
+        )
+
+        response = self.client.get(
+            reverse('ongoing'),
+            {'q': 'Clinic', 'location': 'Central'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Central Clinic Project 5')
+        self.assertContains(response, 'Ongoing project register')
+        self.assertEqual(response.context['projects'].paginator.num_pages, 2)
+        self.assertTrue(response.context['projects'].has_next())
+        self.assertContains(response, 'page=2')
+        self.assertContains(response, 'location=Central')
+        self.assertNotContains(response, 'Western School Build')
+
+    def test_project_delete_confirmation_displays_details_and_keeps_delete_flow(self):
+        project = Project.objects.create(
+            project_title='Regional Health Centre',
+            reference_code='PRJ-DELETE-01',
+            project_location='North District',
+            implementing_agency='Public Works',
+            project_status='ongoing',
+        )
+        admin = User.objects.create_user(
+            email='delete-admin@example.com',
+            username='delete-admin',
+            password='password123',
+            role='admin',
+        )
+        self.client.force_login(admin)
+
+        response = self.client.get(reverse('delete', args=[project.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, project.project_title)
+        self.assertContains(response, project.reference_code)
+        self.assertContains(response, 'This action cannot be undone.')
+        self.assertContains(response, reverse('projectoverview'))
+
+        delete_response = self.client.post(reverse('delete', args=[project.pk]))
+
+        self.assertRedirects(delete_response, reverse('projectoverview'))
+        self.assertFalse(Project.objects.filter(pk=project.pk).exists())
 
 
 class ContractorStageReportProjectSelectionTests(TestCase):
@@ -970,6 +1035,284 @@ class RolePermissionTests(TestCase):
         form = MyUserCreationForm()
         self.assertNotIn('role', form.fields)
         self.assertNotIn('is_enduser', form.fields)
+
+    def test_public_registration_always_creates_a_citizen_account(self):
+        response = self.client.post(reverse('registrationpage'), {
+            'name': 'Public Applicant',
+            'username': 'public-applicant',
+            'email': 'public-applicant@example.com',
+            'password1': 'password123',
+            'password2': 'password123',
+            'role': 'engineer',
+            'is_enduser': 'false',
+        })
+
+        self.assertRedirects(response, reverse('login'))
+        user = User.objects.get(email='public-applicant@example.com')
+        self.assertEqual(user.role, 'citizen')
+        self.assertTrue(user.is_enduser)
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_staff_can_create_professional_login_with_admin_set_password(self):
+        self.client.force_login(self.officer)
+        response = self.client.post(reverse('register_contractor'), {
+            'role': 'engineer',
+            'name': 'Amina Engineer',
+            'email': 'amina.engineer@example.com',
+            'password1': 'GovTracker!Pass123',
+            'password2': 'GovTracker!Pass123',
+            'phone': '+254700000001',
+            'organization': 'County Engineering Office',
+        })
+
+        self.assertRedirects(response, reverse('contractor_performance'))
+        user = User.objects.get(email='amina.engineer@example.com')
+        self.assertEqual(user.role, 'engineer')
+        self.assertFalse(user.is_enduser)
+        self.assertTrue(user.check_password('GovTracker!Pass123'))
+        self.assertEqual(mail.outbox, [])
+        self.assertFalse(Contractor.objects.filter(email=user.email).exists())
+        self.client.logout()
+        login_response = self.client.post(reverse('login'), {
+            'email': user.email,
+            'password': 'GovTracker!Pass123',
+        })
+        self.assertEqual(login_response.status_code, 200)
+        self.assertEqual(login_response.context['login_notice']['type'], 'success')
+        self.assertContains(login_response, 'Login successful')
+        self.assertContains(login_response, 'login-notice-continue')
+        self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+
+    def test_incorrect_login_displays_failure_popup_without_authenticating(self):
+        response = self.client.post(reverse('login'), {
+            'email': self.citizen.email,
+            'password': 'incorrect-password',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['login_notice']['type'], 'error')
+        self.assertContains(response, 'Login unsuccessful')
+        self.assertContains(response, 'login-notice-close')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_suspended_account_displays_specific_login_popup(self):
+        self.citizen.is_active = False
+        self.citizen.save(update_fields=['is_active'])
+
+        response = self.client.post(reverse('login'), {
+            'email': self.citizen.email,
+            'password': 'password123',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['login_notice']['type'], 'error')
+        self.assertEqual(response.context['login_notice']['title'], 'Account suspended')
+        self.assertContains(response, 'This account is suspended')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_staff_contractor_registration_creates_both_account_and_contractor_record(self):
+        image_buffer = BytesIO()
+        Image.new('RGB', (2, 2), color='green').save(image_buffer, format='PNG')
+        self.client.force_login(self.officer)
+
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            response = self.client.post(reverse('register_contractor'), {
+                'role': 'contractor',
+                'name': 'Builder Contact',
+                'email': 'builder.contact@example.com',
+                'password1': 'GovTracker!Pass456',
+                'password2': 'GovTracker!Pass456',
+                'phone': '+254700000002',
+                'company': 'Builder Works Ltd',
+                'location': 'Central County',
+                'registration_no': 'REG-2026-002',
+                'category': 'Road Construction',
+                'profile': SimpleUploadedFile(
+                    'builder.png',
+                    image_buffer.getvalue(),
+                    content_type='image/png',
+                ),
+            })
+
+        self.assertRedirects(response, reverse('contractor_performance'))
+        user = User.objects.get(email='builder.contact@example.com')
+        contractor = Contractor.objects.get(email=user.email)
+        self.assertEqual(user.role, 'contractor')
+        self.assertFalse(user.is_enduser)
+        self.assertTrue(user.check_password('GovTracker!Pass456'))
+        self.assertEqual(contractor.company, 'Builder Works Ltd')
+        self.assertEqual(mail.outbox, [])
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_staff_registration_rejects_duplicate_account_emails(self):
+        self.client.force_login(self.officer)
+        response = self.client.post(reverse('register_contractor'), {
+            'role': 'architect',
+            'name': 'Duplicate Account',
+            'email': self.citizen.email.upper(),
+            'password1': 'GovTracker!Pass789',
+            'password2': 'GovTracker!Pass789',
+            'organization': 'Design Office',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(User.objects.filter(email__iexact=self.citizen.email).count(), 1)
+        self.assertEqual(mail.outbox, [])
+
+    def test_staff_registration_rejects_mismatched_passwords(self):
+        self.client.force_login(self.officer)
+        response = self.client.post(reverse('register_contractor'), {
+            'role': 'engineer',
+            'name': 'Password Mismatch',
+            'email': 'password-mismatch@example.com',
+            'password1': 'GovTracker!Pass123',
+            'password2': 'Different!Pass123',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(email='password-mismatch@example.com').exists())
+
+    def test_staff_can_update_and_suspend_user_access(self):
+        target = User.objects.create_user(
+            email='managed-user@example.com',
+            username='managed-user',
+            password='Original!Pass123',
+            role='engineer',
+        )
+        self.client.force_login(self.officer)
+
+        response = self.client.post(reverse('edit_user', args=[target.pk]), {
+            'name': 'Updated Engineer',
+            'email': target.email,
+            'phone_number': '+254700000099',
+            'organization': 'Updated Works Office',
+            'role': 'engineer',
+        })
+        self.assertRedirects(response, reverse('user'))
+        target.refresh_from_db()
+        self.assertEqual(target.name, 'Updated Engineer')
+        self.assertEqual(target.organization, 'Updated Works Office')
+        self.assertTrue(AuditLog.objects.filter(
+            action='user_updated', object_id=target.pk
+        ).exists())
+
+        response = self.client.post(reverse('toggle_user_access', args=[target.pk]))
+        self.assertRedirects(response, reverse('user'))
+        target.refresh_from_db()
+        self.assertFalse(target.is_active)
+        self.assertTrue(AuditLog.objects.filter(
+            action='user_access_suspended', object_id=target.pk
+        ).exists())
+
+        self.client.logout()
+        self.client.post(reverse('login'), {
+            'email': target.email,
+            'password': 'Original!Pass123',
+        })
+        self.assertFalse('_auth_user_id' in self.client.session)
+
+        self.client.force_login(self.officer)
+        response = self.client.post(reverse('toggle_user_access', args=[target.pk]))
+        self.assertRedirects(response, reverse('user'))
+        target.refresh_from_db()
+        self.assertTrue(target.is_active)
+
+    def test_staff_can_delete_user_and_record_audit(self):
+        target = User.objects.create_user(
+            email='delete-me@example.com',
+            username='delete-me',
+            password='Original!Pass123',
+            role='engineer',
+        )
+        target_id = target.pk
+        self.client.force_login(self.officer)
+
+        response = self.client.post(reverse('deleteprofile', args=[target_id]))
+
+        self.assertRedirects(response, reverse('user'))
+        self.assertFalse(User.objects.filter(pk=target_id).exists())
+        self.assertTrue(AuditLog.objects.filter(
+            action='user_deleted', object_id=target_id, user=self.officer
+        ).exists())
+
+    def test_citizen_cannot_manage_or_delete_another_user(self):
+        target = User.objects.create_user(
+            email='protected-user@example.com',
+            username='protected-user',
+            password='Original!Pass123',
+            role='engineer',
+        )
+        self.client.force_login(self.citizen)
+
+        self.assertEqual(
+            self.client.get(reverse('edit_user', args=[target.pk])).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(reverse('deleteprofile', args=[target.pk])).status_code,
+            403,
+        )
+        self.assertTrue(User.objects.filter(pk=target.pk).exists())
+
+    def test_official_cannot_edit_or_disable_privileged_user(self):
+        manager = User.objects.create_user(
+            email='protected-manager@example.com',
+            username='protected-manager',
+            password='Original!Pass123',
+            role='manager',
+        )
+        self.client.force_login(self.officer)
+
+        self.assertEqual(
+            self.client.get(reverse('edit_user', args=[manager.pk])).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(reverse('toggle_user_access', args=[manager.pk])).status_code,
+            403,
+        )
+        manager.refresh_from_db()
+        self.assertTrue(manager.is_active)
+
+    def test_user_directory_keeps_card_styling_and_shows_controls_only_to_officers(self):
+        self.client.force_login(self.officer)
+        officer_response = self.client.get(reverse('user'))
+        self.assertEqual(officer_response.status_code, 200)
+        self.assertContains(officer_response, 'backdrop-blur-lg')
+        self.assertContains(officer_response, 'Suspend access')
+
+        self.client.force_login(self.citizen)
+        citizen_response = self.client.get(reverse('user'))
+        self.assertEqual(citizen_response.status_code, 200)
+        self.assertContains(citizen_response, 'backdrop-blur-lg')
+        self.assertNotContains(citizen_response, 'Suspend access')
+        self.assertNotContains(citizen_response, 'Create Professional Account')
+
+    def test_assigned_engineers_can_manage_project_work_but_citizens_cannot(self):
+        project = Project.objects.create(project_title='Assigned Road Works')
+        engineer = User.objects.create_user(
+            email='assigned-engineer@example.com',
+            username='assigned-engineer',
+            password='password123',
+            role='engineer',
+            name='Assigned Engineer',
+        )
+        Participation.objects.create(user=engineer, project=project)
+
+        for user, expected_status in ((engineer, 200), (self.citizen, 403)):
+            self.client.force_login(user)
+            for url_name in (
+                'projectstage_create',
+                'milestone_create',
+                'submit_stage_report',
+                'upload_progress_report',
+                'contractor_payment_request',
+                'add_expense',
+            ):
+                args = [project.pk] if url_name == 'upload_progress_report' else []
+                with self.subTest(role=user.role, url_name=url_name):
+                    response = self.client.get(reverse(url_name, args=args))
+                    self.assertEqual(response.status_code, expected_status)
 
     def test_citizen_cannot_create_projects_tenders_or_budgets(self):
         self.client.force_login(self.citizen)

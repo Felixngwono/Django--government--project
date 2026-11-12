@@ -3,91 +3,211 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Stage Report | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+      <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-xl md:p-9">
+        <div class="absolute -right-12 -top-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl"></div>
+        <div class="relative">
+          {% if project_details_url %}
+            <a href="{{ project_details_url }}" class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-slate-100 transition hover:bg-white/20">
+              <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+              Back to project
+            </a>
+          {% else %}
+            <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-slate-100 transition hover:bg-white/20">
+              <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+              Back to dashboard
+            </a>
+          {% endif %}
 
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
-{% load widget_tweaks %}<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
+          <div class="mt-6 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div class="max-w-2xl">
+              <span class="inline-flex items-center gap-2 rounded-full border border-blue-300/20 bg-blue-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-blue-200">
+                <iconify-icon icon="solar:document-add-bold-duotone" class="text-base"></iconify-icon>
+                Project progress
+              </span>
+              <h1 class="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl">Submit a stage report</h1>
+              <p class="mt-3 max-w-xl text-sm leading-6 text-slate-300 md:text-base">
+                Record work completed, report current progress, and attach evidence for the project team to review.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 md:min-w-48">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Reporting as</p>
+              <p class="mt-1 font-bold text-white">{{ contractor_display_name }}</p>
+              {% if detected_from_contractor %}
+                <p class="mt-1 text-xs text-slate-400">Project access detected from your contractor assignment.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </header>
 
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-    <div class="flex items-center justify-between gap-4">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-wider text-blue-700">Project Progress</p>
-        <h1 class="mt-1 text-2xl font-bold">Submit Stage Report</h1>
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_290px]">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+          {% csrf_token %}
+
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+            <div class="mb-6 flex items-start gap-3 border-b border-slate-100 pb-5">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-xl text-indigo-700">
+                <iconify-icon icon="solar:clipboard-list-bold-duotone"></iconify-icon>
+              </span>
+              <div>
+                <h2 class="font-bold text-slate-900">Report details</h2>
+                <p class="mt-1 text-sm text-slate-500">Identify the project stage and summarize site progress.</p>
+              </div>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                {% if preselected_project %}
+                  <label for="report-project" class="mb-1.5 block text-sm font-semibold text-slate-700">Project</label>
+                  <input id="report-project" type="hidden" name="project" value="{{ preselected_project.id }}">
+                  <input value="{{ preselected_project.project_title }}" readonly class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                {% else %}
+                  <label for="report-project" class="mb-1.5 block text-sm font-semibold text-slate-700">Project <span class="text-rose-600">*</span></label>
+                  <select name="project" id="report-project" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    <option value="">Select a project</option>
+                    {% for project in projects %}<option value="{{ project.id }}">{{ project.project_title }}</option>{% endfor %}
+                  </select>
+                  <p class="mt-1.5 text-xs text-slate-500">Choose the project this report relates to.</p>
+                {% endif %}
+              </div>
+
+              <div>
+                <label for="report-stage" class="mb-1.5 block text-sm font-semibold text-slate-700">Stage or work area <span class="text-rose-600">*</span></label>
+                <input id="report-stage" name="stage_description" required placeholder="e.g. Foundation works — completed" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+              </div>
+
+              <div>
+                <label for="report-contractor" class="mb-1.5 block text-sm font-semibold text-slate-700">Contractor</label>
+                <input id="report-contractor" value="{{ contractor_display_name }}" readonly class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              </div>
+
+              <div>
+                <label for="report-location" class="mb-1.5 block text-sm font-semibold text-slate-700">Work location <span class="text-rose-600">*</span></label>
+                <input id="report-location" name="location" required placeholder="Building, site area, or location" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+              </div>
+
+              <div>
+                <label for="report-progress" class="mb-1.5 block text-sm font-semibold text-slate-700">Completion progress <span class="text-rose-600">*</span></label>
+                <div class="relative">
+                  <input id="report-progress" type="number" name="progress_percentage" min="0" max="100" required placeholder="0–100" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                  <span class="absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div class="sm:col-span-2">
+                <label for="report-description" class="mb-1.5 block text-sm font-semibold text-slate-700">Work completed and reporting period <span class="text-rose-600">*</span></label>
+                <textarea id="report-description" name="description" required rows="5" placeholder="Describe work performed, current blockers, and planned next steps." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+            <div class="mb-6 flex items-start gap-3 border-b border-slate-100 pb-5">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-xl text-amber-700">
+                <iconify-icon icon="solar:calendar-mark-bold-duotone"></iconify-icon>
+              </span>
+              <div>
+                <h2 class="font-bold text-slate-900">Schedule and recovery</h2>
+                <p class="mt-1 text-sm text-slate-500">Share any delay and how your team plans to address it.</p>
+              </div>
+            </div>
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label for="report-delay" class="mb-1.5 block text-sm font-semibold text-slate-700">Reason for delay <span class="font-normal text-slate-400">(if applicable)</span></label>
+                <textarea id="report-delay" name="delay_reason" rows="3" placeholder="Explain schedule slippage, if any." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea>
+              </div>
+              <div>
+                <label for="report-corrective" class="mb-1.5 block text-sm font-semibold text-slate-700">Corrective actions</label>
+                <textarea id="report-corrective" name="corrective_actions" rows="3" placeholder="Describe proposed recovery steps." class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+            <div class="mb-6 flex items-start gap-3 border-b border-slate-100 pb-5">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl text-emerald-700">
+                <iconify-icon icon="solar:gallery-add-bold-duotone"></iconify-icon>
+              </span>
+              <div>
+                <h2 class="font-bold text-slate-900">Supporting evidence</h2>
+                <p class="mt-1 text-sm text-slate-500">Attach photos, videos, and documents that verify reported work.</p>
+              </div>
+            </div>
+
+            <div class="space-y-5">
+              <div>
+                <label for="progress-photos" class="block text-sm font-semibold text-slate-700">Progress photos</label>
+                <p class="mt-1 text-xs leading-5 text-slate-500">Select multiple JPG, PNG, GIF, or WEBP images. Maximum 20 MB per file.</p>
+                <input id="progress-photos" type="file" name="photos" accept=".jpg,.jpeg,.png,.gif,.webp" multiple class="mt-2 block w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-bold file:text-indigo-700 hover:border-indigo-300">
+              </div>
+              <div>
+                <label for="progress-attachments" class="block text-sm font-semibold text-slate-700">Videos and supporting documents</label>
+                <p class="mt-1 text-xs leading-5 text-slate-500">Supported: MP4, MOV, AVI, MKV, WEBM, PDF, DOC/DOCX, and XLS/XLSX. Maximum 20 MB per file.</p>
+                <input id="progress-attachments" type="file" name="attachments" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" multiple class="mt-2 block w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-bold file:text-indigo-700 hover:border-indigo-300">
+              </div>
+              <div>
+                <label for="report-supporting-document" class="block text-sm font-semibold text-slate-700">Primary inspection report <span class="font-normal text-slate-400">(optional)</span></label>
+                <p class="mt-1 text-xs leading-5 text-slate-500">Upload one primary report or evidence document. Maximum 20 MB.</p>
+                <input id="report-supporting-document" type="file" name="supporting_document" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" class="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-xs file:font-bold file:text-indigo-700">
+              </div>
+            </div>
+          </section>
+
+          <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            {% if project_details_url %}
+              <a href="{{ project_details_url }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Cancel</a>
+            {% else %}
+              <a href="{% url 'contractor_performance' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Cancel</a>
+            {% endif %}
+            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-700 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-900/15 transition hover:bg-indigo-800 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+              <iconify-icon icon="solar:plain-bold-duotone" class="text-lg"></iconify-icon>
+              Submit stage report
+            </button>
+          </div>
+        </form>
+
+        <aside class="space-y-4">
+          <section class="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-xl text-indigo-700 shadow-sm">
+              <iconify-icon icon="solar:checklist-minimalistic-bold-duotone"></iconify-icon>
+            </span>
+            <h2 class="mt-4 font-bold text-indigo-950">Before you submit</h2>
+            <ul class="mt-3 space-y-3 text-sm leading-5 text-indigo-900/80">
+              <li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="mt-0.5 shrink-0 text-indigo-600"></iconify-icon><span>Use a clear stage name and describe measurable work completed.</span></li>
+              <li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="mt-0.5 shrink-0 text-indigo-600"></iconify-icon><span>Enter the latest completion percentage from 0 to 100.</span></li>
+              <li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="mt-0.5 shrink-0 text-indigo-600"></iconify-icon><span>Include recovery actions when progress is behind schedule.</span></li>
+              <li class="flex gap-2"><iconify-icon icon="solar:check-circle-bold" class="mt-0.5 shrink-0 text-indigo-600"></iconify-icon><span>Upload relevant evidence; each file must be 20 MB or smaller.</span></li>
+            </ul>
+          </section>
+          <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center gap-2 text-slate-700">
+              <iconify-icon icon="solar:shield-check-bold-duotone" class="text-xl text-emerald-600"></iconify-icon>
+              <h2 class="text-sm font-bold">Project access protected</h2>
+            </div>
+            <p class="mt-2 text-xs leading-5 text-slate-500">Reports can only be submitted for projects assigned to your account. Submissions are recorded for project review.</p>
+          </section>
+        </aside>
       </div>
-      {% if project_details_url %}
-      <a href="{{ project_details_url }}" class="text-sm font-semibold text-blue-700 hover:underline">Back to project</a>
-      {% else %}
-      <a href="{% url 'contractor_performance' %}" class="text-sm font-semibold text-blue-700 hover:underline">Back to dashboard</a>
-      {% endif %}
     </div>
-
-    <form method="post" enctype="multipart/form-data" class="mt-6 space-y-4">
-      {% csrf_token %}
-      {% if preselected_project %}
-      <label class="block text-sm font-semibold">Project (auto-detected)</label>
-      <input type="hidden" name="project" value="{{ preselected_project.id }}">
-      <input value="{{ preselected_project.project_title }}" readonly class="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-slate-600">
-      {% else %}
-      <label class="block text-sm font-semibold">Project <span class="text-xs font-normal text-slate-500">— you're working on multiple projects; select the one you're submitting for</span>
-        <select name="project" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" required>
-          <option value="">Select project</option>
-          {% for project in projects %}<option value="{{ project.id }}">{{ project.project_title }}</option>{% endfor %}
-        </select>
-      </label>
-      {% endif %}
-      <label class="block text-sm font-semibold">Stage (working on / completed)
-        <input name="stage_description" required class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="e.g. Foundation works — completed">
-      </label>
-      <label class="block text-sm font-semibold">Contractor (auto-detected — you)
-        <input value="{{ contractor_display_name }}" readonly class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-slate-600">
-      </label>
-      <input name="location" required class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Location">
-      <label class="block text-sm font-semibold">Work completed and reporting period details
-        <textarea name="description" required rows="5" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Describe work performed, current blockers, and planned next steps"></textarea>
-      </label>
-      <label class="block text-sm font-semibold">Updated completion percentage
-        <input type="number" name="progress_percentage" min="0" max="100" required class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="0 - 100">
-      </label>
-      <label class="block text-sm font-semibold">Reason for delay (if applicable)
-        <textarea name="delay_reason" rows="2" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Explain any schedule slippage"></textarea>
-      </label>
-      <label class="block text-sm font-semibold">Corrective actions
-        <textarea name="corrective_actions" rows="2" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Describe proposed recovery steps"></textarea>
-      </label>
-      <div>
-        <label for="progress-photos" class="block text-sm font-semibold">Progress photos (select multiple)</label>
-        <p class="mt-1 text-xs text-slate-500">Upload several site photos to document work completed. Each file may be up to 20 MB.</p>
-        <input id="progress-photos" type="file" name="photos" accept=".jpg,.jpeg,.png,.gif,.webp" multiple class="mt-2 w-full rounded-lg border border-dashed border-slate-300 px-3 py-2">
-      </div>
-      <div>
-        <label for="progress-attachments" class="block text-sm font-semibold">Videos and supporting documents (select multiple)</label>
-        <p class="mt-1 text-xs text-slate-500">Add site videos, inspection reports, drawings or other evidence. Supported: MP4, MOV, AVI, MKV, WEBM, PDF, DOC/DOCX and XLS/XLSX. Each file may be up to 20 MB.</p>
-        <input id="progress-attachments" type="file" name="attachments" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" multiple class="mt-2 w-full rounded-lg border border-dashed border-slate-300 px-3 py-2">
-      </div>
-      <label class="block text-sm font-semibold">Primary inspection report (optional)
-        <input type="file" name="supporting_document" accept=".mp4,.mov,.avi,.mkv,.webm,.pdf,.doc,.docx,.xls,.xlsx" class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2">
-      </label>
-      <button type="submit" class="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800">Submit Stage Report</button>
-    </form>
   </main>
+  {% include "footer.html" %}
 </body>
-{% include "footer.html" %}
+</html>

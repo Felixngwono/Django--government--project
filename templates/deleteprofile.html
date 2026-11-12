@@ -28,21 +28,21 @@
       </div>
       <div>
         <h1 class="text-xl font-bold text-slate-900">Delete Profile</h1>
-        <p class="text-sm text-slate-600 mt-1">Are you sure you want to permanently delete your profile?</p>
+        <p class="text-sm text-slate-600 mt-1">Are you sure you want to permanently delete {% if target_user.pk == request.user.pk %}your profile{% else %}{{ target_user.email }}{% endif %}?</p>
       </div>
     </div>
 
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-      <p class="text-sm font-medium text-slate-700 mb-1">This account and all associated data will be removed.</p>
-      <p class="text-xs text-slate-500">This action cannot be undone.</p>
+      <p class="text-sm font-medium text-slate-700 mb-1">This account will be removed permanently.</p>
+      <p class="text-xs text-slate-500">Deletion cannot be undone. If you only need to prevent sign-in, suspend access from the user directory instead.</p>
     </div>
 
     <form action="" method="POST" class="mt-2">
       {% csrf_token %}
       <div class="flex gap-3">
-        <button data-modal-toggle="deleteModal" type="button" class="flex-1 bg-white text-slate-700 border border-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-100 transition-colors text-center">
+        <a href="{{ return_url }}" class="flex-1 bg-white text-slate-700 border border-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-100 transition-colors text-center">
           No, cancel
-        </button>
+        </a>
         <button type="submit" class="flex-1 bg-rose-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-rose-700 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2">
           Yes, I'm sure
         </button>

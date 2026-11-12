@@ -1,41 +1,167 @@
-{% extends "heading.html" %}
-{% block content %}
-<main class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
-  <a href="{% url 'project_tracking_public' project.pk %}" class="text-sm font-semibold text-blue-700 hover:underline">Back to public project tracking</a>
-  <header>
-    <h1 class="text-2xl font-extrabold text-slate-900">Independent site inspections</h1>
-    <p class="mt-1 text-slate-600">{{ project.project_title }} · {{ project.project_location|default:"Location not specified" }}</p>
-  </header>
+{% load static widget_tweaks %}
 
-  {% if can_record_inspection %}
-  <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-    <h2 class="mb-3 text-lg font-bold">Record inspection</h2>
-    <form method="post" enctype="multipart/form-data" class="space-y-3">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button class="rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white" type="submit">Save inspection</button>
-    </form>
-  </section>
-  {% endif %}
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <section class="space-y-3" aria-labelledby="inspection-history">
-    <h2 id="inspection-history" class="text-lg font-bold">Inspection history</h2>
-    {% for inspection in inspections %}
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <h3 class="font-bold">{{ inspection.get_outcome_display }}{% if inspection.stage %} · {{ inspection.stage.stage_name }}{% endif %}</h3>
-        <time class="text-sm text-slate-500" datetime="{{ inspection.inspected_at|date:'c' }}">{{ inspection.inspected_at|date:"M d, Y H:i" }}</time>
-      </div>
-      <p class="mt-2 whitespace-pre-line text-sm text-slate-700">{{ inspection.findings }}</p>
-      <p class="mt-2 text-xs text-slate-500">Inspected by {{ inspection.inspected_by.full_name|default:inspection.inspected_by.username|default:"Authorized inspector" }}{% if inspection.corrective_deadline %} · Corrective action due {{ inspection.corrective_deadline|date:"M d, Y" }}{% endif %}</p>
-      {% if inspection.evidence %}<a class="mt-2 inline-block text-sm font-semibold text-blue-700 underline" href="{{ inspection.evidence.url }}">Open inspection evidence</a>{% endif %}
-      {% if inspection.latitude != None and inspection.longitude != None %}
-      <a class="mt-2 block text-sm font-semibold text-blue-700 underline" target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat={{ inspection.latitude }}&mlon={{ inspection.longitude }}#map=16/{{ inspection.latitude }}/{{ inspection.longitude }}">View inspection location on OpenStreetMap</a>
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Inspections — {{ project.project_title|default:"Project" }} | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
+
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+      <a href="{% url 'project_tracking_public' project.pk %}" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 transition hover:text-blue-900">
+        <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>
+        Back to project tracking
+      </a>
+
+      <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-6 text-white shadow-xl md:p-9">
+        <div class="absolute -right-10 -top-20 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl"></div>
+        <div class="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div class="max-w-3xl">
+            <span class="inline-flex items-center gap-2 rounded-full border border-blue-300/20 bg-blue-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-200">
+              <iconify-icon icon="solar:clipboard-check-bold-duotone" class="text-base"></iconify-icon>
+              Field assurance
+            </span>
+            <h1 class="mt-4 text-3xl font-extrabold tracking-tight md:text-4xl">Independent site inspections</h1>
+            <p class="mt-3 text-lg font-semibold text-white">{{ project.project_title|default:"Untitled project" }}</p>
+            <p class="mt-1 flex items-center gap-2 text-sm text-slate-300">
+              <iconify-icon icon="solar:map-point-bold-duotone" class="text-base text-blue-300"></iconify-icon>
+              {{ project.project_location|default:"Location not specified" }}
+            </p>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Recorded inspections</p>
+            <p class="mt-1 text-3xl font-extrabold">{{ inspections|length }}</p>
+          </div>
+        </div>
+      </header>
+
+      {% if can_record_inspection %}
+      <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm" aria-labelledby="record-inspection">
+        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-5 md:px-7">
+          <div class="flex items-start gap-3">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+              <iconify-icon icon="solar:clipboard-add-bold-duotone" class="text-2xl"></iconify-icon>
+            </span>
+            <div>
+              <h2 id="record-inspection" class="text-lg font-bold text-slate-900">Record a site inspection</h2>
+              <p class="mt-1 text-sm text-slate-500">Document the inspection outcome, findings, and any corrective action needed.</p>
+            </div>
+          </div>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="space-y-6 p-5 md:p-7">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="grid gap-5 md:grid-cols-2">
+            {% for field in form %}
+              <div class="{% if field.name == 'findings' or field.name == 'evidence' %}md:col-span-2{% endif %}">
+                <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-700">
+                  {{ field.label }}{% if field.field.required %}<span class="ml-1 text-rose-600" aria-hidden="true">*</span>{% endif %}
+                </label>
+                {% if field.name == 'evidence' %}
+                  {% render_field field class="block w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-700 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-blue-800" %}
+                {% else %}
+                  {% render_field field class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100" %}
+                {% endif %}
+                {% if field.help_text %}<p class="mt-1.5 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
+                {% if field.errors %}<p role="alert" class="mt-1.5 text-sm font-medium text-rose-700">{{ field.errors|striptags }}</p>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+            <a href="{% url 'project_tracking_public' project.pk %}" class="rounded-xl border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Cancel</a>
+            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">
+              <iconify-icon icon="solar:diskette-bold-duotone" class="text-lg"></iconify-icon>
+              Save inspection
+            </button>
+          </div>
+        </form>
+      </section>
       {% endif %}
-    </article>
-    {% empty %}
-    <p class="rounded-xl bg-white p-5 text-sm text-slate-500">No independent inspections have been recorded.</p>
-    {% endfor %}
-  </section>
-</main>
-{% endblock %}
+
+      <section aria-labelledby="inspection-history">
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">Project record</p>
+            <h2 id="inspection-history" class="mt-1 text-xl font-extrabold text-slate-900">Inspection history</h2>
+          </div>
+          <p class="text-sm text-slate-500">{{ inspections|length }} record{{ inspections|length|pluralize }}</p>
+        </div>
+
+        <div class="space-y-4">
+          {% for inspection in inspections %}
+          <article class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+            <div class="absolute inset-y-0 left-0 w-1 {% if inspection.outcome == 'passed' %}bg-emerald-500{% elif inspection.outcome == 'blocked' %}bg-rose-500{% else %}bg-amber-500{% endif %}"></div>
+            <div class="p-5 pl-7 md:p-6 md:pl-8">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold {% if inspection.outcome == 'passed' %}bg-emerald-50 text-emerald-800{% elif inspection.outcome == 'blocked' %}bg-rose-50 text-rose-800{% else %}bg-amber-50 text-amber-800{% endif %}">
+                    {{ inspection.get_outcome_display }}
+                  </span>
+                  <h3 class="mt-3 text-lg font-bold text-slate-900">
+                    {% if inspection.stage %}{{ inspection.stage.stage_name }}{% else %}Project-wide inspection{% endif %}
+                  </h3>
+                  <p class="mt-1 text-sm text-slate-500">
+                    Inspected by {{ inspection.inspected_by.full_name|default:inspection.inspected_by.username|default:"Authorized inspector" }}
+                  </p>
+                </div>
+                <time class="shrink-0 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600" datetime="{{ inspection.inspected_at|date:'c' }}">
+                  {{ inspection.inspected_at|date:"M d, Y · H:i" }}
+                </time>
+              </div>
+              <div class="mt-5 rounded-xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Findings</p>
+                <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">{{ inspection.findings }}</p>
+              </div>
+              <div class="mt-4 flex flex-wrap gap-x-5 gap-y-3">
+                {% if inspection.corrective_deadline %}
+                  <span class="inline-flex items-center gap-2 text-sm font-medium text-amber-800">
+                    <iconify-icon icon="solar:calendar-bold-duotone" class="text-lg"></iconify-icon>
+                    Corrective action due {{ inspection.corrective_deadline|date:"M d, Y" }}
+                  </span>
+                {% endif %}
+                {% if inspection.evidence %}
+                  <a class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900" href="{{ inspection.evidence.url }}" target="_blank" rel="noopener noreferrer">
+                    <iconify-icon icon="solar:paperclip-bold-duotone" class="text-lg"></iconify-icon>
+                    Open inspection evidence
+                  </a>
+                {% endif %}
+                {% if inspection.latitude != None and inspection.longitude != None %}
+                  <a class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900" target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat={{ inspection.latitude }}&amp;mlon={{ inspection.longitude }}#map=16/{{ inspection.latitude }}/{{ inspection.longitude }}">
+                    <iconify-icon icon="solar:map-point-bold-duotone" class="text-lg"></iconify-icon>
+                    View inspection location
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+          {% empty %}
+          <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+            <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+              <iconify-icon icon="solar:clipboard-list-bold-duotone" class="text-3xl"></iconify-icon>
+            </span>
+            <h3 class="mt-4 font-bold text-slate-800">No inspections recorded</h3>
+            <p class="mt-1 text-sm text-slate-500">{% if can_record_inspection %}Use the inspection form above to add the first site report.{% else %}Inspection reports will appear here when authorized staff record them.{% endif %}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </main>
+  {% include "footer.html" %}
+</body>
+</html>
