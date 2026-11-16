@@ -3,9 +3,11 @@ from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from .models import PDF, AuditLog, Budget, CitizenEvidence, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, GovernmentAgency, GovernmentRequest, Milestone, Notification, Comment, Participation, ProgramFunding, ProgramImpact, ProgressReport, ProjectChangeRequest, ProjectDocument, ProjectInspection, ProjectStage, ReportIssue, Team, Tender, TenderApplication, Testimonial, User, Project_type, Contact, Feedback, Project, Project_Division, ProjectExpense
 from django.contrib.auth.forms import UserCreationForm
 from .models import Media
+from .workflow import OFFICER_ROLES, _contractors_for_user
 
 class MyUserCreationForm(UserCreationForm):
 
@@ -128,7 +130,12 @@ class ProjectCreationForm(ModelForm):
     class Meta:
         model = Project
         fields = '__all__'
-        exclude = ['ai_summary', 'ai_risk_score', 'ai_completion_estimate']
+        exclude = [
+            'ai_summary',
+            'ai_risk_score',
+            'ai_completion_estimate',
+            'created_by',
+        ]
 
     def clean_evidence_images(self):
         images = self.cleaned_data.get('evidence_images', [])
@@ -164,12 +171,17 @@ class ProjectChangeRequestForm(forms.ModelForm):
             'reason': forms.Textarea(attrs={'rows': 4}),
         }
 
-    def __init__(self, *args, project=None, **kwargs):
+    def __init__(self, *args, project=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if project is not None:
-            self.fields['tender'].queryset = Tender.objects.filter(project=project)
-        else:
-            self.fields['tender'].queryset = Tender.objects.none()
+        tenders = Tender.objects.filter(project=project) if project is not None else Tender.objects.none()
+        if not user or not user.is_authenticated:
+            tenders = Tender.objects.none()
+        elif not (user.is_superuser or user.role in OFFICER_ROLES):
+            tenders = tenders.filter(
+                Q(applications__applicant=user)
+                | Q(awarded_to__in=_contractors_for_user(user))
+            ).distinct()
+        self.fields['tender'].queryset = tenders
         self.fields['tender'].required = False
 
 

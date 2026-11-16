@@ -24,7 +24,7 @@
 {% include "aside.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="content p-4 md:p-8 space-y-6">
 
     <!-- HERO HEADER CARD -->
@@ -34,7 +34,7 @@
       {% elif project.images %}
         <img src="{{ project.images.url }}" alt="{{ project.project_title }}" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay">
       {% else %}
-        <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=1400&auto=format&fit=crop" alt="Government Infrastructure" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay">
+        <img src="{% static 'images/background-public-works.jpg' %}" alt="Government Infrastructure" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay">
       {% endif %}
 
       <div class="relative z-10 space-y-4">

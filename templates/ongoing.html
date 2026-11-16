@@ -20,10 +20,10 @@
   <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
   {% include "aside.html" %}
 
-  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
     <div class="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
       <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white shadow-xl">
-        <img src="{% static 'images/estate.jpg' %}" class="absolute inset-0 h-full w-full object-cover opacity-20" alt="">
+        <img src="{% static 'images/background-public-works.jpg' %}" class="absolute inset-0 h-full w-full object-cover opacity-20" alt="">
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/80 to-blue-950/60"></div>
         <div class="relative flex flex-col gap-6 p-6 md:flex-row md:items-end md:justify-between md:p-9">
           <div class="max-w-3xl">
@@ -132,7 +132,7 @@
                 {% elif project.images %}
                   <img src="{{ project.images.url }}" class="h-40 w-full object-cover transition duration-300 group-hover:scale-[1.03] sm:h-full sm:min-h-32" alt="{{ project.project_title }}">
                 {% else %}
-                  <img src="{% static 'images/default_project.jpg' %}" class="h-40 w-full object-cover transition duration-300 group-hover:scale-[1.03] sm:h-full sm:min-h-32" alt="">
+                  <div class="flex h-40 w-full items-center justify-center bg-gradient-to-br from-slate-100 to-indigo-100 text-slate-400 sm:h-full sm:min-h-32" aria-hidden="true"><iconify-icon icon="solar:buildings-2-bold-duotone" class="text-4xl"></iconify-icon></div>
                 {% endif %}
               </a>
 

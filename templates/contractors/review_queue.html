@@ -1,109 +1,373 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contractor Review Queue | GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
-</head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
 {% load widget_tweaks %}
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
+<!DOCTYPE html>
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contractor Review Queue | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <style>
+    .contractor-review-page { overflow-x: clip; }
+    .review-page { width: 100%; padding: 26px clamp(16px, 3vw, 36px) 48px; color: #172033; }
+    .review-shell { width: 100%; max-width: 1440px; margin: 0 auto; }
+    .review-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      padding: clamp(24px, 4vw, 42px);
+      color: #fff;
+      background: linear-gradient(115deg, #10243b 0%, #173b58 58%, #176456 100%);
+      box-shadow: 0 22px 50px rgba(15,35,55,.18);
+    }
+    .review-hero::after {
+      position: absolute;
+      right: -80px;
+      bottom: -180px;
+      width: 400px;
+      height: 400px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 34px rgba(255,255,255,.035), 0 0 0 72px rgba(255,255,255,.025);
+      content: "";
+      pointer-events: none;
+    }
+    .review-hero-content { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
+    .review-eyebrow { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(167,243,208,.3); border-radius: 999px; padding: 7px 12px; color: #c9f7e5; background: rgba(15,23,42,.22); font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .review-hero h1 { margin: 16px 0 0; color: #fff; font-size: clamp(1.8rem, 3vw, 2.7rem); font-weight: 800; letter-spacing: -.04em; }
+    .review-hero p { max-width: 700px; margin: 10px 0 0; color: #d7e5ee; font-size: .94rem; line-height: 1.7; }
+    .review-back {
+      display: inline-flex;
+      min-height: 43px;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 11px;
+      padding: 0 14px;
+      color: #fff;
+      background: rgba(255,255,255,.1);
+      font-size: .82rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background .18s ease;
+    }
+    .review-back:hover { background: rgba(255,255,255,.2); }
+    .review-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin-top: 20px; }
+    .review-summary {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #e1e8ee;
+      border-radius: 16px;
+      padding: 15px;
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 8px 24px rgba(15,35,55,.05);
+    }
+    .review-summary-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 13px; font-size: 21px; }
+    .review-summary-icon-reports { color: #1d4ed8; background: #eff6ff; }
+    .review-summary-icon-milestones { color: #7c3aed; background: #f5f3ff; }
+    .review-summary-icon-invoices { color: #b45309; background: #fffbeb; }
+    .review-summary-icon-disbursements { color: #08745d; background: #e8f7f1; }
+    .review-summary strong { display: block; color: #172033; font-family: "JetBrains Mono", monospace; font-size: 1.25rem; line-height: 1.2; }
+    .review-summary span { display: block; margin-top: 4px; color: #64748b; font-size: .73rem; font-weight: 700; line-height: 1.4; }
+    .review-messages { display: grid; gap: 8px; margin-top: 16px; }
+    .review-message { border: 1px solid #b9e5d4; border-radius: 12px; padding: 12px 15px; color: #075b48; background: #effaf5; font-size: .84rem; font-weight: 700; }
+    .review-message-error { border-color: #f2c5c2; color: #9c2c24; background: #fff4f3; }
+    .review-section { overflow: hidden; margin-top: 20px; border: 1px solid #e1e8ee; border-radius: 20px; background: #fff; box-shadow: 0 12px 34px rgba(15,35,55,.055); }
+    .review-section-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #edf1f4; padding: 19px 22px; }
+    .review-section-title { display: flex; min-width: 0; align-items: center; gap: 12px; }
+    .review-section-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 13px; font-size: 21px; }
+    .review-section-icon-reports { color: #1d4ed8; background: #eff6ff; }
+    .review-section-icon-milestones { color: #7c3aed; background: #f5f3ff; }
+    .review-section-icon-invoices { color: #b45309; background: #fffbeb; }
+    .review-section-icon-disbursements { color: #08745d; background: #e8f7f1; }
+    .review-section-header h2 { margin: 0; color: #172033; font-size: 1rem; font-weight: 800; }
+    .review-section-header p { margin: 4px 0 0; color: #718096; font-size: .77rem; line-height: 1.5; }
+    .review-section-count { flex: 0 0 auto; border-radius: 999px; padding: 6px 10px; color: #475569; background: #f1f5f9; font-family: "JetBrains Mono", monospace; font-size: .72rem; font-weight: 800; }
+    .review-list { display: grid; gap: 12px; padding: 16px; }
+    .review-card { border: 1px solid #e7edf1; border-radius: 15px; padding: 17px; background: linear-gradient(145deg, #fff, #fbfcfd); }
+    .review-card-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .review-card h3 { margin: 0; color: #172033; font-size: .93rem; font-weight: 800; line-height: 1.5; overflow-wrap: anywhere; }
+    .review-card-meta { display: flex; flex-wrap: wrap; gap: 5px 13px; margin-top: 6px; color: #64748b; font-size: .74rem; line-height: 1.55; }
+    .review-card-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .review-card-meta iconify-icon { color: #718096; font-size: 14px; }
+    .review-status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; border-radius: 999px; padding: 6px 10px; color: #946200; background: #fff5d6; font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .review-status::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
+    .review-amount { color: #08745d; font-family: "JetBrains Mono", monospace; font-size: 1rem; font-weight: 800; white-space: nowrap; }
+    .review-description { margin: 13px 0 0; color: #475569; font-size: .82rem; line-height: 1.7; white-space: pre-line; }
+    .review-note { margin-top: 10px; border-left: 3px solid #f59e0b; border-radius: 0 9px 9px 0; padding: 9px 11px; color: #7c2d12; background: #fffaf0; font-size: .78rem; line-height: 1.55; }
+    .review-note-neutral { border-left-color: #94a3b8; color: #475569; background: #f8fafc; }
+    .review-progress { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+    .review-progress-track { height: 8px; flex: 1; overflow: hidden; border-radius: 999px; background: #e8edf2; }
+    .review-progress-value { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6366f1, #0ea5e9); }
+    .review-progress-label { color: #334155; font-family: "JetBrains Mono", monospace; font-size: .76rem; font-weight: 800; white-space: nowrap; }
+    .review-attachments { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+    .review-attachment { display: inline-flex; min-height: 34px; align-items: center; gap: 7px; border: 1px solid #dbeafe; border-radius: 9px; padding: 0 10px; color: #175cd3; background: #f8fbff; font-size: .73rem; font-weight: 800; text-decoration: none; }
+    .review-attachment:hover { border-color: #93c5fd; background: #eff6ff; }
+    .review-form { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 9px; margin-top: 15px; border-top: 1px solid #edf1f4; padding-top: 14px; }
+    .review-form input:not([type="hidden"]) { width: 100%; min-width: 0; min-height: 42px; border: 1px solid #d8e1e8; border-radius: 10px; padding: 9px 11px; color: #172033; background: #fff; font: inherit; font-size: .8rem; outline: none; }
+    .review-form input:focus { border-color: #14866b; box-shadow: 0 0 0 3px rgba(20,134,107,.13); }
+    .review-button { display: inline-flex; min-height: 41px; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 10px; padding: 0 13px; color: #fff; font-size: .78rem; font-weight: 800; cursor: pointer; transition: background .18s ease, transform .18s ease; }
+    .review-button:hover { transform: translateY(-1px); }
+    .review-approve { background: #08745d; }
+    .review-approve:hover { background: #065d4b; }
+    .review-reject { background: #b42318; }
+    .review-reject:hover { background: #912018; }
+    .review-paid { background: #1d4ed8; }
+    .review-paid:hover { background: #1e40af; }
+    .review-empty { padding: 30px 20px; text-align: center; }
+    .review-empty-icon { display: grid; width: 48px; height: 48px; margin: 0 auto 10px; place-items: center; border-radius: 15px; color: #08745d; background: #e8f7f1; font-size: 23px; }
+    .review-empty h3 { margin: 0; color: #334155; font-size: .86rem; font-weight: 800; }
+    .review-empty p { margin: 5px 0 0; color: #718096; font-size: .77rem; }
+    .review-disbursement-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, .7fr) auto; align-items: center; gap: 12px; border-top: 1px solid #edf1f4; padding: 15px 2px; }
+    .review-disbursement-form:first-child { border-top: 0; }
+    .contractor-review-page .header > nav { display: none; }
+    .contractor-review-page > footer { width: calc(100% - var(--sidebar-w)); }
+    .contractor-review-page > footer.sidebar-collapsed { width: calc(100% - var(--sidebar-collapsed)); }
+    .contractor-review-page > footer.sidebar-hidden { width: 100%; }
+    @media (max-width: 960px) {
+      .review-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .review-disbursement-form { grid-template-columns: 1fr 1fr; }
+      .review-disbursement-form > button { grid-column: 1 / -1; justify-self: start; }
+    }
+    @media (max-width: 640px) {
+      .review-page { padding: 18px 13px 32px; }
+      .review-summary-grid { gap: 9px; }
+      .review-summary { align-items: flex-start; gap: 9px; padding: 12px 10px; }
+      .review-summary-icon { width: 36px; height: 36px; flex-basis: 36px; font-size: 18px; }
+      .review-section-header { align-items: flex-start; padding: 16px; }
+      .review-section-header p { max-width: 235px; }
+      .review-list { padding: 10px; }
+      .review-card { padding: 14px; }
+      .review-form { grid-template-columns: 1fr 1fr; }
+      .review-form input:not([type="hidden"]) { grid-column: 1 / -1; }
+      .review-button { width: 100%; }
+      .review-disbursement-form { grid-template-columns: 1fr; padding-right: 1px; padding-left: 1px; }
+      .review-disbursement-form > button { grid-column: auto; justify-self: stretch; }
+      .contractor-review-page .header > div:last-child { display: none; }
+    }
+    @media (max-width: 1024px) {
+      .contractor-review-page > footer,
+      .contractor-review-page > footer.sidebar-collapsed,
+      .contractor-review-page > footer.sidebar-hidden { width: 100%; margin-left: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .review-back, .review-button { transition: none; }
+    }
+  </style>
+</head>
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="contractor-review-page bg-slate-50 text-slate-800 antialiased font-sans">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
 
-<!-- ===== HEADER ===== -->
+  <main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="review-page">
+      <div class="review-shell">
+        {% if messages %}
+          <div class="review-messages">
+            {% for message in messages %}
+              <div class="review-message{% if message.tags == 'error' %} review-message-error{% endif %}" role="status">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
 
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+        <header class="review-hero">
+          <div class="review-hero-content">
+            <div>
+              <span class="review-eyebrow"><iconify-icon icon="solar:shield-check-bold-duotone" aria-hidden="true"></iconify-icon> Contractor oversight</span>
+              <h1>Submission review queue</h1>
+              <p>Review contractor progress reports, verify completed milestones, assess invoices, and record government disbursements with a complete audit trail.</p>
+            </div>
+            <a href="{% url 'contractor_performance' %}" class="review-back"><iconify-icon icon="solar:arrow-left-linear" aria-hidden="true"></iconify-icon> Contractor dashboard</a>
+          </div>
+        </header>
 
-    <a href="{% url 'contractor_performance' %}" class="text-sm font-semibold text-blue-700 hover:underline">← Back to contractor dashboard</a>
-    <header><h1 class="text-2xl font-extrabold">Contractor Submission Review</h1><p class="mt-1 text-sm text-slate-500">Review progress reports and invoices, provide comments, and record payment completion.</p></header>
+        <section class="review-summary-grid" aria-label="Review queue summary">
+          <div class="review-summary">
+            <span class="review-summary-icon review-summary-icon-reports"><iconify-icon icon="solar:clipboard-text-bold-duotone" aria-hidden="true"></iconify-icon></span>
+            <div><strong>{{ pending_reports|length }}</strong><span>Progress reports to review</span></div>
+          </div>
+          <div class="review-summary">
+            <span class="review-summary-icon review-summary-icon-milestones"><iconify-icon icon="solar:flag-bold-duotone" aria-hidden="true"></iconify-icon></span>
+            <div><strong>{{ pending_milestones|length }}</strong><span>Milestones to verify</span></div>
+          </div>
+          <div class="review-summary">
+            <span class="review-summary-icon review-summary-icon-invoices"><iconify-icon icon="solar:bill-list-bold-duotone" aria-hidden="true"></iconify-icon></span>
+            <div><strong>{{ pending_payments|length }}</strong><span>Invoices to review</span></div>
+          </div>
+          <div class="review-summary">
+            <span class="review-summary-icon review-summary-icon-disbursements"><iconify-icon icon="solar:wallet-money-bold-duotone" aria-hidden="true"></iconify-icon></span>
+            <div><strong>{{ approved_payments|length }}</strong><span>Approved payments to process</span></div>
+          </div>
+        </section>
 
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-      <h2 class="mb-4 text-lg font-extrabold">Progress reports awaiting review</h2>
-      {% for report in pending_reports %}
-      <article class="border-t border-slate-100 py-4">
-        <div class="flex flex-wrap justify-between gap-3">
-          <div><h3 class="font-bold">{{ report.project.project_title }} · {{ report.stage.stage_name|default:report.stage_description|default:"Progress update" }}</h3><p class="text-xs text-slate-500">Submitted by {{ report.reported_by.full_name|default:"Unknown contractor" }} · {{ report.created_at|date:"M d, Y H:i" }} · {{ report.progress_percentage }}%</p></div>
-          <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">Pending review</span>
-        </div>
-        <p class="mt-2 text-sm">{{ report.description }}</p>
-        {% if report.delay_reason %}<p class="mt-1 text-xs text-rose-700">Delay: {{ report.delay_reason }}</p>{% endif %}
-        {% if report.corrective_actions %}<p class="mt-1 text-xs text-slate-600">Corrective actions: {{ report.corrective_actions }}</p>{% endif %}
-        <div class="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-blue-700">
-          {% if report.supporting_document %}<a href="{{ report.supporting_document.url }}" target="_blank" rel="noopener">Open inspection report</a>{% endif %}
-          {% for attachment in report.attachments.all %}<a href="{{ attachment.file.url }}" target="_blank" rel="noopener">Open supporting file</a>{% endfor %}
-        </div>
-        <form method="post" class="mt-3 flex flex-wrap gap-2">
-          {% csrf_token %}<input type="hidden" name="submission_type" value="report"><input type="hidden" name="submission_id" value="{{ report.id }}">
-          <input name="reviewer_comments" class="min-w-64 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Reviewer comments (required for rejection)">
-          <button name="action" value="approved" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white">Approve</button>
-          <button name="action" value="rejected" class="rounded-lg bg-rose-600 px-3 py-2 text-sm font-bold text-white">Reject</button>
-        </form>
-      </article>
-      {% empty %}<p class="text-sm text-slate-500">No progress reports are awaiting review.</p>{% endfor %}
-    </section>
+        <section class="review-section" aria-labelledby="reports-heading">
+          <div class="review-section-header">
+            <div class="review-section-title">
+              <span class="review-section-icon review-section-icon-reports"><iconify-icon icon="solar:clipboard-text-bold-duotone" aria-hidden="true"></iconify-icon></span>
+              <div><h2 id="reports-heading">Progress reports</h2><p>Review delivery updates and supporting evidence.</p></div>
+            </div>
+            <span class="review-section-count">{{ pending_reports|length }} pending</span>
+          </div>
+          <div class="review-list">
+            {% for report in pending_reports %}
+              <article class="review-card">
+                <div class="review-card-top">
+                  <div>
+                    <h3>{{ report.project.project_title }} · {{ report.stage.stage_name|default:report.stage_description|default:"Progress update" }}</h3>
+                    <div class="review-card-meta">
+                      <span><iconify-icon icon="solar:user-bold-duotone" aria-hidden="true"></iconify-icon>{{ report.reported_by.full_name|default:"Unknown contractor" }}</span>
+                      <span><iconify-icon icon="solar:calendar-bold-duotone" aria-hidden="true"></iconify-icon>{{ report.created_at|date:"M d, Y · H:i" }}</span>
+                    </div>
+                  </div>
+                  <span class="review-status">Pending review</span>
+                </div>
+                <div class="review-progress">
+                  <div class="review-progress-track" role="progressbar" aria-label="Reported progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ report.progress_percentage }}"><div class="review-progress-value" style="width: {{ report.progress_percentage }}%"></div></div>
+                  <span class="review-progress-label">{{ report.progress_percentage }}% reported</span>
+                </div>
+                <p class="review-description">{{ report.description }}</p>
+                {% if report.delay_reason %}<p class="review-note"><strong>Delay reported:</strong> {{ report.delay_reason }}</p>{% endif %}
+                {% if report.corrective_actions %}<p class="review-note review-note-neutral"><strong>Corrective actions:</strong> {{ report.corrective_actions }}</p>{% endif %}
+                {% if report.supporting_document or report.attachments.all %}
+                  <div class="review-attachments">
+                    {% if report.supporting_document %}<a class="review-attachment" href="{{ report.supporting_document.url }}" target="_blank" rel="noopener noreferrer"><iconify-icon icon="solar:document-text-bold-duotone" aria-hidden="true"></iconify-icon> Inspection report</a>{% endif %}
+                    {% for attachment in report.attachments.all %}<a class="review-attachment" href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer"><iconify-icon icon="solar:paperclip-bold-duotone" aria-hidden="true"></iconify-icon> Supporting file</a>{% endfor %}
+                  </div>
+                {% endif %}
+                <form method="post" class="review-form">
+                  {% csrf_token %}<input type="hidden" name="submission_type" value="report"><input type="hidden" name="submission_id" value="{{ report.id }}">
+                  <label class="sr-only" for="report-review-{{ report.id }}">Reviewer comments (required when rejecting)</label>
+                  <input id="report-review-{{ report.id }}" name="reviewer_comments" placeholder="Add reviewer comments; required when rejecting">
+                  <button name="action" value="approved" class="review-button review-approve" type="submit"><iconify-icon icon="solar:check-circle-bold-duotone" aria-hidden="true"></iconify-icon> Approve</button>
+                  <button name="action" value="rejected" class="review-button review-reject" type="submit"><iconify-icon icon="solar:close-circle-bold-duotone" aria-hidden="true"></iconify-icon> Reject</button>
+                </form>
+              </article>
+            {% empty %}
+              <div class="review-empty"><span class="review-empty-icon"><iconify-icon icon="solar:check-read-bold-duotone" aria-hidden="true"></iconify-icon></span><h3>All progress reports are up to date</h3><p>New contractor reports awaiting review will appear here.</p></div>
+            {% endfor %}
+          </div>
+        </section>
 
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-      <h2 class="mb-4 text-lg font-extrabold">Completed milestones awaiting verification</h2>
-      {% for milestone in pending_milestones %}
-      <article class="border-t border-slate-100 py-4">
-        <div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold">{{ milestone.title }}</h3><p class="text-xs text-slate-500">{{ milestone.project.project_title }}{% if milestone.stage %} · {{ milestone.stage.stage_name }}{% endif %} · Due {{ milestone.due_date|date:"M d, Y"|default:"No due date" }}</p></div><span class="font-extrabold">{{ milestone.progress_percentage }}%</span></div>
-        <p class="mt-2 text-sm">{{ milestone.description }}</p>
-        <form method="post" class="mt-3 flex flex-wrap gap-2">
-          {% csrf_token %}<input type="hidden" name="submission_type" value="milestone"><input type="hidden" name="submission_id" value="{{ milestone.id }}">
-          <input name="reviewer_comments" class="min-w-64 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Reviewer comments (required for rejection)">
-          <button name="action" value="approved" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white">Verify</button>
-          <button name="action" value="rejected" class="rounded-lg bg-rose-600 px-3 py-2 text-sm font-bold text-white">Reject</button>
-        </form>
-      </article>
-      {% empty %}<p class="text-sm text-slate-500">No completed milestones are awaiting verification.</p>{% endfor %}
-    </section>
+        <section class="review-section" aria-labelledby="milestones-heading">
+          <div class="review-section-header">
+            <div class="review-section-title">
+              <span class="review-section-icon review-section-icon-milestones"><iconify-icon icon="solar:flag-bold-duotone" aria-hidden="true"></iconify-icon></span>
+              <div><h2 id="milestones-heading">Milestone verification</h2><p>Verify completed milestones before progress is finalized.</p></div>
+            </div>
+            <span class="review-section-count">{{ pending_milestones|length }} pending</span>
+          </div>
+          <div class="review-list">
+            {% for milestone in pending_milestones %}
+              <article class="review-card">
+                <div class="review-card-top">
+                  <div>
+                    <h3>{{ milestone.title }}</h3>
+                    <div class="review-card-meta">
+                      <span><iconify-icon icon="solar:folder-open-bold-duotone" aria-hidden="true"></iconify-icon>{{ milestone.project.project_title }}{% if milestone.stage %} · {{ milestone.stage.stage_name }}{% endif %}</span>
+                      <span><iconify-icon icon="solar:calendar-bold-duotone" aria-hidden="true"></iconify-icon>Due {{ milestone.due_date|date:"M d, Y"|default:"No due date" }}</span>
+                    </div>
+                  </div>
+                  <span class="review-status">Awaiting verification</span>
+                </div>
+                <div class="review-progress">
+                  <div class="review-progress-track" role="progressbar" aria-label="Milestone progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ milestone.progress_percentage }}"><div class="review-progress-value" style="width: {{ milestone.progress_percentage }}%"></div></div>
+                  <span class="review-progress-label">{{ milestone.progress_percentage }}%</span>
+                </div>
+                {% if milestone.description %}<p class="review-description">{{ milestone.description }}</p>{% endif %}
+                <form method="post" class="review-form">
+                  {% csrf_token %}<input type="hidden" name="submission_type" value="milestone"><input type="hidden" name="submission_id" value="{{ milestone.id }}">
+                  <label class="sr-only" for="milestone-review-{{ milestone.id }}">Reviewer comments (required when rejecting)</label>
+                  <input id="milestone-review-{{ milestone.id }}" name="reviewer_comments" placeholder="Add reviewer comments; required when rejecting">
+                  <button name="action" value="approved" class="review-button review-approve" type="submit"><iconify-icon icon="solar:verified-check-bold-duotone" aria-hidden="true"></iconify-icon> Verify</button>
+                  <button name="action" value="rejected" class="review-button review-reject" type="submit"><iconify-icon icon="solar:close-circle-bold-duotone" aria-hidden="true"></iconify-icon> Reject</button>
+                </form>
+              </article>
+            {% empty %}
+              <div class="review-empty"><span class="review-empty-icon"><iconify-icon icon="solar:medal-ribbons-star-bold-duotone" aria-hidden="true"></iconify-icon></span><h3>No milestones need verification</h3><p>Completed milestones awaiting an official decision will appear here.</p></div>
+            {% endfor %}
+          </div>
+        </section>
 
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-      <h2 class="mb-4 text-lg font-extrabold">Invoices awaiting review</h2>
-      {% for payment in pending_payments %}
-      <article class="border-t border-slate-100 py-4">
-        <div class="flex flex-wrap justify-between gap-3"><div><h3 class="font-bold">{{ payment.title }}{% if payment.invoice_number %} · {{ payment.invoice_number }}{% endif %}</h3><p class="text-xs text-slate-500">{{ payment.project.project_title }} · {{ payment.contractor|default:payment.submitted_by.full_name }} · {{ payment.created_at|date:"M d, Y" }}</p></div><span class="font-extrabold">{{ payment.amount|floatformat:2 }}</span></div>
-        <p class="mt-2 text-sm">{{ payment.description }}</p>
-        <div class="mt-2 flex gap-3 text-xs font-semibold text-blue-700"><a href="{{ payment.invoice_file.url }}" target="_blank" rel="noopener">Open invoice</a>{% if payment.supporting_document %}<a href="{{ payment.supporting_document.url }}" target="_blank" rel="noopener">Open receipt/supporting file</a>{% endif %}</div>
-        <form method="post" class="mt-3 flex flex-wrap gap-2">
-          {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
-          <input name="reviewer_comments" class="min-w-64 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Reviewer comments (required for rejection)">
-          <button name="action" value="approved" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white">Approve</button>
-          <button name="action" value="rejected" class="rounded-lg bg-rose-600 px-3 py-2 text-sm font-bold text-white">Reject</button>
-        </form>
-      </article>
-      {% empty %}<p class="text-sm text-slate-500">No invoices are awaiting review.</p>{% endfor %}
-    </section>
+        <section class="review-section" aria-labelledby="invoices-heading">
+          <div class="review-section-header">
+            <div class="review-section-title">
+              <span class="review-section-icon review-section-icon-invoices"><iconify-icon icon="solar:bill-list-bold-duotone" aria-hidden="true"></iconify-icon></span>
+              <div><h2 id="invoices-heading">Invoice review</h2><p>Check invoice details and supporting documents before deciding.</p></div>
+            </div>
+            <span class="review-section-count">{{ pending_payments|length }} pending</span>
+          </div>
+          <div class="review-list">
+            {% for payment in pending_payments %}
+              <article class="review-card">
+                <div class="review-card-top">
+                  <div>
+                    <h3>{{ payment.title }}{% if payment.invoice_number %} · {{ payment.invoice_number }}{% endif %}</h3>
+                    <div class="review-card-meta">
+                      <span><iconify-icon icon="solar:folder-open-bold-duotone" aria-hidden="true"></iconify-icon>{{ payment.project.project_title }}</span>
+                      <span><iconify-icon icon="solar:buildings-2-bold-duotone" aria-hidden="true"></iconify-icon>{{ payment.contractor|default:payment.submitted_by.full_name|default:"Contractor not recorded" }}</span>
+                      <span><iconify-icon icon="solar:calendar-bold-duotone" aria-hidden="true"></iconify-icon>{{ payment.created_at|date:"M d, Y" }}</span>
+                    </div>
+                  </div>
+                  <div class="text-right"><span class="review-amount">KES {{ payment.amount|floatformat:2 }}</span><span class="review-status mt-2">Pending review</span></div>
+                </div>
+                {% if payment.description %}<p class="review-description">{{ payment.description }}</p>{% endif %}
+                <div class="review-attachments">
+                  {% if payment.invoice_file %}<a class="review-attachment" href="{{ payment.invoice_file.url }}" target="_blank" rel="noopener noreferrer"><iconify-icon icon="solar:bill-list-bold-duotone" aria-hidden="true"></iconify-icon> Open invoice</a>{% endif %}
+                  {% if payment.supporting_document %}<a class="review-attachment" href="{{ payment.supporting_document.url }}" target="_blank" rel="noopener noreferrer"><iconify-icon icon="solar:paperclip-bold-duotone" aria-hidden="true"></iconify-icon> Supporting document</a>{% endif %}
+                </div>
+                <form method="post" class="review-form">
+                  {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
+                  <label class="sr-only" for="payment-review-{{ payment.id }}">Reviewer comments (required when rejecting)</label>
+                  <input id="payment-review-{{ payment.id }}" name="reviewer_comments" placeholder="Add reviewer comments; required when rejecting">
+                  <button name="action" value="approved" class="review-button review-approve" type="submit"><iconify-icon icon="solar:check-circle-bold-duotone" aria-hidden="true"></iconify-icon> Approve</button>
+                  <button name="action" value="rejected" class="review-button review-reject" type="submit"><iconify-icon icon="solar:close-circle-bold-duotone" aria-hidden="true"></iconify-icon> Reject</button>
+                </form>
+              </article>
+            {% empty %}
+              <div class="review-empty"><span class="review-empty-icon"><iconify-icon icon="solar:wallet-money-bold-duotone" aria-hidden="true"></iconify-icon></span><h3>No invoices awaiting review</h3><p>Contractor payment requests will appear here when submitted.</p></div>
+            {% endfor %}
+          </div>
+        </section>
 
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-      <h2 class="mb-4 text-lg font-extrabold">Approved payments to process</h2>
-      {% for payment in approved_payments %}
-      <form method="post" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 py-4">
-        {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
-        <div><p class="font-bold">{{ payment.title }} · {{ payment.amount|floatformat:2 }}</p><p class="text-xs text-slate-500">{{ payment.project.project_title }} · {{ payment.contractor|default:payment.submitted_by.full_name }}</p></div>
-        <label class="sr-only" for="disbursement-reference-{{ payment.id }}">Government payment or transfer reference</label>
-        <input id="disbursement-reference-{{ payment.id }}" name="disbursement_reference" required class="min-w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Payment / transfer reference">
-        <button name="action" value="paid" class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-bold text-white">Record disbursement</button>
-      </form>
-      {% empty %}<p class="text-sm text-slate-500">No approved payments are awaiting processing.</p>{% endfor %}
-    </section>
+        <section class="review-section" aria-labelledby="disbursements-heading">
+          <div class="review-section-header">
+            <div class="review-section-title">
+              <span class="review-section-icon review-section-icon-disbursements"><iconify-icon icon="solar:wallet-money-bold-duotone" aria-hidden="true"></iconify-icon></span>
+              <div><h2 id="disbursements-heading">Approved payments to process</h2><p>Record the official transfer reference to complete disbursement tracking.</p></div>
+            </div>
+            <span class="review-section-count">{{ approved_payments|length }} to process</span>
+          </div>
+          <div class="review-list">
+            {% for payment in approved_payments %}
+              <form method="post" class="review-disbursement-form">
+                {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
+                <div>
+                  <p class="m-0 text-sm font-extrabold text-slate-900">{{ payment.title }}{% if payment.invoice_number %} · {{ payment.invoice_number }}{% endif %}</p>
+                  <p class="mt-1 text-xs leading-5 text-slate-500">{{ payment.project.project_title }} · {{ payment.contractor|default:payment.submitted_by.full_name|default:"Contractor not recorded" }}</p>
+                  <p class="mt-2 font-mono text-sm font-extrabold text-emerald-700">KES {{ payment.amount|floatformat:2 }}</p>
+                </div>
+                <div>
+                  <label class="sr-only" for="disbursement-reference-{{ payment.id }}">Government payment or transfer reference</label>
+                  <input id="disbursement-reference-{{ payment.id }}" name="disbursement_reference" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100" placeholder="Payment / transfer reference">
+                </div>
+                <button name="action" value="paid" class="review-button review-paid" type="submit"><iconify-icon icon="solar:card-transfer-bold-duotone" aria-hidden="true"></iconify-icon> Record disbursement</button>
+              </form>
+            {% empty %}
+              <div class="review-empty"><span class="review-empty-icon"><iconify-icon icon="solar:check-circle-bold-duotone" aria-hidden="true"></iconify-icon></span><h3>No approved payments to process</h3><p>Payments approved for disbursement will appear here.</p></div>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+    </div>
   </main>
-{% include "footer.html" %}
-{% endblock content%}
+  {% include "footer.html" %}
+</body>
+</html>

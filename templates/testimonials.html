@@ -1,113 +1,157 @@
 
-{% load widget_tweaks %}
 {% load static %}
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Community testimonials | GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body>
 
-<!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
 {% include "aside.html" %}
-
-<!-- ===== HEADER ===== -->
 {% include "heading.html" %}
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
-    <div>
-    <div >
-
+<main class="main page-photo-bg page-bg-public-service" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="mx-auto max-w-7xl space-y-7 px-4 pb-12 pt-6 md:px-8">
         {% if messages %}
-        <div class="text-green-600 text-center mb-6">
-            {% for message in messages %}
-                <p class="font-semibold text-lg">{{ message }}</p>
-            {% endfor %}
-        </div>
+            <div class="space-y-3" role="status">
+                {% for message in messages %}
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ message }}</div>
+                {% endfor %}
+            </div>
         {% endif %}
 
-        <h2 class="text-4xl font-extrabold text-center text-green-700 mb-4">Community Testimonials</h2>
-        <p class="text-lg text-gray-700 text-center mb-10 max-w-2xl mx-auto">
-            Read testimonials from community members on how our government tracking development projects have improved transparency, accountability, and citizen engagement in their communities.
-        </p>
+        <header class="relative isolate overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-2xl md:p-9">
+            <img src="{% static 'images/background-public-service.jpg' %}" alt="" aria-hidden="true" class="absolute inset-0 -z-20 h-full w-full object-cover">
+            <div class="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-emerald-950/55"></div>
+            <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                <div class="max-w-2xl">
+                    <p class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-100 backdrop-blur">Community voice</p>
+                    <h1 class="mt-4 text-3xl font-extrabold tracking-tight md:text-4xl">Community testimonials</h1>
+                    <p class="mt-3 text-sm leading-6 text-slate-200 md:text-base">Hear directly from residents about the projects shaping their communities and the progress they can see.</p>
+                </div>
+                <a href="{% url 'add_testimonial' %}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-50">
+                    <span aria-hidden="true">＋</span> Share your experience
+                </a>
+            </div>
+        </header>
 
-        <form method="get" class="max-w-4xl mx-auto bg-white rounded-xl shadow p-4 mb-8 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <input name="q" value="{{ query }}" placeholder="Search testimonials or projects" class="border rounded-lg px-3 py-2 md:col-span-2">
-            <select name="project" class="border rounded-lg px-3 py-2"><option value="">All projects</option>{% for project in projects %}<option value="{{ project.id }}" {% if selected_project == project.id|stringformat:'s' %}selected{% endif %}>{{ project.project_title }}</option>{% endfor %}</select>
-            <div class="flex gap-2"><select name="rating" class="border rounded-lg px-3 py-2 w-full"><option value="">All ratings</option>{% for value in '12345' %}<option value="{{ value }}" {% if selected_rating == value %}selected{% endif %}>{{ value }} stars</option>{% endfor %}</select><button class="bg-green-700 text-white rounded-lg px-4">Filter</button></div>
+        <section class="grid gap-4 sm:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Published stories</p>
+                <p class="mt-2 text-3xl font-extrabold text-slate-950">{{ published_count }}</p>
+                <p class="mt-1 text-sm text-slate-500">Community experiences shared</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Average community rating</p>
+                <p class="mt-2 text-3xl font-extrabold text-amber-600">{% if average_rating %}{{ average_rating|floatformat:1 }} <span class="text-xl">★</span>{% else %}—{% endif %}</p>
+                <p class="mt-1 text-sm text-slate-500">Based on published testimonials</p>
+            </div>
+        </section>
+
+        {% if request.user.is_superuser and pending_count %}
+            <div class="flex flex-col gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-sm"><strong>{{ pending_count }}</strong> testimonial{{ pending_count|pluralize }} waiting for moderation.</p>
+                <span class="text-xs font-medium text-amber-800">Pending submissions are only visible to administrators and their authors.</span>
+            </div>
+        {% endif %}
+
+        <form method="get" class="grid gap-3 rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-sm md:grid-cols-12 md:p-5" role="search">
+            <label class="sr-only" for="testimonial-search">Search testimonials</label>
+            <input id="testimonial-search" name="q" value="{{ query }}" placeholder="Search a person, story or project" class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 md:col-span-5">
+            <label class="sr-only" for="testimonial-project">Filter by project</label>
+            <select id="testimonial-project" name="project" class="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 md:col-span-3">
+                <option value="">All projects</option>
+                {% for project in projects %}<option value="{{ project.id }}" {% if selected_project == project.id|stringformat:'s' %}selected{% endif %}>{{ project.project_title }}</option>{% endfor %}
+            </select>
+            <label class="sr-only" for="testimonial-rating">Filter by rating</label>
+            <select id="testimonial-rating" name="rating" class="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 md:col-span-2">
+                <option value="">All ratings</option>
+                {% for value in '12345' %}<option value="{{ value }}" {% if selected_rating == value %}selected{% endif %}>{% if value == '1' %}1 star{% else %}{{ value }} stars{% endif %}</option>{% endfor %}
+            </select>
+            <div class="flex gap-2 md:col-span-2">
+                <button type="submit" class="flex-1 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">Filter</button>
+                {% if query or selected_project or selected_rating %}<a href="{% url 'testimonials' %}" class="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Clear</a>{% endif %}
+            </div>
         </form>
 
-        {% if request.user.is_superuser and pending_count %}<div class="max-w-4xl mx-auto mb-6 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800"><strong>{{ pending_count }}</strong> testimonial{{ pending_count|pluralize }} awaiting moderation. Pending entries are visible to administrators only.</div>{% endif %}
+        <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">Resident perspectives</h2>
+                <p class="mt-1 text-sm text-slate-600">Thoughtful feedback on public projects and local outcomes.</p>
+            </div>
+            {% if is_paginated %}<p class="text-sm font-medium text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>{% endif %}
+        </div>
 
-       
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Testimonials">
             {% for testimonial in testimonials %}
-                <div class="bg-white rounded-xl shadow hover:shadow-xl transition-shadow duration-300 p-6 flex flex-col items-center text-center">
-                    {% if testimonial.image %}
-                        <a href="{{ testimonial.image.url }}">
-                            <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}"
-                                 class="w-28 h-28 rounded-full object-cover border-4 border-green-500 mb-4 hover:scale-105 transition-transform duration-300">
+                <article class="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white/95 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex min-w-0 items-center gap-3">
+                            {% if testimonial.image %}
+                                <img src="{{ testimonial.image.url }}" alt="Portrait of {{ testimonial.name|default:'community member' }}" class="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-emerald-100">
+                            {% else %}
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-lg font-bold text-emerald-800" aria-hidden="true">{{ testimonial.name|default:"C"|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <div class="min-w-0">
+                                <h3 class="truncate font-bold text-slate-900">{{ testimonial.name|default:"Community member" }}</h3>
+                                <p class="text-xs text-slate-500">{{ testimonial.created_at|date:"M j, Y" }}</p>
+                            </div>
+                        </div>
+                        <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold {% if testimonial.is_approved %}bg-emerald-50 text-emerald-700{% else %}bg-amber-50 text-amber-800{% endif %}">{% if testimonial.is_approved %}Published{% else %}Pending review{% endif %}</span>
+                    </div>
+
+                    <div class="mt-5 flex items-center gap-1 text-amber-500" aria-label="{{ testimonial.rating }} out of 5 stars">
+                        {% for value in '12345' %}{% if forloop.counter <= testimonial.rating %}<span aria-hidden="true">★</span>{% else %}<span class="text-slate-200" aria-hidden="true">★</span>{% endif %}{% endfor %}
+                        <span class="ml-1 text-xs font-semibold text-slate-500">{{ testimonial.rating }}.0</span>
+                    </div>
+                    <blockquote class="mt-4 flex-1 text-sm leading-7 text-slate-700">“{{ testimonial.content|truncatewords:35 }}”</blockquote>
+                    {% if testimonial.project %}
+                        <a href="{% url 'project_details' testimonial.project.id %}" class="mt-5 inline-flex items-center gap-2 border-t border-slate-100 pt-4 text-xs font-semibold text-emerald-800 hover:text-emerald-950">
+                            <span aria-hidden="true">↗</span><span class="truncate">{{ testimonial.project.project_title }}</span>
                         </a>
                     {% else %}
-                        <div class="w-28 h-28 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm mb-4 border-2 border-dashed border-gray-400">
-                            No Image
+                        <p class="mt-5 border-t border-slate-100 pt-4 text-xs text-slate-500">Community experience</p>
+                    {% endif %}
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        {% if testimonial.is_featured %}<span class="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700">Featured</span>{% else %}<span></span>{% endif %}
+                        <div class="flex items-center gap-3">
+                            <a href="{% url 'testimonial_details' testimonial.pk %}" class="text-sm font-bold text-emerald-800 hover:text-emerald-950">Read story</a>
+                            {% if request.user.is_superuser or testimonial.user_id == request.user.id %}
+                                <a href="{% url 'update_testimonial' testimonial.pk %}" class="text-sm font-semibold text-slate-600 hover:text-slate-900">Edit</a>
+                                <a href="{% url 'delete_testimonial' testimonial.pk %}" class="text-sm font-semibold text-rose-700 hover:text-rose-900">Delete</a>
+                            {% endif %}
                         </div>
-                    {% endif %}
-
-                    <h3 class="text-xl font-semibold text-gray-800">{{ testimonial.name }}</h3>
-                    <div class="text-amber-400 mt-2" aria-label="{{ testimonial.rating }} out of 5 stars">{% for i in '12345' %}{% if forloop.counter <= testimonial.rating %}★{% else %}<span class="text-gray-300">★</span>{% endif %}{% endfor %}</div>
-                    {% if testimonial.project %}<a href="{% url 'project_details' testimonial.project.id %}" class="text-xs text-blue-600 hover:underline mt-2">{{ testimonial.project.project_title }}</a>{% endif %}
-                    <p class="text-sm text-green-600 mt-2 italic">{{ testimonial.content|truncatewords:20 }}</p>
-
-                    {% if request.user.is_superuser %}<span class="mt-3 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-semibold">Awaiting review</span>{% elif testimonial.is_featured %}<span class="mt-3 rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">Featured</span>{% endif %}
-                    {% if request.user.is_superuser %}
-                    <a href="{% url 'testimonial_details' testimonial.pk %}"
-                       class="mt-3 text-blue-600 hover:underline text-sm font-medium">View Details</a>
-
-                    <div class="flex justify-center space-x-3 mt-5">
-                        <a href="{% url 'update_testimonial' testimonial.pk %}"
-                           class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm transition">
-                            ✏️ Update
-                        </a>
-                        <a href="{% url 'delete_testimonial' testimonial.pk %}"
-                           class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm transition">
-                            🗑️ Delete
-                        </a>
                     </div>
-                    {% endif %}
-                </div>
+                </article>
             {% empty %}
-                <p class="text-center col-span-full text-gray-500">No testimonials available at the moment.</p>
+                <div class="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white/85 px-6 py-14 text-center">
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-500" aria-hidden="true">“</div>
+                    <h3 class="mt-4 text-lg font-bold text-slate-900">No testimonials found</h3>
+                    <p class="mt-2 text-sm text-slate-600">{% if query or selected_project or selected_rating %}Try changing your search or filters.{% else %}Be the first to share how a local project is making a difference.{% endif %}</p>
+                    {% if query or selected_project or selected_rating %}<a href="{% url 'testimonials' %}" class="mt-5 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">Clear filters</a>{% endif %}
+                </div>
             {% endfor %}
-        </div>
-        
-        <div class="text-center mt-14">
-            <a href="{% url 'add_testimonial' %}"
-               class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all inline-flex items-center gap-2">
-                ➕ Add Testimonial
-            </a>
-        </div>
+        </section>
+
+        {% if is_paginated %}
+            <nav class="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm" aria-label="Testimonial pages">
+                {% if page_obj.has_previous %}
+                    <a href="?q={{ query|urlencode }}&project={{ selected_project|urlencode }}&rating={{ selected_rating|urlencode }}&page={{ page_obj.previous_page_number }}" class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">← Previous</a>
+                {% else %}<span class="px-4 py-2 text-sm text-slate-400">← Previous</span>{% endif %}
+                <span class="text-sm font-medium text-slate-600">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?q={{ query|urlencode }}&project={{ selected_project|urlencode }}&rating={{ selected_rating|urlencode }}&page={{ page_obj.next_page_number }}" class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Next →</a>
+                {% else %}<span class="px-4 py-2 text-sm text-slate-400">Next →</span>{% endif %}
+            </nav>
+        {% endif %}
     </div>
-
-
-</div>
 </main>
 {% include "footer.html" %}

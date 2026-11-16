@@ -1,22 +1,38 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
 <!DOCTYPE html>
-<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="mediaApp()">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+  <title>{% if form.instance.pk %}Update project{% else %}Create project{% endif %} | GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+<link rel="stylesheet" href="{% static 'css/media.css' %}">
+<style>
+  .project-create-page::before {
+    background-image:
+      linear-gradient(rgba(248, 250, 252, 0.72), rgba(248, 250, 252, 0.84)),
+      url("{% static 'images/background-public-works.jpg' %}");
+  }
+  .project-hero-media {
+    animation: project-hero-drift 28s ease-in-out infinite alternate;
+    transform-origin: center;
+  }
+  @keyframes project-hero-drift {
+    from { transform: scale(1); }
+    to { transform: scale(1.09); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .project-hero-media { animation: none; }
+  }
+</style>
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body class="bg-slate-50 text-slate-800 font-sans transition-colors duration-200">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -25,256 +41,335 @@
 {% include "aside.html" %}
 
 <!-- ===== HEADER ===== -->
-
+{% include "heading.html" %}
+{% load widget_tweaks %}
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
+<main class="main page-photo-bg page-bg-works project-create-page" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  
+    <div class="mx-auto max-w-7xl space-y-6 px-4 pb-12 pt-6 md:px-8">
+      <nav class="flex items-center gap-2 text-sm font-medium text-slate-500" aria-label="Breadcrumb">
+        <a href="{% url 'projectoverview' %}" class="transition hover:text-emerald-800">Projects</a>
+        <span aria-hidden="true">/</span>
+        <span class="text-slate-800">{% if form.instance.pk %}Update project{% else %}New project{% endif %}</span>
+      </nav>
 
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-    {% load widget_tweaks %}
-
-    <!-- ===== PAGE HEADER ===== -->
-    <header class="mb-8">
-      <div class="flex items-center gap-3 text-sm text-slate-500 mb-1">
-        <a href="{% url 'projectoverview' %}" class="hover:text-slate-800">Projects</a>
-        <iconify-icon icon="mdi:chevron-right"></iconify-icon>
-        <span class="text-slate-800 font-medium">New Project</span>
-      </div>
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-bold text-slate-900">Create Project</h1>
-          <p class="text-sm text-slate-500 mt-1">Register a government project, its budget, timeline and stakeholders.</p>
-        </div>
-       
-      </div>
-    </header>
-    
-<!-- Django messages -->
-    {% if messages %}
-      <div class="mb-4">
-        {% for message in messages %}
-          <div class="p-3 mb-2 rounded-lg text-sm {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-            {{ message }}
+      <header class="relative isolate min-h-[300px] overflow-hidden rounded-3xl bg-slate-950 text-white shadow-2xl md:min-h-[350px]">
+        <img src="{% static 'images/background-public-works.jpg' %}" alt="" aria-hidden="true" fetchpriority="high" class="project-hero-media absolute inset-0 z-0 h-full w-full object-cover">
+        <div class="absolute inset-0 z-10 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/15"></div>
+        <div class="absolute inset-0 z-10 bg-gradient-to-t from-slate-950/55 via-transparent to-slate-950/10"></div>
+        <div class="absolute -right-20 -top-24 z-10 h-80 w-80 rounded-full border border-white/10 bg-white/5 blur-3xl" aria-hidden="true"></div>
+        <div class="relative z-20 flex min-h-[300px] flex-col justify-between gap-8 p-6 md:min-h-[350px] md:p-10">
+          <div class="flex items-center justify-between gap-4">
+            <p class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/30 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-emerald-100 backdrop-blur-md">
+              <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]" aria-hidden="true"></span>
+              Project registry
+            </p>
+            <span class="hidden items-center gap-2 rounded-full border border-white/15 bg-slate-950/25 px-3 py-1.5 text-xs font-semibold text-white/85 backdrop-blur-md sm:inline-flex">
+              <iconify-icon icon="solar:shield-check-bold-duotone" class="text-base text-emerald-300"></iconify-icon>
+              Transparent public delivery
+            </span>
           </div>
-        {% endfor %}
-      </div>
-    {% endif %}
 
-    <!-- All field errors (including hidden fields) -->
-    {% if form.errors %}
-      <div class="p-3 mb-4 rounded-lg text-sm bg-red-50 border border-red-300 text-red-700">
-        <strong>Please correct the following errors:</strong>
-        <ul class="list-disc ml-5 mt-1">
-          {% for field, errs in form.errors.items %}
-            <li><span class="font-semibold">{{ field|title }}</span> — {{ errs|join:", " }}</li>
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-3xl">
+              <p class="text-sm font-semibold tracking-wide text-emerald-200">Plan clearly. Deliver visibly.</p>
+              <h1 class="mt-2 text-3xl font-extrabold tracking-tight drop-shadow-sm md:text-5xl">{% if form.instance.pk %}Update project details{% else %}Create a project{% endif %}</h1>
+              <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-100 md:text-base">Capture the project scope, responsible teams, funding, delivery schedule, and public visibility in one place.</p>
+            </div>
+            <a href="{% url 'projectoverview' %}" class="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/20 lg:self-auto">
+              <span aria-hidden="true">←</span> Project overview
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {% if messages %}
+        <div class="space-y-3" role="status" aria-live="polite">
+          {% for message in messages %}
+            <div class="rounded-xl border px-4 py-3 text-sm font-medium {% if message.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800{% elif message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}">{{ message }}</div>
           {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+        </div>
+      {% endif %}
 
-    <!-- Non-field & hidden errors -->
-    {% if form.non_field_errors %}
-      <div class="p-3 mb-4 rounded-lg text-sm bg-red-100 text-red-700">
-        {% for err in form.non_field_errors %}<p>{{ err }}</p>{% endfor %}
-      </div>
-    {% endif %}
+      {% if form.errors %}
+        <div class="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-900" role="alert">
+          <h2 class="font-extrabold">Please review the highlighted fields</h2>
+          <p class="mt-1 text-sm">We could not save the project until these items are corrected.</p>
+          <ul class="mt-3 list-inside list-disc space-y-1 text-sm">
+            {% for field, errors in form.errors.items %}
+              <li><span class="font-bold">{% if field == '__all__' %}Project{% else %}{{ field|title }}{% endif %}:</span> {{ errors|join:", " }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
 
-    <form action="" method="POST" enctype="multipart/form-data" class="space-y-6">
-    {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
 
-    <!-- ===== SECTION: BASIC INFO ===== -->
-    <div class="card" style="padding:24px;">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Basic Information</h3>
-      <p class="text-sm text-slate-500 mb-5">Core details that identify this project.</p>
-      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div class="form-group">
-          <label class="form-label">Reference Code</label>
-          {% render_field form.reference_code class="form-control" placeholder="PRJ-001" %}
+      <form action="" method="post" enctype="multipart/form-data" class="space-y-5">
+        {% csrf_token %}
+
+        <section class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-7" aria-labelledby="basics-title">
+          <div class="mb-6 flex items-start gap-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-xl text-indigo-700" aria-hidden="true">01</span>
+            <div>
+              <h2 id="basics-title" class="text-lg font-extrabold text-slate-950">Project basics</h2>
+              <p class="mt-1 text-sm text-slate-500">The identifying information and current delivery state.</p>
+            </div>
+          </div>
+          <div class="grid gap-5 md:grid-cols-2">
+            <div>
+              <label for="{{ form.project_title.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project title</label>
+              {% render_field form.project_title class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="e.g. Regional water supply upgrade" %}
+              {% for error in form.project_title.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.reference_code.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Reference code <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.reference_code class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="Generated if left blank" %}
+              {% for error in form.reference_code.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="md:col-span-2">
+              <label for="{{ form.project_description.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project description</label>
+              {% render_field form.project_description class="min-h-32 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" rows="5" placeholder="Describe the work, intended outcomes, and scope..." %}
+              {% for error in form.project_description.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.category.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Category</label>
+              {% render_field form.category class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.category.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.project_status.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project status</label>
+              {% render_field form.project_status class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.project_status.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.priority.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Priority</label>
+              {% render_field form.priority class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.priority.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.progress.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Progress notes <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.progress class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="Brief current progress" %}
+              {% for error in form.progress.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-7" aria-labelledby="location-title">
+          <div class="mb-6 flex items-start gap-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl text-emerald-700" aria-hidden="true">02</span>
+            <div>
+              <h2 id="location-title" class="text-lg font-extrabold text-slate-950">Location and agencies</h2>
+              <p class="mt-1 text-sm text-slate-500">Where the project is delivered and which public bodies are responsible.</p>
+            </div>
+          </div>
+          <div class="grid gap-5 md:grid-cols-2">
+            <div>
+              <label for="{{ form.project_location.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project location</label>
+              {% render_field form.project_location class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="County, ward, town, site or landmark" %}
+              {% for error in form.project_location.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.district.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">District</label>
+              {% render_field form.district class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.district.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.agency.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Registered implementing agency <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.agency class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.agency.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.project_division.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project division <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.project_division class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.project_division.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.implementing_agency.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Implementing agency name</label>
+              {% render_field form.implementing_agency class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="Responsible delivery agency" %}
+              {% for error in form.implementing_agency.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.supervising_agency.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Supervising agency <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.supervising_agency class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.supervising_agency.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.latitude.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Latitude <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.latitude class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="e.g. -1.286389" step="0.000001" %}
+              {% for error in form.latitude.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.longitude.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Longitude <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.longitude class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="e.g. 36.817223" step="0.000001" %}
+              {% for error in form.longitude.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <p class="md:col-span-2 text-xs leading-5 text-slate-500">Coordinates are optional. If you enter one, enter both latitude and longitude.</p>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-7" aria-labelledby="budget-title">
+          <div class="mb-6 flex items-start gap-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-xl text-amber-700" aria-hidden="true">03</span>
+            <div>
+              <h2 id="budget-title" class="text-lg font-extrabold text-slate-950">Budget and timeline</h2>
+              <p class="mt-1 text-sm text-slate-500">Record funding details and key delivery dates.</p>
+            </div>
+          </div>
+          <div class="grid gap-5 md:grid-cols-2">
+            <div>
+              <label for="{{ form.project_Budgeting.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Approved project budget</label>
+              <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-sm font-bold text-slate-500">KES</span>
+                {% render_field form.project_Budgeting class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-14 pr-4 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="0.00" %}
+              </div>
+              {% for error in form.project_Budgeting.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.amount_spent.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Amount spent <span class="font-normal text-slate-500">(optional)</span></label>
+              <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-sm font-bold text-slate-500">KES</span>
+                {% render_field form.amount_spent class="w-full rounded-xl border border-slate-300 bg-white py-3 pl-14 pr-4 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="0.00" %}
+              </div>
+              {% for error in form.amount_spent.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.funding_source.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Funding source <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.funding_source class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="e.g. National government allocation" %}
+              {% for error in form.funding_source.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.start_date.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Start date <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.start_date type="date" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.start_date.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.end_date.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Expected end date <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.end_date type="date" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.end_date.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.actual_end_date.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Actual end date <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.actual_end_date type="date" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.actual_end_date.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-7" aria-labelledby="people-title">
+          <div class="mb-6 flex items-start gap-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-xl text-sky-700" aria-hidden="true">04</span>
+            <div>
+              <h2 id="people-title" class="text-lg font-extrabold text-slate-950">People and stakeholders</h2>
+              <p class="mt-1 text-sm text-slate-500">Add the delivery contacts and groups affected by the project.</p>
+            </div>
+          </div>
+          <div class="grid gap-5 md:grid-cols-2">
+            <div>
+              <label for="{{ form.project_manager.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project manager <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.project_manager class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.project_manager.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.project_contractor.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project contractor <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.project_contractor class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" %}
+              {% for error in form.project_contractor.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.contact_email.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Project contact email <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.contact_email type="email" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="project@example.go.ke" %}
+              {% for error in form.contact_email.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.beneficiaries.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Beneficiaries <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.beneficiaries class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" placeholder="Who is expected to benefit?" %}
+              {% for error in form.beneficiaries.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="md:col-span-2">
+              <label for="{{ form.stakeholders.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Stakeholders <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.stakeholders class="min-h-24 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" rows="3" placeholder="Communities, agencies, and partner organizations involved" %}
+              {% for error in form.stakeholders.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-7" aria-labelledby="impact-title">
+          <div class="mb-6 flex items-start gap-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-xl text-violet-700" aria-hidden="true">05</span>
+            <div>
+              <h2 id="impact-title" class="text-lg font-extrabold text-slate-950">Impact and operational notes</h2>
+              <p class="mt-1 text-sm text-slate-500">Describe intended outcomes and information useful to project reviewers.</p>
+            </div>
+          </div>
+          <div class="grid gap-5 md:grid-cols-2">
+            <div>
+              <label for="{{ form.impact.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Expected impact <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.impact class="min-h-28 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" rows="4" %}
+              {% for error in form.impact.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.remarks.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Remarks <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.remarks class="min-h-28 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100" rows="4" %}
+              {% for error in form.remarks.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-7" aria-labelledby="media-title">
+          <div class="mb-6 flex items-start gap-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-xl text-rose-700" aria-hidden="true">06</span>
+            <div>
+              <h2 id="media-title" class="text-lg font-extrabold text-slate-950">Images and visibility</h2>
+              <p class="mt-1 text-sm text-slate-500">Add project imagery and choose how the project appears in the portal.</p>
+            </div>
+          </div>
+          <div class="grid gap-5 md:grid-cols-2">
+            <div>
+              <label for="{{ form.images.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Primary project image <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.images class="block w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-bold file:text-indigo-800 hover:file:bg-indigo-200" accept="image/*" %}
+              {% for error in form.images.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label for="{{ form.cover_image.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Cover image <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.cover_image class="block w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-bold file:text-indigo-800 hover:file:bg-indigo-200" accept="image/*" %}
+              {% for error in form.cover_image.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="md:col-span-2">
+              <label for="{{ form.evidence_images.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">Supporting photos and evidence <span class="font-normal text-slate-500">(optional)</span></label>
+              {% render_field form.evidence_images class="block w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-100 file:px-4 file:py-2 file:text-sm file:font-bold file:text-emerald-800 hover:file:bg-emerald-200" accept="image/*" %}
+              <p class="mt-2 text-xs leading-5 text-slate-500">{{ form.evidence_images.help_text }}</p>
+              {% for error in form.evidence_images.errors %}<p class="mt-1 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+            </div>
+          </div>
+
+          <div class="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
+            <label for="{{ form.is_public.id_for_label }}" class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-emerald-300 hover:bg-emerald-50/50">
+              {% render_field form.is_public class="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600" %}
+              <span><span class="block text-sm font-bold text-slate-800">Public project</span><span class="mt-1 block text-xs leading-5 text-slate-500">Allow this project to appear in public listings.</span></span>
+            </label>
+            <label for="{{ form.is_featured.id_for_label }}" class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-amber-300 hover:bg-amber-50/50">
+              {% render_field form.is_featured class="mt-1 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500" %}
+              <span><span class="block text-sm font-bold text-slate-800">Featured project</span><span class="mt-1 block text-xs leading-5 text-slate-500">Highlight this project in featured content.</span></span>
+            </label>
+          </div>
+          {% for error in form.is_public.errors %}<p class="mt-2 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+          {% for error in form.is_featured.errors %}<p class="mt-2 text-sm text-rose-700">{{ error }}</p>{% endfor %}
+        </section>
+
+        <div class="sticky bottom-4 z-20 flex flex-col-reverse gap-3 rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-xl backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <p class="hidden text-sm text-slate-500 sm:block">Review the details before saving.</p>
+          <div class="flex flex-col-reverse gap-3 sm:flex-row">
+            <a href="{% url 'projectoverview' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Cancel</a>
+            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-700 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-indigo-800 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+              <span aria-hidden="true">✓</span> {% if form.instance.pk %}Save project changes{% else %}Create project{% endif %}
+            </button>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Project Title</label>
-          {% render_field form.project_title class="form-control" placeholder="Project Title" %}
-        </div>
-        <div class="form-group sm:col-span-2">
-          <label class="form-label">Project Description</label>
-          {% render_field form.project_description class="form-control" rows="5" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Category</label>
-          {% render_field form.category class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Project Status</label>
-          {% render_field form.project_status class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Priority</label>
-          {% render_field form.priority class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Progress (%)</label>
-          {% render_field form.progress class="form-control" %}
-        </div>
-      </div>
+      </form>
     </div>
-
-    <!-- ===== SECTION: LOCATION & AGENCIES ===== -->
-    <div class="card" style="padding:24px;">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Location &amp; Agencies</h3>
-      <p class="text-sm text-slate-500 mb-5">Where the project runs and who is responsible.</p>
-      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div class="form-group">
-          <label class="form-label" for="{{ form.project_location.id_for_label }}">Project Place / Location</label>
-          {% render_field form.project_location class="form-control" placeholder="County, ward, town, site or landmark" %}
-          <p class="mt-1 text-xs text-slate-500">Enter where the project is physically located. This place is shown with the project details and regional reports.</p>
-        </div>
-        <div class="form-group">
-          <label class="form-label">District</label>
-          {% render_field form.district class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Implementing Agency</label>
-          {% render_field form.implementing_agency class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Supervising Agency</label>
-          {% render_field form.supervising_agency class="form-control" %}
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== SECTION: BUDGET & TIMELINE ===== -->
-    <div class="card" style="padding:24px;">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Budget &amp; Timeline</h3>
-      <p class="text-sm text-slate-500 mb-5">Financials and key project dates.</p>
-      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div class="form-group">
-          <label class="form-label">Project Budget</label>
-          {% render_field form.project_Budgeting class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Amount Spent</label>
-          {% render_field form.amount_spent class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Funding Source</label>
-          {% render_field form.funding_source class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Start Date</label>
-          {% render_field form.start_date type="date" class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Expected End Date</label>
-          {% render_field form.end_date type="date" class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Actual End Date</label>
-          {% render_field form.actual_end_date type="date" class="form-control" %}
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== SECTION: PEOPLE ===== -->
-    <div class="card" style="padding:24px;">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">People &amp; Stakeholders</h3>
-      <p class="text-sm text-slate-500 mb-5">Teams, contacts and beneficiaries.</p>
-      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div class="form-group">
-          <label class="form-label">Project Manager</label>
-          {% render_field form.project_manager class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Project Contractor</label>
-          {% render_field form.project_contractor class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Contact Email</label>
-          {% render_field form.contact_email type="email" class="form-control" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Beneficiaries</label>
-          {% render_field form.beneficiaries class="form-control" %}
-        </div>
-        <div class="form-group sm:col-span-2">
-          <label class="form-label">Stakeholders</label>
-          {% render_field form.stakeholders class="form-control" %}
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== SECTION: IMPACT & NOTES ===== -->
-    <div class="card" style="padding:24px;">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Impact &amp; Notes</h3>
-      <p class="text-sm text-slate-500 mb-5">Record the expected project impact and any operational remarks.</p>
-      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div class="form-group sm:col-span-2">
-          <label class="form-label">Impact</label>
-          {% render_field form.impact class="form-control" %}
-        </div>
-        <div class="form-group sm:col-span-2">
-          <label class="form-label">Remarks</label>
-          {% render_field form.remarks class="form-control" %}
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== SECTION: MEDIA & VISIBILITY ===== -->
-    <div class="card" style="padding:24px;">
-      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Media &amp; Visibility</h3>
-      <p class="text-sm text-slate-500 mb-5">Choose a primary image, then add supporting photos for reference and evidence.</p>
-      <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <div class="form-group">
-          <label class="form-label">Primary Project Image</label>
-          {% render_field form.images class="form-control" type="file" %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Cover Image</label>
-          {% render_field form.cover_image class="form-control" type="file" %}
-        </div>
-        <div class="form-group sm:col-span-2">
-          <label class="form-label" for="{{ form.evidence_images.id_for_label }}">Supporting Photos &amp; Evidence</label>
-          {% render_field form.evidence_images class="form-control" %}
-          <p class="mt-1 text-xs text-slate-500">You can select several images at once. Each is stored separately in this project’s media record.</p>
-          {% if form.evidence_images.errors %}<p class="mt-1 text-xs text-red-600">{{ form.evidence_images.errors|join:", " }}</p>{% endif %}
-        </div>
-        <div class="flex items-center gap-3">
-          {% render_field form.is_public class="w-4 h-4 accent-teal-600" %}
-          <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Public Project</label>
-        </div>
-        <div class="flex items-center gap-3">
-          {% render_field form.is_featured class="w-4 h-4 accent-teal-600" %}
-          <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Featured Project</label>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== FORM ACTIONS ===== -->
-    <div class="flex items-center justify-end gap-3 pt-2">
-      <a href="{% url 'projectoverview' %}" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">Cancel</a>
-      <button type="submit"
-              class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/30 focus:ring-4 focus:outline-none focus:ring-teal-300/40 transition">
-        <iconify-icon icon="solar:diskette-bold"></iconify-icon>
-        Save Project
-      </button>
-    </div>
-
-</form>
-</div>
-<script src="{% static 'js/projectform.js' %}"></script>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</main>
-{% include "footer.html" %}
-{% endblock content %}
-
-
- 
+  </main>
+  {% include "footer.html" %}
+</body>
+</html>

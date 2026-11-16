@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from smtplib import SMTPException
 from urllib.parse import quote
+from xml.sax.saxutils import escape as xml_escape
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from django.utils import timezone
@@ -10,12 +11,11 @@ import pdfkit
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.tokens import default_token_generator
-from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
 from django.utils.crypto import get_random_string
+from django.contrib.auth.password_validation import validate_password
 from django.db import models, transaction
 from django.db.models.deletion import ProtectedError
 from django.db.models import Avg, Count, FloatField, Max, Q, Sum, Subquery, OuterRef, Value
@@ -28,11 +28,17 @@ from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponseForbidden
 from django.template.loader import get_template
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone as django_timezone
 from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from ai.project_analysis import generate_project_analyses
 from .forms import (AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentAgencyForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProfessionalAccountRegistrationForm, ProgressReportForm, ProjectChangeRequestForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectInspectionForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, UserManagementForm, participationForm,)
@@ -60,32 +66,36 @@ def _status_progress_context(project):
     }
 
 
-def _send_password_reset_sms(phone_number, otp):
-    """Send an OTP through Twilio when SMS settings are configured."""
-    import base64
-    from urllib.parse import urlencode
-    from urllib.request import Request, urlopen
+def _render_delete_confirmation(
+    request,
+    template_name,
+    *,
+    title,
+    kind,
+    name,
+    return_url,
+    details=None,
+    warning="Any records associated with this item may also be removed.",
+):
+    return render(
+        request,
+        template_name,
+        {
+            'delete_title': title,
+            'delete_kind': kind,
+            'delete_name': name or f'Untitled {kind.lower()}',
+            'delete_return_url': return_url,
+            'delete_details': [
+                {'label': label, 'value': value}
+                for label, value in (details or [])
+                if value
+            ],
+            'delete_warning': warning,
+        },
+    )
 
-    account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', '')
-    auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
-    from_number = getattr(settings, 'TWILIO_FROM_NUMBER', '')
-    if not all((account_sid, auth_token, from_number)):
-        return False
 
-    endpoint = f'https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json'
-    payload = urlencode({
-        'To': phone_number,
-        'From': from_number,
-        'Body': f'Your GovTracker password reset code is {otp}. It expires in 10 minutes.',
-    }).encode()
-    request = Request(endpoint, data=payload, method='POST')
-    credentials = f'{account_sid}:{auth_token}'.encode()
-    request.add_header('Authorization', f'Basic {base64.b64encode(credentials).decode()}')
-    try:
-        with urlopen(request, timeout=10):
-            return True
-    except Exception:
-        return False
+
 
 
 def get_participants_for_request(request, limit=None):
@@ -105,55 +115,19 @@ def get_participants_for_request(request, limit=None):
 
 @role_required(*OFFICER_ROLES)
 def generate_report(request):
-    # Fetch data for reports
-    users = User.objects.all()
-    projects = Project.objects.all()
-    budgets = Budget.objects.all()
-    feedbacks = Feedback.objects.all()
-    notifications = Notification.objects.all()
-    milestones = Milestone.objects.all()
-    pdfs = PDF.objects.all()
-    media_files = Media.objects.all()
-
-    # Calculate totals
-    total_projects = projects.count()
-    total_budget_allocated = budgets.aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or 0
-    total_budget_spent = budgets.aggregate(Sum('spent_amount'))['spent_amount__sum'] or 0
-    total_users = users.count()
-    total_feedbacks = feedbacks.count()
-    total_notifications = notifications.count()
-
-    context = {
-        'users': users,
-        'projects': projects,
-        'budgets': budgets,
-        'feedbacks': feedbacks,
-        'notifications': notifications,
-        'milestones': milestones,
-        'pdfs': pdfs,
-        'media_files': media_files,
-        'total_projects': total_projects,
-        'total_budget_allocated': total_budget_allocated,
-        'total_budget_spent': total_budget_spent,
-        'total_users': total_users,
-        'total_feedbacks': total_feedbacks,
-        'total_notifications': total_notifications,
-    }
-
-    return render(request, 'generate_pdf.html', context)
+    snapshot = _system_report_snapshot(include_details=False)
+    return render(request, 'generate_pdf.html', {
+        'generated_at': snapshot['generated_at'],
+        'sections': snapshot['sections'],
+        'projects': snapshot['projects'],
+        'overdue_project_ids': snapshot['overdue_project_ids'],
+        'summary': snapshot['summary'],
+    })
 
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def export_report_pdf(request):
-    if pdfkit is None:
-        return HttpResponse('PDF export is unavailable. Install pdfkit and wkhtmltopdf.', status=503)
-    template = get_template('generate_pdf.html')
-    context = generate_report(request).context_data
-    html = template.render(context)
-    pdf = pdfkit.from_string(html, False)
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
-    return response
+    return export_pdf(request)
 
 
 
@@ -400,18 +374,41 @@ def Testimonials(request):
     query = request.GET.get('q', '').strip()
     selected_project = request.GET.get('project', '')
     selected_rating = request.GET.get('rating', '')
-    testimonials = Testimonial.objects.all()
+    testimonials = Testimonial.objects.select_related('project', 'user')
+    if not request.user.is_superuser:
+        testimonials = testimonials.filter(Q(is_approved=True) | Q(user=request.user))
+    if query:
+        testimonials = testimonials.filter(
+            Q(name__icontains=query)
+            | Q(content__icontains=query)
+            | Q(project__project_title__icontains=query)
+        )
+    if selected_project.isdigit():
+        testimonials = testimonials.filter(project_id=selected_project)
+    if selected_rating in {'1', '2', '3', '4', '5'}:
+        testimonials = testimonials.filter(rating=int(selected_rating))
 
+    page_obj = Paginator(testimonials.order_by('-is_featured', '-created_at'), 9).get_page(
+        request.GET.get('page')
+    )
+    published_stats = Testimonial.objects.filter(is_approved=True).aggregate(
+        total=Count('id'),
+        average_rating=Avg('rating'),
+    )
 
-    context={
-        'testimonials':testimonials,
+    context = {
+        'testimonials': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'projects': Project.objects.order_by('project_title'),
         'selected_project': selected_project,
         'selected_rating': selected_rating,
         'query': query,
         'pending_count': Testimonial.objects.filter(is_approved=False).count() if request.user.is_superuser else 0,
+        'published_count': published_stats['total'],
+        'average_rating': published_stats['average_rating'],
     }
-    return render(request,'testimonials.html',context)
+    return render(request, 'testimonials.html', context)
 
 @login_required(login_url='login')
 def testimonial_details(request,pk):
@@ -420,10 +417,7 @@ def testimonial_details(request,pk):
         messages.error(request, 'This testimonial is awaiting moderation.')
         return redirect('testimonials')
 
-    participants = get_participants_for_request(request, limit=5)
-
-    context={'testimonial':testimonial, 'participants': participants}
-    return render(request,'testimonial_details.html',context)
+    return render(request, 'testimonial_details.html', {'testimonial': testimonial})
 
 @login_required(login_url='login')
 def add_testimonial(request):
@@ -452,7 +446,20 @@ def delete_testimonial(request, pk):
     if request.method== 'POST':
         testimonial.delete()
         return redirect ('testimonials')
-    return render(request, 'testimonial_delete.html', {'testimonial': testimonial})
+    return _render_delete_confirmation(
+        request,
+        'testimonial_delete.html',
+        title='Delete this testimonial?',
+        kind='Testimonial',
+        name=testimonial.name,
+        return_url=reverse('testimonial_details', args=[testimonial.pk]),
+        details=[
+            ('Rating', f'{testimonial.rating} out of 5 stars'),
+            ('Related project', testimonial.project.project_title if testimonial.project_id else None),
+            ('Submitted', testimonial.created_at.strftime('%B %d, %Y') if testimonial.created_at else None),
+        ],
+        warning='This testimonial and its moderation history will be permanently removed.',
+    )
 
 @login_required(login_url='login')
 def update_testimonial(request, pk):
@@ -489,71 +496,79 @@ def moderate_testimonial(request, pk):
 
 @login_required(login_url='login')
 def adminview(request):
-    if not (request.user.is_superuser or request.user.is_staff or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES)):
+    if not (request.user.is_superuser or request.user.is_staff or request.user.role in OFFICER_ROLES):
         messages.error(request, "Access restricted. You do not have permission to view the executive admin portal.")
         return redirect('dashboard')
 
     feedbacks = Feedback.objects.order_by('-created_at')[:10]
-    impacts = ProgramImpact.objects.order_by('-id')[:10]
     updates = ProgressUpdate.objects.select_related('project', 'stage', 'reported_by').order_by('-date_reported')[:10]
     budgetings = Budget.objects.select_related('project').order_by('-last_updated')[:10]
-    comments = Comment.objects.select_related('project', 'user').order_by('-created_at')[:10]
     risks = ProjectRisk.objects.select_related('project', 'owner').order_by('-created_at')[:10]
     stakeholder = Stakeholder.objects.select_related('project').order_by('-id')[:10]
     reportedissues = ReportIssue.objects.select_related('project', 'user').order_by('-created_at')[:10]
     recent_projects = Project.objects.order_by('-created_at')[:8]
-    participants = get_participants_for_request(request, limit=5)
 
+    status_totals = {
+        (row['project_status'] or '').strip().lower(): row['total']
+        for row in Project.objects.values('project_status').annotate(total=Count('id'))
+    }
     project_stats = {
-        'total': Project.objects.count(),
-        'ongoing': Project.objects.filter(project_status='ongoing').count(),
-        'upcoming': Project.objects.filter(project_status='upcoming').count(),
-        'completed': Project.objects.filter(project_status='completed').count(),
-        'delayed': Project.objects.filter(project_status='delayed').count(),
+        'total': sum(status_totals.values()),
+        **{
+            status: status_totals.get(status, 0)
+            for status, _ in Project.STATUS_CHOICES
+        },
     }
 
     budget_rows = list(budgetings[:6])
-    project_status_labels = ['Ongoing', 'Upcoming', 'Completed', 'Delayed']
-    project_status_counts = [
-        project_stats['ongoing'],
-        project_stats['upcoming'],
-        project_stats['completed'],
-        project_stats['delayed'],
-    ]
+    project_status_labels = [label for _, label in Project.STATUS_CHOICES]
+    project_status_counts = [project_stats[status] for status, _ in Project.STATUS_CHOICES]
+    known_statuses = {status for status, _ in Project.STATUS_CHOICES}
+    unspecified_count = sum(
+        count for status, count in status_totals.items()
+        if status not in known_statuses
+    )
+    if unspecified_count:
+        project_status_labels.append('Other / Unspecified')
+        project_status_counts.append(unspecified_count)
     budget_labels = [
         budget.project.project_title if budget.project else 'Unassigned budget'
         for budget in budget_rows
     ]
     budget_allocated = [float(budget.allocated_amount or 0) for budget in budget_rows]
     budget_spent = [float(budget.spent_amount or 0) for budget in budget_rows]
+    budget_totals = Budget.objects.aggregate(
+        allocated=Sum('allocated_amount'),
+        spent=Sum('spent_amount'),
+    )
 
     context = {
         'feedbacks': feedbacks,
-        'impacts': impacts,
+        'feedback_count': Feedback.objects.count(),
         'updates': updates,
         'budgetings': budgetings,
-        'comments': comments,
         'risks': risks,
         'stakeholder': stakeholder,
         'reportedissues': reportedissues,
         'recent_projects': recent_projects,
         'project_stats': project_stats,
-        'participants': participants,
+        'open_issue_count': ReportIssue.objects.filter(status__in=['pending', 'investigating']).count(),
+        'open_risk_count': ProjectRisk.objects.filter(status='open').count(),
         'project_status_labels': project_status_labels,
         'project_status_counts': project_status_counts,
         'budget_labels': budget_labels,
         'budget_allocated': budget_allocated,
         'budget_spent': budget_spent,
-        'total_budget_allocated': sum(budget_allocated),
-        'total_budget_spent': sum(budget_spent),
+        'total_budget_allocated': budget_totals['allocated'] or Decimal('0'),
+        'total_budget_spent': budget_totals['spent'] or Decimal('0'),
+        'can_allocate_budget': user_has_permission(request.user, 'can_allocate_budget'),
     }
     return render(request, 'adminview.html', context)
 
 @login_required(login_url='login')
 def feedback_details(request,pk):
-    feed=get_object_or_404(Feedback,id=pk)
-    context={'feed':feed}
-    return render(request,'feedback_details.html',context)
+    feed = get_object_or_404(Feedback.objects.select_related('project'), id=pk)
+    return render(request, 'feedback_details.html', {'feed': feed})
 
 def reportedissuesdetails(request,pk):
     issues=get_object_or_404(ReportIssue,id=pk)
@@ -699,31 +714,26 @@ def loginpage(request):
 
 def password_reset_request(request):
     if request.method == 'POST':
-        method = request.POST.get('method')
-        identifier = request.POST.get('identifier', '').strip()
-        user = User.objects.filter(email__iexact=identifier).first() if method == 'email' else User.objects.filter(phone_number=identifier).first()
+        email = request.POST.get('email', '').strip()
+        user = User.objects.filter(email__iexact=email, is_active=True).first() if email else None
 
-        if method == 'email' and user:
+        if user and user.has_usable_password():
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            reset_url = request.build_absolute_uri(f'/reset-password/{uid}/{token}/')
-            send_mail(
-                'Reset your GovTracker password',
-                f'Use this link to set a new password: {reset_url}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
+            reset_url = request.build_absolute_uri(
+                reverse('password_reset_confirm', args=[uid, token])
             )
-        elif method == 'sms' and user and user.phone_number:
-            import secrets
-            otp = f'{secrets.randbelow(1000000):06d}'
-            if _send_password_reset_sms(user.phone_number, otp):
-                request.session['password_reset_sms'] = {
-                    'user_id': user.pk,
-                    'otp': make_password(otp),
-                    'expires_at': (django_timezone.now() + timedelta(minutes=10)).timestamp(),
-                }
-                return redirect('password_reset_sms')
+            context = {'user': user, 'reset_url': reset_url}
+            message = EmailMultiAlternatives(
+                subject='Reset your GovTracker password',
+                body=render_to_string('emails/password_reset.txt', context),
+                to=[user.email],
+            )
+            message.attach_alternative(
+                render_to_string('emails/password_reset.html', context),
+                'text/html',
+            )
+            message.send(fail_silently=False)
 
         messages.info(request, 'If the details match an account, recovery instructions have been sent.')
         return redirect('password_reset_done')
@@ -746,35 +756,23 @@ def password_reset_confirm(request, uidb64, token):
     if request.method == 'POST':
         password = request.POST.get('password')
         confirmation = request.POST.get('confirmation')
-        if not password or len(password) < 8 or password != confirmation:
-            return render(request, 'password_reset_confirm.html', {'valid_link': True, 'error': 'Passwords must match and be at least 8 characters.'})
+        if not password or password != confirmation:
+            return render(request, 'password_reset_confirm.html', {
+                'valid_link': True,
+                'error': 'Enter matching passwords.',
+            })
+        try:
+            validate_password(password, user)
+        except ValidationError as error:
+            return render(request, 'password_reset_confirm.html', {
+                'valid_link': True,
+                'error': ' '.join(error.messages),
+            })
         user.set_password(password)
         user.save(update_fields=['password'])
         messages.success(request, 'Your password has been reset. You can now sign in.')
         return redirect('login')
     return render(request, 'password_reset_confirm.html', {'valid_link': True})
-
-
-def password_reset_sms(request):
-    reset_data = request.session.get('password_reset_sms')
-    if not reset_data or reset_data['expires_at'] < django_timezone.now().timestamp():
-        request.session.pop('password_reset_sms', None)
-        return redirect('password_reset')
-    if request.method == 'POST':
-        otp = request.POST.get('otp', '').strip()
-        password = request.POST.get('password')
-        confirmation = request.POST.get('confirmation')
-        if not check_password(otp, reset_data['otp']):
-            return render(request, 'password_reset_sms.html', {'error': 'That verification code is incorrect.'})
-        if not password or len(password) < 8 or password != confirmation:
-            return render(request, 'password_reset_sms.html', {'error': 'Passwords must match and be at least 8 characters.'})
-        user = get_object_or_404(User, pk=reset_data['user_id'])
-        user.set_password(password)
-        user.save(update_fields=['password'])
-        request.session.pop('password_reset_sms', None)
-        messages.success(request, 'Your password has been reset. You can now sign in.')
-        return redirect('login')
-    return render(request, 'password_reset_sms.html')
 
 @login_required(login_url='login')
 def logoutuser(request):
@@ -850,7 +848,17 @@ def deleteprofile(request, pk):
         messages.success(request, f'{target.email} was deleted.')
         return redirect(return_url)
 
-    return render(request, 'deleteprofile.html', {'target_user': target, 'return_url': return_url})
+    display_name = target.get_full_name() or target.email or target.username
+    return _render_delete_confirmation(
+        request,
+        'deleteprofile.html',
+        title='Delete this profile?',
+        kind='Profile',
+        name=display_name,
+        return_url=return_url,
+        details=[('Email address', target.email), ('Account role', target.get_role_display() if hasattr(target, 'get_role_display') else target.role)],
+        warning='This account and its personal data will be permanently removed. If you only need to prevent sign-in, suspend access from the user directory instead.',
+    )
 
 
 
@@ -1006,21 +1014,15 @@ def jobApplication(request):
 
 @login_required(login_url='login')
 def feedback(request):
-
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:4]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-
-    form= FeedbackForm()
-    if request.method=='POST':
-        form=FeedbackForm(request.POST)
+    form = FeedbackForm()
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('index')
+            messages.success(request, 'Thank you. Your feedback has been submitted.')
+            return redirect('feedback')
 
-    context= {'form':form, 'participants': participants}
-    return render(request,'feedback.html',context)
+    return render(request, 'feedback.html', {'form': form})
 
 
 
@@ -1139,7 +1141,21 @@ def deleteProject(request, pk):
         project.delete()
         messages.success(request, f'Project "{title}" was permanently deleted.')
         return redirect('projectoverview')
-    return render(request, 'delete.html', {'project': project})
+    return _render_delete_confirmation(
+        request,
+        'delete.html',
+        title='Delete this project?',
+        kind='Project',
+        name=project.project_title or project.reference_code,
+        return_url=reverse('projectoverview'),
+        details=[
+            ('Reference', project.reference_code),
+            ('Status', project.get_project_status_display() if project.project_status else None),
+            ('Location', project.project_location),
+            ('Implementing agency', project.implementing_agency),
+        ],
+        warning='The project and its associated records may also be permanently removed.',
+    )
 
 @login_required(login_url='login')
 def BudgetAnalysis(request):
@@ -1468,7 +1484,16 @@ def delete_team(request,pk):
         deletetim.delete()
         messages.success(request, 'Team member deleted successfully!')
         return redirect('team')
-    return render(request,'delete_team.html',{'deletetim':deletetim})
+    return _render_delete_confirmation(
+        request,
+        'delete_team.html',
+        title='Delete this team member?',
+        kind='Team member',
+        name=deletetim.name,
+        return_url=reverse('team'),
+        details=[('Role', deletetim.role)],
+        warning='This team member will be permanently removed from the directory.',
+    )
 
 @login_required(login_url='login')
 def teams_details(request,pk):
@@ -2044,13 +2069,20 @@ def delete_division(request, pk):
         messages.success(request, f"Project Division '{name}' deleted successfully!")
         return redirect('division_details')
 
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:4]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-
-    context = {'division': division, 'participants': participants}
-    return render(request, 'delete/delete_division.html', context)
+    return _render_delete_confirmation(
+        request,
+        'delete/delete_division.html',
+        title='Delete this division?',
+        kind='Project division',
+        name=str(division),
+        return_url=reverse('division_details'),
+        details=[
+            ('Division code', division.code),
+            ('Head of division', division.head_of_division),
+            ('Office location', division.office_location),
+        ],
+        warning='This division and its associated configuration will be permanently removed.',
+    )
 
 
 @login_required(login_url='login')
@@ -2368,12 +2400,19 @@ def milestone_delete(request, pk):
         messages.success(request, f"Milestone '{title}' deleted.")
         return redirect('milestone_list')
 
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:4]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-
-    return render(request, 'milestone_confirm_delete.html', {'milestone': milestone_obj, 'participants': participants})
+    return _render_delete_confirmation(
+        request,
+        'milestone_confirm_delete.html',
+        title='Delete this milestone?',
+        kind='Milestone',
+        name=milestone_obj.title,
+        return_url=reverse('milestone_detail', args=[milestone_obj.pk]),
+        details=[
+            ('Project', milestone_obj.project.project_title),
+            ('Status', milestone_obj.get_status_display()),
+        ],
+        warning='This milestone and its recorded progress will be permanently removed from the project.',
+    )
 
 
 
@@ -2509,10 +2548,29 @@ def media_upload(request):
     return render(request, 'media_upload.html', {'form': form})
 
 
+@login_required(login_url='login')
 def delete_media(request, id):
     media = get_object_or_404(Media, id=id)
-    media.delete()
-    return redirect('media_list')
+    if not (request.user.is_superuser or media.uploaded_by_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to delete this media asset.")
+    if request.method == 'POST':
+        media.delete()
+        messages.success(request, 'Media asset deleted successfully.')
+        return redirect('media_list')
+    return _render_delete_confirmation(
+        request,
+        'media_delete_confirm.html',
+        title='Delete this media asset?',
+        kind='Media asset',
+        name=media.caption or media.file.name.rsplit('/', 1)[-1],
+        return_url=reverse('media_list'),
+        details=[
+            ('Media type', media.get_media_type_display()),
+            ('Related project', media.project.project_title if media.project_id else None),
+            ('Uploaded', media.uploaded_at.strftime('%B %d, %Y') if media.uploaded_at else None),
+        ],
+        warning='This uploaded file will be permanently removed from the media library.',
+    )
 
 @login_required(login_url='login')
 def milestone(request):
@@ -3436,7 +3494,12 @@ def project_change_requests(request, pk):
     )
     if not (can_request or can_review or project.is_public):
         return HttpResponseForbidden('You are not allowed to view this project change history.')
-    form = ProjectChangeRequestForm(request.POST or None, request.FILES or None, project=project)
+    form = ProjectChangeRequestForm(
+        request.POST or None,
+        request.FILES or None,
+        project=project,
+        user=request.user,
+    )
     if request.method == 'POST':
         if not can_request:
             return HttpResponseForbidden('Only project participants and assigned contractors can propose a change.')
@@ -3756,7 +3819,20 @@ def delete_tender(request, tender_id):
         tender.delete()
         messages.success(request, "Tender deleted successfully.")
         return redirect('tender_list')
-    return render(request, 'confirm_delete.html', {'object': tender, 'title': 'Delete Tender'})
+    return _render_delete_confirmation(
+        request,
+        'confirm_delete.html',
+        title='Delete this tender?',
+        kind='Tender',
+        name=tender.title or tender.reference_number,
+        return_url=reverse('tender_list'),
+        details=[
+            ('Reference', tender.reference_number),
+            ('Project', tender.project.project_title if tender.project_id else None),
+            ('Status', tender.get_status_display()),
+        ],
+        warning='The tender and its procurement record will be permanently removed.',
+    )
 
 
 @login_required(login_url='login')
@@ -4166,12 +4242,20 @@ def ProjectStageDelete(request, pk):
         messages.success(request, f"Project stage '{stage_title}' deleted successfully.")
         return redirect('projectstage_list')
 
-    if request.user.is_superuser:
-        participants = Participation.objects.all().order_by('-joined_at')[:4]
-    else:
-        participants = Participation.objects.filter(user=request.user)
-
-    return render(request, 'projectstage_confirm_delete.html', {'stage': stage, 'deletestage': stage, 'participants': participants})
+    return _render_delete_confirmation(
+        request,
+        'projectstage_confirm_delete.html',
+        title='Delete this project stage?',
+        kind='Project stage',
+        name=stage.stage_name,
+        return_url=reverse('projectstage_list'),
+        details=[
+            ('Project', stage.project.project_title),
+            ('Status', stage.get_status_display()),
+            ('Progress', f'{stage.progress_percentage}%'),
+        ],
+        warning='This stage, its progress, and any associated records may be permanently removed.',
+    )
 
 def sms_dashboard(request):
     return render(request, 'sms/intergration.html')
@@ -6349,151 +6433,531 @@ def system_reports(request):
     return render(request, 'Reports/system_reports.html', context)
 
 
+def _system_report_snapshot(include_details=True):
+    generated_at = django_timezone.localtime()
+    today = django_timezone.localdate()
+    projects = list(
+        Project.objects.select_related('district', 'category', 'agency')
+        .order_by('project_title', 'id')
+    )
+    if include_details:
+        tenders = list(Tender.objects.select_related('project', 'awarded_to').order_by('reference_number'))
+        applications = list(
+            TenderApplication.objects.select_related('tender').order_by('submitted_at')
+        )
+        requests = list(GovernmentRequest.objects.order_by('-created_at'))
+        issues = list(ReportIssue.objects.select_related('project').order_by('-created_at'))
+        milestones = list(Milestone.objects.select_related('project', 'stage').order_by('due_date', 'id'))
+        risks = list(ProjectRisk.objects.select_related('project').order_by('-created_at'))
+        budgets = list(Budget.objects.select_related('project').order_by('project__project_title', 'fiscal_year'))
+        expenses = list(ProjectExpense.objects.select_related('project', 'stage', 'budget').order_by('-date', '-id'))
+        payments = list(
+            ContractorPaymentRequest.objects.select_related('project', 'contractor')
+            .order_by('-created_at')
+        )
+        submissions = list(CitizenSubmission.objects.select_related('project').order_by('-created_at'))
+        evidence = list(
+            CitizenEvidence.objects.select_related('project', 'stage').order_by('-created_at')
+        )
+    else:
+        tenders = applications = requests = issues = milestones = risks = []
+        budgets = expenses = payments = submissions = evidence = []
+
+    def counts(queryset, field_name, choices):
+        totals = dict(
+            queryset.values(field_name)
+            .annotate(total=Count('pk'))
+            .values_list(field_name, 'total')
+        )
+        return [
+            (label, totals.get(value, 0))
+            for value, label in choices
+        ]
+
+    total_budget = sum((project.project_Budgeting or 0 for project in projects), Decimal('0'))
+    total_spent = sum((project.amount_spent or 0 for project in projects), Decimal('0'))
+    budget_aggregate = Budget.objects.aggregate(
+        allocated=Sum('allocated_amount'),
+        spent=Sum('spent_amount'),
+    )
+    expense_total = ProjectExpense.objects.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    expense_statuses = dict(counts(ContractorPaymentRequest.objects.all(), 'status', ContractorPaymentRequest.STATUS_CHOICES))
+    payment_amounts = {
+        status: ContractorPaymentRequest.objects.filter(status=status).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        for status, _ in ContractorPaymentRequest.STATUS_CHOICES
+    }
+    project_statuses = counts(Project.objects.all(), 'project_status', Project.STATUS_CHOICES)
+    completion_rate = round(
+        (dict(project_statuses).get('Completed', 0) / len(projects) * 100), 1
+    ) if projects else 0
+    budget_utilization = round(float(total_spent / total_budget * 100), 1) if total_budget else 0
+    total_requests = GovernmentRequest.objects.count()
+    resolved_requests = GovernmentRequest.objects.filter(status='resolved').count()
+    total_issues = ReportIssue.objects.count()
+    resolved_issues = ReportIssue.objects.filter(status='resolved').count()
+    total_testimonials = Testimonial.objects.count()
+    approved_testimonials = Testimonial.objects.filter(is_approved=True).count()
+    total_submissions = CitizenSubmission.objects.count()
+    approved_submissions = CitizenSubmission.objects.filter(status='approved').count()
+    active_participations = Participation.objects.filter(is_active=True).count()
+    total_participations = Participation.objects.count()
+    verified_evidence = CitizenEvidence.objects.filter(status='verified').count()
+    total_users = User.objects.count()
+    total_evidence = CitizenEvidence.objects.count()
+
+    def percentage(part, total):
+        return f'{round(part / total * 100, 1) if total else 0}%'
+
+    overdue_projects = [
+        project for project in projects
+        if project.end_date and project.end_date < today
+        and project.project_status not in {'completed', 'cancelled'}
+    ]
+    overdue_project_ids = {project.pk for project in overdue_projects}
+    summary = {
+        'projects': len(projects),
+        'completed': dict(project_statuses).get('Completed', 0),
+        'overdue': len(overdue_projects),
+        'allocated': total_budget,
+        'spent': total_spent,
+        'users': User.objects.count(),
+        'open_issues': ReportIssue.objects.exclude(status__in=['resolved', 'dismissed']).count(),
+        'pending_requests': GovernmentRequest.objects.filter(status='pending').count(),
+    }
+
+    sections = [
+        ('Project Delivery', [
+            ('Total projects', len(projects)),
+            *project_statuses,
+            ('Overdue active projects', len(overdue_projects)),
+            ('Completion rate', f'{completion_rate}%'),
+        ]),
+        ('Portfolio Finance (KSh)', [
+            ('Project budget allocated', total_budget),
+            ('Project expenditure recorded', total_spent),
+            ('Project budget remaining', total_budget - total_spent),
+            ('Portfolio budget utilization', f'{budget_utilization}%'),
+            ('Budget records', Budget.objects.count()),
+            ('Budget-line allocations', budget_aggregate['allocated'] or Decimal('0')),
+            ('Budget-line spending', budget_aggregate['spent'] or Decimal('0')),
+            ('Expense records', ProjectExpense.objects.count()),
+            ('Expense value', expense_total),
+            ('Contractor payment requests', ContractorPaymentRequest.objects.count()),
+            *[(f'{status} payment requests', expense_statuses.get(label, 0))
+              for status, label in ContractorPaymentRequest.STATUS_CHOICES],
+            *[(f'{status} payment value', payment_amounts[status])
+              for status, _ in ContractorPaymentRequest.STATUS_CHOICES],
+        ]),
+        ('Users & Participation', [
+            ('Total users', total_users),
+            ('Verified users', User.objects.filter(is_verified=True).count()),
+            ('Unverified users', User.objects.filter(is_verified=False).count()),
+            ('Superusers', User.objects.filter(is_superuser=True).count()),
+            ('Citizens', User.objects.filter(role='citizen').count()),
+            ('Government officials and staff', User.objects.filter(
+                role__in=['official', 'staff', 'admin', 'auditor', 'manager']
+            ).count()),
+            ('Contractor accounts', User.objects.filter(role='contractor').count()),
+            ('Contractor organizations', Contractor.objects.count()),
+            ('Active project participations', Participation.objects.filter(is_active=True).count()),
+            ('Inactive project participations', Participation.objects.filter(is_active=False).count()),
+        ]),
+        ('Procurement', [
+            ('Total tenders', Tender.objects.count()),
+            *counts(Tender.objects.all(), 'status', Tender.STATUS_CHOICES),
+            ('Tender applications', TenderApplication.objects.count()),
+            *counts(TenderApplication.objects.all(), 'status', TenderApplication.STATUS_CHOICES),
+        ]),
+        ('Government Requests', [
+            ('Total requests', total_requests),
+            *counts(GovernmentRequest.objects.all(), 'status', GovernmentRequest.STATUS_CHOICES),
+            ('Resolution rate', percentage(resolved_requests, total_requests)),
+        ]),
+        ('Reported Issues', [
+            ('Total reported issues', total_issues),
+            *counts(ReportIssue.objects.all(), 'status', ReportIssue.STATUS_CHOICES),
+            *counts(ReportIssue.objects.all(), 'severity', ReportIssue.SEVERITY_CHOICES),
+            ('Overdue issue responses', ReportIssue.objects.filter(
+                response_due_at__lt=generated_at
+            ).exclude(status__in=['resolved', 'dismissed']).count()),
+            ('Resolution rate', percentage(resolved_issues, total_issues)),
+        ]),
+        ('Milestones & Stages', [
+            ('Total milestones', Milestone.objects.count()),
+            *counts(Milestone.objects.all(), 'status', Milestone.STATUS_CHOICES),
+            ('Milestones awaiting verification', Milestone.objects.filter(
+                verification_status='pending'
+            ).count()),
+            ('Project stages', ProjectStage.objects.count()),
+        ]),
+        ('Citizen Engagement', [
+            ('Feedback records', Feedback.objects.count()),
+            ('Testimonials', total_testimonials),
+            ('Approved testimonials', approved_testimonials),
+            ('Pending testimonials', total_testimonials - approved_testimonials),
+            ('Testimonial approval rate', percentage(approved_testimonials, total_testimonials)),
+            ('Comments', Comment.objects.count()),
+            ('Flagged comments', Comment.objects.filter(is_flagged=True).count()),
+            ('Citizen submissions', total_submissions),
+            *counts(CitizenSubmission.objects.all(), 'status', CitizenSubmission.STATUS_CHOICES),
+            *counts(CitizenSubmission.objects.all(), 'category', CitizenSubmission.CATEGORY_CHOICES),
+            ('Submission approval rate', percentage(approved_submissions, total_submissions)),
+            ('Citizen evidence records', total_evidence),
+            *counts(CitizenEvidence.objects.all(), 'status', CitizenEvidence.STATUS_CHOICES),
+            *counts(CitizenEvidence.objects.all(), 'severity', CitizenEvidence.SEVERITY_CHOICES),
+            ('Evidence verification rate', percentage(verified_evidence, total_evidence)),
+            ('Active participations', active_participations),
+            ('Total participations', total_participations),
+            ('Participation rate', percentage(active_participations, total_participations)),
+        ]),
+        ('Risk & Administration', [
+            ('Total project risks', ProjectRisk.objects.count()),
+            *counts(ProjectRisk.objects.all(), 'risk_level', ProjectRisk.RISK_LEVELS),
+            *counts(ProjectRisk.objects.all(), 'status', ProjectRisk.STATUS_CHOICES),
+            ('Media assets', Media.objects.count()),
+            ('Audit log records', AuditLog.objects.count()),
+            ('Notifications', Notification.objects.count()),
+            ('Announcements', Announcement.objects.count()),
+            ('Team members', Team.objects.count()),
+        ]),
+    ]
+
+    project_rows = [
+        (
+            project.reference_code or f'PRJ-{project.pk}',
+            project.project_title or 'Untitled project',
+            project.get_project_status_display() if project.project_status else 'Unspecified',
+            project.get_priority_display(),
+            project.project_location or '',
+            project.district.name if project.district_id else '',
+            project.agency.name if project.agency_id else project.implementing_agency or '',
+            project.category.name if project.category_id else '',
+            project.start_date,
+            project.end_date,
+            project.actual_end_date,
+            project.project_Budgeting or Decimal('0'),
+            project.amount_spent or Decimal('0'),
+            (project.project_Budgeting or Decimal('0')) - (project.amount_spent or Decimal('0')),
+            project.budget_utilization,
+            'Yes' if project.pk in overdue_project_ids else 'No',
+        )
+        for project in projects
+    ]
+
+    detail_sheets = [
+        {
+            'title': 'Finance',
+            'headers': ['Record type', 'Project', 'Reference / item', 'Category / status', 'Allocated (KSh)', 'Spent (KSh)', 'Amount (KSh)', 'Date / fiscal year'],
+            'rows': [
+                *[
+                    ('Budget line', budget.project.project_title, budget.project.reference_code or f'PRJ-{budget.project_id}',
+                     budget.fiscal_year or '', budget.allocated_amount, budget.spent_amount, None,
+                     budget.last_updated.date() if budget.last_updated else None)
+                    for budget in budgets
+                ],
+                *[
+                    ('Expense', expense.project.project_title if expense.project_id else '',
+                     expense.title or '', expense.get_category_display() if expense.category else '',
+                     None, None, expense.amount, expense.date)
+                    for expense in expenses
+                ],
+                *[
+                    ('Contractor payment', payment.project.project_title,
+                     payment.invoice_number or payment.title, payment.get_status_display(),
+                     None, None, payment.amount, payment.created_at.date() if payment.created_at else None)
+                    for payment in payments
+                ],
+            ],
+        },
+        {
+            'title': 'Tenders',
+            'headers': ['Reference', 'Tender', 'Project', 'Method', 'Status', 'Estimated budget (KSh)', 'Awarded contractor', 'Award amount (KSh)', 'Opening date', 'Closing date', 'Award date'],
+            'rows': [
+                (
+                    tender.reference_number or '', tender.title or '',
+                    tender.project.project_title if tender.project_id else '',
+                    tender.get_procurement_method_display(), tender.get_status_display(),
+                    tender.estimated_budget, tender.awarded_to.company if tender.awarded_to_id else '',
+                    tender.award_amount, tender.opening_date, tender.closing_date, tender.award_date,
+                )
+                for tender in tenders
+            ],
+        },
+        {
+            'title': 'Applications',
+            'headers': ['Tender reference', 'Tender', 'Company', 'Status', 'Bid amount (KSh)', 'Technical score', 'Financial score', 'Total score', 'Submitted'],
+            'rows': [
+                (
+                    application.tender.reference_number if application.tender_id else '',
+                    application.tender.title if application.tender_id else '',
+                    application.company_name or '',
+                    application.get_status_display(), application.bid_amount,
+                    application.technical_score, application.financial_score,
+                    application.total_score, application.submitted_at,
+                )
+                for application in applications
+            ],
+        },
+        {
+            'title': 'Requests',
+            'headers': ['Reference', 'Title', 'Category', 'Priority', 'Status', 'Location', 'Created', 'Updated'],
+            'rows': [
+                (
+                    item.reference_no or '', item.title, item.get_category_display(),
+                    item.get_priority_display(), item.get_status_display(), item.location,
+                    item.created_at, item.updated_at,
+                )
+                for item in requests
+            ],
+        },
+        {
+            'title': 'Reported Issues',
+            'headers': ['Issue', 'Project', 'Severity', 'Status', 'Response due', 'Response overdue', 'Created', 'Updated'],
+            'rows': [
+                (
+                    item.title or f'Issue #{item.pk}', item.project.project_title,
+                    item.get_severity_display(), item.get_status_display(), item.response_due_at,
+                    'Yes' if item.is_response_overdue else 'No', item.created_at, item.updated_at,
+                )
+                for item in issues
+            ],
+        },
+        {
+            'title': 'Milestones',
+            'headers': ['Project', 'Milestone', 'Stage', 'Status', 'Progress', 'Verification', 'Due date', 'Completed date'],
+            'rows': [
+                (
+                    item.project.project_title, item.title,
+                    item.stage.stage_name if item.stage_id else '',
+                    item.get_status_display(), item.progress_percentage,
+                    item.get_verification_status_display(), item.due_date, item.completion_date,
+                )
+                for item in milestones
+            ],
+        },
+        {
+            'title': 'Risks',
+            'headers': ['Project', 'Risk description', 'Level', 'Likelihood', 'Impact', 'Status', 'Mitigation plan', 'Created', 'Updated'],
+            'rows': [
+                (
+                    item.project.project_title, item.risk_description or '',
+                    item.get_risk_level_display(), item.get_likelihood_display() if item.likelihood else '',
+                    item.get_impact_rating_display() if item.impact_rating else '',
+                    item.get_status_display(), item.mitigation_plan or '', item.created_at, item.updated_at,
+                )
+                for item in risks
+            ],
+        },
+        {
+            'title': 'Citizen Submissions',
+            'headers': ['Title', 'Category', 'Status', 'Project', 'Created', 'Updated'],
+            'rows': [
+                (
+                    item.title, item.get_category_display(), item.get_status_display(),
+                    item.project.project_title if item.project_id else '', item.created_at, item.updated_at,
+                )
+                for item in submissions
+            ],
+        },
+        {
+            'title': 'Citizen Evidence',
+            'headers': ['Title', 'Project', 'Stage', 'Category', 'Severity', 'Status', 'Observed date', 'Created'],
+            'rows': [
+                (
+                    item.title, item.project.project_title, item.stage.stage_name,
+                    item.get_category_display(), item.get_severity_display(),
+                    item.get_status_display(), item.observed_at, item.created_at,
+                )
+                for item in evidence
+            ],
+        },
+    ] if include_details else []
+    return {
+        'generated_at': generated_at,
+        'sections': sections,
+        'projects': projects,
+        'project_rows': project_rows,
+        'detail_sheets': detail_sheets,
+        'overdue_projects': overdue_projects,
+        'overdue_project_ids': overdue_project_ids,
+        'summary': summary,
+    }
+
+
+def _report_pdf_page(canvas, document):
+    canvas.saveState()
+    width, _ = landscape(A4)
+    canvas.setStrokeColor(colors.HexColor('#dce7e1'))
+    canvas.line(28, 29, width - 28, 29)
+    canvas.setFont('Helvetica', 8)
+    canvas.setFillColor(colors.HexColor('#64756d'))
+    canvas.drawString(30, 17, 'GovTracker | Official system report')
+    canvas.drawRightString(width - 30, 17, f'Page {document.page}')
+    canvas.restoreState()
+
+
+def _report_pdf_table(rows, widths, *, repeat_rows=1, font_size=7):
+    table = Table(rows, colWidths=widths, repeatRows=repeat_rows, hAlign='LEFT')
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#174b3a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), font_size),
+        ('LEADING', (0, 0), (-1, -1), font_size + 2),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f2f7f4')]),
+        ('GRID', (0, 0), (-1, -1), 0.35, colors.HexColor('#dce7e1')),
+        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    return table
+
+
+def _report_paragraph(value, style):
+    return Paragraph(xml_escape(str(value)), style)
+
+
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def export_pdf(request):
+    snapshot = _system_report_snapshot()
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="system_report.pdf"'
-
-    doc = SimpleDocTemplate(response)
+    response['Content-Disposition'] = 'attachment; filename="govtracker_system_report.pdf"'
+    page_size = landscape(A4)
+    document = SimpleDocTemplate(
+        response, pagesize=page_size,
+        leftMargin=30, rightMargin=30, topMargin=36, bottomMargin=42,
+        title='GovTracker Comprehensive System Report',
+        author='GovTracker',
+    )
     styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name='ReportCoverTitle', parent=styles['Title'],
+        fontName='Helvetica-Bold', fontSize=22, leading=27,
+        textColor=colors.HexColor('#173f34'), alignment=TA_CENTER, spaceAfter=8,
+    ))
+    styles.add(ParagraphStyle(
+        name='ReportSubtitle', parent=styles['Normal'], fontSize=9,
+        leading=13, textColor=colors.HexColor('#64756d'), alignment=TA_CENTER,
+    ))
+    styles.add(ParagraphStyle(
+        name='ReportSection', parent=styles['Heading2'],
+        fontName='Helvetica-Bold', fontSize=13, leading=17,
+        textColor=colors.HexColor('#174b3a'), spaceBefore=12, spaceAfter=7,
+    ))
+    styles.add(ParagraphStyle(
+        name='ReportCell', parent=styles['BodyText'], fontSize=6.5,
+        leading=8, wordWrap='CJK',
+    ))
+    styles.add(ParagraphStyle(
+        name='ReportHeaderCell', parent=styles['BodyText'],
+        fontName='Helvetica-Bold', fontSize=6.5, leading=8,
+        textColor=colors.white, wordWrap='CJK',
+    ))
+    story = [
+        Paragraph('GovTracker Comprehensive System Report', styles['ReportCoverTitle']),
+        Paragraph(
+            f'Official reporting snapshot &bull; Generated {snapshot["generated_at"].strftime("%d %B %Y at %H:%M %Z")}',
+            styles['ReportSubtitle'],
+        ),
+        Spacer(1, 17),
+    ]
+    project_count = len(snapshot['projects'])
+    total_budget = sum((project.project_Budgeting or 0 for project in snapshot['projects']), Decimal('0'))
+    total_spent = sum((project.amount_spent or 0 for project in snapshot['projects']), Decimal('0'))
+    summary_cards = [
+        ['PROJECTS', 'COMPLETED', 'OVERDUE ACTIVE', 'BUDGET ALLOCATED', 'SPENT TO DATE'],
+        [
+            str(project_count),
+            str(dict(snapshot['sections'][0][1]).get('Completed', 0)),
+            str(len(snapshot['overdue_projects'])),
+            f'KSh {total_budget:,.0f}',
+            f'KSh {total_spent:,.0f}',
+        ],
+    ]
+    card_table = Table(summary_cards, colWidths=[(page_size[0] - 60) / 5] * 5)
+    card_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#edf5f0')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#557266')),
+        ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor('#173f34')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 7),
+        ('FONTSIZE', (0, 1), (-1, 1), 11),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOX', (0, 0), (-1, -1), 0.6, colors.HexColor('#dce7e1')),
+        ('INNERGRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#dce7e1')),
+        ('TOPPADDING', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 9),
+    ]))
+    story.append(card_table)
+    story.append(Paragraph('Executive Summary', styles['ReportSection']))
+    summary_rows = [[
+        _report_paragraph('AREA', styles['ReportHeaderCell']),
+        _report_paragraph('MEASURE', styles['ReportHeaderCell']),
+        _report_paragraph('RESULT', styles['ReportHeaderCell']),
+    ]]
+    for section, metrics in snapshot['sections']:
+        for label, value in metrics:
+            if isinstance(value, Decimal):
+                value = f'KSh {value:,.2f}'
+            summary_rows.append([
+                _report_paragraph(section, styles['ReportCell']),
+                _report_paragraph(label, styles['ReportCell']),
+                _report_paragraph(value, styles['ReportCell']),
+            ])
+    story.append(_report_pdf_table(
+        summary_rows, [145, page_size[0] - 60 - 145 - 120, 120],
+        font_size=7,
+    ))
 
-    # ── Projects ──
-    total_projects = Project.objects.count()
-    completed_projects = Project.objects.filter(project_status='completed').count()
-    ongoing_projects = Project.objects.filter(project_status='ongoing').count()
-    upcoming_projects = Project.objects.filter(project_status='upcoming').count()
-    delayed_projects = Project.objects.filter(project_status='delayed').count()
-    stalled_projects = Project.objects.filter(project_status='stalled').count()
-    draft_projects = Project.objects.filter(project_status='draft').count()
-    cancelled_projects = Project.objects.filter(project_status='cancelled').count()
-    suspended_projects = Project.objects.filter(project_status='suspended').count()
-
-    # ── Budget & Finance ──
-    total_budget_allocated = Project.objects.aggregate(total=Sum('project_Budgeting'))['total'] or 0
-    total_budget_spent = Project.objects.aggregate(total=Sum('amount_spent'))['total'] or 0
-    total_budget_remaining = total_budget_allocated - total_budget_spent
-    budget_utilization = round(float(total_budget_spent / total_budget_allocated * 100), 1) if total_budget_allocated else 0
-    total_expenses = ProjectExpense.objects.count()
-    total_expense_amount = ProjectExpense.objects.aggregate(total=Sum('amount'))['total'] or 0
-
-    # ── Users ──
-    total_users = User.objects.count()
-    verified_users = User.objects.filter(is_verified=True).count()
-    citizens = User.objects.filter(role='citizen').count()
-    officials = User.objects.filter(role__in=['official', 'staff', 'admin', 'auditor', 'manager']).count()
-    contractors = User.objects.filter(role='contractor').count()
-
-    # ── Tenders ──
-    total_tenders = Tender.objects.count()
-    published_tenders = Tender.objects.filter(status='published').count()
-    awarded_tenders = Tender.objects.filter(status='awarded').count()
-    total_applications = TenderApplication.objects.count()
-    awarded_apps = TenderApplication.objects.filter(status='awarded').count()
-
-    # ── Government Requests ──
-    total_requests = GovernmentRequest.objects.count()
-    pending_requests = GovernmentRequest.objects.filter(status='pending').count()
-    resolved_requests = GovernmentRequest.objects.filter(status='resolved').count()
-    in_progress_requests = GovernmentRequest.objects.filter(status='in_progress').count()
-
-    # ── Issues ──
-    total_issues = ReportIssue.objects.count()
-    resolved_issues = ReportIssue.objects.filter(status='resolved').count()
-    critical_issues = ReportIssue.objects.filter(severity='critical').count()
-
-    # ── Milestones ──
-    total_milestones = Milestone.objects.count()
-    completed_milestones = Milestone.objects.filter(status='completed').count()
-    missed_milestones = Milestone.objects.filter(status='missed').count()
-
-    # ── Engagement ──
-    total_feedback = Feedback.objects.count()
-    total_testimonials = Testimonial.objects.count()
-    approved_testimonials = Testimonial.objects.filter(is_approved=True).count()
-    total_comments = Comment.objects.count()
-    total_participations = Participation.objects.count()
-    total_citizen_submissions = CitizenSubmission.objects.count()
-    total_citizen_evidence = CitizenEvidence.objects.count()
-
-    # ── System ──
-    total_media = Media.objects.count()
-    total_audit_logs = AuditLog.objects.count()
-    total_notifications = Notification.objects.count()
-    total_announcements = Announcement.objects.count()
-    total_contractors = Contractor.objects.count()
-    total_teams = Team.objects.count()
-    total_risks = ProjectRisk.objects.count()
-    high_risks = ProjectRisk.objects.filter(risk_level__in=['high', 'critical']).count()
-
-    # 📄 Content
-    content = []
-
-    content.append(Paragraph("GovTracker Comprehensive System Report", styles['Title']))
-    content.append(Paragraph(f"Generated: {django_timezone.now().strftime('%B %d, %Y %H:%M')}", styles['Normal']))
-    content.append(Spacer(1, 20))
-
-    # Projects
-    content.append(Paragraph("1. PROJECTS", styles['Heading2']))
-    content.append(Paragraph(f"Total Projects: {total_projects}", styles['Normal']))
-    content.append(Paragraph(f"Ongoing: {ongoing_projects} | Completed: {completed_projects} | Upcoming: {upcoming_projects}", styles['Normal']))
-    content.append(Paragraph(f"Delayed: {delayed_projects} | Stalled: {stalled_projects} | Draft: {draft_projects}", styles['Normal']))
-    content.append(Paragraph(f"Cancelled: {cancelled_projects} | Suspended: {suspended_projects}", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # Budget
-    content.append(Paragraph("2. BUDGET & FINANCE", styles['Heading2']))
-    content.append(Paragraph(f"Total Allocated: KSh {total_budget_allocated:,.0f}", styles['Normal']))
-    content.append(Paragraph(f"Total Spent: KSh {total_budget_spent:,.0f}", styles['Normal']))
-    content.append(Paragraph(f"Remaining: KSh {total_budget_remaining:,.0f}", styles['Normal']))
-    content.append(Paragraph(f"Budget Utilization: {budget_utilization}%", styles['Normal']))
-    content.append(Paragraph(f"Total Expenses: {total_expenses} (KSh {total_expense_amount:,.0f})", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # Users
-    content.append(Paragraph("3. USERS & ROLES", styles['Heading2']))
-    content.append(Paragraph(f"Total Users: {total_users} | Verified: {verified_users}", styles['Normal']))
-    content.append(Paragraph(f"Citizens: {citizens} | Officials: {officials} | Contractors: {contractors}", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # Tenders
-    content.append(Paragraph("4. TENDERS & PROCUREMENT", styles['Heading2']))
-    content.append(Paragraph(f"Total Tenders: {total_tenders} | Published: {published_tenders} | Awarded: {awarded_tenders}", styles['Normal']))
-    content.append(Paragraph(f"Total Applications: {total_applications} | Awarded Apps: {awarded_apps}", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # Requests
-    content.append(Paragraph("5. GOVERNMENT REQUESTS", styles['Heading2']))
-    content.append(Paragraph(f"Total Requests: {total_requests}", styles['Normal']))
-    content.append(Paragraph(f"Pending: {pending_requests} | In Progress: {in_progress_requests} | Resolved: {resolved_requests}", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # Issues
-    content.append(Paragraph("6. REPORTED ISSUES", styles['Heading2']))
-    content.append(Paragraph(f"Total Issues: {total_issues} | Resolved: {resolved_issues} | Critical: {critical_issues}", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # Milestones
-    content.append(Paragraph("7. MILESTONES", styles['Heading2']))
-    content.append(Paragraph(f"Total Milestones: {total_milestones} | Completed: {completed_milestones} | Missed: {missed_milestones}", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # Engagement
-    content.append(Paragraph("8. CITIZEN ENGAGEMENT", styles['Heading2']))
-    content.append(Paragraph(f"Feedback: {total_feedback} | Testimonials: {total_testimonials} (Approved: {approved_testimonials})", styles['Normal']))
-    content.append(Paragraph(f"Comments: {total_comments} | Participations: {total_participations}", styles['Normal']))
-    content.append(Paragraph(f"Citizen Submissions: {total_citizen_submissions} | Evidence: {total_citizen_evidence}", styles['Normal']))
-    content.append(Spacer(1, 10))
-
-    # System
-    content.append(Paragraph("9. SYSTEM & ADMINISTRATION", styles['Heading2']))
-    content.append(Paragraph(f"Media Files: {total_media} | Audit Logs: {total_audit_logs}", styles['Normal']))
-    content.append(Paragraph(f"Notifications: {total_notifications} | Announcements: {total_announcements}", styles['Normal']))
-    content.append(Paragraph(f"Contractors: {total_contractors} | Team Members: {total_teams}", styles['Normal']))
-    content.append(Paragraph(f"Project Risks: {total_risks} (High/Critical: {high_risks})", styles['Normal']))
-
-    doc.build(content)
-
+    story.append(PageBreak())
+    story.append(Paragraph('Complete Project Register', styles['ReportSection']))
+    story.append(Paragraph(
+        'All projects are included. Financial values are in Kenyan shillings (KSh); overdue indicates an active project past its target end date.',
+        styles['ReportSubtitle'],
+    ))
+    project_headers = [
+        'Reference', 'Project', 'Status', 'Priority', 'Location / district',
+        'Implementing agency', 'Category', 'Start', 'Target end', 'Actual end',
+        'Budget (KSh)', 'Spent (KSh)', 'Overdue',
+    ]
+    report_cell = styles['ReportCell']
+    report_header = styles['ReportHeaderCell']
+    project_table_rows = [[
+        _report_paragraph(label, report_header) for label in project_headers
+    ]]
+    for project in snapshot['projects']:
+        project_table_rows.append([
+            _report_paragraph(project.reference_code or f'PRJ-{project.pk}', report_cell),
+            _report_paragraph(project.project_title or 'Untitled project', report_cell),
+            _report_paragraph(project.get_project_status_display() if project.project_status else 'Unspecified', report_cell),
+            _report_paragraph(project.get_priority_display(), report_cell),
+            _report_paragraph(
+                ' / '.join(filter(None, [
+                    project.project_location or '',
+                    project.district.name if project.district_id else '',
+                ])),
+                report_cell,
+            ),
+            _report_paragraph(
+                project.agency.name if project.agency_id else project.implementing_agency or '',
+                report_cell,
+            ),
+            _report_paragraph(project.category.name if project.category_id else '', report_cell),
+            _report_paragraph(project.start_date.isoformat() if project.start_date else '—', report_cell),
+            _report_paragraph(project.end_date.isoformat() if project.end_date else '—', report_cell),
+            _report_paragraph(project.actual_end_date.isoformat() if project.actual_end_date else '—', report_cell),
+            _report_paragraph(f'{project.project_Budgeting or 0:,.0f}', report_cell),
+            _report_paragraph(f'{project.amount_spent or 0:,.0f}', report_cell),
+            _report_paragraph('Yes' if project.pk in snapshot['overdue_project_ids'] else 'No', report_cell),
+        ])
+    widths = [45, 108, 48, 38, 75, 85, 45, 39, 39, 39, 65, 65, 40]
+    story.append(_report_pdf_table(project_table_rows, widths, font_size=6))
+    document.build(story, onFirstPage=_report_pdf_page, onLaterPages=_report_pdf_page)
     return response
 
 
@@ -6502,99 +6966,94 @@ def export_pdf(request):
 def export_excel(request):
     if Workbook is None:
         return HttpResponse('Excel export is unavailable. Install openpyxl.', status=503)
+    snapshot = _system_report_snapshot()
     wb = Workbook()
-    ws = wb.active
-    ws.title = "System Report"
+    wb.remove(wb.active)
+    wb.properties.title = 'GovTracker Comprehensive System Report'
+    wb.properties.creator = 'GovTracker'
+    title_fill = PatternFill('solid', fgColor='174B3A')
+    header_fill = PatternFill('solid', fgColor='EAF3EE')
+    white_font = Font(name='Aptos Display', size=16, bold=True, color='FFFFFF')
+    header_font = Font(name='Aptos', size=10, bold=True, color='174B3A')
+    body_font = Font(name='Aptos', size=10, color='263C34')
+    thin_border = Border(bottom=Side(style='thin', color='DCE7E1'))
 
-    # ── Projects ──
-    ws.append(["PROJECTS"])
-    ws.append(["Total Projects", Project.objects.count()])
-    ws.append(["Ongoing", Project.objects.filter(project_status='ongoing').count()])
-    ws.append(["Completed", Project.objects.filter(project_status='completed').count()])
-    ws.append(["Upcoming", Project.objects.filter(project_status='upcoming').count()])
-    ws.append(["Delayed", Project.objects.filter(project_status='delayed').count()])
-    ws.append(["Stalled", Project.objects.filter(project_status='stalled').count()])
-    ws.append(["Draft", Project.objects.filter(project_status='draft').count()])
-    ws.append(["Cancelled", Project.objects.filter(project_status='cancelled').count()])
-    ws.append(["Suspended", Project.objects.filter(project_status='suspended').count()])
-    ws.append([])
+    def add_sheet(title, headers, rows, widths):
+        sheet = wb.create_sheet(title=title)
+        sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+        heading = sheet.cell(1, 1, f'GovTracker | {title}')
+        heading.fill = title_fill
+        heading.font = white_font
+        heading.alignment = Alignment(vertical='center')
+        sheet.row_dimensions[1].height = 30
+        sheet.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
+        generated = sheet.cell(2, 1, f'Generated {snapshot["generated_at"].strftime("%d %B %Y, %H:%M %Z")}')
+        generated.font = Font(name='Aptos', size=9, italic=True, color='64756D')
+        for column, label in enumerate(headers, start=1):
+            cell = sheet.cell(4, column, label)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(wrap_text=True, vertical='center')
+            cell.border = thin_border
+        sheet.row_dimensions[4].height = 30
+        for row_number, values in enumerate(rows, start=5):
+            for column, value in enumerate(values, start=1):
+                if isinstance(value, datetime) and django_timezone.is_aware(value):
+                    value = django_timezone.localtime(value).replace(tzinfo=None)
+                cell = sheet.cell(row_number, column, value)
+                cell.font = body_font
+                cell.alignment = Alignment(vertical='top', wrap_text=True)
+                cell.border = thin_border
+                label = headers[column - 1].lower()
+                if isinstance(value, Decimal) or (
+                    isinstance(value, (int, float)) and any(
+                        key in label for key in ('amount', 'budget', 'spent', 'value')
+                    )
+                ):
+                    cell.number_format = '#,##0.00;[Red]-#,##0.00'
+                elif isinstance(value, datetime):
+                    cell.number_format = 'dd mmm yyyy hh:mm'
+                elif isinstance(value, date):
+                    cell.number_format = 'dd mmm yyyy'
+                elif isinstance(value, (int, float)) and 'score' in label:
+                    cell.number_format = '0.0'
+        if rows:
+            sheet.auto_filter.ref = f'A4:{sheet.cell(4, len(headers)).column_letter}{4 + len(rows)}'
+        sheet.freeze_panes = 'A5'
+        for column, width in enumerate(widths, start=1):
+            sheet.column_dimensions[sheet.cell(4, column).column_letter].width = width
+        sheet.sheet_view.showGridLines = False
+        return sheet
 
-    # ── Budget ──
-    ws.append(["BUDGET & FINANCE"])
-    ws.append(["Total Allocated", Project.objects.aggregate(total=Sum('project_Budgeting'))['total'] or 0])
-    ws.append(["Total Spent", Project.objects.aggregate(total=Sum('amount_spent'))['total'] or 0])
-    ws.append(["Total Expenses", ProjectExpense.objects.count()])
-    ws.append(["Expense Amount", ProjectExpense.objects.aggregate(total=Sum('amount'))['total'] or 0])
-    ws.append([])
-
-    # ── Users ──
-    ws.append(["USERS"])
-    ws.append(["Total Users", User.objects.count()])
-    ws.append(["Verified", User.objects.filter(is_verified=True).count()])
-    ws.append(["Citizens", User.objects.filter(role='citizen').count()])
-    ws.append(["Citizen Evidence Total", CitizenEvidence.objects.count()])
-    ws.append(["Citizen Evidence Verified", CitizenEvidence.objects.filter(status='verified').count()])
-    ws.append(["Officials", User.objects.filter(role__in=['official', 'staff', 'admin', 'auditor', 'manager']).count()])
-    ws.append(["Contractors", User.objects.filter(role='contractor').count()])
-    ws.append([])
-
-    # ── Tenders ──
-    ws.append(["TENDERS"])
-    ws.append(["Total Tenders", Tender.objects.count()])
-    ws.append(["Published", Tender.objects.filter(status='published').count()])
-    ws.append(["Awarded", Tender.objects.filter(status='awarded').count()])
-    ws.append(["Total Applications", TenderApplication.objects.count()])
-    ws.append(["Awarded Applications", TenderApplication.objects.filter(status='awarded').count()])
-    ws.append([])
-
-    # ── Requests ──
-    ws.append(["GOVERNMENT REQUESTS"])
-    ws.append(["Total Requests", GovernmentRequest.objects.count()])
-    ws.append(["Pending", GovernmentRequest.objects.filter(status='pending').count()])
-    ws.append(["In Progress", GovernmentRequest.objects.filter(status='in_progress').count()])
-    ws.append(["Resolved", GovernmentRequest.objects.filter(status='resolved').count()])
-    ws.append([])
-
-    # ── Issues ──
-    ws.append(["REPORTED ISSUES"])
-    ws.append(["Total Issues", ReportIssue.objects.count()])
-    ws.append(["Resolved", ReportIssue.objects.filter(status='resolved').count()])
-    ws.append(["Critical", ReportIssue.objects.filter(severity='critical').count()])
-    ws.append([])
-
-    # ── Milestones ──
-    ws.append(["MILESTONES"])
-    ws.append(["Total Milestones", Milestone.objects.count()])
-    ws.append(["Completed", Milestone.objects.filter(status='completed').count()])
-    ws.append(["Missed", Milestone.objects.filter(status='missed').count()])
-    ws.append([])
-
-    # ── Engagement ──
-    ws.append(["CITIZEN ENGAGEMENT"])
-    ws.append(["Feedback", Feedback.objects.count()])
-    ws.append(["Testimonials", Testimonial.objects.count()])
-    ws.append(["Approved Testimonials", Testimonial.objects.filter(is_approved=True).count()])
-    ws.append(["Comments", Comment.objects.count()])
-    ws.append(["Participations", Participation.objects.count()])
-    ws.append(["Citizen Submissions", CitizenSubmission.objects.count()])
-    ws.append(["Citizen Evidence", CitizenEvidence.objects.count()])
-    ws.append([])
-
-    # ── System ──
-    ws.append(["SYSTEM & ADMINISTRATION"])
-    ws.append(["Media Files", Media.objects.count()])
-    ws.append(["Audit Logs", AuditLog.objects.count()])
-    ws.append(["Notifications", Notification.objects.count()])
-    ws.append(["Announcements", Announcement.objects.count()])
-    ws.append(["Contractors", Contractor.objects.count()])
-    ws.append(["Team Members", Team.objects.count()])
-    ws.append(["Project Risks", ProjectRisk.objects.count()])
-    ws.append(["High/Critical Risks", ProjectRisk.objects.filter(risk_level__in=['high', 'critical']).count()])
+    summary_rows = [
+        (section, metric, value)
+        for section, metrics in snapshot['sections']
+        for metric, value in metrics
+    ]
+    add_sheet(
+        'Executive Summary',
+        ['Area', 'Measure', 'Result'],
+        summary_rows,
+        [32, 42, 24],
+    )
+    add_sheet(
+        'Project Register',
+        [
+            'Reference', 'Project', 'Status', 'Priority', 'Location', 'District',
+            'Implementing agency', 'Category', 'Start date', 'Target end date',
+            'Actual end date', 'Budget (KSh)', 'Spent (KSh)', 'Remaining (KSh)',
+            'Budget utilization (%)', 'Overdue',
+        ],
+        snapshot['project_rows'],
+        [19, 34, 18, 14, 24, 20, 28, 20, 15, 17, 16, 20, 20, 20, 22, 12],
+    )
+    for sheet_data in snapshot['detail_sheets']:
+        add_sheet(sheet_data['title'], sheet_data['headers'], sheet_data['rows'], [22] * len(sheet_data['headers']))
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename=system_report.xlsx'
+    response['Content-Disposition'] = 'attachment; filename="govtracker_system_report.xlsx"'
 
     wb.save(response)
     return response
@@ -6837,7 +7296,7 @@ def project_tracking_public(request, pk):
         return datetime.combine(value, _time.min, tzinfo=timezone.utc)
 
     project = get_object_or_404(
-        Project.objects.select_related('district', 'category', 'project_division'), id=pk
+        Project.objects.select_related('district', 'category', 'agency', 'project_division'), id=pk
     )
 
     # Only show public projects, or all if staff

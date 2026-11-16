@@ -20,7 +20,7 @@
 {% include "aside.html" %}
 {% include "heading.html" %}
 
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-finance" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-8">
     <div class="mb-6 flex items-center justify-between gap-3">
       <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-blue-700">
@@ -113,4 +113,3 @@
 {% include "footer.html" %}
 </body>
 </html>
-

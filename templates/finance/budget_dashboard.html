@@ -24,7 +24,7 @@
 {% include "aside.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-finance" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="max-w-7xl mx-auto space-y-6 p-4 md:p-6">
 
     <!-- Messages -->
@@ -41,7 +41,7 @@
 
     <!-- PAGE HEADER / HERO BANNER WITH BACKGROUND IMAGE -->
     <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md border border-slate-800">
-      <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=1400&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Government Infrastructure">
+      <img src="{% static 'images/background-finance.jpg' %}" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Government Budgeting">
       <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div class="max-w-2xl">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3 backdrop-blur-sm border border-emerald-500/30">
@@ -160,7 +160,7 @@
             {% elif b.project.images %}
               <img src="{{ b.project.images.url }}" alt="{{ b.project.project_title }}" class="w-full h-full object-cover">
             {% else %}
-              <img src="https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?q=80&w=800&auto=format&fit=crop" alt="Project Infrastructure" class="w-full h-full object-cover">
+              <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-indigo-100 text-slate-400" aria-hidden="true"><iconify-icon icon="solar:buildings-2-bold-duotone" class="text-4xl"></iconify-icon></div>
             {% endif %}
             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
             <div class="absolute bottom-3 left-3 right-3 flex justify-between items-end text-white">
@@ -321,66 +321,17 @@
         </a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <!-- Media Item 1 -->
-        <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 group">
-          <div class="relative h-44 bg-slate-900 overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90" alt="Highways Inspection">
-            <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <span class="w-12 h-12 rounded-full bg-white/90 text-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition">
-                <iconify-icon icon="solar:play-bold" style="font-size:24px;"></iconify-icon>
-              </span>
-            </div>
-            <span class="absolute bottom-3 right-3 text-[10px] font-bold bg-black/70 text-white px-2 py-0.5 rounded backdrop-blur-sm">
-              HD Video Tour
-            </span>
-          </div>
-          <div class="p-4">
-            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-700">Infrastructure</span>
-            <h4 class="font-bold text-slate-800 text-sm mt-2">National Expressway & Highway Extension</h4>
-            <p class="text-xs text-slate-500 mt-1 line-clamp-2">Site audit inspecting asphalt quality, bridge pillars, and budgetary milestone compliance.</p>
+      <div class="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 p-6 md:flex md:items-center md:justify-between">
+        <div class="flex items-start gap-4">
+          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700"><iconify-icon icon="solar:gallery-wide-bold-duotone" class="text-2xl"></iconify-icon></span>
+          <div>
+            <h3 class="font-bold text-slate-900">Review uploaded project evidence</h3>
+            <p class="mt-1 max-w-2xl text-sm leading-6 text-slate-600">The Media Gallery shows real photos, videos, and documents submitted for registered projects.</p>
           </div>
         </div>
-
-        <!-- Media Item 2 -->
-        <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 group">
-          <div class="relative h-44 bg-slate-900 overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90" alt="Hospital Facility Inspection">
-            <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <span class="w-12 h-12 rounded-full bg-white/90 text-emerald-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition">
-                <iconify-icon icon="solar:play-bold" style="font-size:24px;"></iconify-icon>
-              </span>
-            </div>
-            <span class="absolute bottom-3 right-3 text-[10px] font-bold bg-black/70 text-white px-2 py-0.5 rounded backdrop-blur-sm">
-              3D Walkthrough
-            </span>
-          </div>
-          <div class="p-4">
-            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Health Sector</span>
-            <h4 class="font-bold text-slate-800 text-sm mt-2">Level 5 Regional Referral Hospital Complex</h4>
-            <p class="text-xs text-slate-500 mt-1 line-clamp-2">Facility wing inspection covering medical equipment installations and emergency ward capacity.</p>
-          </div>
-        </div>
-
-        <!-- Media Item 3 -->
-        <div class="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 group">
-          <div class="relative h-44 bg-slate-900 overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90" alt="County Educational Facility">
-            <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <span class="w-12 h-12 rounded-full bg-white/90 text-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition">
-                <iconify-icon icon="solar:play-bold" style="font-size:24px;"></iconify-icon>
-              </span>
-            </div>
-            <span class="absolute bottom-3 right-3 text-[10px] font-bold bg-black/70 text-white px-2 py-0.5 rounded backdrop-blur-sm">
-              Drone Inspection
-            </span>
-          </div>
-          <div class="p-4">
-            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-700">Education</span>
-            <h4 class="font-bold text-slate-800 text-sm mt-2">Polytechnic Vocational Training Institute</h4>
-            <p class="text-xs text-slate-500 mt-1 line-clamp-2">Aerial drone survey evaluating campus block roofing, computer labs, and solar power installations.</p>
-          </div>
-        </div>
+        <a href="{% url 'media_list' %}" class="mt-4 inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 md:mt-0">
+          Open Media Gallery <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+        </a>
       </div>
     </div>
 

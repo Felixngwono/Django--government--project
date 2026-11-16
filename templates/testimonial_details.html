@@ -1,210 +1,118 @@
-{% extends "heading.html" %}
-{% block content %}
 {% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ testimonial.name|default:"Community member" }}'s testimonial | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body>
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
-
-<!-- ===== HEADER ===== -->
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
-
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-<!-- Flash Messages -->
-{% if messages %}
-<div class="flex justify-center mt-6 px-4">
-    <div class="w-full max-w-2xl space-y-3">
-        {% for message in messages %}
-        <div class="flex justify-between items-center bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl shadow-sm">
-            <span class="font-medium">{{ message }}</span>
-            <button onclick="this.parentElement.remove()" class="text-green-600 hover:text-green-800">✕</button>
+  <main class="main page-photo-bg page-bg-public-service" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="mx-auto max-w-5xl space-y-6 px-4 pb-12 pt-6 md:px-8">
+      {% if messages %}
+        <div class="space-y-3" role="status">
+          {% for message in messages %}
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{{ message }}</div>
+          {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
+      {% endif %}
 
-<div class="flex justify-center px-4 mt-10 mb-20">
-    <div class="w-full max-w-4xl bg-white/80 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-3xl p-10 md:p-14 space-y-12 transition-all duration-300">
+      <a href="{% url 'testimonials' %}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-700 transition hover:text-emerald-800">
+        <span aria-hidden="true">←</span> Back to testimonials
+      </a>
 
-        <!-- Profile Header -->
-        <div class="flex flex-col items-center text-center space-y-6">
-
+      <article class="overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 shadow-xl">
+        <div class="h-2 bg-gradient-to-r from-emerald-700 via-teal-500 to-sky-500"></div>
+        <div class="p-6 md:p-10">
+          <header class="flex flex-col gap-6 sm:flex-row sm:items-center">
             {% if testimonial.image %}
-            <img src="{{ testimonial.image.url }}"
-                 alt="{{ testimonial.name }}"
-                 class="w-48 h-48 rounded-full object-cover border-4 border-indigo-200 shadow-xl hover:scale-105 transition duration-300">
+              <img src="{{ testimonial.image.url }}" alt="Portrait of {{ testimonial.name|default:'community member' }}" class="h-24 w-24 shrink-0 rounded-2xl object-cover shadow-md ring-4 ring-emerald-50 md:h-28 md:w-28">
             {% else %}
-            <div class="w-48 h-48 flex items-center justify-center bg-gradient-to-tr from-indigo-100 to-purple-100 rounded-full text-gray-400 border-4 border-gray-200 shadow-inner">
-                No Image
+              <div class="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-3xl font-extrabold text-emerald-800 ring-4 ring-emerald-50 md:h-28 md:w-28" aria-hidden="true">{{ testimonial.name|default:"C"|slice:":1"|upper }}</div>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full px-3 py-1 text-xs font-bold {% if testimonial.is_approved %}bg-emerald-50 text-emerald-700{% else %}bg-amber-50 text-amber-800{% endif %}">{% if testimonial.is_approved %}Published{% else %}Pending review{% endif %}</span>
+                {% if testimonial.is_featured %}<span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">Featured story</span>{% endif %}
+              </div>
+              <h1 class="mt-3 break-words text-3xl font-extrabold tracking-tight text-slate-950 md:text-4xl">{{ testimonial.name|default:"Community member" }}</h1>
+              <p class="mt-2 text-sm text-slate-500">Shared {{ testimonial.created_at|date:"F j, Y" }}</p>
+              <div class="mt-3 flex items-center gap-1 text-xl text-amber-500" aria-label="{{ testimonial.rating }} out of 5 stars">
+                {% for value in '12345' %}{% if forloop.counter <= testimonial.rating %}<span aria-hidden="true">★</span>{% else %}<span class="text-slate-200" aria-hidden="true">★</span>{% endif %}{% endfor %}
+                <span class="ml-2 text-sm font-semibold text-slate-600">{{ testimonial.rating }} out of 5</span>
+              </div>
             </div>
+          </header>
+
+          <blockquote class="relative mt-8 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-slate-50 p-6 text-lg leading-8 text-slate-800 md:p-8 md:text-xl">
+            <span class="absolute left-5 top-2 text-5xl font-serif text-emerald-200" aria-hidden="true">“</span>
+            <p class="relative pt-5">{{ testimonial.content|linebreaksbr }}</p>
+          </blockquote>
+
+          <section class="mt-6 grid gap-4 sm:grid-cols-2" aria-label="Testimonial information">
+            {% if testimonial.project %}
+              <a href="{% url 'project_details' testimonial.project.id %}" class="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-emerald-300 hover:bg-emerald-50/50">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Related project</p>
+                <p class="mt-2 font-bold text-emerald-800">{{ testimonial.project.project_title }}</p>
+                <p class="mt-1 text-sm text-slate-500">View project details <span aria-hidden="true">↗</span></p>
+              </a>
             {% endif %}
-
-            <div>
-                <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-700">
-                    {{ testimonial.name }}
-                </h1>
-
-                {% if testimonial.position %}
-                <p class="text-lg text-indigo-500 font-medium">
-                    {{ testimonial.position }}
-                </p>
-                {% endif %}
-
-                {% if testimonial.company %}
-                <p class="text-gray-500 text-sm mt-1">
-                    {{ testimonial.company }}
-                </p>
-                {% endif %}
-            </div>
-
-            <!-- Rating -->
-            {% if testimonial.rating %}
-            <div class="flex space-x-1 mt-2">
-                {% for i in "12345" %}
-                    {% if forloop.counter <= testimonial.rating %}
-                        <span class="text-yellow-400 text-xl">★</span>
-                    {% else %}
-                        <span class="text-gray-300 text-xl">★</span>
-                    {% endif %}
-                {% endfor %}
-            </div>
+            {% if testimonial.updated_at and testimonial.updated_at != testimonial.created_at %}
+              <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Last updated</p>
+                <p class="mt-2 font-semibold text-slate-800">{{ testimonial.updated_at|date:"F j, Y" }}</p>
+              </div>
             {% endif %}
-
-            <!-- Status Badge -->
-            {% if testimonial.is_approved %}
-            <span class="mt-3 inline-block bg-green-100 text-green-700 px-4 py-1 text-sm rounded-full font-semibold">
-                Published
-            </span>
-            {% else %}
-            <span class="mt-3 inline-block bg-yellow-100 text-yellow-700 px-4 py-1 text-sm rounded-full font-semibold">
-                Pending review
-            </span>
+            {% if request.user.is_superuser and testimonial.phone_number %}
+              <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Contributor phone</p>
+                <p class="mt-2 font-semibold text-slate-800">{{ testimonial.phone_number }}</p>
+              </div>
             {% endif %}
-            {% if testimonial.project %}<a href="{% url 'project_details' testimonial.project.id %}" class="mt-3 block text-indigo-600 hover:underline">Project: {{ testimonial.project.project_title }}</a>{% endif %}
+          </section>
+
+          {% if request.user.is_superuser %}
+            <form method="post" action="{% url 'moderate_testimonial' testimonial.id %}" class="mt-8 space-y-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-5 md:p-6">
+              {% csrf_token %}
+              <div>
+                <h2 class="text-lg font-extrabold text-amber-950">Moderation</h2>
+                <p class="mt-1 text-sm text-amber-900/80">Review the submission and decide whether it should be published.</p>
+              </div>
+              <label for="moderation-note" class="block text-sm font-semibold text-slate-700">Note for the contributor <span class="font-normal text-slate-500">(optional)</span></label>
+              <textarea id="moderation-note" name="moderation_note" rows="3" class="w-full rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100" placeholder="Add guidance or a review note">{{ testimonial.moderation_note }}</textarea>
+              <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input type="checkbox" name="featured" class="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600" {% if testimonial.is_featured %}checked{% endif %}>
+                Feature on public pages
+              </label>
+              <div class="flex flex-wrap gap-3">
+                <button name="action" value="approve" class="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">Approve and publish</button>
+                <button name="action" value="pending" class="rounded-xl border border-amber-300 bg-white px-5 py-3 text-sm font-bold text-amber-900 transition hover:bg-amber-100">Return to pending</button>
+              </div>
+            </form>
+          {% endif %}
+
+          <footer class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-6">
+            <a href="{% url 'testimonials' %}" class="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Back to testimonials</a>
+            {% if request.user.is_superuser or testimonial.user_id == request.user.id %}
+              <div class="flex flex-wrap gap-3">
+                <a href="{% url 'update_testimonial' testimonial.id %}" class="rounded-xl bg-indigo-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-800">Edit testimonial</a>
+                <a href="{% url 'delete_testimonial' testimonial.id %}" class="rounded-xl bg-rose-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-rose-700">Delete testimonial</a>
+              </div>
+            {% endif %}
+          </footer>
         </div>
-
-        <!-- Testimonial Content -->
-        <div class="relative bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-10 shadow-inner">
-
-            <span class="absolute -top-6 left-8 text-7xl text-indigo-200 font-serif select-none">“</span>
-
-            <blockquote class="text-xl md:text-2xl italic text-gray-800 leading-relaxed pl-6">
-                {{ testimonial.content }}
-            </blockquote>
-
-            <span class="absolute bottom-0 right-8 text-7xl text-indigo-200 font-serif select-none">”</span>
-
-            <!-- Metadata -->
-            <div class="mt-10 border-t border-indigo-100 pt-4 text-sm text-gray-500 space-y-1">
-                {% if testimonial.created_at %}
-                <p><strong>Created:</strong> {{ testimonial.created_at|date:"F d, Y" }}</p>
-                {% endif %}
-                {% if testimonial.updated_at %}
-                <p><strong>Last Updated:</strong> {{ testimonial.updated_at|date:"F d, Y" }}</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Contact / Extra Info (Superuser only) -->
-        {% if request.user.is_superuser %}
-        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-2 text-sm text-gray-700">
-            <h3 class="font-semibold text-gray-800 mb-2">Additional Information</h3>
-
-            {% if testimonial.email %}
-            <p><strong>Email:</strong> {{ testimonial.email }}</p>
-            {% endif %}
-
-            {% if testimonial.website %}
-            <p>
-                <strong>Website:</strong>
-                <a href="{{ testimonial.website }}" target="_blank" class="text-indigo-600 hover:underline">
-                    {{ testimonial.website }}
-                </a>
-            </p>
-            {% endif %}
-        </div>
-        <form method="post" action="{% url 'moderate_testimonial' testimonial.id %}" class="bg-amber-50 border border-amber-200 rounded-2xl p-6 space-y-3">
-            {% csrf_token %}
-            <h3 class="font-semibold text-amber-900">Moderation</h3>
-            <textarea name="moderation_note" rows="2" class="w-full rounded-lg border p-3" placeholder="Optional note for the contributor">{{ testimonial.moderation_note }}</textarea>
-            <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="featured" {% if testimonial.is_featured %}checked{% endif %}> Feature on public pages</label>
-            <div class="flex gap-3"><button name="action" value="approve" class="bg-green-600 text-white px-4 py-2 rounded-lg">Approve</button><button name="action" value="pending" class="bg-amber-600 text-white px-4 py-2 rounded-lg">Return to pending</button></div>
-        </form>
-        {% endif %}
-
-        <!-- Action Buttons -->
-        <div class="flex flex-wrap justify-center gap-6 pt-6 border-t border-indigo-100">
-
-            {% if request.user.is_superuser %}
-            <a href="{% url 'update_testimonial' testimonial.id %}"
-               class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold transition hover:scale-105">
-                ✏️ Update
-            </a>
-
-            <button onclick="document.getElementById('deleteModal').classList.remove('hidden')"
-                    class="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold transition hover:scale-105">
-                🗑️ Delete
-            </button>
-            {% endif %}
-
-            <a href="{% url 'testimonials' %}"
-               class="bg-gray-600 hover:bg-gray-500 text-white px-8 py-3 rounded-xl shadow-lg font-semibold transition hover:scale-105">
-                🔙 Back
-            </a>
-        </div>
-
+      </article>
     </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-{% if request.user.is_superuser %}
-<div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full space-y-6">
-        <h2 class="text-xl font-bold text-gray-800">Confirm Delete</h2>
-        <p class="text-gray-600">Are you sure you want to delete this testimonial?</p>
-
-        <div class="flex justify-end space-x-4">
-            <button onclick="document.getElementById('deleteModal').classList.add('hidden')"
-                    class="px-5 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
-                Cancel
-            </button>
-            <a href="{% url 'delete_testimonial' testimonial.id %}"
-               class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500">
-                Delete
-            </a>
-        </div>
-    </div>
-</div>
-{% endif %}
-</div>
-</div>
-</main>
-{% include "footer.html" %}
-{% endblock %}
+  </main>
+  {% include "footer.html" %}
+</body>
+</html>

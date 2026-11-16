@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 19, 2026 at 06:17 AM
+-- Generation Time: Nov 16, 2026 at 06:00 PM
 -- Server version: 10.4.20-MariaDB
 -- PHP Version: 8.0.8
 
@@ -341,7 +341,35 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 (277, 'Can add evidence response', 70, 'add_evidenceresponse'),
 (278, 'Can change evidence response', 70, 'change_evidenceresponse'),
 (279, 'Can delete evidence response', 70, 'delete_evidenceresponse'),
-(280, 'Can view evidence response', 70, 'view_evidenceresponse');
+(280, 'Can view evidence response', 70, 'view_evidenceresponse'),
+(281, 'Can add request status history', 71, 'add_requeststatushistory'),
+(282, 'Can change request status history', 71, 'change_requeststatushistory'),
+(283, 'Can delete request status history', 71, 'delete_requeststatushistory'),
+(284, 'Can view request status history', 71, 'view_requeststatushistory'),
+(285, 'Can add government agency', 72, 'add_governmentagency'),
+(286, 'Can change government agency', 72, 'change_governmentagency'),
+(287, 'Can delete government agency', 72, 'delete_governmentagency'),
+(288, 'Can view government agency', 72, 'view_governmentagency'),
+(289, 'Can add project inspection', 73, 'add_projectinspection'),
+(290, 'Can change project inspection', 73, 'change_projectinspection'),
+(291, 'Can delete project inspection', 73, 'delete_projectinspection'),
+(292, 'Can view project inspection', 73, 'view_projectinspection'),
+(293, 'Can add project change request', 74, 'add_projectchangerequest'),
+(294, 'Can change project change request', 74, 'change_projectchangerequest'),
+(295, 'Can delete project change request', 74, 'delete_projectchangerequest'),
+(296, 'Can view project change request', 74, 'view_projectchangerequest'),
+(297, 'Can add project baseline', 75, 'add_projectbaseline'),
+(298, 'Can change project baseline', 75, 'change_projectbaseline'),
+(299, 'Can delete project baseline', 75, 'delete_projectbaseline'),
+(300, 'Can view project baseline', 75, 'view_projectbaseline'),
+(301, 'Can add issue response policy', 76, 'add_issueresponsepolicy'),
+(302, 'Can change issue response policy', 76, 'change_issueresponsepolicy'),
+(303, 'Can delete issue response policy', 76, 'delete_issueresponsepolicy'),
+(304, 'Can view issue response policy', 76, 'view_issueresponsepolicy'),
+(305, 'Can add issue response', 77, 'add_issueresponse'),
+(306, 'Can change issue response', 77, 'change_issueresponse'),
+(307, 'Can delete issue response', 77, 'delete_issueresponse'),
+(308, 'Can view issue response', 77, 'view_issueresponse');
 
 -- --------------------------------------------------------
 
@@ -408,7 +436,10 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (48, 'member', 'district'),
 (70, 'member', 'evidenceresponse'),
 (10, 'member', 'feedback'),
+(72, 'member', 'governmentagency'),
 (43, 'member', 'governmentrequest'),
+(77, 'member', 'issueresponse'),
+(76, 'member', 'issueresponsepolicy'),
 (35, 'member', 'media'),
 (34, 'member', 'milestone'),
 (66, 'member', 'milestonestageevidence'),
@@ -421,9 +452,12 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (28, 'member', 'progressreport'),
 (27, 'member', 'progressupdate'),
 (11, 'member', 'project'),
+(75, 'member', 'projectbaseline'),
 (49, 'member', 'projectcategory'),
+(74, 'member', 'projectchangerequest'),
 (24, 'member', 'projectdocument'),
 (12, 'member', 'projectexpense'),
+(73, 'member', 'projectinspection'),
 (23, 'member', 'projectreport'),
 (22, 'member', 'projectrisk'),
 (13, 'member', 'projectstage'),
@@ -434,6 +468,7 @@ INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
 (25, 'member', 'project_type'),
 (50, 'member', 'region'),
 (20, 'member', 'reportissue'),
+(71, 'member', 'requeststatushistory'),
 (19, 'member', 'stagereport'),
 (68, 'member', 'stagereportattachment'),
 (65, 'member', 'stagereportimage'),
@@ -534,7 +569,9 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (75, 'member', '0024_milestone_verification_comments_and_more', '2026-10-16 07:10:52.082537'),
 (76, 'member', '0025_remove_citizenevidence_image_and_more', '2026-10-18 08:23:05.390065'),
 (77, 'member', '0026_evidenceresponse', '2026-10-18 12:24:20.820992'),
-(78, 'member', '0027_citizenevidence_agreed_at_and_more', '2026-10-18 14:26:47.032407');
+(78, 'member', '0027_citizenevidence_agreed_at_and_more', '2026-10-18 14:26:47.032407'),
+(79, 'member', '0028_auditlog_is_suppressed_auditlog_suppressed_at_and_more', '2026-11-09 13:50:16.292980'),
+(80, 'member', '0029_governmentagency_and_more', '2026-11-10 18:34:07.749585');
 
 -- --------------------------------------------------------
 
@@ -564,11 +601,11 @@ INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALU
 ('2hxwzypya56s01ktnw67koepi5kockd2', '.eJxVjLsOgkAQAP9la3M5buVYKe39BrKvE9RAwqMy_rshodB2ZjJv6Hhb-25bfO4GgxYQ4fQLhfXp427sweN9CjqN6zxI2JNw2CXcJvPX9Wj_Bj0vPbRQ55IqbQidzdQipUYriiLFHRnRNWZ1wZJEz5cqKzeJJNZk2YkKwecLLPs4-A:1x7pAw:4WvwP2GzNbt5ioCnLoYk4Mfu4ziMPxglLwomyXrZDZ0', '2026-10-03 07:07:54.725365'),
 ('36bagywf7huhhlwaxws76y9dtrwgjzi1', '.eJxVjDsOAiEUAO9CbQj_gKW9ZyDv8UBWDSTLbrXx7oZkC21nJnOwCPtW4z7yGhdiV2YMu_xChPTKbRp6Qnt0nnrb1gX5TPhpB793yu_b2f4NKow6v0l7FKBLcdmobLwMDouQtmhjXSqSMlnvCYJWkILFgFobJZRDCl449vkCDjM33w:1xC01e:P9oeFDYis3_vwWja4nTmf-_dCNM-_D4sokvargOYRDM', '2026-10-14 19:31:34.564223'),
 ('3wjbq12lcg8a36ht6qfqsd2sdjixlufg', '.eJxVjDEOgzAMAP_iuYqS2IHA2L1vQE5sGtoKJAJT1b9XSAztene6Nwy8b2XYq67DJNADBbj8wsT5qfNh5MHzfTF5mbd1SuZIzGmruS2ir-vZ_g0K1wI9jJY1eOetReRIDXl0alU6n1xEIuxGtZoocxZEiS35MaDDYJuEklr4fAHpUDdY:1xC023:kjOB-KSH_KIzw9-ZCUQ88NPDE4g21RNonZDsQrCdLcY', '2026-10-14 19:31:59.275518'),
-('47rel4moxyndo69ep7yukfs2qmgsbar1', '.eJxVjEsOwiAUAO_C2pDHv7h03zOQBw-kamhS2pXx7oakC93OTObNAh57DUfPW1iIXZkCdvmFEdMzt2Hoge2-8rS2fVsiHwk_befzSvl1O9u_QcVex5cQbBZCC6OSK1bJSRckIxw4ZYv0XvgEhcBoklaT9ZOGiMaB1KRsZp8v3uY24A:1xHf3g:rYbvQeEYH1fWngG2Dds9rp6DdE1IPYwkC7ErAbEYnGY', '2026-10-30 10:21:04.012728'),
 ('4chryz93qoagvismdkd5tjb8ses0l3b3', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1x2lub:Bh4m9oz2bokqxllcNS_HHWiaflRI99N64nq0JBunFlM', '2026-09-19 08:38:09.762616'),
 ('4dnbieymj8lwx2bl75jh2luu6pyvsdla', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqcVi:8cBY20g_9b8HEeZBBP46a-A4qaVPLJ3OmE4uTDyQzbQ', '2026-08-16 20:10:14.904835'),
 ('55yu2xknap4xgqcbprn8g36epsxolvp0', '.eJxVjLsOgkAQAP9la3M5buVYKe39BrKvE9RAwqMy_rshodB2ZjJv6Hhb-25bfO4GgxYQ4fQLhfXp427sweN9CjqN6zxI2JNw2CXcJvPX9Wj_Bj0vPbRQ55IqbQidzdQipUYriiLFHRnRNWZ1wZJEz5cqKzeJJNZk2YkKwecLLPs4-A:1x7pEt:Wqx4jEBerr42DixFs6djQzmPvEItMbW9nnSElsX7V-4', '2026-10-03 07:11:59.649352'),
 ('5fw5ixcycdop9jkekqb8nr6s5jonvyoc', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9fby:v-vt8PjK9UhYwpuOzmf0tGFiBXGi8T521TKvcdzTz48', '2026-10-08 09:19:26.745163'),
+('5ik6siaqi9nws73x486uii4aji7n3joa', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1xRSdi:uxUtpMpaIqPl6AkiToC_3PNosnwg9EEn5g4OvCafqs8', '2026-11-26 11:06:46.157325'),
 ('5odu0rerf6ffzpymq1ew9rwn25lde97u', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9g5B:7Z_JhS7CjeFzRiNP2IVLzDioeEdWDrMiLvKfFxwRt_k', '2026-10-08 09:49:37.506948'),
 ('5q6p769hrbhyh7esawk3q9d82v3b68g3', '.eJxVjMsOwiAQAP9lz4aUp2yP3vsNBNitVA0kpT0Z_9006UGvM5N5Q4j7VsLeeQ0LwQgKLr8sxfzkegh6xHpvIre6rUsSRyJO28XUiF-3s_0blNgLjIDJESnLzFKyZVYojUNpaZhTQjc7Y7y23qLiPHhil686Zp1QkTcaI3y-7OE37g:1wH5cP:Qw_bs23tzMx--7FMW7or8ZXZTIVFrmMeCNJRrKxhoCo', '2026-05-10 19:58:17.264025'),
 ('5rjty9cs0fibl6zuhpjeuwgj4l0t16kx', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9gCr:DlTTyrAiLJzYdG9PoVpxLe7tckMC8Y4VmA_5mnwmen8', '2026-10-08 09:57:33.310570'),
@@ -604,6 +641,7 @@ INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALU
 ('gsef1bmupor5xw670mdq17iybtfguqpv', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdf4:0ncBQepBlDgo_IKh8NiDVw9SCkfVK27_LqkvzW89gmo', '2026-08-16 21:23:58.145761'),
 ('hkt54z1iwy5s6go2lu15iq01056kvatl', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1x2WtQ:zcc51fmwC4qBXhyj2LvOfY5KXYGcZCYO1vSJS2-xlMY', '2026-09-18 16:35:56.766694'),
 ('hunyzegqao0805c5nhk0btxzy2pbgimx', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1x2aAl:1JhjJYzQn_c3JKd0gVmhDXK1JByhZGx7X0E9cKdMnK8', '2026-09-18 20:06:03.002297'),
+('hzoewf5dfazq71rxpapgb9a0loh9cx3q', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1xROdg:W8TXE3eqN76ugAYYPzDiuaOLxvXVLVm23Pj4gw7m2WU', '2026-11-26 06:50:28.456958'),
 ('iqdase4avwedjnurqx6f6k703hs24whh', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9g8i:TFgyyYTawhq0wAgMuc6Vtj08mN7reqzSISgEPcTazfw', '2026-10-08 09:53:16.730947'),
 ('jg3tgliztbqqhi98w4hg3vexfgs593j2', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1xAM49:xiA3I2VkDUyefxccXwQejOGJIu5ZPPyb9eC4Rl_FkV8', '2026-10-10 06:39:21.344650'),
 ('jhuslio9ua21bqexbzgurjzirxzh52eu', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1x2a4n:G7VNQcu26-pjmpe2Ce94D4w8JyIhbypDF11KpIhCGeY', '2026-09-18 19:59:53.743641'),
@@ -611,6 +649,7 @@ INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALU
 ('k3nk63mldbodkjdv5of2gjbkfubzrnse', '.eJxVjMsOwiAQAP-FsyEsjwIevfsNzbKsUjWQlPZk_HdD0oNeZybzFjPuW5n3zuu8ZHEWBsTpFyakJ9dh8gPrvUlqdVuXJEciD9vltWV-XY72b1Cwl_G9RXRMiBmMVimqKQP7YMmGpDAEjd6D92CtIwcasiPlaTJahWgCk_h8Af5rNzs:1x9zW0:TP_jDhPGwAIoRyI-4GaGEbyXINUj61lVuOwzdX8MLnU', '2026-10-09 06:34:36.016821'),
 ('lix6axy51mvaar1a90piulf8b79cjoyz', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9gV3:PljScDmiXlqurgKK1gCjf_y781E2_ZIipLDJeggtUmc', '2026-10-08 10:16:21.296922'),
 ('lj4x0otrlw2jsatfnzyhwaliwp6vaatn', '.eJxVjMsOgjAQAP9lz6bpY9siR-98A9lttxY1kFA4Gf_dkHDQ68xk3jDSvtVxb7KOU4YeDFx-GVN6ynyI_KD5vqi0zNs6sToSddqmhiXL63a2f4NKrUIP4WqZUQoJYihRe7FCni266Axpg9EmS4TRidjOaWRvUgiCnNEV08HnC9-oN4o:1wWVjy:F1Q_e2DpAIoXRbbyq1kwQnBa0A4Zoxpd6oySv3tlmyY', '2026-06-22 08:53:50.029226'),
+('lq1soued6hhx6gro4oo2hs9ezbppgwno', '.eJxVjMsOwiAQAP-FsyEsjwIevfsNzbKsUjWQlPZk_HdD0oNeZybzFjPuW5n3zuu8ZHEWBsTpFyakJ9dh8gPrvUlqdVuXJEciD9vltWV-XY72b1Cwl_G9RXRMiBmMVimqKQP7YMmGpDAEjd6D92CtIwcasiPlaTJahWgCk_h8Af5rNzs:1xRQgx:U3rNWSnek1xVqmd5gPCY2gOrJ1H8ttZlo1unqVHVnUY', '2026-11-26 09:01:59.065751'),
 ('mr8kc7bnx5t6vdczb87ghkofitfgs9p1', '.eJxVjMsOwiAQAP9lz4bQpWWhR-9-Q8OyIFUDSR8n47-bJj3odWYyb5jCvpVpX9MyzQIjGA-XX8ghPlM9jDxCvTcVW92WmdWRqNOu6tYkva5n-zcoYS0wguNOR5cpsaBgxl47Sl7YaaLOI3aaB69dbzFYTTI4yz4aw30cCE3O8PkC-Zw3VQ:1xAjKO:uyVMdS7cGZP6YWkP0jqmj0klWkOC5RI8gou7dNEGVfI', '2026-10-11 07:29:40.577574'),
 ('mwpa29g3toprc2agqu1fha32vjo71aut', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9HLM:gUqzXYBfNGbzVo1lLHYoETpJ4HAYJkUZ4QsRmOohQB0', '2026-10-07 07:24:40.515135'),
 ('n6f89setqq02t3pot4f14odqd0qdv3pv', '.eJxVjLsOgkAQAP9la3M5buVYKe39BrKvE9RAwqMy_rshodB2ZjJv6Hhb-25bfO4GgxYQ4fQLhfXp427sweN9CjqN6zxI2JNw2CXcJvPX9Wj_Bj0vPbRQ55IqbQidzdQipUYriiLFHRnRNWZ1wZJEz5cqKzeJJNZk2YkKwecLLPs4-A:1x7p0p:G5nnzwdn4wUNU9Iw4DrP2LWlqNtpADeyYlhatcqXsG4', '2026-10-03 06:57:27.580274'),
@@ -635,7 +674,9 @@ INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALU
 ('sqbo2ahd6y3qralhj8zxa54eo7809lti', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9gEI:JZUhHIF0Lt2k3c3R3LmH_UQLDuEHTSeu4DrXHGvE2b4', '2026-10-08 09:59:02.326315'),
 ('uilk3vibo3q9xlbcoaqzfcboalypfyw9', '.eJxVjMsOwiAQAP-FsyEsjwIevfsNzbKsUjWQlPZk_HdD0oNeZybzFjPuW5n3zuu8ZHEWBsTpFyakJ9dh8gPrvUlqdVuXJEciD9vltWV-XY72b1Cwl_G9RXRMiBmMVimqKQP7YMmGpDAEjd6D92CtIwcasiPlaTJahWgCk_h8Af5rNzs:1x9zLN:TkQMi1H9EEvCx2EvbHxv2u8O6mKRq5KqyEyrLzrW7Zk', '2026-10-09 06:23:37.393431'),
 ('ungx23ac97jaxzr48egsxqfpp1q93t39', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wwZGW:ihr2bZBdHNTG-erUOOf1B5oBlWNHqPhpr8qhGlg8xTo', '2026-09-02 05:55:08.201328'),
+('upud5iqzpbf7sjw8hpdpvmiek9dnxglr', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1xIqtX:Ve4fekD-fR4w5J8TH_E_7eEgdev0VyT9UylqWdRuzbs', '2026-11-02 17:11:31.614379'),
 ('v8q8fbhgvmwhzlnnff0719sidxnw78uy', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1wqdtp:l5-lo5YzIWsSOP4YTu8PwQo7bUj3F6SX21P75m3350U', '2026-08-16 21:39:13.357412'),
+('vog9tyaitgx423ruob0uv0n93zj4zvn0', '.eJxVjEEKwyAQAP-y5yKszWrMsfe-QVZXa9qiEJNT6N9LIIf2OjPMDp63tfitp8XPAhMgXH5Z4PhK9RDy5PpoKra6LnNQR6JO29W9SXrfzvZvULgXmMA6LWHIlHTmMRJGRjRshdAyorCMqDNbZ7JmN-BgUiBKxlkidxUX4PMF7ik33g:1xJVgY:TMGvIBEvaUM4RuKAbMqOLAdjSt3JnHCRUuPbJ6fIIKM', '2026-11-04 12:44:50.330991'),
 ('vyns2wx6dnek40tm8j6t4m0rezcyiaxh', '.eJxVjMsOgkAMAP-lZ7OBtvuQo3e-gbTbRVADCY-T8d8NCQe9zkzmDZ3s29Dta1m60aAB8nD5hSr5WabD2EOm--zyPG3LqO5I3GlX185WXrez_RsMsg7QQNRcKGrAXkxRa69WiQTk5LGixMQUe4wx5JSr2pj4WjwScc0WCBN8vgamNwg:1x9g6h:RinHxxDPZJeHP1hgHmKghrNmNSdIQ0ibH24uAHe7AaM', '2026-10-08 09:51:11.795421'),
 ('w81swtum7942n93ih1gns7hzdko45svm', '.eJxVjDEOwjAMAP-SGUWhdlKHkZ03VE7s0AJqpaadEH9HkTrAene6txl438Zhr7oOk5iLQWdOvzBxfurcjDx4vi82L_O2Tsm2xB622tsi-roe7d9g5Dq2L5XC2GVCFXahqBOfKWrn--ghxUilYA5ACOSKQt-RYD4jBBbwHMznCxMhN_U:1xAjLc:MejSURU14DNKXelvnN_ykdy0G2n1zp6Lwwy3EmEogvo', '2026-10-11 07:30:56.039385'),
 ('wtacvbuobsxtj4f8c9qj98u4p3gblcmr', '.eJxVjDEOgzAMAP_iuYoCwU5g7N43IMc2hbYCicBU9e8VEkO73p3uDT3v29jvxdZ-UuigSXD5hZnlafNh9MHzfXGyzNs6ZXck7rTF3Ra11_Vs_wYjlxE6qDSiRw6SxaJmJFZP4kmoppBiskFaTIKWq7ZW8qjUYE1DosA5RIPPFxVqOBg:1xCA5s:VVRFb7qCANoaAi7Unzj50nj9NFVZORc6bOw4OBrAezI', '2026-10-15 06:16:36.138541'),
@@ -884,7 +925,12 @@ INSERT INTO `member_aiprojectanalysis` (`id`, `analysis_type`, `summary`, `data`
 (42, 'completion', 'Completion cannot be estimated until progress or stage updates are recorded.', '{\"progress\": null, \"status\": \"upcoming\", \"milestones_completed\": 0, \"milestones_total\": 0, \"predicted_completion\": null, \"schedule_delay_months\": 0}', 45, 'gpt-4o-mini', '2026-09-17 03:23:52.040383', 1, 20),
 (43, 'budget', 'KES 0.00 spent of KES 10,000,000.00 allocated (0.0% utilized).', '{\"budget\": 10000000.0, \"spent\": 0.0, \"remaining\": 10000000.0, \"utilization\": 0.0, \"anomaly_score\": 20, \"anomaly_level\": \"normal\", \"indicators\": [], \"physical_progress\": null, \"financial_health\": 100, \"budget_revisions\": 0, \"expenses_after_deadline\": 0}', 90, 'gpt-4o-mini', '2026-09-17 03:23:52.042158', 1, 20),
 (44, 'performance', '0 of 0 milestones complete across 0 project stage(s).', '{\"milestones_completed\": 0, \"milestones_total\": 0, \"stages\": 0, \"average_stage_progress\": null, \"contractor\": {\"name\": \"Unassigned\", \"rating\": null, \"projects\": 0, \"delayed_projects\": 0}, \"contractor_score\": null, \"contractor_anomalies\": []}', 45, 'gpt-4o-mini', '2026-09-17 03:23:52.044971', 1, 20),
-(45, 'sentiment', 'Citizen sentiment signal is limited until public feedback and issue reports are linked to this project.', '{\"open_issues\": 0, \"feedback_count\": 0, \"citizen_satisfaction\": null, \"signal\": \"limited_data\"}', 40, 'gpt-4o-mini', '2026-09-17 03:23:52.046756', 1, 20);
+(45, 'sentiment', 'Citizen sentiment signal is limited until public feedback and issue reports are linked to this project.', '{\"open_issues\": 0, \"feedback_count\": 0, \"citizen_satisfaction\": null, \"signal\": \"limited_data\"}', 40, 'gpt-4o-mini', '2026-09-17 03:23:52.046756', 1, 20),
+(51, 'risk', 'Low delivery risk (20/100). No major automated risk signals detected.', '{\"score\": 20, \"anomaly_score\": 20, \"level\": \"low\", \"reasons\": [], \"anomaly_indicators\": [], \"procurement_indicators\": [], \"data_integrity_flags\": [], \"duplicate_candidates\": [], \"schedule_delay_months\": 0, \"complaints\": 0, \"contractor\": {\"name\": \"Lety Amanda\", \"rating\": null, \"projects\": 1, \"delayed_projects\": 0}, \"financial_health\": 100, \"schedule_health\": 100, \"early_warnings\": [], \"recommendations\": [\"Continue routine milestone, expenditure, and evidence monitoring.\"], \"evidence_chain\": [\"Budget and expenditure records\", \"Milestone and stage records\", \"Project timeline\", \"Contractor records\", \"Citizen issue records\"], \"investigation\": {\"what_happened\": \"No major automated anomaly detected.\", \"why_unusual\": \"Observed values are within the available rules-based checks.\", \"what_to_check\": \"Payment certificates, variation orders, invoices, site evidence, and milestone approvals.\", \"priority\": \"low\"}}', 80, 'gpt-4o-mini', '2026-11-12 08:45:44.476782', 1, 70),
+(52, 'completion', 'Recorded delivery progress is 96%; continue milestone updates to refine the forecast.', '{\"progress\": 96.0, \"status\": \"ongoing\", \"milestones_completed\": 5, \"milestones_total\": 9, \"predicted_completion\": \"2026-11-24\", \"schedule_delay_months\": 0}', 95, 'gpt-4o-mini', '2026-11-12 08:45:44.479161', 1, 70),
+(53, 'budget', 'KES 314,556,000.00 spent of KES 450,000,000.00 allocated (69.9% utilized).', '{\"budget\": 450000000.0, \"spent\": 314556000.0, \"remaining\": 135444000.0, \"utilization\": 69.9, \"anomaly_score\": 20, \"anomaly_level\": \"normal\", \"indicators\": [], \"physical_progress\": 96.0, \"financial_health\": 100, \"budget_revisions\": 0, \"expenses_after_deadline\": 0}', 90, 'gpt-4o-mini', '2026-11-12 08:45:44.480087', 1, 70),
+(54, 'performance', '5 of 9 milestones complete across 5 project stage(s).', '{\"milestones_completed\": 5, \"milestones_total\": 9, \"stages\": 5, \"average_stage_progress\": 96.0, \"contractor\": {\"name\": \"Lety Amanda\", \"rating\": null, \"projects\": 1, \"delayed_projects\": 0}, \"contractor_score\": null, \"contractor_anomalies\": []}', 85, 'gpt-4o-mini', '2026-11-12 08:45:44.481006', 1, 70),
+(55, 'sentiment', 'Citizen sentiment signal is limited until public feedback and issue reports are linked to this project.', '{\"open_issues\": 0, \"feedback_count\": 0, \"citizen_satisfaction\": null, \"signal\": \"limited_data\"}', 40, 'gpt-4o-mini', '2026-11-12 08:45:44.481932', 1, 70);
 
 -- --------------------------------------------------------
 
@@ -962,170 +1008,220 @@ CREATE TABLE `member_auditlog` (
   `changes` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`changes`)),
   `ip_address` char(39) DEFAULT NULL,
   `model_name` varchar(100) DEFAULT NULL,
-  `object_id` int(11) DEFAULT NULL
+  `object_id` int(11) DEFAULT NULL,
+  `is_suppressed` tinyint(1) NOT NULL,
+  `suppressed_at` datetime(6) DEFAULT NULL,
+  `suppressed_by_id` bigint(20) DEFAULT NULL,
+  `suppression_note` longtext DEFAULT NULL,
+  `suppression_reason` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_auditlog`
 --
 
-INSERT INTO `member_auditlog` (`id`, `action`, `timestamp`, `project_id`, `user_id`, `changes`, `ip_address`, `model_name`, `object_id`) VALUES
-(1, 'tender_application_submitted', '2026-08-19 13:00:37.703075', NULL, 1, '{}', '127.0.0.1', 'TenderApplication', 1),
-(2, 'tender_awarded', '2026-08-19 13:01:03.283064', NULL, 1, '{\"application_id\": 1, \"contractor_id\": 1}', '127.0.0.1', 'Tender', 1),
-(3, 'valuating exteme finnce usage in this project', '2026-08-19 14:07:12.970231', 12, NULL, '{\"notes\": \"must be brought to book\"}', NULL, NULL, NULL),
-(4, 'quick_updated', '2026-08-19 17:21:55.360866', 35, 1, '{\"status\": \"in_progress\", \"progress\": 90}', '127.0.0.1', 'Milestone', 1),
-(5, 'created', '2026-08-20 04:16:16.224228', 29, 1, '{\"stage_name\": \"construction\"}', '127.0.0.1', 'ProjectStage', 2),
-(6, 'quick_updated', '2026-08-20 04:20:43.718433', 35, 1, '{\"status\": \"in_progress\", \"progress\": 10}', '127.0.0.1', 'Milestone', 2),
-(7, 'citizen_submission', '2026-08-21 06:57:59.748265', NULL, 1, '{\"title\": \"slow development\", \"category\": \"complaint\"}', '127.0.0.1', 'CitizenSubmission', 1),
-(8, 'quick_updated', '2026-08-30 07:13:01.514980', 35, 1, '{\"status\": \"missed\", \"progress\": 10}', '127.0.0.1', 'Milestone', 2),
-(9, 'quick_updated', '2026-08-30 07:13:26.386641', 35, 1, '{\"status\": \"missed\", \"progress\": 67}', '127.0.0.1', 'Milestone', 2),
-(10, 'quick_updated', '2026-08-30 07:13:46.388515', 35, 1, '{\"status\": \"completed\", \"progress\": 90}', '127.0.0.1', 'Milestone', 1),
-(11, 'quick_updated', '2026-08-30 07:14:04.020914', 35, 1, '{\"status\": \"completed\", \"progress\": 100}', '127.0.0.1', 'Milestone', 1),
-(12, 'updated', '2026-08-30 07:16:23.099646', 24, 1, '{\"title\": \"Itare Dam Multipurpose Project\"}', '127.0.0.1', 'Milestone', 1),
-(13, 'updated', '2026-09-01 16:54:23.616180', NULL, 1, '{\"name\": \"building  bridge initiated\"}', '127.0.0.1', 'Project_Division', 1),
-(14, 'issue_reported', '2026-09-23 07:09:43.412828', 41, 1, '{}', '127.0.0.1', 'ReportIssue', 4),
-(15, 'created', '2026-09-23 07:47:07.765829', 41, 1, '{\"title\": \"da project\", \"amount\": \"20000000\"}', '127.0.0.1', 'ProjectExpense', 3),
-(16, 'created', '2026-09-23 08:00:32.472828', 41, 1, '{\"stage_name\": \"construction\"}', '127.0.0.1', 'ProjectStage', 3),
-(17, 'issue_reported', '2026-09-23 08:02:56.391439', 41, 1, '{}', '127.0.0.1', 'ReportIssue', 5),
-(18, 'updated', '2026-09-23 16:56:19.269578', 40, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"delayed\"}', NULL, 'Project', 40),
-(19, 'updated', '2026-09-23 16:56:19.291484', 1, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 1),
-(20, 'updated', '2026-09-23 16:56:19.409165', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"Delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 38),
-(21, 'updated', '2026-09-23 16:56:19.422782', 20, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 20),
-(22, 'updated', '2026-09-23 16:56:19.435510', 37, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 37),
-(23, 'updated', '2026-09-23 16:56:19.451862', 34, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 34),
-(24, 'updated', '2026-09-23 16:56:19.465135', 24, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 24),
-(25, 'updated', '2026-09-23 16:56:19.764420', 31, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 31),
-(26, 'updated', '2026-09-23 16:56:19.788315', 27, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 27),
-(27, 'updated', '2026-09-23 16:56:19.811817', 28, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 28),
-(28, 'updated', '2026-09-23 16:56:19.848416', 22, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 22),
-(29, 'updated', '2026-09-23 16:56:19.872788', 18, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 18),
-(30, 'updated', '2026-09-23 16:56:19.891702', 12, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 12),
-(31, 'updated', '2026-09-23 16:56:19.904962', 11, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 11),
-(32, 'updated', '2026-09-23 16:56:19.917861', 35, NULL, '{\"source\": \"auto\", \"old_status\": \"\", \"new_status\": \"ongoing\"}', NULL, 'Project', 35),
-(33, 'updated', '2026-09-23 16:56:19.924506', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30),
-(34, 'updated', '2026-09-23 16:56:19.931962', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29),
-(35, 'updated', '2026-09-23 17:00:57.603712', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30),
-(36, 'updated', '2026-09-23 17:00:57.739645', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29),
-(37, 'updated', '2026-09-23 17:02:20.460955', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30),
-(38, 'updated', '2026-09-23 17:02:20.472953', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29),
-(39, 'updated', '2026-09-23 17:04:42.392871', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30),
-(40, 'updated', '2026-09-23 17:04:42.434091', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29),
-(41, 'updated', '2026-09-23 17:15:14.933252', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30),
-(42, 'updated', '2026-09-23 17:15:14.938057', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29),
-(43, 'updated', '2026-09-23 17:16:19.883374', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30),
-(44, 'updated', '2026-09-23 17:16:19.913289', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29),
-(45, 'updated', '2026-09-23 17:16:35.138744', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30),
-(46, 'updated', '2026-09-23 17:16:35.149298', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29),
-(47, 'updated', '2026-09-23 17:17:15.220038', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30),
-(48, 'updated', '2026-09-23 17:17:15.278401', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29),
-(49, 'updated', '2026-09-23 17:18:20.146572', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30),
-(50, 'updated', '2026-09-23 17:18:20.153853', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29),
-(51, 'updated', '2026-09-23 17:18:44.886514', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30),
-(52, 'updated', '2026-09-23 17:18:44.913602', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29),
-(53, 'updated', '2026-09-23 17:24:51.485627', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30),
-(54, 'updated', '2026-09-23 17:24:51.493115', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29),
-(55, 'updated', '2026-09-23 17:27:01.220669', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30),
-(56, 'updated', '2026-09-23 17:27:01.248154', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29),
-(57, 'updated', '2026-09-23 17:33:57.268051', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30),
-(58, 'updated', '2026-09-23 17:33:57.309334', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29),
-(59, 'created', '2026-09-23 17:56:39.575220', 11, 1, '{\"title\": \"hgjhk\"}', '127.0.0.1', 'ProgressReport', 1),
-(60, 'stage_status_changed', '2026-09-23 17:57:59.030927', 11, 1, '{\"status\": \"on_hold\"}', '127.0.0.1', 'ProjectStage', 15),
-(61, 'created', '2026-09-24 08:40:15.997848', 11, 1, '{\"title\": \"tarmac and trucks\", \"amount\": \"1000000\"}', '127.0.0.1', 'ProjectExpense', 4),
-(62, 'stage_status_changed', '2026-09-24 08:41:09.299387', 11, 1, '{\"status\": \"not_started\"}', '127.0.0.1', 'ProjectStage', 5),
-(63, 'created', '2026-09-24 09:49:04.857230', 11, 1, '{\"title\": \"mnhg\"}', '127.0.0.1', 'ProgressReport', 2),
-(64, 'stage_report_submitted', '2026-09-25 06:24:27.379266', NULL, 31, '{}', '127.0.0.1', 'StageReport', 1),
-(65, 'created', '2026-09-25 06:37:23.519105', NULL, 31, '{\"title\": \"affordable housing\"}', '127.0.0.1', 'ProgressReport', 3),
-(66, 'issue_reported', '2026-09-25 06:38:49.202373', NULL, 31, '{}', '127.0.0.1', 'ReportIssue', 6),
-(67, 'created', '2026-09-25 06:47:57.990095', NULL, 31, '{\"title\": \"wallwall perimeter\"}', '127.0.0.1', 'ProgressReport', 4),
-(68, 'stage_report_submitted', '2026-09-25 07:13:04.515528', NULL, 31, '{}', '127.0.0.1', 'StageReport', 2),
-(69, 'created', '2026-09-25 08:26:45.869240', NULL, 31, '{\"title\": \"j nm\"}', '127.0.0.1', 'ProgressReport', 5),
-(70, 'stage_status_changed', '2026-09-25 08:50:42.919589', NULL, 30, '{\"status\": \"not_started\"}', '127.0.0.1', 'ProjectStage', 18),
-(71, 'created', '2026-09-26 06:45:07.985074', NULL, 31, '{\"title\": \"water and sanitatio\", \"reference_no\": \"REQ-7EDF23A1\"}', '127.0.0.1', 'GovernmentRequest', 2),
-(72, 'responded_request', '2026-09-26 06:47:34.104293', NULL, 31, '{\"status\": \"in_progress\"}', '127.0.0.1', 'GovernmentRequest', 2),
-(73, 'tender_application_submitted', '2026-09-27 06:08:49.780490', 31, 1, '{}', '127.0.0.1', 'TenderApplication', 2),
-(74, 'tender_evaluated', '2026-09-27 06:26:00.800626', 31, 1, '{}', '127.0.0.1', 'Tender', 3),
-(75, 'tender_evaluated', '2026-09-27 06:29:34.492714', 31, 1, '{}', '127.0.0.1', 'Tender', 3),
-(76, 'tender_evaluated', '2026-09-27 06:29:47.636544', 31, 1, '{}', '127.0.0.1', 'Tender', 3),
-(77, 'tender_evaluated', '2026-09-27 06:29:59.167868', 31, 1, '{}', '127.0.0.1', 'Tender', 3),
-(78, 'updated', '2026-09-27 06:44:24.924909', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"upcoming\"}', NULL, 'Project', 42),
-(79, 'tender_evaluated', '2026-09-27 06:45:07.574133', 31, 1, '{}', '127.0.0.1', 'Tender', 3),
-(80, 'updated', '2026-09-27 07:18:17.828576', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"upcoming\"}', NULL, 'Project', 43),
-(81, 'updated', '2026-09-27 07:19:04.697391', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"upcoming\"}', NULL, 'Project', 44),
-(82, 'updated', '2026-09-27 07:19:04.708316', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 44),
-(83, 'updated', '2026-09-27 07:19:04.716267', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 44),
-(84, 'updated', '2026-09-27 07:19:20.194738', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"upcoming\"}', NULL, 'Project', 45),
-(85, 'updated', '2026-09-27 07:19:20.203989', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 45),
-(86, 'updated', '2026-09-27 07:19:20.210744', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 45),
-(87, 'updated', '2026-09-27 07:31:00.690920', NULL, 40, '{\"source\": \"assignee\", \"old_status\": \"upcoming\", \"new_status\": \"completed\"}', NULL, 'Project', 47),
-(88, 'created', '2026-09-30 18:57:23.658418', 40, 1, '{\"title\": \"konza city\", \"amount\": \"20000\"}', '127.0.0.1', 'ProjectExpense', 5),
-(89, 'issue_reported', '2026-09-30 18:59:21.132393', 40, 1, '{}', '127.0.0.1', 'ReportIssue', 7),
-(90, 'updated', '2026-09-30 19:01:28.593447', NULL, 1, '{\"source\": \"assignee\", \"old_status\": \"ongoing\", \"new_status\": \"suspended\"}', NULL, 'Project', 38),
-(91, 'deleted', '2026-09-30 19:31:59.609487', NULL, 45, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50),
-(92, 'deleted', '2026-09-30 19:39:34.978371', NULL, 1, '{\"name\": \"Division #5\"}', '127.0.0.1', 'Project_Division', 5),
-(93, 'deleted', '2026-09-30 19:39:55.785083', NULL, 1, '{\"name\": \"Division #2\"}', '127.0.0.1', 'Project_Division', 2),
-(94, 'deleted', '2026-09-30 19:40:07.246788', NULL, 1, '{\"name\": \"Division #3\"}', '127.0.0.1', 'Project_Division', 3),
-(95, 'deleted', '2026-10-01 06:06:37.415527', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50),
-(96, 'deleted', '2026-10-01 06:07:04.331177', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50),
-(97, 'deleted', '2026-10-01 06:13:29.575731', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50),
-(98, 'deleted', '2026-10-01 06:16:43.154710', NULL, NULL, '{\"title\": \"DelSmoke\"}', '127.0.0.1', 'Project', 51),
-(99, 'deleted', '2026-10-01 06:16:44.440162', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 49),
-(100, 'deleted', '2026-10-01 06:38:52.234176', NULL, 1, '{\"title\": \"TrackFlowTest\"}', '127.0.0.1', 'Project', 46),
-(101, 'deleted', '2026-10-01 06:39:03.038957', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50),
-(102, 'deleted', '2026-10-01 06:39:14.476665', NULL, 1, '{\"title\": \"TrackFlowTest3\"}', '127.0.0.1', 'Project', 48),
-(103, 'deleted', '2026-10-01 06:39:25.248480', NULL, 1, '{\"title\": \"TrackFlowTest2\"}', '127.0.0.1', 'Project', 47),
-(104, 'deleted', '2026-10-01 06:39:36.750186', NULL, 1, '{\"title\": \"StatusFlowTest2\"}', '127.0.0.1', 'Project', 45),
-(105, 'deleted', '2026-10-01 06:39:47.903681', NULL, 1, '{\"title\": \"StatusFlowTest\"}', '127.0.0.1', 'Project', 44),
-(106, 'deleted', '2026-10-01 06:39:56.895724', NULL, 1, '{\"title\": \"StatusFlowTest\"}', '127.0.0.1', 'Project', 43),
-(107, 'deleted', '2026-10-01 06:40:04.872050', NULL, 1, '{\"title\": \"AssignTest\"}', '127.0.0.1', 'Project', 42),
-(108, 'stage_status_changed', '2026-10-01 11:18:04.498381', NULL, 1, '{\"status\": \"completed\"}', '127.0.0.1', 'ProjectStage', 16),
-(109, 'stage_status_changed', '2026-10-01 11:18:56.950130', NULL, 1, '{\"status\": \"in_progress\"}', '127.0.0.1', 'ProjectStage', 17),
-(110, 'stage_status_changed', '2026-10-01 11:19:08.111532', NULL, 1, '{\"status\": \"on_hold\"}', '127.0.0.1', 'ProjectStage', 19),
-(111, 'updated', '2026-10-05 17:48:46.486139', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 52),
-(112, 'updated', '2026-10-05 17:54:01.291597', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 52),
-(113, 'updated', '2026-10-05 17:54:19.107489', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 53),
-(114, 'updated', '2026-10-05 17:55:48.168982', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 53),
-(115, 'updated', '2026-10-05 17:56:02.217901', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 54),
-(116, 'updated', '2026-10-05 17:56:02.437126', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 54),
-(117, 'updated', '2026-10-05 17:57:23.643350', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 55),
-(118, 'updated', '2026-10-05 17:57:23.856060', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 55),
-(119, 'updated', '2026-10-05 17:58:03.727982', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 56),
-(120, 'updated', '2026-10-05 17:58:55.228136', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 57),
-(121, 'updated', '2026-10-05 18:01:14.938389', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 58),
-(122, 'updated', '2026-10-05 18:02:18.118326', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 59),
-(123, 'updated', '2026-10-05 18:05:55.836890', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 60),
-(124, 'updated', '2026-10-05 18:07:13.845749', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 61),
-(125, 'updated', '2026-10-05 18:09:30.556505', NULL, NULL, '{\"source\": \"manual\", \"old_status\": \"completed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 61),
-(126, 'updated', '2026-10-05 18:09:57.627383', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 62),
-(127, 'updated', '2026-10-05 18:15:56.494869', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 63),
-(128, 'updated', '2026-10-05 18:16:55.254803', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 64),
-(129, 'updated', '2026-10-05 18:18:05.344103', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 65),
-(130, 'updated', '2026-10-05 18:18:45.583293', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 66),
-(131, 'updated', '2026-10-05 18:24:18.073506', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 68),
-(132, 'created', '2026-10-05 18:24:40.868481', NULL, 1, '{\"title\": \"affordable housing\"}', '127.0.0.1', 'ProgressReport', 6),
-(133, 'updated', '2026-10-05 18:26:00.463014', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 69),
-(134, 'updated', '2026-10-05 18:26:00.494084', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 69),
-(135, 'updated', '2026-10-05 18:27:17.435360', 70, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 70),
-(136, 'updated', '2026-10-05 18:27:17.472883', 70, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 70),
-(137, 'updated', '2026-10-05 18:37:04.424427', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 71),
-(138, 'updated', '2026-10-06 03:01:25.343882', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 75),
-(139, 'job_progress_updated', '2026-10-06 03:25:16.950171', 70, 31, '{\"stage\": \"Site Clearance & Land Preparation\", \"progress\": 45}', '127.0.0.1', 'ProjectStage', 86),
-(140, 'updated', '2026-10-06 03:32:31.112288', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 76),
-(141, 'tender_evaluated', '2026-10-06 03:37:29.381275', 31, 1, '{}', '127.0.0.1', 'Tender', 3),
-(142, 'tender_awarded', '2026-10-06 03:37:47.602387', 31, 1, '{\"application_id\": 2, \"contractor_id\": 2}', '127.0.0.1', 'Tender', 3),
-(143, 'stage_report_submitted', '2026-10-06 03:41:49.686687', 70, 31, '{}', '127.0.0.1', 'StageReport', 3),
-(144, 'created', '2026-10-16 06:25:24.285110', 70, 31, '{\"stage_name\": \"ground breking\"}', '127.0.0.1', 'ProjectStage', 93),
-(145, 'deleted', '2026-10-16 09:20:59.544810', NULL, 1, '{\"title\": \"T2\"}', '127.0.0.1', 'Project', 72),
-(146, 'deleted', '2026-10-16 09:21:13.600009', NULL, 1, '{\"title\": \"T\"}', '127.0.0.1', 'Project', 71),
-(147, 'deleted', '2026-10-16 09:26:19.137002', NULL, 1, '{\"title\": \"MT\"}', '127.0.0.1', 'Project', 75),
-(148, 'responded_request', '2026-10-16 09:54:39.101855', NULL, 31, '{\"status\": \"in_progress\"}', '127.0.0.1', 'GovernmentRequest', 2),
-(149, 'responded_request', '2026-10-16 09:55:59.570732', NULL, 31, '{\"status\": \"resolved\"}', '127.0.0.1', 'GovernmentRequest', 2),
-(150, 'closed_request', '2026-10-16 09:56:15.998015', NULL, 31, '{\"status\": \"closed\"}', '127.0.0.1', 'GovernmentRequest', 2),
-(151, 'stage_report_updated', '2026-10-16 10:19:54.683268', 70, 31, '{\"before\": {\"stage_description\": \"building of perimeter walls\", \"description\": \"woking in progress\", \"location\": \"Kisumu county\", \"progress_percentage\": 26, \"delay_reason\": \"\", \"corrective_actions\": \"\"}, \"after\": {\"stage_description\": \"building of perimeter walls\", \"description\": \"working in progress\", \"location\": \"Kisumu county\", \"progress_percentage\": 26, \"delay_reason\": \"\", \"corrective_actions\": \"\"}, \"review_status\": \"pending\"}', '127.0.0.1', 'StageReport', 3),
-(152, 'stage_report_submitted', '2026-10-17 05:30:03.383260', 70, 31, '{}', '127.0.0.1', 'StageReport', 4),
-(153, 'quick_updated', '2026-10-17 05:58:44.638725', 70, 30, '{\"status\": \"in_progress\", \"progress\": 95}', '127.0.0.1', 'Milestone', 95),
-(154, 'updated', '2026-10-17 06:46:06.557455', 37, 30, '{\"source\": \"assignee\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 37),
-(155, 'contractor_payment_request_submitted', '2026-10-17 07:11:21.523937', 70, 31, '{}', '127.0.0.1', 'ContractorPaymentRequest', 1),
-(156, 'deleted', '2026-10-17 07:53:39.500388', 74, 30, '{\"stage_name\": \"planning\"}', '127.0.0.1', 'ProjectStage', 92);
+INSERT INTO `member_auditlog` (`id`, `action`, `timestamp`, `project_id`, `user_id`, `changes`, `ip_address`, `model_name`, `object_id`, `is_suppressed`, `suppressed_at`, `suppressed_by_id`, `suppression_note`, `suppression_reason`) VALUES
+(1, 'tender_application_submitted', '2026-08-19 13:00:37.703075', NULL, 1, '{}', '127.0.0.1', 'TenderApplication', 1, 0, NULL, NULL, NULL, NULL),
+(2, 'tender_awarded', '2026-08-19 13:01:03.283064', NULL, 1, '{\"application_id\": 1, \"contractor_id\": 1}', '127.0.0.1', 'Tender', 1, 0, NULL, NULL, NULL, NULL),
+(3, 'valuating exteme finnce usage in this project', '2026-08-19 14:07:12.970231', 12, NULL, '{\"notes\": \"must be brought to book\"}', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(4, 'quick_updated', '2026-08-19 17:21:55.360866', 35, 1, '{\"status\": \"in_progress\", \"progress\": 90}', '127.0.0.1', 'Milestone', 1, 0, NULL, NULL, NULL, NULL),
+(5, 'created', '2026-08-20 04:16:16.224228', 29, 1, '{\"stage_name\": \"construction\"}', '127.0.0.1', 'ProjectStage', 2, 0, NULL, NULL, NULL, NULL),
+(6, 'quick_updated', '2026-08-20 04:20:43.718433', 35, 1, '{\"status\": \"in_progress\", \"progress\": 10}', '127.0.0.1', 'Milestone', 2, 0, NULL, NULL, NULL, NULL),
+(7, 'citizen_submission', '2026-08-21 06:57:59.748265', NULL, 1, '{\"title\": \"slow development\", \"category\": \"complaint\"}', '127.0.0.1', 'CitizenSubmission', 1, 0, NULL, NULL, NULL, NULL),
+(8, 'quick_updated', '2026-08-30 07:13:01.514980', 35, 1, '{\"status\": \"missed\", \"progress\": 10}', '127.0.0.1', 'Milestone', 2, 0, NULL, NULL, NULL, NULL),
+(9, 'quick_updated', '2026-08-30 07:13:26.386641', 35, 1, '{\"status\": \"missed\", \"progress\": 67}', '127.0.0.1', 'Milestone', 2, 0, NULL, NULL, NULL, NULL),
+(10, 'quick_updated', '2026-08-30 07:13:46.388515', 35, 1, '{\"status\": \"completed\", \"progress\": 90}', '127.0.0.1', 'Milestone', 1, 0, NULL, NULL, NULL, NULL),
+(11, 'quick_updated', '2026-08-30 07:14:04.020914', 35, 1, '{\"status\": \"completed\", \"progress\": 100}', '127.0.0.1', 'Milestone', 1, 0, NULL, NULL, NULL, NULL),
+(12, 'updated', '2026-08-30 07:16:23.099646', 24, 1, '{\"title\": \"Itare Dam Multipurpose Project\"}', '127.0.0.1', 'Milestone', 1, 0, NULL, NULL, NULL, NULL),
+(13, 'updated', '2026-09-01 16:54:23.616180', NULL, 1, '{\"name\": \"building  bridge initiated\"}', '127.0.0.1', 'Project_Division', 1, 0, NULL, NULL, NULL, NULL),
+(14, 'issue_reported', '2026-09-23 07:09:43.412828', 41, 1, '{}', '127.0.0.1', 'ReportIssue', 4, 0, NULL, NULL, NULL, NULL),
+(15, 'created', '2026-09-23 07:47:07.765829', 41, 1, '{\"title\": \"da project\", \"amount\": \"20000000\"}', '127.0.0.1', 'ProjectExpense', 3, 0, NULL, NULL, NULL, NULL),
+(16, 'created', '2026-09-23 08:00:32.472828', 41, 1, '{\"stage_name\": \"construction\"}', '127.0.0.1', 'ProjectStage', 3, 0, NULL, NULL, NULL, NULL),
+(17, 'issue_reported', '2026-09-23 08:02:56.391439', 41, 1, '{}', '127.0.0.1', 'ReportIssue', 5, 0, NULL, NULL, NULL, NULL),
+(18, 'updated', '2026-09-23 16:56:19.269578', 40, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"delayed\"}', NULL, 'Project', 40, 0, NULL, NULL, NULL, NULL),
+(19, 'updated', '2026-09-23 16:56:19.291484', 1, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 1, 0, NULL, NULL, NULL, NULL),
+(20, 'updated', '2026-09-23 16:56:19.409165', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"Delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 38, 0, NULL, NULL, NULL, NULL),
+(21, 'updated', '2026-09-23 16:56:19.422782', 20, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 20, 0, NULL, NULL, NULL, NULL),
+(22, 'updated', '2026-09-23 16:56:19.435510', 37, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 37, 0, NULL, NULL, NULL, NULL),
+(23, 'updated', '2026-09-23 16:56:19.451862', 34, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 34, 0, NULL, NULL, NULL, NULL),
+(24, 'updated', '2026-09-23 16:56:19.465135', 24, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 24, 0, NULL, NULL, NULL, NULL),
+(25, 'updated', '2026-09-23 16:56:19.764420', 31, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 31, 0, NULL, NULL, NULL, NULL),
+(26, 'updated', '2026-09-23 16:56:19.788315', 27, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 27, 0, NULL, NULL, NULL, NULL),
+(27, 'updated', '2026-09-23 16:56:19.811817', 28, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 28, 0, NULL, NULL, NULL, NULL),
+(28, 'updated', '2026-09-23 16:56:19.848416', 22, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 22, 0, NULL, NULL, NULL, NULL),
+(29, 'updated', '2026-09-23 16:56:19.872788', 18, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 18, 0, NULL, NULL, NULL, NULL),
+(30, 'updated', '2026-09-23 16:56:19.891702', 12, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 12, 0, NULL, NULL, NULL, NULL),
+(31, 'updated', '2026-09-23 16:56:19.904962', 11, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 11, 0, NULL, NULL, NULL, NULL),
+(32, 'updated', '2026-09-23 16:56:19.917861', 35, NULL, '{\"source\": \"auto\", \"old_status\": \"\", \"new_status\": \"ongoing\"}', NULL, 'Project', 35, 0, NULL, NULL, NULL, NULL),
+(33, 'updated', '2026-09-23 16:56:19.924506', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(34, 'updated', '2026-09-23 16:56:19.931962', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(35, 'updated', '2026-09-23 17:00:57.603712', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(36, 'updated', '2026-09-23 17:00:57.739645', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(37, 'updated', '2026-09-23 17:02:20.460955', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(38, 'updated', '2026-09-23 17:02:20.472953', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(39, 'updated', '2026-09-23 17:04:42.392871', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(40, 'updated', '2026-09-23 17:04:42.434091', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(41, 'updated', '2026-09-23 17:15:14.933252', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(42, 'updated', '2026-09-23 17:15:14.938057', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(43, 'updated', '2026-09-23 17:16:19.883374', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(44, 'updated', '2026-09-23 17:16:19.913289', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(45, 'updated', '2026-09-23 17:16:35.138744', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(46, 'updated', '2026-09-23 17:16:35.149298', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(47, 'updated', '2026-09-23 17:17:15.220038', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(48, 'updated', '2026-09-23 17:17:15.278401', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(49, 'updated', '2026-09-23 17:18:20.146572', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(50, 'updated', '2026-09-23 17:18:20.153853', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(51, 'updated', '2026-09-23 17:18:44.886514', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(52, 'updated', '2026-09-23 17:18:44.913602', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(53, 'updated', '2026-09-23 17:24:51.485627', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(54, 'updated', '2026-09-23 17:24:51.493115', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(55, 'updated', '2026-09-23 17:27:01.220669', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(56, 'updated', '2026-09-23 17:27:01.248154', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"delayed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(57, 'updated', '2026-09-23 17:33:57.268051', 30, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 30, 0, NULL, NULL, NULL, NULL),
+(58, 'updated', '2026-09-23 17:33:57.309334', 29, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"delayed\"}', NULL, 'Project', 29, 0, NULL, NULL, NULL, NULL),
+(59, 'created', '2026-09-23 17:56:39.575220', 11, 1, '{\"title\": \"hgjhk\"}', '127.0.0.1', 'ProgressReport', 1, 0, NULL, NULL, NULL, NULL),
+(60, 'stage_status_changed', '2026-09-23 17:57:59.030927', 11, 1, '{\"status\": \"on_hold\"}', '127.0.0.1', 'ProjectStage', 15, 0, NULL, NULL, NULL, NULL),
+(61, 'created', '2026-09-24 08:40:15.997848', 11, 1, '{\"title\": \"tarmac and trucks\", \"amount\": \"1000000\"}', '127.0.0.1', 'ProjectExpense', 4, 0, NULL, NULL, NULL, NULL),
+(62, 'stage_status_changed', '2026-09-24 08:41:09.299387', 11, 1, '{\"status\": \"not_started\"}', '127.0.0.1', 'ProjectStage', 5, 0, NULL, NULL, NULL, NULL),
+(63, 'created', '2026-09-24 09:49:04.857230', 11, 1, '{\"title\": \"mnhg\"}', '127.0.0.1', 'ProgressReport', 2, 0, NULL, NULL, NULL, NULL),
+(64, 'stage_report_submitted', '2026-09-25 06:24:27.379266', NULL, 31, '{}', '127.0.0.1', 'StageReport', 1, 0, NULL, NULL, NULL, NULL),
+(65, 'created', '2026-09-25 06:37:23.519105', NULL, 31, '{\"title\": \"affordable housing\"}', '127.0.0.1', 'ProgressReport', 3, 0, NULL, NULL, NULL, NULL),
+(66, 'issue_reported', '2026-09-25 06:38:49.202373', NULL, 31, '{}', '127.0.0.1', 'ReportIssue', 6, 0, NULL, NULL, NULL, NULL),
+(67, 'created', '2026-09-25 06:47:57.990095', NULL, 31, '{\"title\": \"wallwall perimeter\"}', '127.0.0.1', 'ProgressReport', 4, 0, NULL, NULL, NULL, NULL),
+(68, 'stage_report_submitted', '2026-09-25 07:13:04.515528', NULL, 31, '{}', '127.0.0.1', 'StageReport', 2, 0, NULL, NULL, NULL, NULL),
+(69, 'created', '2026-09-25 08:26:45.869240', NULL, 31, '{\"title\": \"j nm\"}', '127.0.0.1', 'ProgressReport', 5, 0, NULL, NULL, NULL, NULL),
+(70, 'stage_status_changed', '2026-09-25 08:50:42.919589', NULL, 30, '{\"status\": \"not_started\"}', '127.0.0.1', 'ProjectStage', 18, 0, NULL, NULL, NULL, NULL),
+(71, 'created', '2026-09-26 06:45:07.985074', NULL, 31, '{\"title\": \"water and sanitatio\", \"reference_no\": \"REQ-7EDF23A1\"}', '127.0.0.1', 'GovernmentRequest', 2, 0, NULL, NULL, NULL, NULL),
+(72, 'responded_request', '2026-09-26 06:47:34.104293', NULL, 31, '{\"status\": \"in_progress\"}', '127.0.0.1', 'GovernmentRequest', 2, 0, NULL, NULL, NULL, NULL),
+(73, 'tender_application_submitted', '2026-09-27 06:08:49.780490', 31, 1, '{}', '127.0.0.1', 'TenderApplication', 2, 0, NULL, NULL, NULL, NULL),
+(74, 'tender_evaluated', '2026-09-27 06:26:00.800626', 31, 1, '{}', '127.0.0.1', 'Tender', 3, 0, NULL, NULL, NULL, NULL),
+(75, 'tender_evaluated', '2026-09-27 06:29:34.492714', 31, 1, '{}', '127.0.0.1', 'Tender', 3, 0, NULL, NULL, NULL, NULL),
+(76, 'tender_evaluated', '2026-09-27 06:29:47.636544', 31, 1, '{}', '127.0.0.1', 'Tender', 3, 0, NULL, NULL, NULL, NULL),
+(77, 'tender_evaluated', '2026-09-27 06:29:59.167868', 31, 1, '{}', '127.0.0.1', 'Tender', 3, 0, NULL, NULL, NULL, NULL),
+(78, 'updated', '2026-09-27 06:44:24.924909', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"upcoming\"}', NULL, 'Project', 42, 0, NULL, NULL, NULL, NULL),
+(79, 'tender_evaluated', '2026-09-27 06:45:07.574133', 31, 1, '{}', '127.0.0.1', 'Tender', 3, 0, NULL, NULL, NULL, NULL),
+(80, 'updated', '2026-09-27 07:18:17.828576', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"upcoming\"}', NULL, 'Project', 43, 0, NULL, NULL, NULL, NULL),
+(81, 'updated', '2026-09-27 07:19:04.697391', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"upcoming\"}', NULL, 'Project', 44, 0, NULL, NULL, NULL, NULL),
+(82, 'updated', '2026-09-27 07:19:04.708316', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 44, 0, NULL, NULL, NULL, NULL),
+(83, 'updated', '2026-09-27 07:19:04.716267', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 44, 0, NULL, NULL, NULL, NULL),
+(84, 'updated', '2026-09-27 07:19:20.194738', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"draft\", \"new_status\": \"upcoming\"}', NULL, 'Project', 45, 0, NULL, NULL, NULL, NULL),
+(85, 'updated', '2026-09-27 07:19:20.203989', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"upcoming\", \"new_status\": \"ongoing\"}', NULL, 'Project', 45, 0, NULL, NULL, NULL, NULL),
+(86, 'updated', '2026-09-27 07:19:20.210744', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 45, 0, NULL, NULL, NULL, NULL),
+(87, 'updated', '2026-09-27 07:31:00.690920', NULL, NULL, '{\"source\": \"assignee\", \"old_status\": \"upcoming\", \"new_status\": \"completed\"}', NULL, 'Project', 47, 0, NULL, NULL, NULL, NULL),
+(88, 'created', '2026-09-30 18:57:23.658418', 40, 1, '{\"title\": \"konza city\", \"amount\": \"20000\"}', '127.0.0.1', 'ProjectExpense', 5, 0, NULL, NULL, NULL, NULL),
+(89, 'issue_reported', '2026-09-30 18:59:21.132393', 40, 1, '{}', '127.0.0.1', 'ReportIssue', 7, 0, NULL, NULL, NULL, NULL),
+(90, 'updated', '2026-09-30 19:01:28.593447', NULL, 1, '{\"source\": \"assignee\", \"old_status\": \"ongoing\", \"new_status\": \"suspended\"}', NULL, 'Project', 38, 0, NULL, NULL, NULL, NULL),
+(91, 'deleted', '2026-09-30 19:31:59.609487', NULL, NULL, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50, 0, NULL, NULL, NULL, NULL),
+(92, 'deleted', '2026-09-30 19:39:34.978371', NULL, 1, '{\"name\": \"Division #5\"}', '127.0.0.1', 'Project_Division', 5, 0, NULL, NULL, NULL, NULL),
+(93, 'deleted', '2026-09-30 19:39:55.785083', NULL, 1, '{\"name\": \"Division #2\"}', '127.0.0.1', 'Project_Division', 2, 0, NULL, NULL, NULL, NULL),
+(94, 'deleted', '2026-09-30 19:40:07.246788', NULL, 1, '{\"name\": \"Division #3\"}', '127.0.0.1', 'Project_Division', 3, 0, NULL, NULL, NULL, NULL),
+(95, 'deleted', '2026-10-01 06:06:37.415527', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50, 0, NULL, NULL, NULL, NULL),
+(96, 'deleted', '2026-10-01 06:07:04.331177', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50, 0, NULL, NULL, NULL, NULL),
+(97, 'deleted', '2026-10-01 06:13:29.575731', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50, 0, NULL, NULL, NULL, NULL),
+(98, 'deleted', '2026-10-01 06:16:43.154710', NULL, NULL, '{\"title\": \"DelSmoke\"}', '127.0.0.1', 'Project', 51, 0, NULL, NULL, NULL, NULL),
+(99, 'deleted', '2026-10-01 06:16:44.440162', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 49, 0, NULL, NULL, NULL, NULL),
+(100, 'deleted', '2026-10-01 06:38:52.234176', NULL, 1, '{\"title\": \"TrackFlowTest\"}', '127.0.0.1', 'Project', 46, 0, NULL, NULL, NULL, NULL),
+(101, 'deleted', '2026-10-01 06:39:03.038957', NULL, 1, '{\"title\": \"DelTest\"}', '127.0.0.1', 'Project', 50, 0, NULL, NULL, NULL, NULL),
+(102, 'deleted', '2026-10-01 06:39:14.476665', NULL, 1, '{\"title\": \"TrackFlowTest3\"}', '127.0.0.1', 'Project', 48, 0, NULL, NULL, NULL, NULL),
+(103, 'deleted', '2026-10-01 06:39:25.248480', NULL, 1, '{\"title\": \"TrackFlowTest2\"}', '127.0.0.1', 'Project', 47, 0, NULL, NULL, NULL, NULL),
+(104, 'deleted', '2026-10-01 06:39:36.750186', NULL, 1, '{\"title\": \"StatusFlowTest2\"}', '127.0.0.1', 'Project', 45, 0, NULL, NULL, NULL, NULL),
+(105, 'deleted', '2026-10-01 06:39:47.903681', NULL, 1, '{\"title\": \"StatusFlowTest\"}', '127.0.0.1', 'Project', 44, 0, NULL, NULL, NULL, NULL),
+(106, 'deleted', '2026-10-01 06:39:56.895724', NULL, 1, '{\"title\": \"StatusFlowTest\"}', '127.0.0.1', 'Project', 43, 0, NULL, NULL, NULL, NULL),
+(107, 'deleted', '2026-10-01 06:40:04.872050', NULL, 1, '{\"title\": \"AssignTest\"}', '127.0.0.1', 'Project', 42, 0, NULL, NULL, NULL, NULL),
+(108, 'stage_status_changed', '2026-10-01 11:18:04.498381', NULL, 1, '{\"status\": \"completed\"}', '127.0.0.1', 'ProjectStage', 16, 0, NULL, NULL, NULL, NULL),
+(109, 'stage_status_changed', '2026-10-01 11:18:56.950130', NULL, 1, '{\"status\": \"in_progress\"}', '127.0.0.1', 'ProjectStage', 17, 0, NULL, NULL, NULL, NULL),
+(110, 'stage_status_changed', '2026-10-01 11:19:08.111532', NULL, 1, '{\"status\": \"on_hold\"}', '127.0.0.1', 'ProjectStage', 19, 0, NULL, NULL, NULL, NULL),
+(111, 'updated', '2026-10-05 17:48:46.486139', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 52, 0, NULL, NULL, NULL, NULL),
+(112, 'updated', '2026-10-05 17:54:01.291597', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 52, 0, NULL, NULL, NULL, NULL),
+(113, 'updated', '2026-10-05 17:54:19.107489', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 53, 0, NULL, NULL, NULL, NULL),
+(114, 'updated', '2026-10-05 17:55:48.168982', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 53, 0, NULL, NULL, NULL, NULL),
+(115, 'updated', '2026-10-05 17:56:02.217901', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 54, 0, NULL, NULL, NULL, NULL),
+(116, 'updated', '2026-10-05 17:56:02.437126', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 54, 0, NULL, NULL, NULL, NULL),
+(117, 'updated', '2026-10-05 17:57:23.643350', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 55, 0, NULL, NULL, NULL, NULL),
+(118, 'updated', '2026-10-05 17:57:23.856060', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 55, 0, NULL, NULL, NULL, NULL),
+(119, 'updated', '2026-10-05 17:58:03.727982', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 56, 0, NULL, NULL, NULL, NULL),
+(120, 'updated', '2026-10-05 17:58:55.228136', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 57, 0, NULL, NULL, NULL, NULL),
+(121, 'updated', '2026-10-05 18:01:14.938389', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 58, 0, NULL, NULL, NULL, NULL),
+(122, 'updated', '2026-10-05 18:02:18.118326', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 59, 0, NULL, NULL, NULL, NULL),
+(123, 'updated', '2026-10-05 18:05:55.836890', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 60, 0, NULL, NULL, NULL, NULL),
+(124, 'updated', '2026-10-05 18:07:13.845749', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 61, 0, NULL, NULL, NULL, NULL),
+(125, 'updated', '2026-10-05 18:09:30.556505', NULL, NULL, '{\"source\": \"manual\", \"old_status\": \"completed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 61, 0, NULL, NULL, NULL, NULL),
+(126, 'updated', '2026-10-05 18:09:57.627383', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 62, 0, NULL, NULL, NULL, NULL),
+(127, 'updated', '2026-10-05 18:15:56.494869', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 63, 0, NULL, NULL, NULL, NULL),
+(128, 'updated', '2026-10-05 18:16:55.254803', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 64, 0, NULL, NULL, NULL, NULL),
+(129, 'updated', '2026-10-05 18:18:05.344103', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 65, 0, NULL, NULL, NULL, NULL),
+(130, 'updated', '2026-10-05 18:18:45.583293', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 66, 0, NULL, NULL, NULL, NULL),
+(131, 'updated', '2026-10-05 18:24:18.073506', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 68, 0, NULL, NULL, NULL, NULL),
+(132, 'created', '2026-10-05 18:24:40.868481', NULL, 1, '{\"title\": \"affordable housing\"}', '127.0.0.1', 'ProgressReport', 6, 0, NULL, NULL, NULL, NULL),
+(133, 'updated', '2026-10-05 18:26:00.463014', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 69, 0, NULL, NULL, NULL, NULL),
+(134, 'updated', '2026-10-05 18:26:00.494084', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 69, 0, NULL, NULL, NULL, NULL),
+(135, 'updated', '2026-10-05 18:27:17.435360', 70, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 70, 0, NULL, NULL, NULL, NULL),
+(136, 'updated', '2026-10-05 18:27:17.472883', 70, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 70, 0, NULL, NULL, NULL, NULL),
+(137, 'updated', '2026-10-05 18:37:04.424427', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 71, 0, NULL, NULL, NULL, NULL),
+(138, 'updated', '2026-10-06 03:01:25.343882', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 75, 0, NULL, NULL, NULL, NULL),
+(139, 'job_progress_updated', '2026-10-06 03:25:16.950171', 70, 31, '{\"stage\": \"Site Clearance & Land Preparation\", \"progress\": 45}', '127.0.0.1', 'ProjectStage', 86, 0, NULL, NULL, NULL, NULL),
+(140, 'updated', '2026-10-06 03:32:31.112288', NULL, NULL, '{\"source\": \"auto\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 76, 0, NULL, NULL, NULL, NULL),
+(141, 'tender_evaluated', '2026-10-06 03:37:29.381275', 31, 1, '{}', '127.0.0.1', 'Tender', 3, 0, NULL, NULL, NULL, NULL),
+(142, 'tender_awarded', '2026-10-06 03:37:47.602387', 31, 1, '{\"application_id\": 2, \"contractor_id\": 2}', '127.0.0.1', 'Tender', 3, 0, NULL, NULL, NULL, NULL),
+(143, 'stage_report_submitted', '2026-10-06 03:41:49.686687', 70, 31, '{}', '127.0.0.1', 'StageReport', 3, 0, NULL, NULL, NULL, NULL),
+(144, 'created', '2026-10-16 06:25:24.285110', 70, 31, '{\"stage_name\": \"ground breking\"}', '127.0.0.1', 'ProjectStage', 93, 0, NULL, NULL, NULL, NULL),
+(145, 'deleted', '2026-10-16 09:20:59.544810', NULL, 1, '{\"title\": \"T2\"}', '127.0.0.1', 'Project', 72, 0, NULL, NULL, NULL, NULL),
+(146, 'deleted', '2026-10-16 09:21:13.600009', NULL, 1, '{\"title\": \"T\"}', '127.0.0.1', 'Project', 71, 0, NULL, NULL, NULL, NULL),
+(147, 'deleted', '2026-10-16 09:26:19.137002', NULL, 1, '{\"title\": \"MT\"}', '127.0.0.1', 'Project', 75, 0, NULL, NULL, NULL, NULL),
+(148, 'responded_request', '2026-10-16 09:54:39.101855', NULL, 31, '{\"status\": \"in_progress\"}', '127.0.0.1', 'GovernmentRequest', 2, 0, NULL, NULL, NULL, NULL),
+(149, 'responded_request', '2026-10-16 09:55:59.570732', NULL, 31, '{\"status\": \"resolved\"}', '127.0.0.1', 'GovernmentRequest', 2, 0, NULL, NULL, NULL, NULL),
+(150, 'closed_request', '2026-10-16 09:56:15.998015', NULL, 31, '{\"status\": \"closed\"}', '127.0.0.1', 'GovernmentRequest', 2, 0, NULL, NULL, NULL, NULL),
+(151, 'stage_report_updated', '2026-10-16 10:19:54.683268', 70, 31, '{\"before\": {\"stage_description\": \"building of perimeter walls\", \"description\": \"woking in progress\", \"location\": \"Kisumu county\", \"progress_percentage\": 26, \"delay_reason\": \"\", \"corrective_actions\": \"\"}, \"after\": {\"stage_description\": \"building of perimeter walls\", \"description\": \"working in progress\", \"location\": \"Kisumu county\", \"progress_percentage\": 26, \"delay_reason\": \"\", \"corrective_actions\": \"\"}, \"review_status\": \"pending\"}', '127.0.0.1', 'StageReport', 3, 0, NULL, NULL, NULL, NULL),
+(152, 'stage_report_submitted', '2026-10-17 05:30:03.383260', 70, 31, '{}', '127.0.0.1', 'StageReport', 4, 0, NULL, NULL, NULL, NULL),
+(153, 'quick_updated', '2026-10-17 05:58:44.638725', 70, 30, '{\"status\": \"in_progress\", \"progress\": 95}', '127.0.0.1', 'Milestone', 95, 0, NULL, NULL, NULL, NULL),
+(154, 'updated', '2026-10-17 06:46:06.557455', 37, 30, '{\"source\": \"assignee\", \"old_status\": \"ongoing\", \"new_status\": \"completed\"}', NULL, 'Project', 37, 0, NULL, NULL, NULL, NULL),
+(155, 'contractor_payment_request_submitted', '2026-10-17 07:11:21.523937', 70, 31, '{}', '127.0.0.1', 'ContractorPaymentRequest', 1, 0, NULL, NULL, NULL, NULL),
+(156, 'deleted', '2026-10-17 07:53:39.500388', NULL, 30, '{\"stage_name\": \"planning\"}', '127.0.0.1', 'ProjectStage', 92, 0, NULL, NULL, NULL, NULL),
+(157, 'tender_awarded', '2026-11-09 13:51:57.545093', 79, 1, '{\"application_id\": 3, \"contractor_id\": 4}', '127.0.0.1', 'Tender', 4, 0, NULL, NULL, NULL, NULL),
+(158, 'quick_updated', '2026-11-09 14:13:19.535941', 70, 31, '{\"status\": \"in_progress\", \"progress\": 45}', '127.0.0.1', 'Milestone', 100, 0, NULL, NULL, NULL, NULL),
+(159, 'stage_status_changed', '2026-11-09 14:14:20.474475', 70, 31, '{\"status\": \"completed\"}', '127.0.0.1', 'ProjectStage', 87, 0, NULL, NULL, NULL, NULL),
+(160, 'stage_status_changed', '2026-11-09 14:15:43.996650', 70, 31, '{\"status\": \"completed\"}', '127.0.0.1', 'ProjectStage', 86, 0, NULL, NULL, NULL, NULL),
+(161, 'stage_status_changed', '2026-11-09 14:16:27.765079', 70, 31, '{\"status\": \"completed\"}', '127.0.0.1', 'ProjectStage', 93, 0, NULL, NULL, NULL, NULL),
+(162, 'stage_status_changed', '2026-11-09 14:17:05.906484', 70, 31, '{\"status\": \"completed\"}', '127.0.0.1', 'ProjectStage', 88, 0, NULL, NULL, NULL, NULL),
+(163, 'created', '2026-11-09 14:17:59.806050', 70, 31, '{\"title\": \"publication doc\", \"amount\": \"56000\"}', '127.0.0.1', 'ProjectExpense', 6, 0, NULL, NULL, NULL, NULL),
+(164, 'quick_updated', '2026-11-09 14:38:29.727434', 70, 31, '{\"status\": \"completed\", \"progress\": 100}', '127.0.0.1', 'Milestone', 95, 0, NULL, NULL, NULL, NULL),
+(165, 'milestone_submitted_for_verification', '2026-11-09 14:38:44.611913', 70, 31, '{}', '127.0.0.1', 'Milestone', 95, 0, NULL, NULL, NULL, NULL),
+(166, 'quick_updated', '2026-11-09 14:39:23.583290', 70, 31, '{\"status\": \"completed\", \"progress\": 100}', '127.0.0.1', 'Milestone', 94, 0, NULL, NULL, NULL, NULL),
+(167, 'milestone_submitted_for_verification', '2026-11-09 14:39:28.227776', 70, 31, '{}', '127.0.0.1', 'Milestone', 94, 0, NULL, NULL, NULL, NULL),
+(168, 'quick_updated', '2026-11-09 14:40:19.139631', 70, 31, '{\"status\": \"completed\", \"progress\": 100}', '127.0.0.1', 'Milestone', 97, 0, NULL, NULL, NULL, NULL),
+(169, 'milestone_submitted_for_verification', '2026-11-09 14:40:22.523563', 70, 31, '{}', '127.0.0.1', 'Milestone', 97, 0, NULL, NULL, NULL, NULL),
+(170, 'quick_updated', '2026-11-09 14:40:47.339646', 70, 31, '{\"status\": \"completed\", \"progress\": 100}', '127.0.0.1', 'Milestone', 96, 0, NULL, NULL, NULL, NULL),
+(171, 'milestone_submitted_for_verification', '2026-11-09 14:40:50.271156', 70, 31, '{}', '127.0.0.1', 'Milestone', 96, 0, NULL, NULL, NULL, NULL),
+(172, 'created', '2026-11-11 06:50:37.030015', NULL, 1, '{\"company\": \"Filpex Company\"}', '127.0.0.1', 'Contractor', 5, 0, NULL, NULL, NULL, NULL),
+(173, 'stage_report_approved', '2026-11-11 07:50:59.812587', 70, 30, '{}', '127.0.0.1', 'StageReport', 3, 0, NULL, NULL, NULL, NULL),
+(174, 'stage_report_approved', '2026-11-11 07:51:07.372141', 70, 30, '{}', '127.0.0.1', 'StageReport', 4, 0, NULL, NULL, NULL, NULL),
+(175, 'milestone_verification_approved', '2026-11-11 07:51:13.555510', 70, 30, '{}', '127.0.0.1', 'Milestone', 94, 0, NULL, NULL, NULL, NULL),
+(176, 'milestone_verification_approved', '2026-11-11 07:51:17.714972', 70, 30, '{}', '127.0.0.1', 'Milestone', 95, 0, NULL, NULL, NULL, NULL),
+(177, 'professional_account_created', '2026-11-11 19:15:02.639680', NULL, 1, '{\"role\": \"surveyor\"}', '127.0.0.1', 'User', 50, 0, NULL, NULL, NULL, NULL),
+(178, 'created', '2026-11-11 19:18:09.981450', NULL, 1, '{\"company\": \"NOVATECH\"}', '127.0.0.1', 'Contractor', 6, 0, NULL, NULL, NULL, NULL),
+(179, 'professional_account_created', '2026-11-11 19:18:10.034711', NULL, 1, '{\"role\": \"contractor\"}', '127.0.0.1', 'User', 51, 0, NULL, NULL, NULL, NULL),
+(180, 'user_access_suspended', '2026-11-11 19:19:14.335221', NULL, 1, '{\"is_active\": false}', '127.0.0.1', 'User', 50, 0, NULL, NULL, NULL, NULL),
+(181, 'user_access_reactivated', '2026-11-11 19:19:26.965606', NULL, 1, '{\"is_active\": true}', '127.0.0.1', 'User', 50, 0, NULL, NULL, NULL, NULL),
+(182, 'user_deleted', '2026-11-11 19:19:36.919936', NULL, 1, '{\"email\": \"track_test@x.com\", \"role\": \"citizen\"}', '127.0.0.1', 'User', 39, 0, NULL, NULL, NULL, NULL),
+(183, 'user_deleted', '2026-11-11 19:20:42.894006', NULL, 1, '{\"email\": \"assign_test_b@x.com\", \"role\": \"citizen\"}', '127.0.0.1', 'User', 38, 0, NULL, NULL, NULL, NULL),
+(184, 'user_access_suspended', '2026-11-11 19:20:53.051115', NULL, 1, '{\"is_active\": false}', '127.0.0.1', 'User', 37, 0, NULL, NULL, NULL, NULL),
+(185, 'user_deleted', '2026-11-11 19:28:33.091056', NULL, 1, '{\"email\": \"cit3@test.com\", \"role\": \"citizen\"}', '127.0.0.1', 'User', 46, 0, NULL, NULL, NULL, NULL),
+(186, 'user_deleted', '2026-11-11 19:28:53.856667', NULL, 1, '{\"email\": \"off3@test.com\", \"role\": \"official\"}', '127.0.0.1', 'User', 47, 0, NULL, NULL, NULL, NULL),
+(187, 'user_deleted', '2026-11-11 19:29:46.397096', NULL, 1, '{\"email\": \"off2@test.com\", \"role\": \"official\"}', '127.0.0.1', 'User', 44, 0, NULL, NULL, NULL, NULL),
+(188, 'user_deleted', '2026-11-11 19:29:59.804747', NULL, 1, '{\"email\": \"adm3@test.com\", \"role\": \"admin\"}', '127.0.0.1', 'User', 45, 0, NULL, NULL, NULL, NULL),
+(189, 'user_deleted', '2026-11-11 19:30:13.647250', NULL, 1, '{\"email\": \"cit2@test.com\", \"role\": \"citizen\"}', '127.0.0.1', 'User', 43, 0, NULL, NULL, NULL, NULL),
+(190, 'user_deleted', '2026-11-11 19:30:26.375045', NULL, 1, '{\"email\": \"adm2@test.com\", \"role\": \"admin\"}', '127.0.0.1', 'User', 42, 0, NULL, NULL, NULL, NULL),
+(191, 'user_deleted', '2026-11-11 19:30:50.250947', NULL, 1, '{\"email\": \"track_test2@x.com\", \"role\": \"citizen\"}', '127.0.0.1', 'User', 40, 0, NULL, NULL, NULL, NULL),
+(192, 'user_deleted', '2026-11-11 19:31:04.539237', NULL, 1, '{\"email\": \"assign_test_a@x.com\", \"role\": \"citizen\"}', '127.0.0.1', 'User', 37, 0, NULL, NULL, NULL, NULL),
+(193, 'user_deleted', '2026-11-11 19:44:42.285627', NULL, 30, '{\"email\": \"track_test3@x.com\", \"role\": \"citizen\"}', '127.0.0.1', 'User', 41, 0, NULL, NULL, NULL, NULL),
+(194, 'user_access_suspended', '2026-11-11 19:46:08.943631', NULL, 30, '{\"is_active\": false}', '127.0.0.1', 'User', 51, 0, NULL, NULL, NULL, NULL),
+(195, 'deleted', '2026-11-12 05:51:46.585208', NULL, 1, '{\"title\": \"T2x\"}', '127.0.0.1', 'Project', 74, 0, NULL, NULL, NULL, NULL),
+(196, 'deleted', '2026-11-12 05:52:05.390596', NULL, 1, '{\"title\": \"T2\"}', '127.0.0.1', 'Project', 73, 0, NULL, NULL, NULL, NULL),
+(197, 'government_agency_updated', '2026-11-12 08:17:49.691388', NULL, 1, '{}', '127.0.0.1', 'GovernmentAgency', 11, 0, NULL, NULL, NULL, NULL),
+(198, 'updated', '2026-11-12 08:45:44.397749', 70, 1, '{\"source\": \"manual\", \"old_status\": \"completed\", \"new_status\": \"ongoing\"}', NULL, 'Project', 70, 0, NULL, NULL, NULL, NULL),
+(199, 'created', '2026-11-12 08:53:13.582397', 70, 31, '{\"stage_name\": \"publication\"}', '127.0.0.1', 'ProjectStage', 130, 0, NULL, NULL, NULL, NULL),
+(200, 'stage_report_submitted', '2026-11-12 08:56:13.454881', 70, 31, '{}', '127.0.0.1', 'StageReport', 5, 0, NULL, NULL, NULL, NULL),
+(201, 'contractor_payment_approved', '2026-11-12 10:04:37.766037', 70, 1, '{}', '127.0.0.1', 'ContractorPaymentRequest', 1, 0, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1151,7 +1247,8 @@ INSERT INTO `member_budget` (`id`, `allocated_amount`, `spent_amount`, `last_upd
 (1, '56000000.00', '1020000.00', '2026-09-30 18:57:23.654663', 40, '2027', 'in process, will assess'),
 (2, '23000000.00', '1000000.00', '2026-08-20 05:39:19.603196', 1, NULL, NULL),
 (4, '337000000000.00', '20000000.00', '2026-09-23 07:47:07.762912', 41, NULL, NULL),
-(5, '9999999999.99', '1000000.00', '2026-09-24 08:40:15.993940', 11, NULL, NULL);
+(5, '9999999999.99', '1000000.00', '2026-09-24 08:40:15.993940', 11, NULL, NULL),
+(6, '450000000.00', '56000.00', '2026-11-09 14:17:59.801453', 70, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1309,7 +1406,10 @@ CREATE TABLE `member_contractor` (
 INSERT INTO `member_contractor` (`id`, `name`, `company`, `phone`, `email`, `location`, `profile`, `blacklist_reason`, `category`, `is_blacklisted`, `registration_no`, `created_at`) VALUES
 (1, 'kabarak university', 'kabarak university', '0527318502', 'felixngwono@gmail.com', 'National', '', NULL, NULL, 0, NULL, '2026-08-19 13:00:37'),
 (2, 'Leti Amanda', 'Zedafrica', '0789456732', 'letiamanda@gmail.com', 'Nairobi', 'contractors/IMG_20240110_110807_TYrXCrw.jpg', NULL, 'Architecture', 0, 'EP20PD', '2026-09-27 06:03:08'),
-(3, 'Marley Construction Ltd', 'Lety Amanda', '0700369300', 'jack@gmail.com', 'Nairobi', 'contractors/de.jfif', NULL, 'contractor', 0, 'nmy679bn', '2026-10-06 03:25:16');
+(3, 'Marley Construction Ltd', 'Lety Amanda', '0700369300', 'jack@gmail.com', 'Nairobi', 'contractors/de.jfif', NULL, 'contractor', 0, 'nmy679bn', '2026-10-06 03:25:16'),
+(4, 'Felix Odhiambo', 'Felix Odhiambo', '0700369300', 'felixodhiambo@kabarak.ac.ke', 'Kisumu County, Kenya', '', NULL, NULL, 0, NULL, '2026-11-09 13:38:32'),
+(5, 'Felix Odhiambo', 'Filpex Company', '0700369300', 'felixodhiambo@kabarak.ac.ke', 'Nairobi', 'contractors/IMG_20250704_094211_HDR.jpg', NULL, 'IT Consultancy', 0, 'EP20PDR', '2026-11-11 06:50:37'),
+(6, 'Oloo Mbaka', 'NOVATECH', '0527318505', 'oloombaka6@gmail.com', 'Nairobi', 'contractors/IMG_20231129_164813_1.jpg', NULL, 'contractor', 0, 'EP20PB', '2026-11-11 19:18:09');
 
 -- --------------------------------------------------------
 
@@ -1357,15 +1457,16 @@ CREATE TABLE `member_contractorpaymentrequest` (
   `project_id` bigint(20) NOT NULL,
   `reviewed_by_id` bigint(20) DEFAULT NULL,
   `submitted_by_id` bigint(20) DEFAULT NULL,
-  `paid_by_id` bigint(20) DEFAULT NULL
+  `paid_by_id` bigint(20) DEFAULT NULL,
+  `disbursement_reference` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_contractorpaymentrequest`
 --
 
-INSERT INTO `member_contractorpaymentrequest` (`id`, `invoice_number`, `title`, `amount`, `description`, `invoice_file`, `supporting_document`, `status`, `reviewer_comments`, `reviewed_at`, `paid_at`, `created_at`, `updated_at`, `contractor_id`, `project_id`, `reviewed_by_id`, `submitted_by_id`, `paid_by_id`) VALUES
-(1, 'cvyu789t', 'real estate', '34679087.00', 'on site', 'contractor_invoices/REAL_TIME_CHAT_APPLICATION.docx', 'contractor_invoices/supporting/students_record.xlsx', 'pending', '', NULL, NULL, '2026-10-17 07:11:21.517430', '2026-10-17 07:11:21.517467', 3, 70, NULL, 31, NULL);
+INSERT INTO `member_contractorpaymentrequest` (`id`, `invoice_number`, `title`, `amount`, `description`, `invoice_file`, `supporting_document`, `status`, `reviewer_comments`, `reviewed_at`, `paid_at`, `created_at`, `updated_at`, `contractor_id`, `project_id`, `reviewed_by_id`, `submitted_by_id`, `paid_by_id`, `disbursement_reference`) VALUES
+(1, 'cvyu789t', 'real estate', '34679087.00', 'on site', 'contractor_invoices/REAL_TIME_CHAT_APPLICATION.docx', 'contractor_invoices/supporting/students_record.xlsx', 'approved', '', '2026-11-12 10:04:37.760293', NULL, '2026-10-17 07:11:21.517430', '2026-11-12 10:04:37.760777', 3, 70, 1, 31, NULL, '');
 
 -- --------------------------------------------------------
 
@@ -1403,7 +1504,8 @@ CREATE TABLE `member_contractor_projects` (
 
 INSERT INTO `member_contractor_projects` (`id`, `contractor_id`, `project_id`) VALUES
 (3, 2, 31),
-(2, 3, 70);
+(2, 3, 70),
+(4, 4, 79);
 
 -- --------------------------------------------------------
 
@@ -1577,6 +1679,43 @@ INSERT INTO `member_feedback` (`id`, `created_at`, `email`, `feedback`, `full_na
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_governmentagency`
+--
+
+CREATE TABLE `member_governmentagency` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(200) NOT NULL,
+  `code` varchar(50) DEFAULT NULL,
+  `description` longtext NOT NULL,
+  `contact_email` varchar(254) NOT NULL,
+  `contact_phone` varchar(30) NOT NULL,
+  `is_active` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_governmentagency`
+--
+
+INSERT INTO `member_governmentagency` (`id`, `name`, `code`, `description`, `contact_email`, `contact_phone`, `is_active`) VALUES
+(1, 'National Government of Kenya', NULL, '', '', '', 1),
+(2, 'Konza Technopolis Development Authority (KoTDA)', NULL, '', '', '', 1),
+(3, 'Governmental Agencies', NULL, '', '', '', 1),
+(4, 'State Department of Housing', NULL, '', '', '', 1),
+(5, 'national Government and the NGO\'s', NULL, '', '', '', 1),
+(6, 'A multipurpose dam intended to supply water to Nakuru and surrounding areas. In October 2025, the Ministry of Water reported that the project had stalled at 32% completion while steps toward resuming', NULL, '', '', '', 1),
+(7, 'National government', NULL, '', '', '', 1),
+(8, 'High; expected to be commissioned in 2025 to meet growing energy demands.', NULL, '', '', '', 1),
+(9, 'County Government', NULL, '', '', '', 1),
+(10, 'Relevant County Government', NULL, '', '', '', 1),
+(11, 'Mombasa county government', NULL, 'CRGDU9YU', 'felixodhiambo@kabarak.ac.ke', '0700369300', 1),
+(12, 'Nyong\'o government', NULL, '', '', '', 1),
+(13, 'Placemakers, KUWA, Dandora Transformation League (DTL)', NULL, '', '', '', 1),
+(14, 'KeNHA', NULL, '', '', '', 1),
+(15, 'Relevant Education Authority', NULL, '', '', '', 1);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_governmentrequest`
 --
 
@@ -1611,6 +1750,45 @@ INSERT INTO `member_governmentrequest` (`id`, `title`, `description`, `category`
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `member_issueresponse`
+--
+
+CREATE TABLE `member_issueresponse` (
+  `id` bigint(20) NOT NULL,
+  `response` longtext NOT NULL,
+  `is_internal` tinyint(1) NOT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `author_id` bigint(20) DEFAULT NULL,
+  `issue_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_issueresponsepolicy`
+--
+
+CREATE TABLE `member_issueresponsepolicy` (
+  `id` bigint(20) NOT NULL,
+  `severity` varchar(10) NOT NULL,
+  `target_hours` int(10) UNSIGNED NOT NULL CHECK (`target_hours` >= 0),
+  `updated_at` datetime(6) NOT NULL,
+  `updated_by_id` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_issueresponsepolicy`
+--
+
+INSERT INTO `member_issueresponsepolicy` (`id`, `severity`, `target_hours`, `updated_at`, `updated_by_id`) VALUES
+(1, 'critical', 24, '2026-11-10 18:34:05.848057', NULL),
+(2, 'high', 72, '2026-11-10 18:34:05.851751', NULL),
+(3, 'moderate', 168, '2026-11-10 18:34:05.857904', NULL),
+(4, 'low', 336, '2026-11-10 18:34:05.862868', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_media`
 --
 
@@ -1633,7 +1811,8 @@ INSERT INTO `member_media` (`id`, `file`, `media_type`, `uploaded_at`, `project_
 (2, 'project_media/-5069072835879741643_121.jpg', 'image', '2025-03-06 12:41:04.143274', NULL, NULL, NULL),
 (4, 'project_media/IMG_20261004_155002.jpg', 'image', '2026-10-18 06:16:06.818942', 37, NULL, 30),
 (6, 'project_media/Screenshot_2026-07-15_215242.png', 'image', '2026-10-18 19:36:15.847163', 41, NULL, 30),
-(7, 'project_media/RamogiFM_RamogiFM___Twitter_YV2JIMr.mp4', 'video', '2026-10-18 19:41:19.795780', 41, NULL, 30);
+(7, 'project_media/RamogiFM_RamogiFM___Twitter_YV2JIMr.mp4', 'video', '2026-10-18 19:41:19.795780', 41, NULL, 30),
+(8, 'project_media/northlands.jpg', 'image', '2026-10-19 06:10:47.726291', 70, NULL, 30);
 
 -- --------------------------------------------------------
 
@@ -1664,10 +1843,10 @@ CREATE TABLE `member_milestone` (
 INSERT INTO `member_milestone` (`id`, `title`, `description`, `completion_date`, `progress_percentage`, `project_id`, `stage_id`, `due_date`, `status`, `verification_comments`, `verification_status`, `verified_at`, `verified_by_id`) VALUES
 (1, 'Itare Dam Multipurpose Project', '\"A multipurpose dam project intended to improve water supply \"\r\n        \"for Nakuru and surrounding areas.\"', '2025-03-12', 100, 24, NULL, '2026-08-16', 'completed', '', 'not_submitted', NULL, NULL),
 (2, 'geothermal power project', 'power station installation', '2026-02-16', 67, 35, 1, NULL, 'missed', '', 'not_submitted', NULL, NULL),
-(94, 'Land survey and beaconing completed', 'Land survey and beaconing completed', NULL, 20, 70, 86, '2026-03-09', 'in_progress', '', 'not_submitted', NULL, NULL),
-(95, 'Demolition of old structures', 'Demolition of old structures', NULL, 95, 70, 86, '2026-04-08', 'in_progress', '', 'not_submitted', NULL, NULL),
-(96, 'Site handed over to the main contractor', 'Site handed over to the main contractor', NULL, 99, 70, 86, '2026-05-08', 'in_progress', '', 'not_submitted', NULL, NULL),
-(97, 'Excavation and blinding', 'Excavation and blinding', NULL, 35, 70, 87, '2026-06-07', 'in_progress', '', 'not_submitted', NULL, NULL),
+(94, 'Land survey and beaconing completed', 'Land survey and beaconing completed', '2026-11-09', 100, 70, 86, '2026-03-09', 'completed', '', 'approved', '2026-11-11 07:51:13.521325', 30),
+(95, 'Demolition of old structures', 'Demolition of old structures', '2026-11-09', 100, 70, 86, '2026-04-08', 'completed', '', 'approved', '2026-11-11 07:51:17.698410', 30),
+(96, 'Site handed over to the main contractor', 'Site handed over to the main contractor', '2026-11-09', 100, 70, 86, '2026-05-08', 'completed', '', 'pending', NULL, NULL),
+(97, 'Excavation and blinding', 'Excavation and blinding', '2026-11-09', 100, 70, 87, '2026-06-07', 'completed', '', 'pending', NULL, NULL),
 (98, 'Reinforcement and column footing', 'Reinforcement and column footing', NULL, 60, 70, 87, '2026-07-07', 'in_progress', '', 'not_submitted', NULL, NULL),
 (99, 'Ground floor slab casting', 'Ground floor slab casting', NULL, 80, 70, 87, '2026-08-06', 'in_progress', '', 'not_submitted', NULL, NULL),
 (100, 'Walling to first floor', 'Walling to first floor', NULL, 45, 70, 88, '2026-09-05', 'in_progress', '', 'not_submitted', NULL, NULL),
@@ -1806,7 +1985,6 @@ INSERT INTO `member_notification` (`id`, `notification_type`, `title`, `message`
 (89, 'deadline', 'Project overdue: Thika super highway', 'Thika super highway missed its deadline of 09 Mar 2024 and is 929 days overdue. Review the project immediately.', 0, '2026-09-24 09:19:31.294341', 29, NULL, '/project_details/11/?alert=overdue'),
 (90, 'system', 'Request Response', 'An official response was posted for REQ-7EDF23A1.', 1, '2026-09-26 06:47:34.111754', 31, NULL, '/government-requests/2/'),
 (91, 'tender', 'New tender application', 'zedafrica applied for ULGM123T.', 0, '2026-09-27 06:08:49.787989', 1, NULL, '/tenders/3/'),
-(92, 'system', 'Project deleted', 'You deleted the project \"DelTest\" (#50).', 0, '2026-09-30 19:31:59.614295', 45, NULL, '/projectoverview/'),
 (93, 'system', 'Project deleted', 'You deleted the project \"DelTest\" (#50).', 0, '2026-10-01 06:06:37.421355', 1, NULL, '/projectoverview/'),
 (94, 'system', 'Project deleted', 'You deleted the project \"DelTest\" (#50).', 1, '2026-10-01 06:07:04.335316', 1, NULL, '/projectoverview/'),
 (95, 'system', 'Project deleted', 'You deleted the project \"DelTest\" (#50).', 0, '2026-10-01 06:13:29.579640', 1, NULL, '/projectoverview/'),
@@ -1821,11 +1999,17 @@ INSERT INTO `member_notification` (`id`, `notification_type`, `title`, `message`
 (105, 'system', 'Project deleted', 'You deleted the project \"AssignTest\" (#42).', 0, '2026-10-01 06:40:04.876601', 1, NULL, '/projectoverview/'),
 (106, 'tender', 'Tender awarded', 'Congratulations! Your bid for ULGM123T has been awarded.', 1, '2026-10-06 03:37:47.608048', 1, NULL, '/track_application/'),
 (107, 'system', 'Project deleted', 'You deleted the project \"T2\" (#72).', 0, '2026-10-16 09:20:59.559703', 1, NULL, '/projectoverview/'),
-(108, 'system', 'Project deleted', 'You deleted the project \"T\" (#71).', 0, '2026-10-16 09:21:13.610274', 1, NULL, '/projectoverview/'),
-(109, 'system', 'Project deleted', 'You deleted the project \"MT\" (#75).', 0, '2026-10-16 09:26:19.142059', 1, NULL, '/projectoverview/'),
+(108, 'system', 'Project deleted', 'You deleted the project \"T\" (#71).', 1, '2026-10-16 09:21:13.610274', 1, NULL, '/projectoverview/'),
+(109, 'system', 'Project deleted', 'You deleted the project \"MT\" (#75).', 1, '2026-10-16 09:26:19.142059', 1, NULL, '/projectoverview/'),
 (110, 'system', 'Request Response', 'An official response was posted for REQ-7EDF23A1.', 1, '2026-10-16 09:54:39.166288', 31, NULL, '/government-requests/2/'),
 (111, 'system', 'Request Response', 'An official response was posted for REQ-7EDF23A1.', 1, '2026-10-16 09:55:59.577062', 31, NULL, '/government-requests/2/'),
-(112, 'system', 'New response on your evidence report', 'An official responded to your evidence \"poor planning\": agreed', 0, '2026-10-18 15:00:10.378555', 25, NULL, '/citizen/evidence/3/');
+(112, 'system', 'New response on your evidence report', 'An official responded to your evidence \"poor planning\": agreed', 1, '2026-10-18 15:00:10.378555', 25, NULL, '/citizen/evidence/3/'),
+(113, 'tender', 'Tender awarded', 'Congratulations! Your bid for TND-C972BF42 has been awarded.', 1, '2026-11-09 13:51:57.551063', 1, NULL, '/track_application/'),
+(114, 'update', 'Progress report approved', 'Your report for Affordable Housing Program — Riverside Estate (500 Units) was approved.', 1, '2026-11-11 07:50:59.819165', 31, NULL, '/contractor_performance/'),
+(115, 'update', 'Progress report approved', 'Your report for Affordable Housing Program — Riverside Estate (500 Units) was approved.', 1, '2026-11-11 07:51:07.382138', 31, NULL, '/contractor_performance/'),
+(116, 'system', 'Project deleted', 'You deleted the project \"T2x\" (#74).', 0, '2026-11-12 05:51:46.659453', 1, NULL, '/projectoverview/'),
+(117, 'system', 'Project deleted', 'You deleted the project \"T2\" (#73).', 1, '2026-11-12 05:52:05.422377', 1, NULL, '/projectoverview/'),
+(118, 'update', 'Payment request approved', 'Your invoice for Affordable Housing Program — Riverside Estate (500 Units) was marked approved.', 1, '2026-11-12 10:04:37.773162', 31, NULL, '/contractor_performance/');
 
 -- --------------------------------------------------------
 
@@ -2012,40 +2196,87 @@ CREATE TABLE `member_project` (
   `updated_at` datetime(6) DEFAULT NULL,
   `category_id` bigint(20) DEFAULT NULL,
   `district_id` bigint(20) DEFAULT NULL,
-  `project_division_id` bigint(20) DEFAULT NULL
+  `project_division_id` bigint(20) DEFAULT NULL,
+  `latitude` decimal(9,6) DEFAULT NULL,
+  `longitude` decimal(9,6) DEFAULT NULL,
+  `agency_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_project`
 --
 
-INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `project_location`, `implementing_agency`, `project_Budgeting`, `amount_spent`, `images`, `start_date`, `end_date`, `beneficiaries`, `stakeholders`, `progress`, `project_status`, `impact`, `project_manager`, `project_contractor`, `contact_email`, `progress_update`, `remarks`, `actual_end_date`, `ai_completion_estimate`, `ai_risk_score`, `ai_summary`, `cover_image`, `created_at`, `created_by_id`, `funding_source`, `is_featured`, `is_public`, `priority`, `reference_code`, `supervising_agency`, `updated_at`, `category_id`, `district_id`, `project_division_id`) VALUES
-(1, 'Kisumu Highway', 'A perfect highway joining most counties promoting business opportunities', 'Kisumu', 'Governmental Agencies', '23000000.00', '1000000.00', 'projects/dlock.jpg', '2026-04-22', '2026-06-11', 'citizens', 'agencies', '67', 'delayed', 'good economic network', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-08-20 05:39:19.593664', '- fostering good economy\n[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, '', '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', 'PRJ-4E95B81D', NULL, '2026-08-20 05:39:19.593687', 1, 1, NULL),
-(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', '9999999999.99', '1000000.00', 'projects/thika.jpg', '2024-03-01', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', '147345646.00', NULL, 'projects/login.PNG', '2024-03-02', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 8, 1, NULL),
-(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', '34567890.00', NULL, 'projects/mau_mau.jpg', '2024-03-06', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 6, 1, NULL),
-(20, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', '10000000.00', NULL, 'projects/im.jpg', '2025-12-06', '2027-12-06', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from upcoming to ongoing on 2026-09-23 16:56.', NULL, NULL, 20, 'Completion cannot be estimated until progress or stage updates are recorded.', NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 5, 1, NULL),
-(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', '1654879.00', NULL, 'projects/dandora_9E3A1mg.jpg', '2024-03-07', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 2, 1, NULL),
-(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', '30000000.00', NULL, 'projects/pacho_7f3AtUZ.jpg', '2024-03-12', '2024-03-09', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to completed on 2026-09-23 16:56.', '2026-09-23', NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', '34500000.00', NULL, 'projects/expressway_SwK9e6V.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', '4579867.00', NULL, 'projects/tana_river.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 6, 1, NULL),
-(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', '25895642.00', NULL, 'projects/dala.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:00.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:02.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:04.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:15.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:16.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:16.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:17.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:18.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:18.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:24.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:27.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:33.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', '23000000.00', NULL, 'projects/thika_Ua6mF2X.jpg', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:00.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:02.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:04.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:15.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:16.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:16.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:17.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:18.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:18.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:24.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:27.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:33.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 7, 1, NULL),
-(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', '34000000.00', NULL, 'projects/sgr.png', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'delayed', NULL, NULL, 'Zedafrica', NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', '2121000000.00', NULL, 'projects/expressway.jpg', '2024-03-12', '2027-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', '20000000.00', NULL, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '2025-02-19', '2025-03-06', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 5, 1, NULL),
-(35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from none to ongoing on 2026-09-23 16:56.', NULL, NULL, 30, 'Completion cannot be estimated until progress or stage updates are recorded.', NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', '9999999999.99', NULL, 'projects/tana_river_Laq2K1W.jpg', '2024-03-07', '2025-03-12', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', '0.00', NULL, 'projects/sgr_saMexVe.png', '2025-03-13', '2028-02-12', 'Railway users', 'multi billionares', 'upcoming', 'completed', 'speeding the rate of transportation and reducing the trafficking in public roads', NULL, 'George Mbola', 'info@lapsset.go.ke', '2026-06-10 13:48:50.457266', 'poornproject management\n[Auto] Status changed from upcoming to ongoing on 2026-09-23 16:56.\ndone', '2026-10-17', NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', '0.00', NULL, 'projects/house_wMsNgUd.jpg', '2024-06-04', '2026-02-21', 'citizens', 'county government', '', 'completed', '- Ease of access of clean and free energy', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', 'free and favourable energy', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL),
-(40, 'Konza Smart City Phase II Development', '\"Construction of roads, ICT infrastructure, utility services, \"\r\n        \"commercial buildings and residential facilities for Konza Smart City.', 'Konza, Machakos County', 'Konza Technopolis Development Authority (KoTDA)', '56000000.00', '1020000.00', 'projects/assignment-alukwe.jpeg', '2026-07-28', '2026-07-29', 'Residents of Machakos County, ICT companies, investors, \"\r\n        \"students, entrepreneurs and SMEs.', 'KoTDA, National Treasury, Ministry of ICT, Machakos County Government, \"\r\n        \"Private Investors, Local Communities.', '\"Road works completed (45%), ICT infrastructure completed (38%), \"\r\n        \"utility installations ongoing before suspension.', 'delayed', 'The project has attracted investors and improved supporting \"\r\n        \"infrastructure, but expected economic benefits have been delayed.', 'Eng. James Mwangi', 'China State Construction Engineering Corporation', 'info@konza.go.ke', '2026-08-20 05:37:30.195671', '\"Project suspended pending Treasury approval, contractor claims settlement, \"\r\n        \"and completion of an independent audit.\n[Auto] Status changed from draft to delayed on 2026-09-23 16:56.', '2026-08-03', '2026-08-27', 56, '\"AI analysis indicates that the project has been suspended because \"\r\n        \"of procurement reviews, delayed funding disbursement, and contractual disputes', 'projects/covers/assignment-alukwe.jpeg', '2026-08-02 21:13:49.935033', NULL, 'Government of Kenya and Public-Private Partnerships (PPP)', 0, 1, 'high', 'PRJ-KEN-2026-001', 'Ministry of Information, Communications and the Digital Economy', '2026-08-20 05:37:30.195712', 1, 1, NULL),
-(41, 'High Grand Falls Multipurpose Dam Project', 'A proposed multipurpose dam project intended to support hydropower generation,\r\nirrigation and water supply. The project was subsequently cancelled following\r\ngovernment review of the project development process.', 'Tana River / Tharaka-Nithi region', 'National Government of Kenya', '337000000000.00', '20500000.00', 'projects/038e478f9c094c01be86505e030c974d_aHmL2Zl.jpg', '2026-09-18', '2026-10-10', 'Public Private Partnership', 'Public Private Partnership', '10%', 'cancelled', 'Public Private Partnership', 'Eng. James Mwangi', 'China State Construction Engineering Corporation', 'felixngwono@gmail.com', '2026-09-18 06:47:32.446778', 'Public Private Partnership', '2026-10-10', '2026-10-02', 9, 'Public Private Partnership', 'projects/covers/db34f6bb01614f8d96c65b36d8356f7f.jpg', '2026-09-18 06:47:32.446896', 1, 'Public Private Partnership', 0, 1, 'critical', 'GT-KEN-DAM-001', NULL, '2026-09-18 06:47:32.446955', 5, 19, NULL),
-(70, 'Affordable Housing Program — Riverside Estate (500 Units)', 'A mixed-income affordable housing development delivering 500 residential units across 10 blocks, with community facilities, green spaces and a commercial strip. Targeted at low- and middle-income families on the housing waiting list. Funded through a blended public-private model and monitored publicly from ground-breaking to handover.', 'Riverside, Metropolitan', 'State Department of Housing', '450000000.00', '314500000.00', '', '2026-02-07', '2028-10-04', '500 low- and middle-income households', NULL, 'Plastering and tiling underway in Blocks A–C; painting started in Block A.', 'completed', NULL, 'Eng. A. Mwangi', 'Marley Construction Ltd', NULL, '2026-10-05 18:27:27.923562', '[Auto] Status changed from ongoing to completed on 2026-10-05 18:27.', '2026-10-05', NULL, NULL, NULL, '', '2026-10-05 18:26:46.622854', NULL, 'Blended (Treasury 60% / PPP 40%)', 1, 1, 'high', 'PRJ-171EF8C9', 'National Construction Authority', '2026-10-05 18:27:27.923578', NULL, 63, NULL),
-(73, 'T2', NULL, NULL, NULL, NULL, NULL, '', '2099-01-01', NULL, NULL, NULL, NULL, 'upcoming', NULL, NULL, NULL, NULL, '2026-10-05 18:31:20.649692', NULL, NULL, NULL, NULL, NULL, '', '2026-10-05 18:31:20.649767', NULL, NULL, 0, 1, 'medium', 'PRJ-77F26DF2', NULL, '2026-10-05 18:31:20.649804', NULL, NULL, NULL),
-(74, 'T2x', NULL, NULL, NULL, NULL, NULL, '', '2099-01-01', NULL, NULL, NULL, NULL, 'upcoming', NULL, NULL, NULL, NULL, '2026-10-05 18:31:30.706284', NULL, NULL, NULL, NULL, NULL, '', '2026-10-05 18:31:30.706367', NULL, NULL, 0, 1, 'medium', 'PRJ-6FDA587F', NULL, '2026-10-05 18:31:30.706402', NULL, NULL, NULL),
-(77, 'Itare Dam Multipurpose Project', 'Construction of a multipurpose dam and associated water supply infrastructure intended to improve access to clean water for Nakuru City and surrounding communities. The project includes a 57-metre-high dam, a water treatment plant with a planned capacity of 100,000 cubic metres per day, and approximately 110 km of bulk water conveyance pipeline. Implementation has faced contractual disputes and prolonged delays.', 'Kuresoi, Nakuru County, Kenya', 'A multipurpose dam intended to supply water to Nakuru and surrounding areas. In October 2025, the Ministry of Water reported that the project had stalled at 32% completion while steps toward resuming', '34999999999.69', '45000000.00', 'projects/dfd.PNG', '2025-06-17', '2027-03-17', 'Residents of Nakuru City, Kuresoi North and South, \"\r\n        \"Molo, Njoro, and surrounding areas', 'Ministry of Water, Central Rift Valley Water Works \"\r\n        \"Development Agency, contractors, development partners, \"\r\n        \"and affected communities', '32%', 'stalled', '', NULL, NULL, 'felixngwono@gmail.com', '2026-10-17 11:03:27.868213', '', '2026-10-17', NULL, NULL, NULL, 'projects/covers/work_space.png', '2026-10-17 11:03:27.868267', 30, 'Government of Kenya and international financing arrangements; verify the current funding structure', 0, 1, 'critical', 'GOV-WTR-ITARE-001', 'Ministry of Water, Sanitation and Irrigation', '2026-10-17 11:03:27.868289', 2, 48, NULL),
-(78, 'Rural Road Rehabilitation Project', 'Rehabilitation of rural access roads to improve \"\r\n            \"transport, market access, and connectivity \"\r\n            \"for surrounding communities.', 'Turkana County, Kenya', 'Relevant County Government', '63000000000.00', '43000000.00', '', '2024-03-21', '2028-02-03', 'Local residents, farmers, traders', 'County government, contractors, residents', '45%', 'ongoing', '', NULL, NULL, NULL, '2026-10-17 11:10:25.349716', '', '2028-02-03', NULL, NULL, NULL, '', '2026-10-17 11:10:25.349766', 30, 'Government development budget', 0, 1, 'high', 'PRJ-084C49CB', 'ministry of roads', '2026-10-17 11:10:25.349788', 1, 39, NULL),
-(79, 'Public School Facilities Upgrade', 'Construction and rehabilitation of classrooms \"\r\n            \"and sanitation facilities to improve the \"\r\n            \"quality and safety of learning environments.', 'Kisumu County, Kenya', 'Relevant Education Authority', NULL, NULL, 'projects/Screenshot_16.png', NULL, NULL, 'School learners and teachers', 'Schools, parents, education officials', '0', 'upcoming', '', NULL, NULL, NULL, '2026-10-17 11:13:24.397161', '', NULL, NULL, NULL, NULL, '', '2026-10-17 11:13:24.397227', 30, 'Education development funding', 0, 1, 'medium', 'PRJ-3AE230BF', NULL, '2026-10-17 11:13:24.397256', 4, 58, NULL);
+INSERT INTO `member_project` (`id`, `project_title`, `project_description`, `project_location`, `implementing_agency`, `project_Budgeting`, `amount_spent`, `images`, `start_date`, `end_date`, `beneficiaries`, `stakeholders`, `progress`, `project_status`, `impact`, `project_manager`, `project_contractor`, `contact_email`, `progress_update`, `remarks`, `actual_end_date`, `ai_completion_estimate`, `ai_risk_score`, `ai_summary`, `cover_image`, `created_at`, `created_by_id`, `funding_source`, `is_featured`, `is_public`, `priority`, `reference_code`, `supervising_agency`, `updated_at`, `category_id`, `district_id`, `project_division_id`, `latitude`, `longitude`, `agency_id`) VALUES
+(1, 'Kisumu Highway', 'A perfect highway joining most counties promoting business opportunities', 'Kisumu', 'Governmental Agencies', '23000000.00', '1000000.00', 'projects/dlock.jpg', '2026-04-22', '2026-06-11', 'citizens', 'agencies', '67', 'delayed', 'good economic network', NULL, 'George Mbola', 'felixngwono@gmail.com', '2026-08-20 05:39:19.593664', '- fostering good economy\n[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, '', '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', 'PRJ-4E95B81D', NULL, '2026-08-20 05:39:19.593687', 1, 1, NULL, NULL, NULL, 3),
+(11, 'Thika super highway', 'Repair and maintanance of Thika super highway', 'Thika', 'KeNHA', '9999999999.99', '1000000.00', 'projects/thika.jpg', '2024-03-01', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 14),
+(12, 'Kisumu Port', 'Project extension of L.Victoria port has reached its completion stage.', 'Kisumu', 'National government', '147345646.00', NULL, 'projects/login.PNG', '2024-03-02', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 8, 1, NULL, NULL, NULL, 7),
+(18, 'tree plantation farming', 'tree plantatiion farming in Nakuru county', 'kampi ya moto- Nakuru', 'National government', '34567890.00', NULL, 'projects/mau_mau.jpg', '2024-03-06', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 6, 1, NULL, NULL, NULL, 7),
+(20, 'Menengai II Geothermal Power Station', 'Will be done along Menengai to boost power supply in Nakuru city', 'Menengai Crater, Nakuru County', 'national Government and the NGO\'s', '10000000.00', NULL, 'projects/im.jpg', '2025-12-06', '2027-12-06', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from upcoming to ongoing on 2026-09-23 16:56.', NULL, NULL, 20, 'Completion cannot be estimated until progress or stage updates are recorded.', NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 5, 1, NULL, NULL, NULL, 5),
+(22, 'Street development in Dandora, Nairobi', 'The project in Dandora focuses on the implementation of a ‘model street’ in a low income neighbourhood in Nairobi. Previously a well-planned neighborhood, Dandora has gradually degenerated to almost slum status. The implementation site, a street in Dandora, was selected as it is an essential part of the ‘Must Seed’ strategy, a step by step process of making small interventions that have large impact in the community.', 'Dandora-Nairobi', 'Placemakers, KUWA, Dandora Transformation League (DTL)', '1654879.00', NULL, 'projects/dandora_9E3A1mg.jpg', '2024-03-07', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 2, 1, NULL, NULL, NULL, 13),
+(24, 'Building of a Dam', 'Dam Description', 'Kisumu', 'National Government', '30000000.00', NULL, 'projects/pacho_7f3AtUZ.jpg', '2024-03-12', '2024-03-09', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to completed on 2026-09-23 16:56.', '2026-09-23', NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 7),
+(27, 'express way', 'Completion of expressway along Haile Sellasie avenue', 'Nairobi', 'National government', '34500000.00', NULL, 'projects/expressway_SwK9e6V.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 7),
+(28, 'Irrigation Farming', 'The government is yet to initiate irrigation farming along the seven Folks dams of R.Tana', 'Mount Kenya region', 'National government', '4579867.00', NULL, 'projects/tana_river.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 6, 1, NULL, NULL, NULL, 7),
+(29, 'Kisumu Highway', 'Kisumu started as a small town called Kisuma. Grey due to the greate snaking metal rod of Jorochere', 'Kisumu', 'Nyong\'o government', '25895642.00', NULL, 'projects/dala.jpg', '2024-03-08', '2024-03-09', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:00.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:02.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:04.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:15.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:16.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:16.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:17.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:18.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:18.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:24.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:27.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:33.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 12),
+(30, 'Northlands City', 'The Kenyattas are undertaking a project that will culminate in 11,000-acre estate comprising residential and commercial units hosting about 250,000 people.', 'Ruiru, Nairobi city', 'Governmental Agencies', '23000000.00', NULL, 'projects/thika_Ua6mF2X.jpg', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:00.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:02.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:04.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:15.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:16.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:16.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:17.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:18.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:18.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:24.\n[Auto] Status changed from delayed to ongoing on 2026-09-23 17:27.\n[Auto] Status changed from ongoing to delayed on 2026-09-23 17:33.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 7, 1, NULL, NULL, NULL, 3),
+(31, 'Standard Gauge Railway', 'Construction of the Mombasa-Malaba standard gauge railway was launched by President Uhuru Kenyatta on November 28, 2013.\r\n\r\nPhase one of the project – from Mombasa to Nairobi was completed in 2017.', 'Mombasa', 'Mombasa county government', '34000000.00', NULL, 'projects/sgr.png', '2024-03-12', '2024-03-12', NULL, NULL, NULL, 'delayed', NULL, NULL, 'Zedafrica', NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 11),
+(33, 'Mau Mau Road', 'Construction of a 540km road that seeks to honour the role of Mau Mau freedom fighters in the liberation of Kenya from colonialists is underway, offering three central Kenya counties a new artery into Nairobi.\r\n\r\nChristened Mau Mau Road, the highway starts at Gataka in Limuru, and then passes through Kamahindu and Kibichoi in Kiambu before negotiating its way through Kinyona in Kigumo and Ichichi in Murang’a.', 'Limuru, Nairobi', 'National government', '2121000000.00', NULL, 'projects/expressway.jpg', '2024-03-12', '2027-03-12', NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 7),
+(34, 'Menengai II Geothermal Power Station', 'A 35 MW geothermal power plant under construction in the Menengai Crater, aimed at harnessing geothermal energy to boost Kenya\'s electricity supply.', 'Menengai Crater, Nakuru County', 'High; expected to be commissioned in 2025 to meet growing energy demands.', '20000000.00', NULL, 'projects/Architecture-Portfolio-Cover-1024x683.webp', '2025-02-19', '2025-03-06', NULL, NULL, NULL, 'delayed', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from ongoing to delayed on 2026-09-23 16:56.', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 5, 1, NULL, NULL, NULL, 8),
+(35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ongoing', NULL, NULL, NULL, NULL, NULL, '[Auto] Status changed from none to ongoing on 2026-09-23 16:56.', NULL, NULL, 30, 'Completion cannot be estimated until progress or stage updates are recorded.', NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, NULL),
+(36, 'Expansion of Tana River', 'Due to frequent blockages of the river banks, the government  considered its improval', 'Tana River Machakos County', 'National government', '9999999999.99', NULL, 'projects/tana_river_Laq2K1W.jpg', '2024-03-07', '2025-03-12', NULL, NULL, NULL, 'completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 7),
+(37, 'Nairobi Railway City', 'After nearly a decade of waiting, groundbreaking has been held for the proposed Nairobi Railway City, which seeks to decongest the city centre.\r\n\r\nThe venture which was announced in 2010, involves the construction of a 425-acre urban development on the area between Haile Sellasie Avenue, Uhuru Highway and Bunyala Road – comprising transit stations, and residential and commercial buildings among other features.', 'Nairobi', 'National government', '0.00', NULL, 'projects/sgr_saMexVe.png', '2025-03-13', '2028-02-12', 'Railway users', 'multi billionares', 'upcoming', 'completed', 'speeding the rate of transportation and reducing the trafficking in public roads', NULL, 'George Mbola', 'info@lapsset.go.ke', '2026-06-10 13:48:50.457266', 'poornproject management\n[Auto] Status changed from upcoming to ongoing on 2026-09-23 16:56.\ndone', '2026-10-17', NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 7),
+(39, 'Infrastructure and Energy', 'Magetta Island Solar Mini-grid: A 60-kilowatt solar project in Siaya County, operational as of September 2025, providing power to over 1,400 households and businesses.', 'Siaya County', 'County Government', '0.00', NULL, 'projects/house_wMsNgUd.jpg', '2024-06-04', '2026-02-21', 'citizens', 'county government', '', 'completed', '- Ease of access of clean and free energy', NULL, 'George Mbola', 'felixngwono@gmail.com', '0000-00-00 00:00:00.000000', 'free and favourable energy', NULL, NULL, NULL, NULL, NULL, '2026-08-02 17:06:05.935961', NULL, NULL, 0, 1, 'medium', NULL, NULL, '2026-08-02 17:06:06.680646', 1, 1, NULL, NULL, NULL, 9),
+(40, 'Konza Smart City Phase II Development', '\"Construction of roads, ICT infrastructure, utility services, \"\r\n        \"commercial buildings and residential facilities for Konza Smart City.', 'Konza, Machakos County', 'Konza Technopolis Development Authority (KoTDA)', '56000000.00', '1020000.00', 'projects/assignment-alukwe.jpeg', '2026-07-28', '2026-07-29', 'Residents of Machakos County, ICT companies, investors, \"\r\n        \"students, entrepreneurs and SMEs.', 'KoTDA, National Treasury, Ministry of ICT, Machakos County Government, \"\r\n        \"Private Investors, Local Communities.', '\"Road works completed (45%), ICT infrastructure completed (38%), \"\r\n        \"utility installations ongoing before suspension.', 'delayed', 'The project has attracted investors and improved supporting \"\r\n        \"infrastructure, but expected economic benefits have been delayed.', 'Eng. James Mwangi', 'China State Construction Engineering Corporation', 'info@konza.go.ke', '2026-08-20 05:37:30.195671', '\"Project suspended pending Treasury approval, contractor claims settlement, \"\r\n        \"and completion of an independent audit.\n[Auto] Status changed from draft to delayed on 2026-09-23 16:56.', '2026-08-03', '2026-08-27', 56, '\"AI analysis indicates that the project has been suspended because \"\r\n        \"of procurement reviews, delayed funding disbursement, and contractual disputes', 'projects/covers/assignment-alukwe.jpeg', '2026-08-02 21:13:49.935033', NULL, 'Government of Kenya and Public-Private Partnerships (PPP)', 0, 1, 'high', 'PRJ-KEN-2026-001', 'Ministry of Information, Communications and the Digital Economy', '2026-08-20 05:37:30.195712', 1, 1, NULL, NULL, NULL, 2),
+(41, 'High Grand Falls Multipurpose Dam Project', 'A proposed multipurpose dam project intended to support hydropower generation,\r\nirrigation and water supply. The project was subsequently cancelled following\r\ngovernment review of the project development process.', 'Tana River / Tharaka-Nithi region', 'National Government of Kenya', '337000000000.00', '20500000.00', 'projects/038e478f9c094c01be86505e030c974d_aHmL2Zl.jpg', '2026-09-18', '2026-10-10', 'Public Private Partnership', 'Public Private Partnership', '10%', 'cancelled', 'Public Private Partnership', 'Eng. James Mwangi', 'China State Construction Engineering Corporation', 'felixngwono@gmail.com', '2026-09-18 06:47:32.446778', 'Public Private Partnership', '2026-10-10', '2026-10-02', 9, 'Public Private Partnership', 'projects/covers/db34f6bb01614f8d96c65b36d8356f7f.jpg', '2026-09-18 06:47:32.446896', 1, 'Public Private Partnership', 0, 1, 'critical', 'GT-KEN-DAM-001', NULL, '2026-09-18 06:47:32.446955', 5, 19, NULL, NULL, NULL, 1),
+(70, 'Affordable Housing Program — Riverside Estate (500 Units)', 'A mixed-income affordable housing development delivering 500 residential units across 10 blocks, with community facilities, green spaces and a commercial strip. Targeted at low- and middle-income families on the housing waiting list. Funded through a blended public-private model and monitored publicly from ground-breaking to handover.', 'Riverside, Metropolitan', 'State Department of Housing', '450000000.00', '314556000.00', 'projects/house_xgTR9e3.jpg', '2026-02-07', '2028-10-04', '500 low- and middle-income households', 'govenment agency', 'Plastering and tiling underway in Blocks A–C; painting started in Block A.', 'ongoing', '', 'Eng. A. Mwangi', 'Marley Construction Ltd', NULL, '2026-11-12 08:45:44.354494', '[Auto] Status changed from ongoing to completed on 2026-10-05 18:27.', NULL, NULL, 20, 'Recorded delivery progress is 96%; continue milestone updates to refine the forecast.', '', '2026-10-05 18:26:46.622854', NULL, 'Blended (Treasury 60% / PPP 40%)', 1, 1, 'high', 'PRJ-171EF8C9', 'National Construction Authority', '2026-11-12 08:45:44.354522', NULL, 63, NULL, NULL, NULL, 4),
+(77, 'Itare Dam Multipurpose Project', 'Construction of a multipurpose dam and associated water supply infrastructure intended to improve access to clean water for Nakuru City and surrounding communities. The project includes a 57-metre-high dam, a water treatment plant with a planned capacity of 100,000 cubic metres per day, and approximately 110 km of bulk water conveyance pipeline. Implementation has faced contractual disputes and prolonged delays.', 'Kuresoi, Nakuru County, Kenya', 'A multipurpose dam intended to supply water to Nakuru and surrounding areas. In October 2025, the Ministry of Water reported that the project had stalled at 32% completion while steps toward resuming', '34999999999.69', '45000000.00', 'projects/dfd.PNG', '2025-06-17', '2027-03-17', 'Residents of Nakuru City, Kuresoi North and South, \"\r\n        \"Molo, Njoro, and surrounding areas', 'Ministry of Water, Central Rift Valley Water Works \"\r\n        \"Development Agency, contractors, development partners, \"\r\n        \"and affected communities', '32%', 'stalled', '', NULL, NULL, 'felixngwono@gmail.com', '2026-10-17 11:03:27.868213', '', '2026-10-17', NULL, NULL, NULL, 'projects/covers/work_space.png', '2026-10-17 11:03:27.868267', 30, 'Government of Kenya and international financing arrangements; verify the current funding structure', 0, 1, 'critical', 'GOV-WTR-ITARE-001', 'Ministry of Water, Sanitation and Irrigation', '2026-10-17 11:03:27.868289', 2, 48, NULL, NULL, NULL, 6),
+(78, 'Rural Road Rehabilitation Project', 'Rehabilitation of rural access roads to improve \"\r\n            \"transport, market access, and connectivity \"\r\n            \"for surrounding communities.', 'Turkana County, Kenya', 'Relevant County Government', '63000000000.00', '43000000.00', '', '2024-03-21', '2028-02-03', 'Local residents, farmers, traders', 'County government, contractors, residents', '45%', 'ongoing', '', NULL, NULL, NULL, '2026-10-17 11:10:25.349716', '', '2028-02-03', NULL, NULL, NULL, '', '2026-10-17 11:10:25.349766', 30, 'Government development budget', 0, 1, 'high', 'PRJ-084C49CB', 'ministry of roads', '2026-10-17 11:10:25.349788', 1, 39, NULL, NULL, NULL, 10),
+(79, 'Public School Facilities Upgrade', 'Construction and rehabilitation of classrooms \"\r\n            \"and sanitation facilities to improve the \"\r\n            \"quality and safety of learning environments.', 'Kisumu County, Kenya', 'Relevant Education Authority', NULL, NULL, 'projects/Screenshot_16.png', NULL, NULL, 'School learners and teachers', 'Schools, parents, education officials', '0', 'upcoming', '', NULL, 'Felix Odhiambo', NULL, '2026-10-17 11:13:24.397161', '', NULL, NULL, NULL, NULL, '', '2026-10-17 11:13:24.397227', 30, 'Education development funding', 0, 1, 'medium', 'PRJ-3AE230BF', NULL, '2026-10-17 11:13:24.397256', 4, 58, NULL, NULL, NULL, 15);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_projectbaseline`
+--
+
+CREATE TABLE `member_projectbaseline` (
+  `id` bigint(20) NOT NULL,
+  `approved_budget` decimal(15,2) DEFAULT NULL,
+  `approved_start_date` date DEFAULT NULL,
+  `approved_end_date` date DEFAULT NULL,
+  `recorded_at` datetime(6) NOT NULL,
+  `approved_by_id` bigint(20) DEFAULT NULL,
+  `project_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `member_projectbaseline`
+--
+
+INSERT INTO `member_projectbaseline` (`id`, `approved_budget`, `approved_start_date`, `approved_end_date`, `recorded_at`, `approved_by_id`, `project_id`) VALUES
+(3, '337000000000.00', '2026-09-18', '2026-10-10', '2026-11-10 18:34:05.483164', 1, 41),
+(4, '56000000.00', '2026-07-28', '2026-07-29', '2026-11-10 18:34:05.497516', NULL, 40),
+(5, '23000000.00', '2026-04-22', '2026-06-11', '2026-11-10 18:34:05.510396', NULL, 1),
+(6, '450000000.00', '2026-02-07', '2028-10-04', '2026-11-10 18:34:05.524443', NULL, 70),
+(7, '10000000.00', '2025-12-06', '2027-12-06', '2026-11-10 18:34:05.534788', NULL, 20),
+(8, '34999999999.69', '2025-06-17', '2027-03-17', '2026-11-10 18:34:05.559449', 30, 77),
+(9, '0.00', '2025-03-13', '2028-02-12', '2026-11-10 18:34:05.574358', NULL, 37),
+(10, '20000000.00', '2025-02-19', '2025-03-06', '2026-11-10 18:34:05.589900', NULL, 34),
+(11, '0.00', '2024-06-04', '2026-02-21', '2026-11-10 18:34:05.613276', NULL, 39),
+(12, '63000000000.00', '2024-03-21', '2028-02-03', '2026-11-10 18:34:05.627808', 30, 78),
+(13, '30000000.00', '2024-03-12', '2024-03-09', '2026-11-10 18:34:05.642301', NULL, 24),
+(14, '23000000.00', '2024-03-12', '2024-03-12', '2026-11-10 18:34:05.659261', NULL, 30),
+(15, '34000000.00', '2024-03-12', '2024-03-12', '2026-11-10 18:34:05.680997', NULL, 31),
+(16, '2121000000.00', '2024-03-12', '2027-03-12', '2026-11-10 18:34:05.692839', NULL, 33),
+(17, '34500000.00', '2024-03-08', '2024-03-09', '2026-11-10 18:34:05.700103', NULL, 27),
+(18, '4579867.00', '2024-03-08', '2024-03-09', '2026-11-10 18:34:05.710508', NULL, 28),
+(19, '25895642.00', '2024-03-08', '2024-03-09', '2026-11-10 18:34:05.724678', NULL, 29),
+(20, '1654879.00', '2024-03-07', '2024-03-09', '2026-11-10 18:34:05.747920', NULL, 22),
+(21, '9999999999.99', '2024-03-07', '2025-03-12', '2026-11-10 18:34:05.761343', NULL, 36),
+(22, '34567890.00', '2024-03-06', '2024-03-09', '2026-11-10 18:34:05.782151', NULL, 18),
+(23, '147345646.00', '2024-03-02', '2024-03-09', '2026-11-10 18:34:05.797575', NULL, 12),
+(24, '9999999999.99', '2024-03-01', '2024-03-09', '2026-11-10 18:34:05.813582', NULL, 11),
+(25, NULL, NULL, NULL, '2026-11-10 18:34:05.817598', NULL, 35),
+(26, NULL, NULL, NULL, '2026-11-10 18:34:05.839579', 30, 79);
 
 -- --------------------------------------------------------
 
@@ -2077,6 +2308,30 @@ INSERT INTO `member_projectcategory` (`id`, `name`, `description`, `icon`, `colo
 (9, 'Environment', 'Conservation, forestry, waste management and climate resilience.', 'fa-leaf', '#10b981'),
 (10, 'Trade & Markets', 'Markets, trade centres and commercial infrastructure.', 'fa-store', '#f97316'),
 (11, 'Security', 'Police posts, courts and public safety facilities.', 'fa-shield-halved', '#64748b');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_projectchangerequest`
+--
+
+CREATE TABLE `member_projectchangerequest` (
+  `id` bigint(20) NOT NULL,
+  `proposed_budget` decimal(15,2) DEFAULT NULL,
+  `proposed_start_date` date DEFAULT NULL,
+  `proposed_end_date` date DEFAULT NULL,
+  `proposed_contract_value` decimal(15,2) DEFAULT NULL,
+  `reason` longtext NOT NULL,
+  `supporting_document` varchar(100) DEFAULT NULL,
+  `status` varchar(20) NOT NULL,
+  `reviewer_comments` longtext NOT NULL,
+  `requested_at` datetime(6) NOT NULL,
+  `reviewed_at` datetime(6) DEFAULT NULL,
+  `project_id` bigint(20) NOT NULL,
+  `requested_by_id` bigint(20) DEFAULT NULL,
+  `reviewed_by_id` bigint(20) DEFAULT NULL,
+  `tender_id` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -2122,7 +2377,29 @@ INSERT INTO `member_projectexpense` (`id`, `title`, `category`, `amount`, `descr
 (1, 'tarmac', 'materials', '1000000.00', 'its over quoted', '2026-08-20', 1, 'receipts/Sure.docx', 30, NULL, NULL),
 (3, 'da project', 'materials', '20000000.00', '', '2026-09-23', 41, '', 1, NULL, NULL),
 (4, 'tarmac and trucks', 'equipment', '1000000.00', '', '2026-09-24', 11, '', 1, NULL, NULL),
-(5, 'konza city', 'consultancy', '20000.00', '', '2026-09-30', 40, '', 1, NULL, NULL);
+(5, 'konza city', 'consultancy', '20000.00', '', '2026-09-30', 40, '', 1, NULL, NULL),
+(6, 'publication doc', 'other', '56000.00', '', '2026-11-09', 70, '', 31, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_projectinspection`
+--
+
+CREATE TABLE `member_projectinspection` (
+  `id` bigint(20) NOT NULL,
+  `inspected_at` datetime(6) NOT NULL,
+  `outcome` varchar(24) NOT NULL,
+  `findings` longtext NOT NULL,
+  `corrective_deadline` date DEFAULT NULL,
+  `latitude` decimal(9,6) DEFAULT NULL,
+  `longitude` decimal(9,6) DEFAULT NULL,
+  `evidence` varchar(100) DEFAULT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `inspected_by_id` bigint(20) DEFAULT NULL,
+  `project_id` bigint(20) NOT NULL,
+  `stage_id` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -2222,12 +2499,11 @@ INSERT INTO `member_projectstage` (`id`, `stage_name`, `description`, `start_dat
 (48, 'monitoring', NULL, NULL, NULL, '0.00', 41, 0, 10, NULL, 'not_started'),
 (49, 'handover', NULL, NULL, NULL, '0.00', 41, 0, 11, NULL, 'not_started'),
 (50, 'others', NULL, NULL, NULL, '0.00', 41, 0, 12, NULL, 'not_started'),
-(86, 'Site Clearance & Land Preparation', NULL, '2026-02-07', '2026-05-08', '71.00', 70, 0, 1, NULL, 'in_progress'),
-(87, 'Foundation & Substructure', NULL, '2026-05-08', '2026-08-06', '100.00', 70, 0, 4, NULL, 'completed'),
-(88, 'Superstructure / Main Works', NULL, '2026-08-06', '2026-11-04', '100.00', 70, 0, 7, NULL, 'completed'),
+(86, 'Site Clearance & Land Preparation', NULL, '2026-02-07', '2026-05-08', '100.00', 70, 0, 1, '2026-11-09', 'completed'),
+(87, 'Foundation & Substructure', NULL, '2026-05-08', '2026-08-06', '80.00', 70, 0, 4, NULL, 'in_progress'),
+(88, 'Superstructure / Main Works', NULL, '2026-08-06', '2026-11-04', '100.00', 70, 0, 7, '2026-11-09', 'completed'),
 (89, 'Finishing & Fittings', NULL, '2026-10-05', '2027-01-03', '100.00', 70, 0, 9, '2026-10-05', 'completed'),
-(91, 'planning', NULL, NULL, NULL, '0.00', 73, 0, 0, NULL, 'not_started'),
-(93, 'ground breking', 'ongoing/inprogress', '2026-10-17', '2026-10-30', '2.00', 70, 1, 10, NULL, 'in_progress'),
+(93, 'ground breking', 'ongoing/inprogress', '2026-10-17', '2026-10-30', '100.00', 70, 1, 10, '2026-11-09', 'completed'),
 (94, 'planning', NULL, NULL, NULL, '0.00', 77, 0, 1, NULL, 'not_started'),
 (95, 'procurement', NULL, NULL, NULL, '0.00', 77, 0, 2, NULL, 'not_started'),
 (96, 'site_clearance', NULL, NULL, NULL, '0.00', 77, 0, 3, NULL, 'not_started'),
@@ -2263,7 +2539,8 @@ INSERT INTO `member_projectstage` (`id`, `stage_name`, `description`, `start_dat
 (126, 'completion', NULL, NULL, NULL, '0.00', 79, 0, 9, NULL, 'not_started'),
 (127, 'monitoring', NULL, NULL, NULL, '0.00', 79, 0, 10, NULL, 'not_started'),
 (128, 'handover', NULL, NULL, NULL, '0.00', 79, 0, 11, NULL, 'not_started'),
-(129, 'others', NULL, NULL, NULL, '0.00', 79, 0, 12, NULL, 'not_started');
+(129, 'others', NULL, NULL, NULL, '0.00', 79, 0, 12, NULL, 'not_started'),
+(130, 'publication', 'pulication of the project finished', '2026-11-01', '2026-11-27', '100.00', 70, 1, 100, NULL, 'completed');
 
 -- --------------------------------------------------------
 
@@ -2289,7 +2566,8 @@ CREATE TABLE `member_projectstatushistory` (
 INSERT INTO `member_projectstatushistory` (`id`, `from_status`, `to_status`, `source`, `note`, `changed_at`, `changed_by_id`, `project_id`) VALUES
 (32, 'ongoing', 'completed', 'auto', NULL, '2026-10-05 18:27:17.438616', NULL, 70),
 (33, 'ongoing', 'completed', 'auto', NULL, '2026-10-05 18:27:17.475969', NULL, 70),
-(37, 'ongoing', 'completed', 'assignee', NULL, '2026-10-17 06:46:06.563445', 30, 37);
+(37, 'ongoing', 'completed', 'assignee', NULL, '2026-10-17 06:46:06.563445', 30, 37),
+(38, 'completed', 'ongoing', 'manual', NULL, '2026-11-12 08:45:44.403716', 1, 70);
 
 -- --------------------------------------------------------
 
@@ -2474,19 +2752,39 @@ CREATE TABLE `member_reportissue` (
   `resolution_notes` longtext DEFAULT NULL,
   `resolved_by_id` bigint(20) DEFAULT NULL,
   `severity` varchar(10) NOT NULL,
-  `updated_at` datetime(6) NOT NULL
+  `updated_at` datetime(6) NOT NULL,
+  `assigned_to_id` bigint(20) DEFAULT NULL,
+  `closed_at` datetime(6) DEFAULT NULL,
+  `response_due_at` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `member_reportissue`
 --
 
-INSERT INTO `member_reportissue` (`id`, `title`, `issue_description`, `evidence`, `created_at`, `resolved`, `status`, `project_id`, `user_id`, `resolution_notes`, `resolved_by_id`, `severity`, `updated_at`) VALUES
-(2, 'jytre', 'jghfdsfghj', 'issue_evidence/house.jpg', '2025-03-11 14:06:32.155449', 0, 'Pending', 24, 21, NULL, NULL, 'moderate', '2026-08-02 17:06:08.484946'),
-(3, 'wqedf', 'asdfg', 'issue_evidence/sgr.png', '2025-03-11 14:37:45.210463', 1, 'Resolved', 31, 22, NULL, NULL, 'moderate', '2026-08-02 17:06:08.484946'),
-(4, 'cancelled project', 'the project lacked resources and could not continue as planned', 'issue_evidence/24_Jun_2025_1119_pm.txt', '2026-09-23 07:09:43.409662', 0, 'pending', 41, 1, NULL, NULL, 'moderate', '2026-09-23 07:09:43.409701'),
-(5, 'dam project', 'the projct is slowly progressing. slow development less opportinities', '', '2026-09-23 08:02:56.385477', 0, 'pending', 41, 1, NULL, NULL, 'moderate', '2026-09-23 08:02:56.385507'),
-(7, 'consultancy', 'their is no possible way consoltancy costs that much', '', '2026-09-30 18:59:21.127384', 0, 'pending', 40, 1, NULL, NULL, 'high', '2026-09-30 18:59:21.127414');
+INSERT INTO `member_reportissue` (`id`, `title`, `issue_description`, `evidence`, `created_at`, `resolved`, `status`, `project_id`, `user_id`, `resolution_notes`, `resolved_by_id`, `severity`, `updated_at`, `assigned_to_id`, `closed_at`, `response_due_at`) VALUES
+(2, 'jytre', 'jghfdsfghj', 'issue_evidence/house.jpg', '2025-03-11 14:06:32.155449', 0, 'Pending', 24, 21, NULL, NULL, 'moderate', '2026-08-02 17:06:08.484946', NULL, NULL, '2025-03-18 14:06:32.155449'),
+(3, 'wqedf', 'asdfg', 'issue_evidence/sgr.png', '2025-03-11 14:37:45.210463', 1, 'Resolved', 31, 22, NULL, NULL, 'moderate', '2026-08-02 17:06:08.484946', NULL, NULL, '2025-03-18 14:37:45.210463'),
+(4, 'cancelled project', 'the project lacked resources and could not continue as planned', 'issue_evidence/24_Jun_2025_1119_pm.txt', '2026-09-23 07:09:43.409662', 0, 'pending', 41, 1, NULL, NULL, 'moderate', '2026-09-23 07:09:43.409701', NULL, NULL, '2026-09-30 07:09:43.409662'),
+(5, 'dam project', 'the projct is slowly progressing. slow development less opportinities', '', '2026-09-23 08:02:56.385477', 0, 'pending', 41, 1, NULL, NULL, 'moderate', '2026-09-23 08:02:56.385507', NULL, NULL, '2026-09-30 08:02:56.385477'),
+(7, 'consultancy', 'their is no possible way consoltancy costs that much', '', '2026-09-30 18:59:21.127384', 0, 'pending', 40, 1, NULL, NULL, 'high', '2026-09-30 18:59:21.127414', NULL, NULL, '2026-10-03 18:59:21.127384');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `member_requeststatushistory`
+--
+
+CREATE TABLE `member_requeststatushistory` (
+  `id` bigint(20) NOT NULL,
+  `from_status` varchar(20) DEFAULT NULL,
+  `to_status` varchar(20) NOT NULL,
+  `source` varchar(20) NOT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  `changed_at` datetime(6) NOT NULL,
+  `changed_by_id` bigint(20) DEFAULT NULL,
+  `request_id` bigint(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -2522,8 +2820,9 @@ CREATE TABLE `member_stagereport` (
 --
 
 INSERT INTO `member_stagereport` (`id`, `description`, `progress_percentage`, `location`, `photo`, `created_at`, `project_id`, `stage_id`, `reported_by_id`, `weather_conditions`, `workforce_count`, `contractor_id`, `stage_description`, `corrective_actions`, `delay_reason`, `review_status`, `reviewed_at`, `reviewed_by_id`, `reviewer_comments`, `supporting_document`) VALUES
-(3, 'working in progress', 26, 'Kisumu county', '', '2026-10-06 03:41:49.670973', 70, NULL, 31, NULL, NULL, 3, 'building of perimeter walls', '', '', 'pending', NULL, NULL, '', ''),
-(4, 'plastering and tilling', 100, 'Nairobi', '', '2026-10-17 05:30:03.368567', 70, NULL, 31, NULL, NULL, 3, 'plastering and tilling', '', '', 'pending', NULL, NULL, '', 'stage_reports/documents/REAL_TIME_CHAT_APPLICATION.docx');
+(3, 'working in progress', 26, 'Kisumu county', '', '2026-10-06 03:41:49.670973', 70, NULL, 31, NULL, NULL, 3, 'building of perimeter walls', '', '', 'approved', '2026-11-11 07:50:59.806210', 30, '', ''),
+(4, 'plastering and tilling', 100, 'Nairobi', '', '2026-10-17 05:30:03.368567', 70, NULL, 31, NULL, NULL, 3, 'plastering and tilling', '', '', 'approved', '2026-11-11 07:51:07.367630', 30, '', 'stage_reports/documents/REAL_TIME_CHAT_APPLICATION.docx'),
+(5, 'publication of the project completed', 100, ' Nairobi', '', '2026-11-12 08:56:13.420243', 70, 130, 31, NULL, NULL, 3, 'publication', '', '', 'pending', NULL, NULL, '', '');
 
 -- --------------------------------------------------------
 
@@ -2560,7 +2859,8 @@ CREATE TABLE `member_stagereportimage` (
 INSERT INTO `member_stagereportimage` (`id`, `image`, `caption`, `uploaded_at`, `report_id`) VALUES
 (7, 'stage_reports/gallery/08372a7b9de64e97936b3a4ed6d7aa79.jpg', NULL, '2026-10-06 03:41:49.676841', 3),
 (8, 'stage_reports/gallery/house_wMsNgUd.jpg', NULL, '2026-10-06 03:41:49.682180', 3),
-(9, 'stage_reports/gallery/banner-01.jpg', NULL, '2026-10-17 05:30:03.374387', 4);
+(9, 'stage_reports/gallery/banner-01.jpg', NULL, '2026-10-17 05:30:03.374387', 4),
+(10, 'stage_reports/gallery/038e478f9c094c01be86505e030c974d.jpg', NULL, '2026-11-12 08:56:13.435274', 5);
 
 -- --------------------------------------------------------
 
@@ -2639,9 +2939,9 @@ CREATE TABLE `member_tender` (
 --
 
 INSERT INTO `member_tender` (`id`, `reference_number`, `description`, `procurement_method`, `estimated_budget`, `opening_date`, `closing_date`, `eligibility_criteria`, `evaluation_criteria`, `status`, `document`, `is_published`, `created_at`, `created_by_id`, `project_id`, `award_amount`, `award_date`, `awarded_to_id`, `title`) VALUES
-(2, 'ULGM123R', 'im a contractor and i have experiences in constructing roads', 'restricted', NULL, '2026-06-27', '2026-09-10', 'kcse certificate', 'attaining all the credit scores', 'draft', 'tenders/login.png', 0, '2026-06-27 20:41:11.191406', NULL, 37, NULL, NULL, NULL, NULL),
 (3, 'ULGM123T', 'extension of railway from kisumu to busia to link kenya and uganda', 'open', '60000000000.00', '2026-11-27', '2028-06-27', 'skills', 'skills', 'awarded', 'tenders/i.pdf', 0, '2026-09-27 06:07:39.302324', 1, 31, '40000000000.00', '2026-10-06', 2, 'railway'),
-(4, 'TND-C972BF42', 'we are upgrading public schools to the best of our capacities', 'open', '3456000000.00', '2026-10-17', '2026-12-17', 'kenyan citizen', 'kenyan citizen', 'published', 'tenders/Doc1.docx', 0, '2026-10-17 11:21:57.037547', 30, 79, NULL, NULL, NULL, 'public schools');
+(4, 'TND-C972BF42', 'we are upgrading public schools to the best of our capacities', 'open', '3456000000.00', '2026-10-17', '2026-12-17', 'kenyan citizen', 'kenyan citizen', 'awarded', 'tenders/Doc1.docx', 0, '2026-10-17 11:21:57.037547', 30, 79, '50000000.00', '2026-11-09', 4, 'public schools'),
+(5, 'ULGM123H', 'this cancelled project is back on track and its to e accomplished', 'open', '59000000.00', '2026-11-09', '2026-11-25', 'kenyan citizen with acaemic qualifications', 'kenyan citizen with acaemic qualifications', 'published', '', 0, '2026-11-09 13:44:46.394141', 1, 41, NULL, NULL, NULL, 'Dam construction');
 
 -- --------------------------------------------------------
 
@@ -2675,7 +2975,8 @@ CREATE TABLE `member_tenderapplication` (
 --
 
 INSERT INTO `member_tenderapplication` (`id`, `company_name`, `company_email`, `company_phone`, `proposal_document`, `bid_amount`, `cover_letter`, `submitted_at`, `status`, `applicant_id`, `tender_id`, `technical_score`, `financial_score`, `total_score`, `ai_financial_assessment`, `ai_recommendation`, `ai_technical_assessment`, `evaluator_notes`) VALUES
-(2, 'zedafrica', 'letiamanda@gmail.com', '078945636', 'tender_applications/24_Jun_2025_1119_pm.txt', '40000000000.00', 'tender_coverLetter/i.pdf', '2026-09-27 06:08:49.771820', 'awarded', 1, 3, 50, 100, 65, NULL, NULL, NULL, NULL);
+(2, 'zedafrica', 'letiamanda@gmail.com', '078945636', 'tender_applications/24_Jun_2025_1119_pm.txt', '40000000000.00', 'tender_coverLetter/i.pdf', '2026-09-27 06:08:49.771820', 'awarded', 1, 3, 50, 100, 65, NULL, NULL, NULL, NULL),
+(3, 'Felix Odhiambo', 'felixodhiambo@kabarak.ac.ke', '0700369300', 'tender_applications/i.pdf', '50000000.00', 'tender_coverLetter/WhatsApp_Image_2026-09-27_at_21.29.58.jpeg', '2026-11-09 13:38:32.912336', 'awarded', 1, 4, 0, 0, 0, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -2718,11 +3019,10 @@ CREATE TABLE `member_testimonial` (
 --
 
 INSERT INTO `member_testimonial` (`id`, `name`, `content`, `phone_number`, `image`, `created_at`, `project_id`, `user_id`, `is_approved`, `rating`, `is_featured`, `moderation_note`, `updated_at`) VALUES
-(1, 'Nicole Atieno', 'my mentor my role model', NULL, 'testimonials/02c92d479a634167955278c0bef5d671.jpg', '2026-04-26 11:27:07.890437', 1, NULL, 0, 5, 0, '', '2026-08-02 21:47:40.451676'),
+(1, 'Nicole Atieno', 'my mentor my role model', NULL, 'testimonials/02c92d479a634167955278c0bef5d671.jpg', '2026-04-26 11:27:07.890437', 1, NULL, 0, 5, 0, '', '2026-11-12 07:15:57.364405'),
 (2, 'Shanty Page', 'since the launching of this platform, im able to track on the farming processes in Perkerra', NULL, 'testimonials/Fel16.jpg', '2026-02-15 08:33:41.000000', 28, NULL, 0, 5, 0, '', '2026-08-02 21:47:40.451676'),
 (3, 'Angela Valdes', 'im happy with this project, the phases are clearly shown. Thanks Project Manager, programmer and designer', NULL, 'testimonials/Fel14.jpg', '2026-02-15 09:00:48.000000', 24, NULL, 0, 5, 0, '', '2026-08-02 21:47:40.451676'),
-(4, 'Betty Amanda', 'Amanda Mor', NULL, 'testimonials/logo.png', '2026-02-15 09:11:41.000000', 31, NULL, 0, 5, 0, '', '2026-08-02 21:47:40.451676'),
-(5, 'Nicole Atieno', '“This is a good platform where citizens can track government oversight.”', NULL, 'testimonials/solar.jpg', '2026-02-15 07:44:44.000000', 12, NULL, 0, 5, 0, '', '2026-08-02 21:47:40.451676');
+(4, 'Betty Amanda', 'Amanda Mor', NULL, 'testimonials/logo.png', '2026-02-15 09:11:41.000000', 31, NULL, 0, 5, 0, '', '2026-08-02 21:47:40.451676');
 
 -- --------------------------------------------------------
 
@@ -2765,31 +3065,23 @@ CREATE TABLE `member_user` (
 --
 
 INSERT INTO `member_user` (`id`, `password`, `last_login`, `is_superuser`, `first_name`, `last_name`, `is_staff`, `is_active`, `date_joined`, `email`, `username`, `name`, `role`, `bio`, `is_enduser`, `avatar`, `profile`, `updated`, `created_at`, `is_verified`, `last_login_ip`, `location`, `organization`, `phone_number`, `two_factor_enabled`, `verification_status`, `notifications_enabled`) VALUES
-(1, 'pbkdf2_sha256$600000$eK4cX1QJxbLYev4itN2MFq$F0E87XnzWK5poO68PKyJ64MWukjctSF4HWmx4aML8yE=', '2026-10-16 09:20:24.398454', 1, '', '', 1, 1, '2026-04-26 11:11:12.503469', 'felixngwono@gmail.com', 'FelloMarley', 'Felix Odhiambo', 'developer', 'I\'m FelloMarley, the mastermind behind the government tracker website', 0, 'avatar.png', 'profiles/Fel14_9bkNTiv.jpg', '2026-04-26 11:19:11.324442', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
+(1, 'pbkdf2_sha256$600000$eK4cX1QJxbLYev4itN2MFq$F0E87XnzWK5poO68PKyJ64MWukjctSF4HWmx4aML8yE=', '2026-11-12 11:06:45.743692', 1, '', '', 1, 1, '2026-04-26 11:11:12.503469', 'felixngwono@gmail.com', 'FelloMarley', 'Felix Odhiambo', 'developer', 'I\'m FelloMarley, the mastermind behind the government tracker website', 0, 'avatar.png', 'profiles/Fel14_9bkNTiv.jpg', '2026-04-26 11:19:11.324442', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (2, 'pbkdf2_sha256$600000$cqKSegYWCF6g3aPo0xWfG1$CUTU8ZplvpH5ztNNZvZlmztsSa8VaLDh0p1OOvGI5Dc=', '2026-10-06 03:25:12.147018', 0, '', '', 0, 1, '2026-04-26 19:50:51.247921', 'nicole@gmail.com', 'Atieno NyarChula', 'Nicole Atieno', 'engineer', 'Im Nyachula, born to be a winner', 0, 'avatar.png', 'profiles/02c92d479a634167955278c0bef5d671_R0mYTV3.jpg', '2026-10-06 03:24:29.351488', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (15, 'pbkdf2_sha256$600000$sdZXg14tgnO7xa9BZMRudV$15CmOFaWIpD5svoHyNtsQKA70oqKwIhFRoihCTrZTBo=', '2024-11-13 10:44:07.903587', 0, '', '', 0, 1, '2024-03-17 08:35:44.262524', 'omondi@gmail.com', 'Ajumbutule', 'Frank Omondi', 'citizen', 'Im Ajumbutule', 1, 'avatar.png', 'images/3006.webp', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (21, 'pbkdf2_sha256$390000$L3rjadbchaO0SpN9HBxF3S$7IwkCJCvSjH+A153Y3J+8W2hT03K8drd0wkQGjzV7iI=', '2026-02-15 09:24:48.995603', 1, '', '', 0, 1, '2024-03-18 21:04:19.576787', 'fellomarley@gmail.com', 'Fello', 'Felix Odhiambo', 'citizen', 'Im Marley', 0, 'avatar.png', 'images/chief_J9TcRuW.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (22, 'felixodhiambo@kabarak.ac.ke', NULL, 1, '', '', 1, 0, '2024-03-07 12:52:01.000000', 'True', 'StoryTeller', 'Felix Odhiambo', 'citizen', 'im Marley', 0, '10', 'avartor.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (23, 'pbkdf2_sha256$390000$WQOqv9km54x7scaodebVCd$HYGL9+bFmqvTtlw+RAE5YgIwulygM1B9Egut5CAJry0=', '2026-02-23 08:19:46.449107', 0, '', '', 0, 1, '2024-03-20 19:38:48.673003', 'vanessa@gmail.com', 'Vanessah', 'Toto Vanessah', 'citizen', 'Im Vanessah. The only Titan from the lake in the family of akina Fellix The StoryTeller', 1, 'avatar.png', 'profiles/tree.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(25, 'pbkdf2_sha256$600000$zC8XxCWVVHaIDirSaO2DHg$vCLGelFVlZ6/txAVi3Ua/Oe3qKqk3q8x8M10VTmQgjw=', '2026-10-18 06:08:07.681043', 0, '', '', 0, 1, '2025-03-12 10:02:37.372369', 'assielo@gmail.com', 'assiello', 'Assiello Nomar', 'citizen', 'Assiello Norma', 1, 'avatar.png', 'profiles/solar.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
+(25, 'pbkdf2_sha256$600000$zC8XxCWVVHaIDirSaO2DHg$vCLGelFVlZ6/txAVi3Ua/Oe3qKqk3q8x8M10VTmQgjw=', '2026-11-10 09:16:06.715580', 0, '', '', 0, 1, '2025-03-12 10:02:37.372369', 'assielo@gmail.com', 'assiello', 'Assiello Nomar', 'citizen', 'Assiello Norma', 1, 'avatar.png', 'profiles/solar.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (26, 'pbkdf2_sha256$390000$rvjkDxGKNzDBpOphsu5Rss$fBQTcWntdNp131fgkCqBTyd69P8/xm3kYdLvNG81S1Y=', '2026-04-28 05:57:02.225708', 0, '', '', 0, 1, '2026-02-15 09:22:02.825205', 'betty@gmail.com', 'Amanda', 'Betty Amanda', 'developer', 'im betty amanda', 0, 'avatar.png', 'profiles/038e478f9c094c01be86505e030c974d_DC7y9U9.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (27, 'pbkdf2_sha256$390000$ru4QbghiyfWrnOcUrlggSw$NhAXp11ikeE42Z4rNPpaCIlqUSLiYtRUevcWroYH/gU=', '2026-02-23 09:13:17.518974', 1, '', '', 1, 1, '2026-02-16 13:56:00.197953', 'felix@gmail.com', 'Odinga', 'Felix Odhiambo', 'developer', 'im felix odhiamo', 0, 'avatar.png', 'profiles/Fel14.jpg', '2026-02-22 13:21:42.485592', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (29, 'pbkdf2_sha256$600000$BavP8B0es7pFn9ME210i3X$Xr3WxFnouS6cGR9C/AuHZbcAVlK6bncoXJ7WnfEhH9M=', '2026-09-27 06:47:35.241628', 1, '', '', 1, 1, '2026-06-08 08:28:37.288152', 'felix7@gmail.com', 'FelloMarley7', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-06-08 08:28:38.384166', '2026-08-02 17:06:09.730040', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(30, 'pbkdf2_sha256$600000$rKq0i4dBN2mlV9ieFGVZWb$q26b/wnHa7Vhjhc67nwKimAYHkGz6GuF2ptZ82DiC8Q=', '2026-10-16 10:21:04.010098', 0, '', '', 0, 1, '2026-08-16 07:49:35.828791', 'wanjiru@gmail.com', 'Mercy77', 'Mercy Wanjiru', 'official', 'Im Mercy working with HELB', 1, 'avatar.png', 'profiles/Maccheronis_Valley_View_Dam_Italy_03.jpg', '2026-08-20 18:41:08.828001', '2026-08-16 07:49:38.263163', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(31, 'pbkdf2_sha256$600000$YBVtNpt5oEcyu2EIkdtX3n$lXV1OxSnbbYUnOxHGoVpfYMWt6ACf6mDy6zA+bfiOhQ=', '2026-10-17 05:04:32.454746', 0, '', '', 0, 1, '2026-09-17 03:13:03.043614', 'jack@gmail.com', 'Jack', 'Jack Bauer', 'contractor', 'im jack the ontractor', 0, 'avatar.png', 'profiles/20230823_232505.jpg', '2026-10-17 07:09:28.373907', '2026-09-17 03:13:05.732019', 0, NULL, NULL, 'Lety Amanda', '0700369300', 0, 'unverified', 1),
+(30, 'pbkdf2_sha256$600000$rKq0i4dBN2mlV9ieFGVZWb$q26b/wnHa7Vhjhc67nwKimAYHkGz6GuF2ptZ82DiC8Q=', '2026-11-11 19:34:06.458028', 0, '', '', 0, 1, '2026-08-16 07:49:35.828791', 'wanjiru@gmail.com', 'Mercy77', 'Mercy Wanjiru', 'official', 'Im Mercy working with HELB', 1, 'avatar.png', 'profiles/Maccheronis_Valley_View_Dam_Italy_03.jpg', '2026-08-20 18:41:08.828001', '2026-08-16 07:49:38.263163', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
+(31, 'pbkdf2_sha256$600000$YBVtNpt5oEcyu2EIkdtX3n$lXV1OxSnbbYUnOxHGoVpfYMWt6ACf6mDy6zA+bfiOhQ=', '2026-11-12 09:01:59.058041', 0, '', '', 0, 1, '2026-09-17 03:13:03.043614', 'jack@gmail.com', 'Jack', 'Jack Bauer', 'contractor', 'im jack the ontractor', 0, 'avatar.png', 'profiles/20230823_232505.jpg', '2026-11-10 08:58:16.191101', '2026-09-17 03:13:05.732019', 0, NULL, NULL, 'Lety Amanda', '0700369300', 0, 'unverified', 1),
 (33, 'pbkdf2_sha256$600000$Xd2AKRSQhoimv9xLKev2AL$n40GwH7O2w7iDZPwXnm5/43Lr0tAg8VxbC7gWGm4sQs=', '2026-09-19 07:32:19.009780', 1, '', '', 1, 1, '2026-09-19 06:54:06.849226', 'qa_tester@example.com', 'qa_tester', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-19 06:54:08.184790', '2026-09-19 06:54:06.849709', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
 (35, '', '2026-09-24 10:16:21.293229', 1, '', '', 1, 1, '2026-09-23 07:24:40.488603', 'qa_style_check@example.com', 'qa_style_check', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-24 10:16:21.262392', '2026-09-23 07:24:40.489109', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(37, 'pbkdf2_sha256$600000$HAuGGzxJfDV4bsLDthaX5k$+ujJH6uiqTedinDpM5/dBS4pyZ9mvRPHkU4JcNXMbwo=', NULL, 0, '', '', 0, 1, '2026-09-27 06:42:01.620389', 'assign_test_a@x.com', 'assigntesta', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-27 06:42:03.743666', '2026-09-27 06:42:03.743706', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(38, 'pbkdf2_sha256$600000$8Op3Wjp6rUmk1R5uNnWxYf$kQbIQdaaUpMeMuBBfoYHyxByi8K+bbB3W2x92tq+Yuw=', NULL, 0, '', '', 0, 1, '2026-09-27 06:42:03.747149', 'assign_test_b@x.com', 'assigntestb', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-27 06:42:06.591589', '2026-09-27 06:42:06.591640', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(39, 'pbkdf2_sha256$600000$XfldIdpla4o0PVBpKQmzEz$/YvsIfUVZkisJSbxVTTn2wcMWihiNkw0WvW3cI8DgHQ=', '2026-09-27 07:29:40.574880', 0, '', '', 0, 1, '2026-09-27 07:29:39.056611', 'track_test@x.com', 'tracktest', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-27 07:29:40.533919', '2026-09-27 07:29:40.533970', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(40, 'pbkdf2_sha256$600000$Gky74mdKkTJ3UxIQnb2S90$NqP/uXISqoWy8IjYcPCzTbxIWngCexlnlu8x6KE1bVY=', '2026-09-27 07:30:56.034757', 0, '', '', 0, 1, '2026-09-27 07:30:54.462439', 'track_test2@x.com', 'tracktest2', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-27 07:30:55.998868', '2026-09-27 07:30:55.998895', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(41, 'pbkdf2_sha256$600000$Cy8FVQJe3GvDlVoWz2EYkj$9q41auxTpGH8FoJc/NQuBJNPhidBA0l7pmDB4Nd4IuQ=', '2026-09-27 07:31:24.508444', 0, '', '', 0, 1, '2026-09-27 07:31:22.966390', 'track_test3@x.com', 'tracktest3', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-27 07:31:24.477325', '2026-09-27 07:31:24.477353', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(42, 'pbkdf2_sha256$600000$QjvnCM6hKVYog8b4Cxd1yc$a6Y+WQDjDdEvGLlL9QjOTYO39l/Rzvbiy4GQLQHMdGU=', '2026-09-30 19:31:34.656939', 0, '', '', 0, 1, '2026-09-30 19:31:22.656604', 'adm2@test.com', 'adm2', NULL, 'admin', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-30 19:31:24.281029', '2026-09-30 19:31:24.281061', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(43, 'pbkdf2_sha256$600000$ONsUXLM3aheRAnDqInkfet$euFDotRqHC/LNEWnwVYqV5nkbuMP/LJ29Z8egIFWlxs=', '2026-09-30 19:31:27.537553', 0, '', '', 0, 1, '2026-09-30 19:31:24.284756', 'cit2@test.com', 'cit2', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-30 19:31:25.916841', '2026-09-30 19:31:25.916867', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(44, 'pbkdf2_sha256$600000$4oCb0SgTyR48gJLtkjy9Ut$TpgpgAcMtHj5O1/F2DY2lRhVhbVTcqod226WjjMbraw=', '2026-09-30 19:31:34.560065', 0, '', '', 0, 1, '2026-09-30 19:31:25.919580', 'off2@test.com', 'off2', NULL, 'official', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-30 19:31:27.494462', '2026-09-30 19:31:27.494504', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(45, 'pbkdf2_sha256$600000$ms57p8qO6tOYxRfc1E0T6A$St3qDpHpf46IbdVSpYROUNT2/0KTcnK3PVOyr3PBnf4=', '2026-09-30 19:31:59.271736', 0, '', '', 0, 1, '2026-09-30 19:31:49.760509', 'adm3@test.com', 'adm3', NULL, 'admin', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-30 19:31:51.174490', '2026-09-30 19:31:51.174517', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(46, 'pbkdf2_sha256$600000$vn1ALWWqYeiZgfTYU37zUm$sSaXQ9XWJv/ClXQxkn0lq1nSxdZPO5ihroBuuH+Pe4A=', '2026-09-30 19:31:53.871184', 0, '', '', 0, 1, '2026-09-30 19:31:51.177877', 'cit3@test.com', 'cit3', NULL, 'citizen', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-30 19:31:52.487149', '2026-09-30 19:31:52.487176', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1),
-(47, 'pbkdf2_sha256$600000$fcsEBX95PSdWb1iWrLlONh$PJFmhN9l5eJ3GE4W6mbhlTWgH6CBcwbqlhUkw/6XeiE=', '2026-09-30 19:31:59.238899', 0, '', '', 0, 1, '2026-09-30 19:31:52.489696', 'off3@test.com', 'off3', NULL, 'official', NULL, 0, 'avatar.png', 'avatar.png', '2026-09-30 19:31:53.833622', '2026-09-30 19:31:53.833662', 0, NULL, NULL, NULL, NULL, 0, 'unverified', 1);
+(49, 'pbkdf2_sha256$600000$q9NlJAmzCIz6bh1xQ8jMgN$PKmKq5cZPYHwGboC+3ex5EoeRdB6dB4rcBMxiUyO0aI=', '2026-11-11 16:39:07.262045', 0, '', '', 0, 1, '2026-11-11 16:38:37.572178', 'basil@gmail.com', 'Basil7', 'John Basil', 'citizen', 'im John Basil', 1, 'avatar.png', 'profiles/08372a7b9de64e97936b3a4ed6d7aa79.jpg', '2026-11-11 16:38:44.349116', '2026-11-11 16:38:44.349283', 0, NULL, NULL, NULL, '0789675413', 0, 'unverified', 1),
+(50, 'pbkdf2_sha256$600000$GWhhhMNkfEjT0zsQR98lcp$Pl60mLIUMTlaErYYJVWvTgmI0Ht25WlYqVBpP6PE3gk=', '2026-11-11 19:31:42.144123', 0, '', '', 0, 1, '2026-11-11 19:15:00.587329', 'oloombaka@gmail.com', 'oloombaka', 'Oloo Mbaka', 'surveyor', NULL, 0, 'avatar.png', 'profiles/IMG_20240804_125919_2.jpg', '2026-11-11 19:19:26.961536', '2026-11-11 19:15:02.636660', 0, NULL, NULL, 'oloo Camp', '05273185025', 0, 'unverified', 1),
+(51, 'pbkdf2_sha256$600000$Twe6tX1jkwbnpJoBUF9SKq$vd3/PYTrEnZx9zRBCbwsvZjXtV+Sz6027Tg3iQAGlnM=', NULL, 0, '', '', 0, 0, '2026-11-11 19:18:06.805860', 'oloombaka6@gmail.com', 'oloombaka6', 'Oloo Mbaka', 'contractor', NULL, 0, 'avatar.png', 'profiles/IMG_20231129_164813_1.jpg', '2026-11-11 19:46:08.939324', '2026-11-11 19:18:09.822918', 0, NULL, NULL, 'NOVATECH', '0527318505', 0, 'unverified', 1);
 
 -- --------------------------------------------------------
 
@@ -2977,7 +3269,9 @@ ALTER TABLE `member_announcement`
 ALTER TABLE `member_auditlog`
   ADD PRIMARY KEY (`id`),
   ADD KEY `member_auditlog_project_id_7c6b0297_fk_member_project_id` (`project_id`),
-  ADD KEY `member_auditlog_user_id_dc4bd04f_fk_member_user_id` (`user_id`);
+  ADD KEY `member_auditlog_user_id_dc4bd04f_fk_member_user_id` (`user_id`),
+  ADD KEY `member_auditlog_suppressed_by_id_c318f89c_fk_member_user_id` (`suppressed_by_id`),
+  ADD KEY `member_auditlog_is_suppressed_e98454a3` (`is_suppressed`);
 
 --
 -- Indexes for table `member_budget`
@@ -3105,6 +3399,14 @@ ALTER TABLE `member_feedback`
   ADD KEY `member_feedback_project_id_716ce9e3_fk_member_project_id` (`project_id`);
 
 --
+-- Indexes for table `member_governmentagency`
+--
+ALTER TABLE `member_governmentagency`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`),
+  ADD UNIQUE KEY `code` (`code`);
+
+--
 -- Indexes for table `member_governmentrequest`
 --
 ALTER TABLE `member_governmentrequest`
@@ -3113,6 +3415,22 @@ ALTER TABLE `member_governmentrequest`
   ADD KEY `member_governmentrequest_citizen_id_0e8ec8f8_fk_member_user_id` (`citizen_id`),
   ADD KEY `member_governmentreq_assigned_to_id_92671ada_fk_member_us` (`assigned_to_id`),
   ADD KEY `member_governmentreq_responded_by_id_23c9c32c_fk_member_us` (`responded_by_id`);
+
+--
+-- Indexes for table `member_issueresponse`
+--
+ALTER TABLE `member_issueresponse`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_issueresponse_author_id_42d0f51b_fk_member_user_id` (`author_id`),
+  ADD KEY `member_issueresponse_issue_id_2f7760f9_fk_member_reportissue_id` (`issue_id`);
+
+--
+-- Indexes for table `member_issueresponsepolicy`
+--
+ALTER TABLE `member_issueresponsepolicy`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `severity` (`severity`),
+  ADD KEY `member_issueresponse_updated_by_id_c9e6b26e_fk_member_us` (`updated_by_id`);
 
 --
 -- Indexes for table `member_media`
@@ -3204,13 +3522,33 @@ ALTER TABLE `member_project`
   ADD KEY `member_project_created_by_id_7c1552d2_fk_member_user_id` (`created_by_id`),
   ADD KEY `member_project_category_id_1fedb6ef_fk_member_projectcategory_id` (`category_id`),
   ADD KEY `member_project_district_id_cfa349e8_fk_member_district_id` (`district_id`),
-  ADD KEY `member_project_project_division_id_aa8bed68_fk_member_pr` (`project_division_id`);
+  ADD KEY `member_project_project_division_id_aa8bed68_fk_member_pr` (`project_division_id`),
+  ADD KEY `member_project_agency_id_6c0c2466_fk_member_governmentagency_id` (`agency_id`);
+
+--
+-- Indexes for table `member_projectbaseline`
+--
+ALTER TABLE `member_projectbaseline`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `project_id` (`project_id`),
+  ADD KEY `member_projectbaseline_approved_by_id_647dad29_fk_member_user_id` (`approved_by_id`);
 
 --
 -- Indexes for table `member_projectcategory`
 --
 ALTER TABLE `member_projectcategory`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `member_projectchangerequest`
+--
+ALTER TABLE `member_projectchangerequest`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_projectchange_project_id_85f280ef_fk_member_pr` (`project_id`),
+  ADD KEY `member_projectchange_requested_by_id_65c5625e_fk_member_us` (`requested_by_id`),
+  ADD KEY `member_projectchange_reviewed_by_id_ca30306d_fk_member_us` (`reviewed_by_id`),
+  ADD KEY `member_projectchange_tender_id_a167d7c9_fk_member_te` (`tender_id`),
+  ADD KEY `member_projectchangerequest_status_d5397b82` (`status`);
 
 --
 -- Indexes for table `member_projectdocument`
@@ -3229,6 +3567,15 @@ ALTER TABLE `member_projectexpense`
   ADD KEY `member_projectexpense_recorded_by_id_9520805a_fk_member_user_id` (`recorded_by_id`),
   ADD KEY `member_projectexpense_budget_id_cfa68fb5_fk_member_budget_id` (`budget_id`),
   ADD KEY `member_projectexpens_stage_id_501ce325_fk_member_pr` (`stage_id`);
+
+--
+-- Indexes for table `member_projectinspection`
+--
+ALTER TABLE `member_projectinspection`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_projectinspec_inspected_by_id_41f643df_fk_member_us` (`inspected_by_id`),
+  ADD KEY `member_projectinspec_project_id_f45927c4_fk_member_pr` (`project_id`),
+  ADD KEY `member_projectinspec_stage_id_0f8fdad7_fk_member_pr` (`stage_id`);
 
 --
 -- Indexes for table `member_projectreport`
@@ -3322,7 +3669,16 @@ ALTER TABLE `member_reportissue`
   ADD PRIMARY KEY (`id`),
   ADD KEY `member_reportissue_project_id_f4f92cf2_fk_member_project_id` (`project_id`),
   ADD KEY `member_reportissue_user_id_8428b576_fk_member_user_id` (`user_id`),
-  ADD KEY `member_reportissue_resolved_by_id_d3cf28b8_fk_member_user_id` (`resolved_by_id`);
+  ADD KEY `member_reportissue_resolved_by_id_d3cf28b8_fk_member_user_id` (`resolved_by_id`),
+  ADD KEY `member_reportissue_assigned_to_id_33d51faa_fk_member_user_id` (`assigned_to_id`);
+
+--
+-- Indexes for table `member_requeststatushistory`
+--
+ALTER TABLE `member_requeststatushistory`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_requeststatus_changed_by_id_87ec8d57_fk_member_us` (`changed_by_id`),
+  ADD KEY `member_requeststatus_request_id_676316f7_fk_member_go` (`request_id`);
 
 --
 -- Indexes for table `member_stagereport`
@@ -3451,7 +3807,7 @@ ALTER TABLE `auth_group_permissions`
 -- AUTO_INCREMENT for table `auth_permission`
 --
 ALTER TABLE `auth_permission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=281;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=309;
 
 --
 -- AUTO_INCREMENT for table `django_admin_log`
@@ -3463,13 +3819,13 @@ ALTER TABLE `django_admin_log`
 -- AUTO_INCREMENT for table `django_content_type`
 --
 ALTER TABLE `django_content_type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `member_activity`
@@ -3511,7 +3867,7 @@ ALTER TABLE `member_aiissueassessment`
 -- AUTO_INCREMENT for table `member_aiprojectanalysis`
 --
 ALTER TABLE `member_aiprojectanalysis`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `member_aireportgeneration`
@@ -3535,13 +3891,13 @@ ALTER TABLE `member_announcement`
 -- AUTO_INCREMENT for table `member_auditlog`
 --
 ALTER TABLE `member_auditlog`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=202;
 
 --
 -- AUTO_INCREMENT for table `member_budget`
 --
 ALTER TABLE `member_budget`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `member_budgetrevision`
@@ -3577,7 +3933,7 @@ ALTER TABLE `member_contact`
 -- AUTO_INCREMENT for table `member_contractor`
 --
 ALTER TABLE `member_contractor`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `member_contractordocument`
@@ -3595,13 +3951,13 @@ ALTER TABLE `member_contractorpaymentrequest`
 -- AUTO_INCREMENT for table `member_contractorrating`
 --
 ALTER TABLE `member_contractorrating`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `member_contractor_projects`
 --
 ALTER TABLE `member_contractor_projects`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `member_discussionreply`
@@ -3634,16 +3990,34 @@ ALTER TABLE `member_feedback`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `member_governmentagency`
+--
+ALTER TABLE `member_governmentagency`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
 -- AUTO_INCREMENT for table `member_governmentrequest`
 --
 ALTER TABLE `member_governmentrequest`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `member_issueresponse`
+--
+ALTER TABLE `member_issueresponse`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `member_issueresponsepolicy`
+--
+ALTER TABLE `member_issueresponsepolicy`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `member_media`
 --
 ALTER TABLE `member_media`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `member_milestone`
@@ -3661,7 +4035,7 @@ ALTER TABLE `member_milestonestageevidence`
 -- AUTO_INCREMENT for table `member_notification`
 --
 ALTER TABLE `member_notification`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
 
 --
 -- AUTO_INCREMENT for table `member_participation`
@@ -3706,10 +4080,22 @@ ALTER TABLE `member_project`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
+-- AUTO_INCREMENT for table `member_projectbaseline`
+--
+ALTER TABLE `member_projectbaseline`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
 -- AUTO_INCREMENT for table `member_projectcategory`
 --
 ALTER TABLE `member_projectcategory`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `member_projectchangerequest`
+--
+ALTER TABLE `member_projectchangerequest`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_projectdocument`
@@ -3721,7 +4107,13 @@ ALTER TABLE `member_projectdocument`
 -- AUTO_INCREMENT for table `member_projectexpense`
 --
 ALTER TABLE `member_projectexpense`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `member_projectinspection`
+--
+ALTER TABLE `member_projectinspection`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `member_projectreport`
@@ -3739,13 +4131,13 @@ ALTER TABLE `member_projectrisk`
 -- AUTO_INCREMENT for table `member_projectstage`
 --
 ALTER TABLE `member_projectstage`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT for table `member_projectstatushistory`
 --
 ALTER TABLE `member_projectstatushistory`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `member_projecttag`
@@ -3796,10 +4188,16 @@ ALTER TABLE `member_reportissue`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `member_requeststatushistory`
+--
+ALTER TABLE `member_requeststatushistory`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `member_stagereport`
 --
 ALTER TABLE `member_stagereport`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `member_stagereportattachment`
@@ -3811,7 +4209,7 @@ ALTER TABLE `member_stagereportattachment`
 -- AUTO_INCREMENT for table `member_stagereportimage`
 --
 ALTER TABLE `member_stagereportimage`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `member_stakeholder`
@@ -3829,13 +4227,13 @@ ALTER TABLE `member_team`
 -- AUTO_INCREMENT for table `member_tender`
 --
 ALTER TABLE `member_tender`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `member_tenderapplication`
 --
 ALTER TABLE `member_tenderapplication`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `member_tenderevaluationcriteria`
@@ -3853,7 +4251,7 @@ ALTER TABLE `member_testimonial`
 -- AUTO_INCREMENT for table `member_user`
 --
 ALTER TABLE `member_user`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `member_useractivity`
@@ -3954,6 +4352,7 @@ ALTER TABLE `member_announcement`
 --
 ALTER TABLE `member_auditlog`
   ADD CONSTRAINT `member_auditlog_project_id_7c6b0297_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_auditlog_suppressed_by_id_c318f89c_fk_member_user_id` FOREIGN KEY (`suppressed_by_id`) REFERENCES `member_user` (`id`),
   ADD CONSTRAINT `member_auditlog_user_id_dc4bd04f_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
 
 --
@@ -4047,6 +4446,19 @@ ALTER TABLE `member_governmentrequest`
   ADD CONSTRAINT `member_governmentrequest_citizen_id_0e8ec8f8_fk_member_user_id` FOREIGN KEY (`citizen_id`) REFERENCES `member_user` (`id`);
 
 --
+-- Constraints for table `member_issueresponse`
+--
+ALTER TABLE `member_issueresponse`
+  ADD CONSTRAINT `member_issueresponse_author_id_42d0f51b_fk_member_user_id` FOREIGN KEY (`author_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_issueresponse_issue_id_2f7760f9_fk_member_reportissue_id` FOREIGN KEY (`issue_id`) REFERENCES `member_reportissue` (`id`);
+
+--
+-- Constraints for table `member_issueresponsepolicy`
+--
+ALTER TABLE `member_issueresponsepolicy`
+  ADD CONSTRAINT `member_issueresponse_updated_by_id_c9e6b26e_fk_member_us` FOREIGN KEY (`updated_by_id`) REFERENCES `member_user` (`id`);
+
+--
 -- Constraints for table `member_media`
 --
 ALTER TABLE `member_media`
@@ -4121,10 +4533,27 @@ ALTER TABLE `member_progressupdate`
 -- Constraints for table `member_project`
 --
 ALTER TABLE `member_project`
+  ADD CONSTRAINT `member_project_agency_id_6c0c2466_fk_member_governmentagency_id` FOREIGN KEY (`agency_id`) REFERENCES `member_governmentagency` (`id`),
   ADD CONSTRAINT `member_project_category_id_1fedb6ef_fk_member_projectcategory_id` FOREIGN KEY (`category_id`) REFERENCES `member_projectcategory` (`id`),
   ADD CONSTRAINT `member_project_created_by_id_7c1552d2_fk_member_user_id` FOREIGN KEY (`created_by_id`) REFERENCES `member_user` (`id`),
   ADD CONSTRAINT `member_project_district_id_cfa349e8_fk_member_district_id` FOREIGN KEY (`district_id`) REFERENCES `member_district` (`id`),
   ADD CONSTRAINT `member_project_project_division_id_aa8bed68_fk_member_pr` FOREIGN KEY (`project_division_id`) REFERENCES `member_project_division` (`id`);
+
+--
+-- Constraints for table `member_projectbaseline`
+--
+ALTER TABLE `member_projectbaseline`
+  ADD CONSTRAINT `member_projectbaseline_approved_by_id_647dad29_fk_member_user_id` FOREIGN KEY (`approved_by_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_projectbaseline_project_id_8f02d325_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`);
+
+--
+-- Constraints for table `member_projectchangerequest`
+--
+ALTER TABLE `member_projectchangerequest`
+  ADD CONSTRAINT `member_projectchange_project_id_85f280ef_fk_member_pr` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_projectchange_requested_by_id_65c5625e_fk_member_us` FOREIGN KEY (`requested_by_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_projectchange_reviewed_by_id_ca30306d_fk_member_us` FOREIGN KEY (`reviewed_by_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_projectchange_tender_id_a167d7c9_fk_member_te` FOREIGN KEY (`tender_id`) REFERENCES `member_tender` (`id`);
 
 --
 -- Constraints for table `member_projectdocument`
@@ -4141,6 +4570,14 @@ ALTER TABLE `member_projectexpense`
   ADD CONSTRAINT `member_projectexpense_budget_id_cfa68fb5_fk_member_budget_id` FOREIGN KEY (`budget_id`) REFERENCES `member_budget` (`id`),
   ADD CONSTRAINT `member_projectexpense_project_id_1270713e_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
   ADD CONSTRAINT `member_projectexpense_recorded_by_id_9520805a_fk_member_user_id` FOREIGN KEY (`recorded_by_id`) REFERENCES `member_user` (`id`);
+
+--
+-- Constraints for table `member_projectinspection`
+--
+ALTER TABLE `member_projectinspection`
+  ADD CONSTRAINT `member_projectinspec_inspected_by_id_41f643df_fk_member_us` FOREIGN KEY (`inspected_by_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_projectinspec_project_id_f45927c4_fk_member_pr` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
+  ADD CONSTRAINT `member_projectinspec_stage_id_0f8fdad7_fk_member_pr` FOREIGN KEY (`stage_id`) REFERENCES `member_projectstage` (`id`);
 
 --
 -- Constraints for table `member_projectreport`
@@ -4207,9 +4644,17 @@ ALTER TABLE `member_project_type_project_types`
 -- Constraints for table `member_reportissue`
 --
 ALTER TABLE `member_reportissue`
+  ADD CONSTRAINT `member_reportissue_assigned_to_id_33d51faa_fk_member_user_id` FOREIGN KEY (`assigned_to_id`) REFERENCES `member_user` (`id`),
   ADD CONSTRAINT `member_reportissue_project_id_f4f92cf2_fk_member_project_id` FOREIGN KEY (`project_id`) REFERENCES `member_project` (`id`),
   ADD CONSTRAINT `member_reportissue_resolved_by_id_d3cf28b8_fk_member_user_id` FOREIGN KEY (`resolved_by_id`) REFERENCES `member_user` (`id`),
   ADD CONSTRAINT `member_reportissue_user_id_8428b576_fk_member_user_id` FOREIGN KEY (`user_id`) REFERENCES `member_user` (`id`);
+
+--
+-- Constraints for table `member_requeststatushistory`
+--
+ALTER TABLE `member_requeststatushistory`
+  ADD CONSTRAINT `member_requeststatus_changed_by_id_87ec8d57_fk_member_us` FOREIGN KEY (`changed_by_id`) REFERENCES `member_user` (`id`),
+  ADD CONSTRAINT `member_requeststatus_request_id_676316f7_fk_member_go` FOREIGN KEY (`request_id`) REFERENCES `member_governmentrequest` (`id`);
 
 --
 -- Constraints for table `member_stagereport`

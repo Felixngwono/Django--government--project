@@ -24,7 +24,7 @@
 {% include "aside.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-public-service" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
     <div class="mx-auto max-w-7xl space-y-6">
       <div class="flex items-center justify-between gap-3">
         <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-blue-700">
@@ -176,4 +176,3 @@
 </div>
 {% include "footer.html" %}
 {% endblock content %}
-

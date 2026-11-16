@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from member.models import (
+    Contractor,
     ContractorPaymentRequest,
     GovernmentAgency,
     IssueResponse,
@@ -16,6 +17,8 @@ from member.models import (
     ProjectInspection,
     ReportIssue,
     ProjectStage,
+    Tender,
+    TenderApplication,
     User,
 )
 
@@ -127,6 +130,65 @@ class ProjectGovernanceWorkflowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(ProjectChangeRequest.objects.filter(project=self.project).exists())
         self.assertContains(response, 'Select the project tender')
+
+    def test_project_worker_can_only_select_tenders_they_are_associated_with(self):
+        contractor_user = User.objects.create_user(
+            email='contractor@example.com',
+            username='contractor',
+            password='password123',
+            role='contractor',
+            organization='Works Ltd',
+        )
+        contractor = Contractor.objects.create(
+            name=contractor_user.full_name,
+            company='Works Ltd',
+            email=contractor_user.email,
+        )
+        contractor.projects.add(self.project)
+
+        awarded_tender = Tender.objects.create(
+            project=self.project,
+            title='Awarded works package',
+            awarded_to=contractor,
+        )
+        applied_tender = Tender.objects.create(
+            project=self.project,
+            title='Tender application submitted',
+        )
+        TenderApplication.objects.create(
+            tender=applied_tender,
+            applicant=contractor_user,
+            company_name='Works Ltd',
+        )
+        unrelated_tender = Tender.objects.create(
+            project=self.project,
+            title='Unrelated works package',
+        )
+
+        self.client.force_login(contractor_user)
+        response = self.client.get(
+            reverse('project_change_requests', args=[self.project.pk]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        tender_queryset = response.context['form'].fields['tender'].queryset
+        self.assertCountEqual(
+            tender_queryset.values_list('pk', flat=True),
+            [awarded_tender.pk, applied_tender.pk],
+        )
+
+        response = self.client.post(
+            reverse('project_change_requests', args=[self.project.pk]),
+            {
+                'tender': unrelated_tender.pk,
+                'proposed_contract_value': '950000.00',
+                'reason': 'Adjust the contract value after review.',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(ProjectChangeRequest.objects.filter(project=self.project).exists())
+        self.assertContains(response, 'Select a valid choice')
 
     def test_non_official_cannot_approve_project_change(self):
         change = ProjectChangeRequest.objects.create(

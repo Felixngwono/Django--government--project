@@ -5,98 +5,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Completed Projects — GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Plan Changes | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <style>
+    .change-page {
+      width: 100%;
+      padding: 26px clamp(16px, 3vw, 36px) 48px;
+      color: #172033;
+    }
+    .change-shell { width: 100%; max-width: 1440px; margin: 0 auto; }
+    .change-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      padding: clamp(24px, 4vw, 42px);
+      color: #fff;
+      background: linear-gradient(115deg, #10243b 0%, #173b58 58%, #176456 100%);
+      box-shadow: 0 22px 50px rgba(15,35,55,.18);
+    }
+    .change-hero::after {
+      position: absolute;
+      right: -80px;
+      bottom: -180px;
+      width: 400px;
+      height: 400px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 34px rgba(255,255,255,.035), 0 0 0 72px rgba(255,255,255,.025);
+      content: "";
+      pointer-events: none;
+    }
+    .change-hero-content { position: relative; z-index: 1; }
+    .change-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(167,243,208,.3);
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: #c9f7e5;
+      background: rgba(15,23,42,.22);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .change-hero h1 { margin: 18px 0 0; color: #fff; font-size: clamp(1.8rem, 3vw, 2.7rem); font-weight: 800; letter-spacing: -.04em; }
+    .change-hero p { max-width: 760px; margin: 10px 0 0; color: #d7e5ee; font-size: .95rem; line-height: 1.7; }
+    .change-hero-meta { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 20px; color: #dce8ee; font-size: .82rem; }
+    .change-hero-meta span { display: inline-flex; align-items: center; gap: 7px; }
+    .change-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .change-hero-link {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 11px;
+      padding: 0 14px;
+      color: #fff;
+      background: rgba(255,255,255,.1);
+      font-size: .82rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background .18s ease;
+    }
+    .change-hero-link:hover { background: rgba(255,255,255,.2); }
+    .change-summary {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 20px 0 0;
+      border: 1px solid #dfe8ee;
+      border-radius: 18px;
+      padding: 16px 19px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 8px 24px rgba(15,35,55,.05);
+    }
+    .change-summary-icon { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border-radius: 14px; color: #08745d; background: #e8f7f1; font-size: 23px; }
+    .change-summary strong { display: block; color: #172033; font-size: .98rem; }
+    .change-summary span { display: block; margin-top: 3px; color: #64748b; font-size: .82rem; line-height: 1.5; }
+    .change-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 20px; }
+    .change-panel { overflow: hidden; border: 1px solid #e1e8ee; border-radius: 20px; background: #fff; box-shadow: 0 12px 34px rgba(15,35,55,.055); }
+    .change-panel-header { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #edf1f4; padding: 19px 22px; }
+    .change-panel-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 13px; font-size: 21px; }
+    .change-panel-icon-baseline { color: #4f46e5; background: #eef2ff; }
+    .change-panel-icon-current { color: #08745d; background: #e8f7f1; }
+    .change-panel-header h2 { margin: 0; color: #172033; font-size: 1rem; font-weight: 800; }
+    .change-panel-header p { margin: 4px 0 0; color: #718096; font-size: .77rem; }
+    .change-values { display: grid; gap: 0; padding: 6px 22px 14px; }
+    .change-value { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid #f0f3f5; padding: 14px 0; }
+    .change-value:last-child { border-bottom: 0; }
+    .change-value dt { color: #64748b; font-size: .8rem; }
+    .change-value dd { margin: 0; color: #1e293b; font-size: .84rem; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+    .change-form-panel { margin-top: 20px; }
+    .change-form-notice { display: flex; gap: 11px; margin: 18px 22px 0; border: 1px solid #bae6d5; border-radius: 12px; padding: 12px 14px; color: #075b48; background: #f0faf5; font-size: .81rem; line-height: 1.55; }
+    .change-form { padding: 22px; }
+    .change-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px 14px; }
+    .change-field { min-width: 0; }
+    .change-field-wide { grid-column: 1 / -1; }
+    .change-field label { display: block; margin-bottom: 7px; color: #344256; font-size: .78rem; font-weight: 800; }
+    .change-field input:not([type="checkbox"]), .change-field textarea, .change-field select {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #d8e1e8;
+      border-radius: 11px;
+      padding: 10px 12px;
+      color: #172033;
+      background: #fbfcfd;
+      font: inherit;
+      font-size: .86rem;
+      outline: none;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .change-field textarea { min-height: 118px; resize: vertical; }
+    .change-field input:focus, .change-field textarea:focus, .change-field select:focus { border-color: #14866b; background: #fff; box-shadow: 0 0 0 3px rgba(20,134,107,.13); }
+    .change-field input[type="file"] { padding: 8px; background: #fff; }
+    .change-help { display: block; margin-top: 6px; color: #758195; font-size: .74rem; line-height: 1.5; }
+    .change-errors { margin: 6px 0 0; padding: 0; color: #b42318; font-size: .77rem; list-style: none; }
+    .change-field ul.errorlist { margin: 6px 0 0; padding: 0; color: #b42318; font-size: .77rem; list-style: none; }
+    .change-form-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; border-top: 1px solid #edf1f4; padding-top: 18px; }
+    .change-submit, .change-review-button {
+      display: inline-flex;
+      min-height: 43px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 10px;
+      padding: 0 15px;
+      color: #fff;
+      font-size: .82rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background .18s ease, transform .18s ease;
+    }
+    .change-submit { background: #08745d; }
+    .change-submit:hover { transform: translateY(-1px); background: #065d4b; }
+    .change-history { margin-top: 22px; }
+    .change-history-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 13px; }
+    .change-history-heading h2 { margin: 0; color: #172033; font-size: 1.25rem; font-weight: 800; }
+    .change-history-heading p { margin: 5px 0 0; color: #64748b; font-size: .83rem; }
+    .change-request-list { display: grid; gap: 13px; }
+    .change-request { overflow: hidden; border: 1px solid #e1e8ee; border-radius: 18px; background: #fff; box-shadow: 0 10px 28px rgba(15,35,55,.05); }
+    .change-request-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 11px; border-bottom: 1px solid #edf1f4; padding: 17px 20px; }
+    .change-request-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .change-request-title h3 { margin: 0; color: #172033; font-size: .95rem; font-weight: 800; }
+    .change-status { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 6px 10px; font-size: .69rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .change-status::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
+    .change-status-pending { color: #946200; background: #fff5d6; }
+    .change-status-approved { color: #08745d; background: #e8f7f1; }
+    .change-status-rejected { color: #b42318; background: #fff0ef; }
+    .change-request-date { color: #64748b; font-size: .75rem; }
+    .change-request-body { padding: 18px 20px 20px; }
+    .change-reason { margin: 0; color: #344256; font-size: .86rem; line-height: 1.7; white-space: pre-line; }
+    .change-proposals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .change-proposal { border: 1px solid #e8edf1; border-radius: 11px; padding: 11px 12px; background: #f8fafb; }
+    .change-proposal dt { color: #64748b; font-size: .72rem; }
+    .change-proposal dd { margin: 4px 0 0; color: #1e293b; font-size: .82rem; font-weight: 800; overflow-wrap: anywhere; }
+    .change-request-links { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; }
+    .change-request-links a { display: inline-flex; align-items: center; gap: 6px; color: #175cd3; font-size: .78rem; font-weight: 800; text-decoration: none; }
+    .change-request-links a:hover { text-decoration: underline; }
+    .change-review-note { margin-top: 15px; border-left: 3px solid #94a3b8; border-radius: 0 10px 10px 0; padding: 11px 13px; color: #475569; background: #f8fafc; font-size: .8rem; line-height: 1.55; }
+    .change-review-form { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; border-top: 1px solid #edf1f4; padding-top: 15px; }
+    .change-review-form input { min-width: min(250px, 100%); min-height: 42px; flex: 1; border: 1px solid #d8e1e8; border-radius: 10px; padding: 9px 11px; font: inherit; font-size: .82rem; outline: none; }
+    .change-review-form input:focus { border-color: #14866b; box-shadow: 0 0 0 3px rgba(20,134,107,.13); }
+    .change-review-approve { background: #08745d; }
+    .change-review-approve:hover { background: #065d4b; }
+    .change-review-reject { background: #b42318; }
+    .change-review-reject:hover { background: #912018; }
+    .change-empty { border: 1px dashed #cbd5e1; border-radius: 16px; padding: 38px 20px; background: rgba(255,255,255,.8); text-align: center; }
+    .change-empty-icon { display: grid; width: 52px; height: 52px; margin: 0 auto 12px; place-items: center; border-radius: 16px; color: #64748b; background: #f1f5f9; font-size: 24px; }
+    .change-empty h3 { margin: 0; color: #172033; font-size: .95rem; font-weight: 800; }
+    .change-empty p { max-width: 440px; margin: 6px auto 0; color: #64748b; font-size: .82rem; line-height: 1.6; }
+    .change-flash { margin-bottom: 14px; border: 1px solid #b9e5d4; border-radius: 12px; padding: 12px 15px; color: #075b48; background: #effaf5; font-size: .84rem; font-weight: 700; }
+    .change-flash-error { border-color: #f2c5c2; color: #9c2c24; background: #fff4f3; }
+    .project-change-page .header > nav { display: none; }
+    .project-change-page > footer { width: calc(100% - var(--sidebar-w)); }
+    .project-change-page > footer.sidebar-collapsed { width: calc(100% - var(--sidebar-collapsed)); }
+    .project-change-page > footer.sidebar-hidden { width: 100%; }
+    @media (max-width: 900px) { .change-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) {
+      .change-page { padding: 18px 13px 32px; }
+      .change-panel-header, .change-values { padding-right: 17px; padding-left: 17px; }
+      .change-form { padding: 18px; }
+      .change-form-grid { grid-template-columns: 1fr; }
+      .change-field-wide { grid-column: auto; }
+      .change-proposals { grid-template-columns: 1fr; }
+      .change-request-head, .change-request-body { padding-right: 16px; padding-left: 16px; }
+      .change-review-form { display: grid; grid-template-columns: 1fr 1fr; }
+      .change-review-form input { grid-column: 1 / -1; min-width: 0; }
+      .change-review-button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .change-hero-link, .change-field input, .change-field textarea, .change-field select, .change-submit, .change-review-button { transition: none; }
+    }
+    @media (max-width: 1024px) {
+      .project-change-page > footer, .project-change-page > footer.sidebar-collapsed, .project-change-page > footer.sidebar-hidden { width: 100%; margin-left: 0; }
+    }
+    @media (max-width: 768px) {
+      .project-change-page .header > div:last-child { display: none; }
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased font-sans">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="project-change-page bg-slate-50 text-slate-800 antialiased font-sans">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="change-page">
+      <div class="change-shell">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="change-flash{% if message.tags == 'error' %} change-flash-error{% endif %}" role="status">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
 
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
+        <nav class="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-500" aria-label="Breadcrumb">
+          <a href="{% url 'project_tracking_public' project.pk %}" class="transition hover:text-emerald-800">Public project tracking</a>
+          <iconify-icon icon="solar:alt-arrow-right-bold" aria-hidden="true"></iconify-icon>
+          <span class="text-slate-800">Plan changes</span>
+        </nav>
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
+        <header class="change-hero">
+          <div class="change-hero-content">
+            <span class="change-eyebrow"><iconify-icon icon="solar:document-text-bold-duotone" aria-hidden="true"></iconify-icon> Project governance</span>
+            <h1>Baseline and approved changes</h1>
+            <p>Review the project's original approved plan, its current authorized targets, and the formal proposals that document changes over time.</p>
+            <div class="change-hero-meta">
+              <span><iconify-icon icon="solar:folder-open-bold-duotone" class="text-emerald-300" aria-hidden="true"></iconify-icon>{{ project.project_title|default:"Untitled project" }}</span>
+              {% if project.reference_code %}<span class="font-mono text-xs"><iconify-icon icon="solar:hashtag-square-bold-duotone" class="text-emerald-300" aria-hidden="true"></iconify-icon>{{ project.reference_code }}</span>{% endif %}
+              <span><iconify-icon icon="solar:map-point-bold-duotone" class="text-emerald-300" aria-hidden="true"></iconify-icon>{{ project.project_location|default:"Location not recorded" }}</span>
+            </div>
+            <div class="change-hero-actions">
+              <a class="change-hero-link" href="{% url 'project_tracking_public' project.pk %}"><iconify-icon icon="solar:arrow-left-linear" aria-hidden="true"></iconify-icon> Back to project tracking</a>
+              <a class="change-hero-link" href="{% url 'project_details' project.pk %}"><iconify-icon icon="solar:folder-open-bold-duotone" aria-hidden="true"></iconify-icon> Project overview</a>
+            </div>
+          </div>
+        </header>
 
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <a href="{% url 'project_tracking_public' project.pk %}" class="text-sm font-semibold text-blue-700 hover:underline">Back to public project tracking</a>
-  <header>
-    <h1 class="text-2xl font-extrabold text-slate-900">Project baseline and approved changes</h1>
-    <p class="mt-1 text-slate-600">{{ project.project_title }}</p>
-  </header>
+        <div class="change-summary">
+          <div class="change-summary-icon"><iconify-icon icon="solar:shield-check-bold-duotone" aria-hidden="true"></iconify-icon></div>
+          <div>
+            <strong>Changes are controlled and auditable</strong>
+            <span>Proposed adjustments do not take effect until an authorized official reviews and approves them. Approved history remains available for accountability.</span>
+          </div>
+        </div>
 
-  <section class="grid gap-4 md:grid-cols-2">
-    <article class="rounded-2xl border border-slate-200 bg-white p-5">
-      <h2 class="font-bold">Approved baseline</h2>
-      <dl class="mt-3 space-y-2 text-sm">
-        <div class="flex justify-between gap-3"><dt class="text-slate-500">Original approved budget</dt><dd class="font-semibold">{{ baseline.approved_budget|default:"Not recorded" }}</dd></div>
-        <div class="flex justify-between gap-3"><dt class="text-slate-500">Original start</dt><dd class="font-semibold">{{ baseline.approved_start_date|date:"M d, Y"|default:"Not recorded" }}</dd></div>
-        <div class="flex justify-between gap-3"><dt class="text-slate-500">Original completion</dt><dd class="font-semibold">{{ baseline.approved_end_date|date:"M d, Y"|default:"Not recorded" }}</dd></div>
-      </dl>
-    </article>
-    <article class="rounded-2xl border border-slate-200 bg-white p-5">
-      <h2 class="font-bold">Current approved plan</h2>
-      <dl class="mt-3 space-y-2 text-sm">
-        <div class="flex justify-between gap-3"><dt class="text-slate-500">Current budget</dt><dd class="font-semibold">{{ project.project_Budgeting|default:"Not recorded" }}</dd></div>
-        <div class="flex justify-between gap-3"><dt class="text-slate-500">Current start</dt><dd class="font-semibold">{{ project.start_date|date:"M d, Y"|default:"Not recorded" }}</dd></div>
-        <div class="flex justify-between gap-3"><dt class="text-slate-500">Current completion</dt><dd class="font-semibold">{{ project.end_date|date:"M d, Y"|default:"Not recorded" }}</dd></div>
-      </dl>
-    </article>
-  </section>
+        <section class="change-grid" aria-label="Project plan comparison">
+          <article class="change-panel">
+            <div class="change-panel-header">
+              <span class="change-panel-icon change-panel-icon-baseline"><iconify-icon icon="solar:checklist-minimalistic-bold-duotone" aria-hidden="true"></iconify-icon></span>
+              <div><h2>Approved baseline</h2><p>The original approved project plan</p></div>
+            </div>
+            <dl class="change-values">
+              <div class="change-value"><dt>Original approved budget</dt><dd>{% if baseline and baseline.approved_budget != None %}KES {{ baseline.approved_budget|floatformat:2 }}{% else %}Not recorded{% endif %}</dd></div>
+              <div class="change-value"><dt>Original start date</dt><dd>{% if baseline and baseline.approved_start_date %}{{ baseline.approved_start_date|date:"M d, Y" }}{% else %}Not recorded{% endif %}</dd></div>
+              <div class="change-value"><dt>Original completion</dt><dd>{% if baseline and baseline.approved_end_date %}{{ baseline.approved_end_date|date:"M d, Y" }}{% else %}Not recorded{% endif %}</dd></div>
+            </dl>
+          </article>
+          <article class="change-panel">
+            <div class="change-panel-header">
+              <span class="change-panel-icon change-panel-icon-current"><iconify-icon icon="solar:chart-square-bold-duotone" aria-hidden="true"></iconify-icon></span>
+              <div><h2>Current approved plan</h2><p>Authorized project targets in effect now</p></div>
+            </div>
+            <dl class="change-values">
+              <div class="change-value"><dt>Current approved budget</dt><dd>{% if project.project_Budgeting != None %}KES {{ project.project_Budgeting|floatformat:2 }}{% else %}Not recorded{% endif %}</dd></div>
+              <div class="change-value"><dt>Current start date</dt><dd>{{ project.start_date|date:"M d, Y"|default:"Not recorded" }}</dd></div>
+              <div class="change-value"><dt>Current completion</dt><dd>{{ project.end_date|date:"M d, Y"|default:"Not recorded" }}</dd></div>
+            </dl>
+          </article>
+        </section>
 
-  {% if can_request_change %}
-  <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-    <h2 class="mb-3 text-lg font-bold">Propose a plan or contract change</h2>
-    <p class="mb-4 text-sm text-slate-600">Changes do not take effect until reviewed and approved by an authorized official.</p>
-    <form method="post" enctype="multipart/form-data" class="space-y-3">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button class="rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white" type="submit">Submit proposal</button>
-    </form>
-  </section>
-  {% endif %}
+        {% if can_request_change %}
+          <section class="change-panel change-form-panel" aria-labelledby="change-form-heading">
+            <div class="change-panel-header">
+              <span class="change-panel-icon change-panel-icon-current"><iconify-icon icon="solar:add-circle-bold-duotone" aria-hidden="true"></iconify-icon></span>
+              <div><h2 id="change-form-heading">Propose a plan or contract change</h2><p>Complete only the adjustments that apply; explain the reason for every proposal.</p></div>
+            </div>
+            <div class="change-form-notice" role="note">
+              <iconify-icon icon="solar:info-circle-bold-duotone" class="mt-0.5 shrink-0 text-lg" aria-hidden="true"></iconify-icon>
+              <p>Submitting a proposal does not change the active plan. The update takes effect only after official approval.</p>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="change-form">
+              {% csrf_token %}
+              {% if form.non_field_errors %}<div class="change-flash change-flash-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+              <div class="change-form-grid">
+                {% for field in form %}
+                  <div class="change-field{% if field.name == 'reason' %} change-field-wide{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true"> *</span>{% endif %}</label>
+                    {{ field }}
+                    {% if field.help_text %}<span class="change-help">{{ field.help_text }}</span>{% endif %}
+                    {% if field.errors %}<ul class="change-errors" role="alert">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="change-form-actions">
+                <span class="text-xs leading-5 text-slate-500">A supporting document can be attached for review.</span>
+                <button class="change-submit" type="submit"><iconify-icon icon="solar:paper-plane-bold-duotone" aria-hidden="true"></iconify-icon> Submit proposal</button>
+              </div>
+            </form>
+          </section>
+        {% endif %}
 
-  <section class="space-y-3" aria-labelledby="change-history">
-    <h2 id="change-history" class="text-lg font-bold">Change requests</h2>
-    {% for change in change_requests %}
-    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="flex flex-wrap justify-between gap-2">
-        <h3 class="font-bold">Request #{{ change.pk }} · {{ change.get_status_display }}</h3>
-        <time class="text-sm text-slate-500" datetime="{{ change.requested_at|date:'c' }}">{{ change.requested_at|date:"M d, Y H:i" }}</time>
+        <section class="change-history" aria-labelledby="change-history">
+          <div class="change-history-heading">
+            <div><h2 id="change-history">Change request history</h2><p>Formal plan and contract adjustments submitted for review.</p></div>
+          </div>
+          <div class="change-request-list">
+            {% for change in change_requests %}
+              <article class="change-request">
+                <div class="change-request-head">
+                  <div class="change-request-title">
+                    <h3>Change request #{{ change.pk }}</h3>
+                    <span class="change-status {% if change.status == 'approved' %}change-status-approved{% elif change.status == 'rejected' %}change-status-rejected{% else %}change-status-pending{% endif %}">{{ change.get_status_display }}</span>
+                  </div>
+                  <time class="change-request-date" datetime="{{ change.requested_at|date:'c' }}">Submitted {{ change.requested_at|date:"M d, Y · H:i" }}</time>
+                </div>
+                <div class="change-request-body">
+                  <p class="change-reason">{{ change.reason }}</p>
+                  <dl class="change-proposals">
+                    {% if change.proposed_budget != None %}<div class="change-proposal"><dt>Proposed budget</dt><dd>KES {{ change.proposed_budget|floatformat:2 }}</dd></div>{% endif %}
+                    {% if change.proposed_start_date %}<div class="change-proposal"><dt>Proposed start date</dt><dd>{{ change.proposed_start_date|date:"M d, Y" }}</dd></div>{% endif %}
+                    {% if change.proposed_end_date %}<div class="change-proposal"><dt>Proposed completion</dt><dd>{{ change.proposed_end_date|date:"M d, Y" }}</dd></div>{% endif %}
+                    {% if change.proposed_contract_value != None %}<div class="change-proposal"><dt>Proposed contract value{% if change.tender %} · {{ change.tender }}{% endif %}</dt><dd>KES {{ change.proposed_contract_value|floatformat:2 }}</dd></div>{% endif %}
+                  </dl>
+                  {% if change.supporting_document %}
+                    <div class="change-request-links"><a href="{{ change.supporting_document.url }}"><iconify-icon icon="solar:paperclip-bold-duotone" aria-hidden="true"></iconify-icon>Open supporting document</a></div>
+                  {% endif %}
+                  {% if change.reviewer_comments %}
+                    <p class="change-review-note"><strong>Review note:</strong> {{ change.reviewer_comments }}</p>
+                  {% endif %}
+                  {% if can_review_changes and change.status == 'pending' %}
+                    <form method="post" action="{% url 'review_project_change' change.pk %}" class="change-review-form">
+                      {% csrf_token %}
+                      <label class="sr-only" for="review-note-{{ change.pk }}">Review note (required when rejecting)</label>
+                      <input id="review-note-{{ change.pk }}" name="reviewer_comments" placeholder="Add a review note; required when rejecting">
+                      <button name="decision" value="approved" class="change-review-button change-review-approve" type="submit"><iconify-icon icon="solar:check-circle-bold-duotone" aria-hidden="true"></iconify-icon> Approve</button>
+                      <button name="decision" value="rejected" class="change-review-button change-review-reject" type="submit"><iconify-icon icon="solar:close-circle-bold-duotone" aria-hidden="true"></iconify-icon> Reject</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </article>
+            {% empty %}
+              <div class="change-empty">
+                <div class="change-empty-icon"><iconify-icon icon="solar:document-add-bold-duotone" aria-hidden="true"></iconify-icon></div>
+                <h3>No change requests to show</h3>
+                <p>{% if can_request_change %}When a plan change is proposed, its review status and decision will appear here.{% else %}No approved changes have been recorded for this project.{% endif %}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
       </div>
-      <p class="mt-2 whitespace-pre-line text-sm">{{ change.reason }}</p>
-      <ul class="mt-3 space-y-1 text-sm text-slate-600">
-        {% if change.proposed_budget != None %}<li>Proposed budget: {{ change.proposed_budget }}</li>{% endif %}
-        {% if change.proposed_start_date %}<li>Proposed start: {{ change.proposed_start_date|date:"M d, Y" }}</li>{% endif %}
-        {% if change.proposed_end_date %}<li>Proposed completion: {{ change.proposed_end_date|date:"M d, Y" }}</li>{% endif %}
-        {% if change.proposed_contract_value != None %}<li>Proposed contract value: {{ change.proposed_contract_value }}</li>{% endif %}
-      </ul>
-      {% if change.supporting_document %}<a class="mt-2 inline-block text-sm font-semibold text-blue-700 underline" href="{{ change.supporting_document.url }}">Open supporting document</a>{% endif %}
-      {% if change.reviewer_comments %}<p class="mt-2 text-sm text-slate-600">Review note: {{ change.reviewer_comments }}</p>{% endif %}
-      {% if can_review_changes and change.status == 'pending' %}
-      <form method="post" action="{% url 'review_project_change' change.pk %}" class="mt-4 flex flex-wrap gap-2">
-        {% csrf_token %}
-        <label class="sr-only" for="review-note-{{ change.pk }}">Review note</label>
-        <input id="review-note-{{ change.pk }}" name="reviewer_comments" class="min-w-64 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Reason required when rejecting">
-        <button name="decision" value="approved" class="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white">Approve</button>
-        <button name="decision" value="rejected" class="rounded-lg bg-rose-700 px-3 py-2 text-sm font-bold text-white">Reject</button>
-      </form>
-      {% endif %}
-    </article>
-    {% empty %}
-    <p class="rounded-xl bg-white p-5 text-sm text-slate-500">No change requests have been submitted.</p>
-    {% endfor %}
-  </section>
-</main>
-{% include "footer.html" %}
+    </div>
+  </main>
+  {% include "footer.html" %}
+</body>
+</html>

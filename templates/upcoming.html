@@ -30,7 +30,7 @@
 {% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
 
     <!-- HERO / STATS BANNER -->
     <div class="rounded-3xl bg-gradient-to-r from-indigo-50 via-indigo-100 to-indigo-50 p-8 text-slate-900 shadow-sm border border-indigo-100 relative overflow-hidden mb-8">
@@ -152,7 +152,7 @@
                   {% elif project.images %}
                     <img src="{{ project.images.url }}" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="{{ project.project_title }}">
                   {% else %}
-                    <img src="https://images.unsplash.com/photo-1590486803833-1c5dc8ddd4c8?q=80&w=400&auto=format&fit=crop" class="w-20 h-14 object-cover rounded-lg shadow-sm" alt="Public Project">
+                    <div class="flex h-14 w-20 items-center justify-center rounded-lg bg-slate-100 text-slate-400" aria-hidden="true"><iconify-icon icon="solar:buildings-2-bold-duotone" class="text-2xl"></iconify-icon></div>
                   {% endif %}
                 </td>
                 

@@ -1,11 +1,13 @@
 from io import BytesIO
 from tempfile import TemporaryDirectory
 from datetime import date, timedelta
+from urllib.parse import urlsplit
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from openpyxl import load_workbook
 from PIL import Image
 
 from member.ai_services import (
@@ -20,15 +22,20 @@ from member.forms import MyUserCreationForm, ProjectCreationForm, ReportIssueFor
 from member.models import (
     AIProjectAnalysis,
     AuditLog,
+    Budget,
     CitizenEvidence,
     Contractor,
     ContractorDocument,
     ContractorPaymentRequest,
     ContractorRating,
+    Feedback,
+    GovernmentRequest,
     Milestone,
+    Media,
     Participation,
     Project,
     ProjectExpense,
+    ProjectRisk,
     ProjectStage,
     ProjectStatusHistory,
     ProgressUpdate,
@@ -36,8 +43,10 @@ from member.models import (
     ReportIssue,
     StageReport,
     StageReportAttachment,
+    CitizenSubmission,
     Tender,
     TenderApplication,
+    Testimonial,
     User,
 )
 
@@ -954,6 +963,154 @@ class AIInsightsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Admin Dashboard')
+        self.assertContains(response, 'project-status-labels')
+        self.assertContains(response, 'background-governance.jpg')
+
+    def test_admin_dashboard_metrics_use_portfolio_totals_not_recent_rows(self):
+        user = User.objects.create_superuser(
+            email='metrics-admin@example.com',
+            username='metrics-admin',
+            password='testpass123',
+        )
+        self.client.force_login(user)
+        project = Project.objects.create(
+            project_title='Regional Water Upgrade',
+            project_status='ONGOING',
+            start_date=date.today() - timedelta(days=30),
+            end_date=date.today() + timedelta(days=30),
+        )
+        completed_project = Project.objects.create(
+            project_title='Community School',
+            project_status='completed',
+        )
+        Budget.objects.create(project=project, allocated_amount='1200.00', spent_amount='450.00')
+        Budget.objects.create(project=completed_project, allocated_amount='800.00', spent_amount='800.00')
+        for index in range(12):
+            Feedback.objects.create(full_name=f'Citizen {index}', feedback='Service feedback')
+            ReportIssue.objects.create(
+                project=project,
+                title=f'Issue {index}',
+                issue_description='Reported project concern.',
+                status='pending',
+            )
+
+        response = self.client.get(reverse('adminview'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['feedback_count'], 12)
+        self.assertEqual(len(response.context['feedbacks']), 10)
+        self.assertEqual(response.context['open_issue_count'], 12)
+        self.assertEqual(response.context['project_stats']['ongoing'], 1)
+        self.assertEqual(response.context['project_stats']['completed'], 1)
+        self.assertEqual(response.context['total_budget_allocated'], 2000)
+        self.assertEqual(response.context['total_budget_spent'], 1250)
+        self.assertEqual(len(response.context['project_status_labels']), len(Project.STATUS_CHOICES))
+
+
+class TestimonialsPageTests(TestCase):
+    def test_testimonial_detail_and_delete_use_actual_fields_and_shared_confirmation(self):
+        user = User.objects.create_user(
+            email='testimonial-author@example.com',
+            username='testimonial-author',
+            password='testpass123',
+        )
+        project = Project.objects.create(project_title='Community Library Upgrade')
+        testimonial = Testimonial.objects.create(
+            name='Community Author',
+            content='The library is now easier to access.',
+            user=user,
+            project=project,
+            rating=4,
+        )
+        self.client.force_login(user)
+
+        detail_response = self.client.get(
+            reverse('testimonial_details', args=[testimonial.pk])
+        )
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertContains(detail_response, 'The library is now easier to access.')
+        self.assertContains(detail_response, 'Community Library Upgrade')
+        self.assertContains(detail_response, 'Edit testimonial')
+        self.assertContains(detail_response, 'Delete testimonial')
+        self.assertNotContains(detail_response, 'Additional Information')
+
+        delete_response = self.client.get(
+            reverse('delete_testimonial', args=[testimonial.pk])
+        )
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertTemplateUsed(delete_response, 'testimonial_delete.html')
+        self.assertTemplateUsed(delete_response, 'delete_confirmation.html')
+        self.assertContains(delete_response, 'Delete this testimonial?')
+        self.assertContains(delete_response, 'Community Library Upgrade')
+
+        post_response = self.client.post(
+            reverse('delete_testimonial', args=[testimonial.pk])
+        )
+        self.assertRedirects(post_response, reverse('testimonials'))
+        self.assertFalse(Testimonial.objects.filter(pk=testimonial.pk).exists())
+
+    def test_testimonial_list_filters_and_limits_pending_visibility(self):
+        user = User.objects.create_user(
+            email='testimonial-viewer@example.com',
+            username='testimonial-viewer',
+            password='testpass123',
+        )
+        other_user = User.objects.create_user(
+            email='testimonial-other@example.com',
+            username='testimonial-other',
+            password='testpass123',
+        )
+        project = Project.objects.create(project_title='Community Bridge Renewal')
+        matching_testimonial = Testimonial.objects.create(
+            name='Amina Resident',
+            content='The bridge renewal has made the journey safer.',
+            user=user,
+            project=project,
+            rating=5,
+            is_approved=True,
+        )
+        own_pending = Testimonial.objects.create(
+            name='Amina Resident',
+            content='My pending story about the new park.',
+            user=user,
+            is_approved=False,
+        )
+        hidden_pending = Testimonial.objects.create(
+            name='Other Resident',
+            content='This submission is awaiting moderation.',
+            user=other_user,
+            is_approved=False,
+        )
+        for index in range(9):
+            Testimonial.objects.create(
+                name=f'Resident {index}',
+                content='A published community project experience.',
+                user=user,
+                is_approved=True,
+            )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('testimonials'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Community testimonials')
+        visible_ids = set(response.context['page_obj'].paginator.object_list.values_list('id', flat=True))
+        self.assertIn(matching_testimonial.id, visible_ids)
+        self.assertIn(own_pending.id, visible_ids)
+        self.assertNotIn(hidden_pending.id, visible_ids)
+        self.assertEqual(response.context['page_obj'].paginator.count, 11)
+        self.assertEqual(response.context['page_obj'].paginator.per_page, 9)
+
+        filtered_response = self.client.get(
+            reverse('testimonials'),
+            {'q': 'bridge', 'project': str(project.id), 'rating': '5'},
+        )
+        self.assertEqual(filtered_response.status_code, 200)
+        filtered_ids = {
+            testimonial.id
+            for testimonial in filtered_response.context['page_obj'].object_list
+        }
+        self.assertEqual(filtered_ids, {matching_testimonial.id})
 
     def test_build_project_intelligence_reports_project_statuses(self):
         Project.objects.create(
@@ -1020,6 +1177,234 @@ class AIInsightsTest(TestCase):
 
         self.assertIn('500,000.00', reply)
         self.assertEqual(model, 'govtracker-intelligence-v2')
+
+
+class FeedbackPageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='feedback-user@example.com',
+            username='feedback-user',
+            password='testpass123',
+        )
+        self.client.force_login(self.user)
+
+    def test_feedback_form_renders_optional_project_and_rating_fields(self):
+        response = self.client.get(reverse('feedback'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Share your feedback')
+        self.assertContains(response, 'Related project')
+        self.assertContains(response, 'Overall rating')
+        self.assertContains(response, 'Privacy reminder')
+
+    def test_feedback_form_saves_submission_and_displays_confirmation(self):
+        response = self.client.post(
+            reverse('feedback'),
+            {
+                'full_name': 'Amina Resident',
+                'phone_number': '+254700000000',
+                'email': 'amina@example.com',
+                'feedback': 'Please improve access around the clinic.',
+                'rating': '4',
+                'project': '',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('feedback'))
+        self.assertTrue(
+            Feedback.objects.filter(
+                full_name='Amina Resident',
+                feedback='Please improve access around the clinic.',
+                rating=4,
+                project__isnull=True,
+            ).exists()
+        )
+        confirmation_response = self.client.get(reverse('feedback'))
+        self.assertContains(confirmation_response, 'Thank you. Your feedback has been submitted.')
+
+    def test_feedback_details_show_submission_not_unwired_response_form(self):
+        project = Project.objects.create(project_title='Regional Clinic Upgrade')
+        feedback = Feedback.objects.create(
+            full_name='Amina Resident',
+            email='amina@example.com',
+            phone_number='+254700000000',
+            feedback='The clinic is easier to reach now.',
+            rating=5,
+            project=project,
+        )
+
+        response = self.client.get(reverse('feedback_details', args=[feedback.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Feedback message')
+        self.assertContains(response, 'The clinic is easier to reach now.')
+        self.assertContains(response, 'Regional Clinic Upgrade')
+        self.assertNotContains(response, 'Response Message')
+
+    def test_media_delete_uses_confirmation_and_requires_owner_or_admin(self):
+        media = Media.objects.create(
+            file='project_media/community-photo.jpg',
+            uploaded_by=self.user,
+            caption='Community project photo',
+        )
+
+        confirmation = self.client.get(reverse('delete_media', args=[media.pk]))
+
+        self.assertEqual(confirmation.status_code, 200)
+        self.assertContains(confirmation, 'Delete this media asset?')
+        self.assertTrue(Media.objects.filter(pk=media.pk).exists())
+        self.client.post(reverse('delete_media', args=[media.pk]))
+        self.assertFalse(Media.objects.filter(pk=media.pk).exists())
+
+
+class SystemReportExportTests(TestCase):
+    def setUp(self):
+        self.officer = User.objects.create_user(
+            email='report-officer@example.com',
+            username='report-officer',
+            password='password123',
+            role='official',
+        )
+        self.project = Project.objects.create(
+            project_title='North Bridge <Renewal>',
+            project_description='Bridge rehabilitation works.',
+            project_location='North District',
+            project_status='ongoing',
+            project_Budgeting=500000,
+            amount_spent=125000,
+            end_date=date.today() - timedelta(days=1),
+        )
+        tender = Tender.objects.create(
+            project=self.project,
+            title='North Bridge Works Tender',
+            status='published',
+        )
+        TenderApplication.objects.create(
+            tender=tender,
+            applicant=self.officer,
+            company_name='Bridge Builders Ltd',
+            bid_amount=450000,
+        )
+        Budget.objects.create(
+            project=self.project,
+            allocated_amount=500000,
+            spent_amount=125000,
+            fiscal_year='2026',
+        )
+        ProjectExpense.objects.create(
+            project=self.project,
+            title='Cement supplies',
+            category='materials',
+            amount=10000,
+        )
+        GovernmentRequest.objects.create(
+            citizen=self.officer,
+            title='Repair nearby access road',
+            description='The access road needs maintenance.',
+            category='infrastructure',
+            location='North District',
+            priority='high',
+        )
+        ReportIssue.objects.create(
+            project=self.project,
+            title='Worksite drainage concern',
+            issue_description='Standing water is affecting the site.',
+            severity='critical',
+        )
+        stage = self.project.stages.create(
+            stage_name='Foundation works',
+            description='Prepare and pour foundations.',
+            order=1,
+        )
+        Milestone.objects.create(
+            project=self.project,
+            stage=stage,
+            title='Complete foundation',
+            description='Finish the main foundation.',
+            due_date=date.today() + timedelta(days=14),
+        )
+        ProjectRisk.objects.create(
+            project=self.project,
+            risk_description='Heavy rainfall may delay site works.',
+            risk_level='high',
+        )
+        CitizenSubmission.objects.create(
+            user=self.officer,
+            project=self.project,
+            title='Add a pedestrian crossing',
+            message='Please consider adding a marked crossing.',
+            category='suggestion',
+        )
+        CitizenEvidence.objects.create(
+            user=self.officer,
+            project=self.project,
+            stage=stage,
+            category='infrastructure',
+            severity='moderate',
+            evidence_type='photo',
+            title='Drainage at the site',
+            description='Photo showing drainage conditions.',
+            location='North District',
+        )
+
+    def test_pdf_and_excel_exports_include_professional_summary_and_registers(self):
+        self.client.force_login(self.officer)
+
+        preview_response = self.client.get(reverse('generate_report'))
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertContains(preview_response, 'Comprehensive system report')
+        self.assertContains(preview_response, 'North Bridge &lt;Renewal&gt;')
+        self.assertContains(preview_response, 'Download complete PDF')
+
+        pdf_response = self.client.get(reverse('export_pdf'))
+        self.assertEqual(pdf_response.status_code, 200)
+        self.assertEqual(pdf_response['Content-Type'], 'application/pdf')
+        self.assertTrue(pdf_response.content.startswith(b'%PDF-'))
+        self.assertIn(b'govtracker_system_report.pdf', pdf_response['Content-Disposition'].encode())
+
+        legacy_pdf_response = self.client.get(reverse('export_report_pdf'))
+        self.assertEqual(legacy_pdf_response.status_code, 200)
+        self.assertEqual(legacy_pdf_response['Content-Type'], 'application/pdf')
+        self.assertTrue(legacy_pdf_response.content.startswith(b'%PDF-'))
+
+        excel_response = self.client.get(reverse('export_excel'))
+        self.assertEqual(excel_response.status_code, 200)
+        workbook = load_workbook(BytesIO(excel_response.content), read_only=True, data_only=True)
+        self.assertIn('Executive Summary', workbook.sheetnames)
+        self.assertIn('Project Register', workbook.sheetnames)
+        self.assertIn('Finance', workbook.sheetnames)
+        self.assertIn('Tenders', workbook.sheetnames)
+        self.assertIn('Applications', workbook.sheetnames)
+        self.assertIn('Requests', workbook.sheetnames)
+        self.assertIn('Reported Issues', workbook.sheetnames)
+        self.assertIn('Milestones', workbook.sheetnames)
+        self.assertIn('Risks', workbook.sheetnames)
+        self.assertIn('Citizen Submissions', workbook.sheetnames)
+        self.assertIn('Citizen Evidence', workbook.sheetnames)
+
+        summary = workbook['Executive Summary']
+        measures = {
+            row[1]: row[2]
+            for row in summary.iter_rows(min_row=5, values_only=True)
+        }
+        self.assertEqual(measures['Total projects'], 1)
+        self.assertEqual(measures['Project budget allocated'], 500000)
+        self.assertEqual(measures['Project expenditure recorded'], 125000)
+
+        project_register = workbook['Project Register']
+        self.assertEqual(project_register['B5'].value, self.project.project_title)
+        self.assertEqual(project_register['L5'].value, 500000)
+        self.assertEqual(project_register['M5'].value, 125000)
+        self.assertEqual(workbook['Tenders']['B5'].value, 'North Bridge Works Tender')
+        self.assertEqual(workbook['Applications']['C5'].value, 'Bridge Builders Ltd')
+        self.assertEqual(workbook['Requests']['B5'].value, 'Repair nearby access road')
+        self.assertEqual(workbook['Reported Issues']['A5'].value, 'Worksite drainage concern')
+        self.assertEqual(workbook['Milestones']['B5'].value, 'Complete foundation')
+        self.assertEqual(workbook['Risks']['B5'].value, 'Heavy rainfall may delay site works.')
+        self.assertEqual(workbook['Citizen Submissions']['A5'].value, 'Add a pedestrian crossing')
+        self.assertEqual(workbook['Citizen Evidence']['A5'].value, 'Drainage at the site')
+        workbook.close()
 
 
 class RolePermissionTests(TestCase):
@@ -2425,3 +2810,58 @@ class CitizenEvidenceAgreementTest(TestCase):
         self.assertEqual(r.status_code, 302)
         self.evidence.refresh_from_db()
         self.assertEqual(self.evidence.status, 'agreed')  # unchanged
+
+
+class PasswordResetEmailWorkflowTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='password-reset@example.com',
+            username='password-reset-user',
+            password='old-password-123',
+        )
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_request_sends_branded_email_and_reset_link_updates_password(self):
+        response = self.client.post(reverse('password_reset'), {
+            'email': self.user.email.upper(),
+        })
+
+        self.assertRedirects(response, reverse('password_reset_done'))
+        self.assertEqual(len(mail.outbox), 1)
+        reset_email = mail.outbox[0]
+        self.assertEqual(reset_email.to, [self.user.email])
+        self.assertEqual(reset_email.subject, 'Reset your GovTracker password')
+        self.assertEqual(reset_email.alternatives[0][1], 'text/html')
+        self.assertIn('Create a new password', reset_email.alternatives[0][0])
+        self.assertIn('reset-password/', reset_email.body)
+
+        reset_url = reset_email.body.split('secure link to choose a new password:\n', 1)[1].splitlines()[0]
+        reset_path = urlsplit(reset_url).path
+        confirmation_page = self.client.get(reset_path)
+        self.assertEqual(confirmation_page.status_code, 200)
+        self.assertContains(confirmation_page, 'Create a new password')
+
+        response = self.client.post(reset_path, {
+            'password': 'GovTracker!Safe2030',
+            'confirmation': 'GovTracker!Safe2030',
+        })
+
+        self.assertRedirects(response, reverse('login'))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('GovTracker!Safe2030'))
+        self.assertEqual(self.client.get(reset_path).status_code, 200)
+        self.assertContains(self.client.get(reset_path), 'This link can’t be used')
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_unknown_email_and_legacy_sms_submission_show_same_generic_result(self):
+        for data in (
+            {'email': 'not-registered@example.com'},
+            {'method': 'sms', 'identifier': self.user.phone_number or ''},
+        ):
+            with self.subTest(data=data):
+                response = self.client.post(reverse('password_reset'), data)
+                self.assertRedirects(response, reverse('password_reset_done'))
+                done_page = self.client.get(response.url)
+                self.assertContains(done_page, 'If the address matches an active account')
+
+        self.assertEqual(mail.outbox, [])

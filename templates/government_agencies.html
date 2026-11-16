@@ -5,60 +5,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Completed Projects — GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agency Registry | GovTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <style>
+    .agency-page {
+      padding: 28px clamp(16px, 3vw, 36px) 48px;
+      color: #172033;
+    }
+    .agency-shell { width: 100%; max-width: none; margin: 0; }
+    .agency-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      padding: clamp(24px, 4vw, 42px);
+      color: #fff;
+      background: linear-gradient(115deg, #10243b 0%, #173b58 58%, #176456 100%);
+      box-shadow: 0 22px 50px rgba(15, 35, 55, .18);
+    }
+    .agency-hero::after {
+      position: absolute;
+      right: -72px;
+      bottom: -180px;
+      width: 390px;
+      height: 390px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 34px rgba(255,255,255,.035), 0 0 0 72px rgba(255,255,255,.025);
+      content: "";
+      pointer-events: none;
+    }
+    .agency-hero-content { position: relative; z-index: 1; max-width: 780px; }
+    .agency-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      border: 1px solid rgba(167,243,208,.3);
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: #c9f7e5;
+      background: rgba(15,23,42,.22);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .agency-hero h1 { margin: 0; color: #fff; font-size: clamp(1.8rem, 3.2vw, 2.8rem); font-weight: 800; letter-spacing: -.04em; }
+    .agency-hero p { max-width: 650px; margin: 12px 0 0; color: #d7e5ee; font-size: .98rem; line-height: 1.7; }
+    .agency-overview {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 20px 0 24px;
+      border: 1px solid #dfe8ee;
+      border-radius: 18px;
+      padding: 17px 20px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 8px 24px rgba(15, 35, 55, .05);
+    }
+    .agency-overview-icon {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      flex: 0 0 46px;
+      place-items: center;
+      border-radius: 14px;
+      color: #08745d;
+      background: #e8f7f1;
+      font-size: 23px;
+    }
+    .agency-overview strong { display: block; color: #172033; font-size: 1.08rem; }
+    .agency-overview span { display: block; margin-top: 3px; color: #64748b; font-size: .84rem; }
+    .agency-layout { display: grid; grid-template-columns: minmax(300px, .78fr) minmax(0, 1.45fr); align-items: start; gap: 22px; }
+    .agency-panel {
+      overflow: hidden;
+      border: 1px solid #e1e8ee;
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 12px 34px rgba(15, 35, 55, .06);
+    }
+    .agency-panel-header { padding: 22px 24px 18px; border-bottom: 1px solid #edf1f4; }
+    .agency-panel-header h2 { margin: 0; color: #172033; font-size: 1.08rem; font-weight: 800; }
+    .agency-panel-header p { margin: 6px 0 0; color: #6b7788; font-size: .84rem; line-height: 1.55; }
+    .agency-form { padding: 22px 24px 24px; }
+    .agency-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px 14px; }
+    .agency-field { min-width: 0; }
+    .agency-field-wide { grid-column: 1 / -1; }
+    .agency-field > label, .agency-field-label {
+      display: block;
+      margin-bottom: 7px;
+      color: #344256;
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .agency-field input:not([type="checkbox"]), .agency-field textarea, .agency-field select {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #d8e1e8;
+      border-radius: 11px;
+      padding: 10px 12px;
+      color: #172033;
+      background: #fbfcfd;
+      font: inherit;
+      font-size: .88rem;
+      outline: none;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .agency-field textarea { min-height: 112px; resize: vertical; }
+    .agency-field input:focus, .agency-field textarea:focus, .agency-field select:focus {
+      border-color: #14866b;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(20,134,107,.13);
+    }
+    .agency-field input[type="checkbox"] { width: 17px; height: 17px; accent-color: #08745d; }
+    .agency-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      color: #344256;
+      font-size: .88rem;
+      font-weight: 700;
+    }
+    .agency-checkbox .agency-field-label { margin: 0; }
+    .agency-help { display: block; margin-top: 6px; color: #758195; font-size: .75rem; line-height: 1.5; }
+    .agency-errors { margin: 6px 0 0; padding: 0; color: #b42318; font-size: .78rem; list-style: none; }
+    .agency-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 22px; }
+    .agency-button {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 0 16px;
+      color: #fff;
+      background: #08745d;
+      font-size: .86rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .agency-button:hover { transform: translateY(-1px); background: #065d4b; box-shadow: 0 8px 18px rgba(8,116,93,.2); }
+    .agency-button-secondary { border-color: #dce4ea; color: #475569; background: #fff; }
+    .agency-button-secondary:hover { color: #172033; background: #f5f8fa; box-shadow: none; }
+    .agency-list { display: grid; gap: 12px; padding: 18px; }
+    .agency-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      border: 1px solid #e7edf1;
+      border-radius: 16px;
+      padding: 18px;
+      background: linear-gradient(145deg, #fff, #fbfcfd);
+      transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+    .agency-card:hover { transform: translateY(-2px); border-color: #c7ddd5; box-shadow: 0 10px 24px rgba(15,35,55,.07); }
+    .agency-card-main { display: flex; min-width: 0; gap: 13px; }
+    .agency-monogram {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      flex: 0 0 46px;
+      place-items: center;
+      border: 1px solid #d8eee6;
+      border-radius: 14px;
+      color: #08745d;
+      background: #edf8f3;
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .agency-card h3 { margin: 1px 0 5px; color: #172033; font-size: .98rem; font-weight: 800; overflow-wrap: anywhere; }
+    .agency-code { color: #64748b; font-family: "JetBrains Mono", monospace; font-size: .72rem; }
+    .agency-description { margin: 9px 0 0; color: #64748b; font-size: .82rem; line-height: 1.55; }
+    .agency-contact { display: flex; flex-wrap: wrap; gap: 7px 16px; margin-top: 10px; }
+    .agency-contact a, .agency-contact span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #526174;
+      font-size: .77rem;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+    .agency-contact a:hover { color: #08745d; text-decoration: underline; }
+    .agency-contact iconify-icon { color: #16836a; font-size: 15px; }
+    .agency-card-actions { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 12px; }
+    .agency-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .7rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .agency-status::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
+    .agency-status-active { color: #08745d; background: #e8f7f1; }
+    .agency-status-inactive { color: #64748b; background: #f1f4f6; }
+    .agency-edit {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #dce8e3;
+      border-radius: 9px;
+      padding: 7px 10px;
+      color: #08745d;
+      background: #fff;
+      font-size: .77rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background .18s ease;
+    }
+    .agency-edit:hover { background: #eff8f4; }
+    .agency-empty { padding: 52px 24px; text-align: center; }
+    .agency-empty-icon { display: grid; width: 58px; height: 58px; margin: 0 auto 15px; place-items: center; border-radius: 18px; color: #08745d; background: #e8f7f1; font-size: 28px; }
+    .agency-empty h3 { margin: 0; color: #172033; font-size: 1rem; font-weight: 800; }
+    .agency-empty p { max-width: 350px; margin: 7px auto 0; color: #6b7788; font-size: .84rem; line-height: 1.6; }
+    .agency-notice { margin-bottom: 16px; border: 1px solid #b9e5d4; border-radius: 12px; padding: 12px 15px; color: #075b48; background: #effaf5; font-size: .86rem; font-weight: 600; }
+    .agency-notice-error { border-color: #f2c5c2; color: #9c2c24; background: #fff4f3; }
+    @media (max-width: 960px) { .agency-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) {
+      .agency-page { padding: 18px 13px 32px; }
+      .agency-form { padding: 18px; }
+      .agency-panel-header { padding: 19px 18px 16px; }
+      .agency-form-grid { grid-template-columns: 1fr; }
+      .agency-field-wide { grid-column: auto; }
+      .agency-list { padding: 12px; }
+      .agency-card { grid-template-columns: 1fr; }
+      .agency-card-actions { flex-direction: row; align-items: center; }
+      .agency-overview { padding: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .agency-card, .agency-button, .agency-field input, .agency-field textarea, .agency-field select { transition: none; }
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans">
+  <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  {% include "aside.html" %}
+  {% include "heading.html" %}
 
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
+  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+    <div class="agency-page">
+      <div class="agency-shell">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="agency-notice{% if message.tags == 'error' %} agency-notice-error{% endif %}" role="status">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
 
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
+        <header class="agency-hero">
+          <div class="agency-hero-content">
+            <p class="agency-eyebrow"><iconify-icon icon="solar:buildings-2-bold-duotone" aria-hidden="true"></iconify-icon> Governance directory</p>
+            <h1>Government agency registry</h1>
+            <p>Keep the organizations responsible for public projects accurate and easy to identify. Agency records help teams maintain consistent ownership, communication, and reporting.</p>
+          </div>
+        </header>
 
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <header>
-    <h1 class="text-2xl font-extrabold text-slate-900">Government agency registry</h1>
-    <p class="mt-1 text-sm text-slate-600">Maintain a shared agency list for consistent project ownership and reporting.</p>
-  </header>
-  <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-    <h2 class="mb-3 text-lg font-bold">{% if editing_agency %}Edit agency{% else %}Add an agency{% endif %}</h2>
-    <form method="post" class="space-y-3">
-      {% csrf_token %}
-      {% if editing_agency %}<input type="hidden" name="agency_id" value="{{ editing_agency.pk }}">{% endif %}
-      {{ form.as_p }}
-      <button class="rounded-xl bg-blue-700 px-4 py-2.5 font-bold text-white" type="submit">{% if editing_agency %}Update agency{% else %}Save agency{% endif %}</button>
-      {% if editing_agency %}<a class="ml-2 text-sm font-semibold text-slate-600 underline" href="{% url 'government_agencies' %}">Cancel</a>{% endif %}
-    </form>
-  </section>
-  <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    <h2 class="border-b border-slate-100 p-5 text-lg font-bold">Registered agencies</h2>
-    <ul class="divide-y divide-slate-100">
-      {% for agency in agencies %}
-      <li class="flex flex-wrap items-center justify-between gap-3 p-5">
-        <div><h3 class="font-bold">{{ agency.name }}</h3><p class="text-sm text-slate-500">{{ agency.code|default:"No code" }}{% if agency.contact_email %} · {{ agency.contact_email }}{% endif %}</p></div>
-        <div class="flex items-center gap-3">
-          <span class="rounded-full px-3 py-1 text-xs font-bold {% if agency.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-slate-100 text-slate-600{% endif %}">{% if agency.is_active %}Active{% else %}Inactive{% endif %}</span>
-          <a class="text-sm font-semibold text-blue-700 underline" href="{% url 'government_agencies' %}?edit={{ agency.pk }}">Edit</a>
+        <div class="agency-overview">
+          <div class="agency-overview-icon"><iconify-icon icon="solar:buildings-2-bold-duotone" aria-hidden="true"></iconify-icon></div>
+          <div>
+            <strong>{{ agencies|length }} registered {% if agencies|length == 1 %}agency{% else %}agencies{% endif %}</strong>
+            <span>Agency directory · Maintain official names, contacts, and active status</span>
+          </div>
         </div>
-      </li>
-      {% empty %}
-      <li class="p-5 text-sm text-slate-500">No agencies have been registered.</li>
-      {% endfor %}
-    </ul>
-  </section>
-</main>
-{% include "footer.html" %}
+
+        <div class="agency-layout">
+          <section class="agency-panel" aria-labelledby="agency-form-heading">
+            <div class="agency-panel-header">
+              <h2 id="agency-form-heading">{% if editing_agency %}Update agency record{% else %}Register an agency{% endif %}</h2>
+              <p>{% if editing_agency %}Review the information below and save your changes.{% else %}Add an organization that can be associated with government projects.{% endif %}</p>
+            </div>
+            <form method="post" class="agency-form">
+              {% csrf_token %}
+              {% if editing_agency %}<input type="hidden" name="agency_id" value="{{ editing_agency.pk }}">{% endif %}
+              {% if form.non_field_errors %}
+                <div class="agency-notice agency-notice-error" role="alert">{{ form.non_field_errors }}</div>
+              {% endif %}
+              <div class="agency-form-grid">
+                {% for field in form %}
+                  <div class="agency-field{% if field.name == 'description' %} agency-field-wide{% endif %}">
+                    {% if field.field.widget.input_type == "checkbox" %}
+                      <label class="agency-checkbox" for="{{ field.id_for_label }}">{{ field }}<span class="agency-field-label">{{ field.label }}</span></label>
+                    {% else %}
+                      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true"> *</span>{% endif %}</label>
+                      {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}<span class="agency-help">{{ field.help_text }}</span>{% endif %}
+                    {% if field.errors %}<ul class="agency-errors" role="alert">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="agency-form-actions">
+                <button class="agency-button" type="submit">
+                  <iconify-icon icon="{% if editing_agency %}solar:diskette-bold{% else %}solar:add-circle-bold{% endif %}" aria-hidden="true"></iconify-icon>
+                  {% if editing_agency %}Save agency changes{% else %}Add agency{% endif %}
+                </button>
+                {% if editing_agency %}
+                  <a class="agency-button agency-button-secondary" href="{% url 'government_agencies' %}">Cancel</a>
+                {% endif %}
+              </div>
+            </form>
+          </section>
+
+          <section class="agency-panel" aria-labelledby="agency-list-heading">
+            <div class="agency-panel-header">
+              <h2 id="agency-list-heading">Registered agencies</h2>
+              <p>Current organizations available for project ownership and reporting.</p>
+            </div>
+            {% if agencies %}
+              <div class="agency-list">
+                {% for agency in agencies %}
+                  <article class="agency-card">
+                    <div class="agency-card-main">
+                      <div class="agency-monogram" aria-hidden="true">{{ agency.name|first }}</div>
+                      <div>
+                        <h3>{{ agency.name }}</h3>
+                        <span class="agency-code">{% if agency.code %}{{ agency.code }}{% else %}Agency code not assigned{% endif %}</span>
+                        {% if agency.description %}<p class="agency-description">{{ agency.description|truncatechars:180 }}</p>{% endif %}
+                        <div class="agency-contact">
+                          {% if agency.contact_email %}<a href="mailto:{{ agency.contact_email }}"><iconify-icon icon="solar:letter-bold-duotone" aria-hidden="true"></iconify-icon>{{ agency.contact_email }}</a>{% endif %}
+                          {% if agency.contact_phone %}<a href="tel:{{ agency.contact_phone }}"><iconify-icon icon="solar:phone-bold-duotone" aria-hidden="true"></iconify-icon>{{ agency.contact_phone }}</a>{% endif %}
+                          {% if not agency.contact_email and not agency.contact_phone %}<span><iconify-icon icon="solar:info-circle-bold-duotone" aria-hidden="true"></iconify-icon>No contact details provided</span>{% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="agency-card-actions">
+                      <span class="agency-status {% if agency.is_active %}agency-status-active{% else %}agency-status-inactive{% endif %}">{% if agency.is_active %}Active{% else %}Inactive{% endif %}</span>
+                      <a class="agency-edit" href="{% url 'government_agencies' %}?edit={{ agency.pk }}" aria-label="Edit {{ agency.name }}">
+                        <iconify-icon icon="solar:pen-2-bold" aria-hidden="true"></iconify-icon> Edit
+                      </a>
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="agency-empty">
+                <div class="agency-empty-icon"><iconify-icon icon="solar:buildings-2-bold-duotone" aria-hidden="true"></iconify-icon></div>
+                <h3>No agencies registered yet</h3>
+                <p>Add the first government agency using the form. It can then be selected as the responsible organization on projects.</p>
+              </div>
+            {% endif %}
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+  {% include "footer.html" %}
+</body>
+</html>

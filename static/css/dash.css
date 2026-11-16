@@ -55,7 +55,7 @@
     background:var(--surface);
     border-right:1px solid var(--border);
     display:flex; flex-direction:column;
-    transition:width 0.3s cubic-bezier(.4,0,.2,1), transform 0.3s;
+    transition:none;
     z-index:100; overflow:hidden;
   }
   .sidebar.collapsed { width:var(--sidebar-collapsed); }
@@ -134,7 +134,7 @@
     border-bottom:1px solid var(--border);
     display:flex; align-items:center;
     padding:0 24px; gap:16px; z-index:99;
-    transition:left 0.3s;
+    transition:none;
   }
   .header.sidebar-collapsed { left:var(--sidebar-collapsed); }
   .header.sidebar-hidden { left:0; }
@@ -218,7 +218,7 @@
     width:calc(100% - var(--sidebar-w));
     min-width:0;
     padding-top:var(--header-h);
-    transition:margin-left 0.3s, width 0.3s;
+    transition:none;
     min-height:100vh;
   }
   .main.sidebar-collapsed {
@@ -623,7 +623,7 @@
   /* ===== FOOTER ===== */
   footer {
     margin-left:var(--sidebar-w);
-    transition:margin-left 0.3s;
+    transition:none;
     background:var(--footer-bg);
     color:var(--footer-ink);
   }
@@ -699,3 +699,45 @@
     opacity:0; transition:opacity 0.2s; margin-bottom:4px; z-index:10;
   }
   .tooltip-wrap:hover .tooltip-box { opacity:1; }
+
+  .page-photo-bg {
+    position:relative;
+    isolation:isolate;
+  }
+  .page-photo-bg::before {
+    content:"";
+    position:absolute;
+    z-index:-1;
+    inset:0;
+    left:50%;
+    width:100vw;
+    transform:translateX(-50%);
+    pointer-events:none;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-size:cover;
+  }
+  .page-bg-works::before {
+    background-image:linear-gradient(rgba(248,250,252,.78),rgba(248,250,252,.84)),url("../images/background-public-works.jpg");
+  }
+  .page-bg-finance::before {
+    background-image:linear-gradient(rgba(248,250,252,.83),rgba(241,245,249,.88)),url("../images/background-finance.jpg");
+  }
+  .page-bg-governance::before {
+    background-image:linear-gradient(rgba(248,250,252,.86),rgba(241,245,249,.90)),url("../images/background-governance.jpg");
+  }
+  .page-bg-public-service::before {
+    background-image:linear-gradient(rgba(240,253,250,.86),rgba(248,250,252,.90)),url("../images/background-public-service.jpg");
+  }
+  .dark .page-bg-works::before {
+    background-image:linear-gradient(rgba(15,23,42,.82),rgba(15,23,42,.90)),url("../images/background-public-works.jpg");
+  }
+  .dark .page-bg-finance::before {
+    background-image:linear-gradient(rgba(15,23,42,.84),rgba(15,23,42,.91)),url("../images/background-finance.jpg");
+  }
+  .dark .page-bg-governance::before {
+    background-image:linear-gradient(rgba(15,23,42,.85),rgba(15,23,42,.92)),url("../images/background-governance.jpg");
+  }
+  .dark .page-bg-public-service::before {
+    background-image:linear-gradient(rgba(15,23,42,.85),rgba(15,23,42,.92)),url("../images/background-public-service.jpg");
+  }

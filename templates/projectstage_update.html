@@ -30,7 +30,7 @@
 <!-- ===== HEADER ===== -->
 
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="content">
 
     <!-- ============================
@@ -65,9 +65,7 @@
                      alt="{{ updatestage.project.project_title }}" 
                      class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
             {% else %}
-                <img src="{% static 'images/default_project.jpg' %}" 
-                     alt="Default Project Image" 
-                     class="w-full h-full object-cover">
+                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-indigo-100 text-slate-400" aria-hidden="true"><iconify-icon icon="solar:buildings-2-bold-duotone" class="text-5xl"></iconify-icon></div>
             {% endif %}
         </div>
     </div>

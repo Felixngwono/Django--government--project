@@ -19,7 +19,7 @@
   {% include "aside.html" %}
   {% include "heading.html" %}
 
-  <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+  <main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
     <div class="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
       <a href="{% url 'project_tracking_public' project.pk %}" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 transition hover:text-blue-900">
         <iconify-icon icon="solar:arrow-left-linear"></iconify-icon>

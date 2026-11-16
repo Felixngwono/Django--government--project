@@ -1,108 +1,157 @@
-{% load static %}
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
-
-</head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
-
-<!-- ===== HEADER ===== -->
-{% include "heading.html" %}
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  <div class="content">
-
-    <!-- ============================
-         PAGE: DASHBOARD
-    ============================= -->
-
-
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-    
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Report</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#153d32">
+  <title>System Report | GovTracker</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172a25; background: #f3f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: #f3f7f5; }
+    .page { width: min(100% - 36px, 1180px); margin: 34px auto 60px; }
+    .hero { position: relative; overflow: hidden; padding: clamp(26px, 5vw, 46px); border-radius: 26px; color: #f4fbf7; background: linear-gradient(125deg, #153d32, #1d5e43); box-shadow: 0 18px 42px #17382c22; }
+    .hero::after { position: absolute; top: -110px; right: -40px; width: 340px; height: 340px; border: 1px solid #ffffff20; border-radius: 50%; box-shadow: 0 0 0 34px #ffffff08, 0 0 0 70px #ffffff08; content: ""; }
+    .brand { display: flex; align-items: center; gap: 10px; color: #d3ebdc; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .brand-mark { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #ffffff35; border-radius: 12px; background: #ffffff12; }
+    .hero h1 { position: relative; z-index: 1; margin: 25px 0 9px; font-size: clamp(28px, 4vw, 40px); letter-spacing: -.04em; }
+    .hero p { position: relative; z-index: 1; max-width: 700px; margin: 0; color: #d5e6dd; font-size: 14px; line-height: 1.75; }
+    .generated { position: relative; z-index: 1; margin-top: 21px; color: #b6d4c2; font-size: 12px; }
+    .actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 0 16px; border: 1px solid #ffffff4d; border-radius: 12px; color: #fff; background: #ffffff14; font-size: 13px; font-weight: 750; text-decoration: none; transition: background .15s, transform .15s; }
+    .button:hover { transform: translateY(-1px); background: #ffffff26; }
+    .button.primary { border-color: #e8f5ed; color: #174b3a; background: #f3faf5; }
+    .button.primary:hover { background: #fff; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 20px 0; }
+    .metric { padding: 19px 20px; border: 1px solid #e3ebe7; border-radius: 17px; background: #fff; box-shadow: 0 4px 14px #17382c08; }
+    .metric-label { color: #73827a; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .metric-value { margin-top: 9px; color: #183e32; font-size: clamp(19px, 2.4vw, 26px); font-weight: 800; letter-spacing: -.03em; overflow-wrap: anywhere; }
+    .section { margin-top: 22px; padding: clamp(18px, 3vw, 28px); border: 1px solid #e3ebe7; border-radius: 20px; background: #fff; box-shadow: 0 4px 14px #17382c08; }
+    .section-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #e9efeb; }
+    .section-heading h2 { margin: 0; color: #183e32; font-size: 18px; letter-spacing: -.02em; }
+    .section-heading p { margin: 5px 0 0; color: #78877f; font-size: 12px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .summary-card { overflow: hidden; border: 1px solid #e6ede9; border-radius: 14px; }
+    .summary-card h3 { margin: 0; padding: 12px 15px; color: #1b543d; background: #eff7f2; font-size: 12px; font-weight: 800; letter-spacing: .03em; }
+    .summary-card dl { margin: 0; padding: 3px 15px 8px; }
+    .summary-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid #f0f3f1; font-size: 12px; }
+    .summary-row:last-child { border-bottom: 0; }
+    .summary-row dt { color: #64756d; }
+    .summary-row dd { margin: 0; color: #203d31; font-weight: 750; text-align: right; overflow-wrap: anywhere; }
+    .table-wrap { overflow-x: auto; border: 1px solid #e6ede9; border-radius: 14px; }
+    table { width: 100%; min-width: 980px; border-collapse: collapse; text-align: left; }
+    th { padding: 12px 14px; color: #eaf5ee; background: #174b3a; font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 12px 14px; border-top: 1px solid #e9efeb; color: #50635a; font-size: 12px; vertical-align: top; }
+    tbody tr:nth-child(even) { background: #f8fbf9; }
+    td.project-name { color: #203d31; font-weight: 750; }
+    .status { display: inline-block; padding: 4px 8px; border-radius: 999px; color: #1b6345; background: #eaf6ee; font-size: 10px; font-weight: 750; white-space: nowrap; }
+    .empty { padding: 26px; color: #78877f; text-align: center; font-size: 13px; }
+    footer { padding: 25px 0 0; color: #839088; font-size: 11px; text-align: center; }
+    @media (max-width: 760px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .summary-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 420px) { .page { width: min(100% - 22px, 1180px); margin-top: 12px; } .hero { border-radius: 20px; } .metrics { gap: 9px; } .metric { padding: 15px 13px; } .actions .button { flex: 1 1 100%; } }
+    @media print {
+      :root, body { background: #fff; }
+      .page { width: 100%; margin: 0; }
+      .hero, .section, .metric { box-shadow: none; }
+      .hero { border-radius: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .actions { display: none; }
+      .section, .summary-card, tr { break-inside: avoid; }
+      .table-wrap { overflow: visible; }
+      table { min-width: 0; }
+      th { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-6">
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h1 class="text-3xl font-bold mb-4 ">Project Management Report</h1>
-        
-        <div class="grid grid-cols-3 gap-4 mb-6">
-            <div class="bg-blue-100 p-4 rounded-md">
-                <h2 class="text-lg font-semibold">Total Users</h2>
-                <p class="text-xl font-bold">{{ total_users }}</p>
-            </div>
-            <div class="bg-green-100 p-4 rounded-md">
-                <h2 class="text-lg font-semibold">Total Projects</h2>
-                <p class="text-xl font-bold">{{ total_projects }}</p>
-            </div>
-            <div class="bg-yellow-100 p-4 rounded-md">
-                <h2 class="text-lg font-semibold">Total Feedbacks</h2>
-                <p class="text-xl font-bold">{{ total_feedbacks }}</p>
-            </div>
-        </div>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 20V8l8-4 8 4v12M8 20v-6h8v6M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        GovTracker · Official reporting
+      </div>
+      <h1>Comprehensive system report</h1>
+      <p>One report covering project delivery, portfolio finances, procurement, citizen services, operational risks, and administration.</p>
+      <div class="generated">Reporting snapshot generated {{ generated_at|date:"d F Y, H:i T" }}</div>
+      <nav class="actions" aria-label="Report export options">
+        <a class="button primary" href="{% url 'export_report_pdf' %}">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Download complete PDF
+        </a>
+        <a class="button" href="{% url 'export_excel' %}">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 4h16v16H4zM8 8l8 8m0-8-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Download detailed Excel workbook
+        </a>
+      </nav>
+    </header>
 
-        <h2 class="text-2xl font-bold mb-2">Budget Summary</h2>
-        <div class="bg-gray-200 p-4 rounded-md mb-6">
-            <p><strong>Allocated Budget:</strong> ${{ total_budget_allocated }}</p>
-            <p><strong>Spent Budget:</strong> ${{ total_budget_spent }}</p>
-        </div>
+    <section class="metrics" aria-label="Report highlights">
+      <article class="metric"><div class="metric-label">Projects</div><div class="metric-value">{{ summary.projects|intcomma }}</div></article>
+      <article class="metric"><div class="metric-label">Completed</div><div class="metric-value">{{ summary.completed|intcomma }}</div></article>
+      <article class="metric"><div class="metric-label">Active projects overdue</div><div class="metric-value">{{ summary.overdue|intcomma }}</div></article>
+      <article class="metric"><div class="metric-label">Portfolio allocated (KSh)</div><div class="metric-value">{{ summary.allocated|floatformat:0|intcomma }}</div></article>
+      <article class="metric"><div class="metric-label">Portfolio spent (KSh)</div><div class="metric-value">{{ summary.spent|floatformat:0|intcomma }}</div></article>
+      <article class="metric"><div class="metric-label">Registered users</div><div class="metric-value">{{ summary.users|intcomma }}</div></article>
+      <article class="metric"><div class="metric-label">Open issues</div><div class="metric-value">{{ summary.open_issues|intcomma }}</div></article>
+      <article class="metric"><div class="metric-label">Pending requests</div><div class="metric-value">{{ summary.pending_requests|intcomma }}</div></article>
+    </section>
 
-        <h2 class="text-2xl font-bold mb-2">Project Details</h2>
-        <table class="w-full border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border border-gray-300 p-2">Title</th>
-                    <th class="border border-gray-300 p-2">Status</th>
-                    <th class="border border-gray-300 p-2">Budget</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for project in projects %}
-                <tr class="bg-white">
-                    <td class="border border-gray-300 p-2">{{ project.project_title }}</td>
-                    <td class="border border-gray-300 p-2">{{ project.project_status }}</td>
-                    <td class="border border-gray-300 p-2">${{ project.project_Budgeting }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
+    <section class="section">
+      <div class="section-heading">
+        <div><h2>Executive summary</h2><p>Current totals and status breakdown across the GovTracker platform.</p></div>
+      </div>
+      <div class="summary-grid">
+        {% for section, metrics in sections %}
+        <article class="summary-card">
+          <h3>{{ section }}</h3>
+          <dl>
+            {% for label, value in metrics %}
+            <div class="summary-row"><dt>{{ label }}</dt><dd>{{ value|floatformat:2|intcomma }}</dd></div>
+            {% endfor %}
+          </dl>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <div><h2>Complete project register</h2><p>Financial values shown in Kenyan shillings. The Excel workbook includes additional finance, procurement, and operational registers.</p></div>
+      </div>
+      {% if projects %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Reference</th><th>Project</th><th>Status</th><th>Priority</th><th>Location</th><th>Implementing agency</th><th>Category</th><th>Start</th><th>Target end</th><th>Actual end</th><th>Budget (KSh)</th><th>Spent (KSh)</th><th>Remaining (KSh)</th>
+          </tr></thead>
+          <tbody>
+            {% for project in projects %}
+            <tr>
+              <td>{{ project.reference_code|default:"PRJ-" }}{% if not project.reference_code %}{{ project.pk }}{% endif %}</td>
+              <td class="project-name">{{ project.project_title|default:"Untitled project" }}</td>
+              <td><span class="status">{{ project.get_project_status_display|default:"Unspecified" }}</span></td>
+              <td>{{ project.get_priority_display }}</td>
+              <td>{% if project.project_location %}{{ project.project_location }}{% endif %}{% if project.district %}{% if project.project_location %}, {% endif %}{{ project.district.name }}{% endif %}</td>
+              <td>{% if project.agency %}{{ project.agency.name }}{% else %}{{ project.implementing_agency|default:"—" }}{% endif %}</td>
+              <td>{% if project.category %}{{ project.category.name }}{% else %}—{% endif %}</td>
+              <td>{{ project.start_date|date:"d M Y"|default:"—" }}</td>
+              <td>{{ project.end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{{ project.actual_end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{{ project.project_Budgeting|floatformat:2|intcomma|default:"0.00" }}</td>
+              <td>{{ project.amount_spent|floatformat:2|intcomma|default:"0.00" }}</td>
+              <td>{{ project.budget_remaining|floatformat:2|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
         </table>
-
-        <div class="mt-6 text-center">
-            <a href="{% url 'export_report_pdf' %}" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Download PDF</a>
-        </div>
-    </div>
+      </div>
+      {% else %}
+      <div class="empty">There are no projects to include in this reporting snapshot.</div>
+      {% endif %}
+    </section>
+    <footer>Generated by GovTracker · This report reflects data available at the time shown above.</footer>
+  </main>
 </body>
 </html>
-</div>
-</div>
-</div>
-
-</div>
-</main>
-{% include "footer.html" %}

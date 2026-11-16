@@ -3,11 +3,11 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<html lang="en" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
+<title>Admin Dashboard | GovTracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="{% static 'css/dash.css' %}">
 
 </head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
+<body>
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -28,65 +28,67 @@
 {% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-governance" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   
-<div class="text-center my-4">
+<div class="mx-auto max-w-7xl px-4 pt-5 md:px-8">
     {% for message in messages %}
-        <p id="messages" class="font-semibold text-lg text-green-600">{{ message }}</p>
+        <div class="mb-3 rounded-xl border px-4 py-3 text-sm font-medium {% if message.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800{% elif message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}" role="status">{{ message }}</div>
     {% endfor %}
 </div>
 
 
-<div class="proj_container space-y-8 px-2 pb-8">
-    <div class="rounded-3xl bg-gradient-to-r from-red-700 via-red-600 to-orange-500 p-8 text-white shadow-xl">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+<div class="proj_container mx-auto max-w-7xl space-y-6 px-4 pb-10 md:px-8">
+    <header class="relative isolate overflow-hidden rounded-3xl bg-slate-950 p-6 text-white shadow-2xl md:p-9">
+        <img src="{% static 'images/background-governance.jpg' %}" alt="" aria-hidden="true" class="absolute inset-0 -z-20 h-full w-full object-cover">
+        <div class="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-indigo-950/60"></div>
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <p class="text-sm uppercase tracking-[0.3em] text-red-100">Executive oversight</p>
-                <h1 class="text-3xl font-extrabold">Admin Dashboard</h1>
-                <p class="mt-2 max-w-2xl text-sm text-red-50">Monitor portfolio health, public feedback, operational risk, and budget performance from one place.</p>
+                <p class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-indigo-100 backdrop-blur"><i class="fas fa-shield-alt"></i> Executive oversight</p>
+                <h1 class="mt-4 text-3xl font-extrabold tracking-tight md:text-4xl">Admin Dashboard</h1>
+                <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">A clear view of project delivery, public reports, risk, and budget performance across the portfolio.</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}<a href="{% url 'createproject' %}" class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow">Create project</a>{% endif %}
-                <a href="{% url 'add_budget' %}" class="rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white">Add budget</a>
-                <a href="{% url 'add_report_issue' %}" class="rounded-xl border border-white/40 px-4 py-2 text-sm font-semibold text-white">Log issue</a>
+                {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}<a href="{% url 'createproject' %}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-indigo-50"><i class="fas fa-plus"></i> Create project</a>{% endif %}
+                {% if can_allocate_budget %}<a href="{% url 'add_budget' %}" class="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"><i class="fas fa-coins"></i> Add budget</a>{% endif %}
+                <a href="{% url 'add_report_issue' %}" class="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"><i class="fas fa-flag"></i> Log issue</a>
             </div>
         </div>
-    </div>
+    </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
-        <div class="rounded-2xl bg-white p-6 shadow">
-            <div class="text-sm uppercase tracking-wide text-gray-500">Total projects</div>
-            <div class="mt-2 text-3xl font-bold text-gray-900">{{ project_stats.total }}</div>
-            <div class="mt-2 text-sm text-gray-500">{{ project_stats.ongoing }} ongoing • {{ project_stats.completed }} completed</div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div class="flex items-center justify-between"><div class="text-xs font-bold uppercase tracking-wider text-slate-500">Total projects</div><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700"><i class="fas fa-folder-open"></i></span></div>
+            <div class="mt-3 text-3xl font-extrabold tracking-tight text-slate-950">{{ project_stats.total }}</div>
+            <div class="mt-2 text-xs text-slate-500">{{ project_stats.ongoing }} ongoing · {{ project_stats.completed }} completed</div>
         </div>
-        <div class="rounded-2xl bg-white p-6 shadow">
-            <div class="text-sm uppercase tracking-wide text-gray-500">Upcoming</div>
-            <div class="mt-2 text-3xl font-bold text-blue-600">{{ project_stats.upcoming }}</div>
-            <div class="mt-2 text-sm text-gray-500">Planned interventions</div>
+        <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div class="flex items-center justify-between"><div class="text-xs font-bold uppercase tracking-wider text-slate-500">Upcoming</div><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><i class="fas fa-calendar-alt"></i></span></div>
+            <div class="mt-3 text-3xl font-extrabold tracking-tight text-blue-700">{{ project_stats.upcoming }}</div>
+            <div class="mt-2 text-xs text-slate-500">Planned interventions</div>
         </div>
-        <div class="rounded-2xl bg-white p-6 shadow">
-            <div class="text-sm uppercase tracking-wide text-gray-500">Delayed</div>
-            <div class="mt-2 text-3xl font-bold text-amber-600">{{ project_stats.delayed }}</div>
-            <div class="mt-2 text-sm text-gray-500">Require intervention</div>
+        <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div class="flex items-center justify-between"><div class="text-xs font-bold uppercase tracking-wider text-slate-500">Delayed</div><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><i class="fas fa-clock"></i></span></div>
+            <div class="mt-3 text-3xl font-extrabold tracking-tight text-amber-700">{{ project_stats.delayed }}</div>
+            <div class="mt-2 text-xs text-slate-500">Require intervention</div>
         </div>
-        <div class="rounded-2xl bg-white p-6 shadow">
-            <div class="text-sm uppercase tracking-wide text-gray-500">Feedback</div>
-            <div class="mt-2 text-3xl font-bold text-green-600">{{ feedbacks|length }}</div>
-            <div class="mt-2 text-sm text-gray-500">New citizen input</div>
+        <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div class="flex items-center justify-between"><div class="text-xs font-bold uppercase tracking-wider text-slate-500">Citizen feedback</div><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><i class="fas fa-comments"></i></span></div>
+            <div class="mt-3 text-3xl font-extrabold tracking-tight text-emerald-700">{{ feedback_count }}</div>
+            <div class="mt-2 text-xs text-slate-500">Total submissions</div>
         </div>
-        <div class="rounded-2xl bg-white p-6 shadow">
-            <div class="text-sm uppercase tracking-wide text-gray-500">Issues</div>
-            <div class="mt-2 text-3xl font-bold text-red-600">{{ reportedissues|length }}</div>
-            <div class="mt-2 text-sm text-gray-500">Open and pending cases</div>
+        <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div class="flex items-center justify-between"><div class="text-xs font-bold uppercase tracking-wider text-slate-500">Open issues</div><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-700"><i class="fas fa-triangle-exclamation"></i></span></div>
+            <div class="mt-3 text-3xl font-extrabold tracking-tight text-rose-700">{{ open_issue_count }}</div>
+            <div class="mt-2 text-xs text-slate-500">{{ open_risk_count }} open project risks</div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div class="rounded-2xl bg-white p-6 shadow">
+        <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-6">
             <div class="mb-4 flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800">Project status overview</h2>
-                    <p class="text-sm text-gray-500">Current portfolio health by stage</p>
+                    <h2 class="text-lg font-bold text-slate-900">Project status overview</h2>
+                    <p class="mt-1 text-sm text-slate-500">All registered project statuses</p>
                 </div>
             </div>
             <div class="h-72">
@@ -94,15 +96,15 @@
             </div>
         </div>
 
-        <div class="rounded-2xl bg-white p-6 shadow">
+        <div class="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm md:p-6">
             <div class="mb-4 flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800">Budget performance</h2>
-                    <p class="text-sm text-gray-500">Allocated vs spent across active budgets</p>
+                    <h2 class="text-lg font-bold text-slate-900">Budget performance</h2>
+                    <p class="mt-1 text-sm text-slate-500">Most recently updated budget lines</p>
                 </div>
                 <div class="text-right text-sm text-gray-500">
-                    <div class="font-semibold text-gray-800">KES {{ total_budget_allocated }}</div>
-                    <div>allocated</div>
+                    <div class="font-semibold text-slate-900">KES {{ total_budget_allocated|floatformat:2 }}</div>
+                    <div class="text-xs">portfolio allocation</div>
                 </div>
             </div>
             <div class="h-72">
@@ -112,13 +114,14 @@
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div class="rounded-2xl bg-white shadow overflow-hidden">
-            <div class="border-b px-6 py-4">
-                <h2 class="text-xl font-bold text-gray-800">Recent projects</h2>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4 md:px-6">
+                <h2 class="text-lg font-bold text-slate-900">Recent projects</h2>
+                <p class="mt-1 text-sm text-slate-500">Latest projects added to the portfolio</p>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-600">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                         <tr>
                             <th class="px-6 py-4">Project</th>
                             <th class="px-6 py-4">Status</th>
@@ -128,38 +131,39 @@
                     </thead>
                     <tbody>
                         {% for project in recent_projects %}
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ project.project_title }}</td>
-                            <td class="px-6 py-4">{{ project.get_project_status_display }}</td>
-                            <td class="px-6 py-4">{{ project.project_manager|default:'Not assigned' }}</td>
-                            <td class="px-6 py-4">{{ project.created_at|date:'Y-m-d' }}</td>
+                        <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                            <td class="px-5 py-4 font-semibold text-slate-900 md:px-6">{{ project.project_title|default:'Untitled project' }}</td>
+                            <td class="px-5 py-4 md:px-6"><span class="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">{{ project.get_project_status_display|default:'Unspecified' }}</span></td>
+                            <td class="px-5 py-4 md:px-6">{{ project.project_manager|default:'Not assigned' }}</td>
+                            <td class="whitespace-nowrap px-5 py-4 md:px-6">{{ project.created_at|date:'d M Y'|default:'—' }}</td>
                         </tr>
                         {% empty %}
-                        <tr><td class="px-6 py-4 text-gray-500" colspan="4">No projects yet.</td></tr>
+                        <tr><td class="px-5 py-8 text-center text-slate-500 md:px-6" colspan="4">No projects have been added yet.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="rounded-2xl bg-white shadow overflow-hidden">
-            <div class="border-b px-6 py-4">
-                <h2 class="text-xl font-bold text-gray-800">Reported issues</h2>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4 md:px-6">
+                <h2 class="text-lg font-bold text-slate-900">Recent reported issues</h2>
+                <p class="mt-1 text-sm text-slate-500">Latest citizen reports for review</p>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-600">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                         <tr><th class="px-6 py-4">Title</th><th class="px-6 py-4">Project</th><th class="px-6 py-4">Status</th></tr>
                     </thead>
                     <tbody>
                         {% for issue in reportedissues %}
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ issue.title }}</td>
-                            <td class="px-6 py-4">{{ issue.project.project_title }}</td>
-                            <td class="px-6 py-4">{{ issue.get_status_display }}</td>
+                        <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                            <td class="px-5 py-4 font-semibold text-slate-900 md:px-6">{{ issue.title|default:'Untitled issue' }}</td>
+                            <td class="px-5 py-4 md:px-6">{{ issue.project.project_title|default:'Project not available' }}</td>
+                            <td class="px-5 py-4 md:px-6"><span class="inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">{{ issue.get_status_display|default:'Unspecified' }}</span></td>
                         </tr>
                         {% empty %}
-                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No issues reported yet.</td></tr>
+                        <tr><td class="px-5 py-8 text-center text-slate-500 md:px-6" colspan="3">No issues have been reported.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -168,106 +172,110 @@
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div class="rounded-2xl bg-white shadow overflow-hidden">
-            <div class="border-b px-6 py-4">
-                <h2 class="text-xl font-bold text-gray-800">Latest feedback</h2>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4 md:px-6">
+                <h2 class="text-lg font-bold text-slate-900">Latest feedback</h2>
+                <p class="mt-1 text-sm text-slate-500">Most recent messages from the community</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                    <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                         <tr><th class="px-6 py-4">Name</th><th class="px-6 py-4">Message</th><th class="px-6 py-4">Action</th></tr>
                     </thead>
                     <tbody>
                         {% for feedback in feedbacks %}
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ feedback.full_name }}</td>
-                            <td class="px-6 py-4">{{ feedback.feedback|truncatewords:12 }}</td>
-                            <td class="px-6 py-4"><a href="{% url 'feedback_details' feedback.pk %}" class="font-semibold text-green-600">View</a></td>
+                        <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                            <td class="px-5 py-4 font-semibold text-slate-900 md:px-6">{{ feedback.full_name|default:'Anonymous' }}</td>
+                            <td class="px-5 py-4 text-slate-600 md:px-6">{{ feedback.feedback|default:'No message provided.'|truncatewords:12 }}</td>
+                            <td class="px-5 py-4 md:px-6"><a href="{% url 'feedback_details' feedback.pk %}" class="font-semibold text-indigo-700 hover:text-indigo-900">View details <span aria-hidden="true">→</span></a></td>
                         </tr>
                         {% empty %}
-                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No feedback submitted yet.</td></tr>
+                        <tr><td class="px-5 py-8 text-center text-slate-500 md:px-6" colspan="3">No feedback has been submitted.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="rounded-2xl bg-white shadow overflow-hidden">
-            <div class="border-b px-6 py-4">
-                <h2 class="text-xl font-bold text-gray-800">Recent activity</h2>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4 md:px-6">
+                <h2 class="text-lg font-bold text-slate-900">Recent progress updates</h2>
+                <p class="mt-1 text-sm text-slate-500">Latest reports submitted by project teams</p>
             </div>
             <div class="divide-y">
                 {% for update in updates %}
-                <div class="px-6 py-4">
+                <div class="px-5 py-4 md:px-6">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <div class="font-semibold text-gray-900">{{ update.project.project_title }}</div>
-                            <div class="text-sm text-gray-500">{{ update.description|truncatewords:12 }}</div>
+                            <div class="font-semibold text-slate-900">{{ update.project.project_title|default:'Project not available' }}</div>
+                            <div class="mt-1 text-sm leading-5 text-slate-500">{{ update.description|default:'No update details provided.'|truncatewords:12 }}</div>
                         </div>
-                        <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{{ update.progress_percentage }}%</span>
+                        <span class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{{ update.progress_percentage }}%</span>
                     </div>
                 </div>
                 {% empty %}
-                <div class="px-6 py-4 text-sm text-gray-500">No progress updates available.</div>
+                <div class="px-5 py-8 text-center text-sm text-slate-500 md:px-6">No progress updates are available.</div>
                 {% endfor %}
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div class="rounded-2xl bg-white shadow overflow-hidden">
-            <div class="border-b px-6 py-4">
-                <h2 class="text-xl font-bold text-gray-800">Budget overview</h2>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4 md:px-6">
+                <h2 class="text-lg font-bold text-slate-900">Budget overview</h2>
+                <p class="mt-1 text-sm text-slate-500">Portfolio allocation: KES {{ total_budget_allocated|floatformat:2 }} · Recorded spend: KES {{ total_budget_spent|floatformat:2 }}</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                    <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                         <tr><th class="px-6 py-4">Project</th><th class="px-6 py-4">Allocated</th><th class="px-6 py-4">Spent</th><th class="px-6 py-4">Utilization</th></tr>
                     </thead>
                     <tbody>
                         {% for budget in budgetings %}
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ budget.project.project_title }}</td>
-                            <td class="px-6 py-4">KES {{ budget.allocated_amount }}</td>
-                            <td class="px-6 py-4">KES {{ budget.spent_amount }}</td>
-                            <td class="px-6 py-4">{{ budget.utilization_rate }}%</td>
+                        <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                            <td class="px-5 py-4 font-semibold text-slate-900 md:px-6">{{ budget.project.project_title|default:'Project not available' }}</td>
+                            <td class="whitespace-nowrap px-5 py-4 md:px-6">KES {{ budget.allocated_amount|floatformat:2 }}</td>
+                            <td class="whitespace-nowrap px-5 py-4 md:px-6">KES {{ budget.spent_amount|floatformat:2 }}</td>
+                            <td class="px-5 py-4 md:px-6"><span class="font-semibold text-slate-800">{{ budget.utilization_rate|floatformat:1 }}%</span></td>
                         </tr>
                         {% empty %}
-                        <tr><td class="px-6 py-4 text-gray-500" colspan="4">No budget records found.</td></tr>
+                        <tr><td class="px-5 py-8 text-center text-slate-500 md:px-6" colspan="4">No budget records have been created.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="rounded-2xl bg-white shadow overflow-hidden">
-            <div class="border-b px-6 py-4">
-                <h2 class="text-xl font-bold text-gray-800">Risks & stakeholders</h2>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4 md:px-6">
+                <h2 class="text-lg font-bold text-slate-900">Risks & stakeholders</h2>
+                <p class="mt-1 text-sm text-slate-500">Latest open risks and registered project partners</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                    <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                         <tr><th class="px-6 py-4">Type</th><th class="px-6 py-4">Details</th><th class="px-6 py-4">Status</th></tr>
                     </thead>
                     <tbody>
                         {% for risk in risks %}
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">Risk</td>
-                            <td class="px-6 py-4">{{ risk.risk_description|truncatewords:8 }}</td>
-                            <td class="px-6 py-4">{{ risk.get_status_display }}</td>
+                            <td class="px-5 py-4 font-semibold text-slate-900 md:px-6">Risk · {{ risk.get_risk_level_display }}</td>
+                            <td class="px-5 py-4 md:px-6">{{ risk.risk_description|default:'No risk details provided.'|truncatewords:8 }}</td>
+                            <td class="px-5 py-4 md:px-6">{{ risk.get_status_display }}</td>
                         </tr>
                         {% empty %}
-                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No risks recorded.</td></tr>
+                        {% if not stakeholder %}<tr><td class="px-5 py-8 text-center text-slate-500 md:px-6" colspan="3">No risks or stakeholders have been recorded.</td></tr>{% endif %}
                         {% endfor %}
                         {% for person in stakeholder %}
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900">Stakeholder</td>
-                            <td class="px-6 py-4">{{ person.name }} — {{ person.role_in_program }}</td>
-                            <td class="px-6 py-4">{{ person.organization|default:'N/A' }}</td>
+                            <td class="px-5 py-4 font-semibold text-slate-900 md:px-6">Stakeholder</td>
+                            <td class="px-5 py-4 md:px-6">{{ person.name }} — {{ person.role_in_program }}</td>
+                            <td class="px-5 py-4 md:px-6">{{ person.organization|default:'N/A' }}</td>
                         </tr>
                         {% empty %}
-                        {% if not risks %}
-                        <tr><td class="px-6 py-4 text-gray-500" colspan="3">No stakeholders recorded.</td></tr>
+                        {% if risks %}
+                        <tr><td class="px-5 py-6 text-slate-500 md:px-6" colspan="3">No stakeholders recorded.</td></tr>
                         {% endif %}
                         {% endfor %}
                     </tbody>
@@ -276,6 +284,11 @@
         </div>
     </div>
 </div>
+{{ project_status_labels|json_script:"project-status-labels" }}
+{{ project_status_counts|json_script:"project-status-counts" }}
+{{ budget_labels|json_script:"budget-labels" }}
+{{ budget_allocated|json_script:"budget-allocated" }}
+{{ budget_spent|json_script:"budget-spent" }}
 <script>
 function dashboardApp() {
   return {
@@ -284,19 +297,24 @@ function dashboardApp() {
     mobileSidebarOpen: false,
     isMobile: window.innerWidth < 1024,
     currentPage: 'dashboard',
+    charts: {},
     initCharts() {
+      if (typeof Chart === 'undefined') return;
+      Object.values(this.charts).forEach(chart => chart.destroy());
+      this.charts = {};
+
       const statusCtx = document.getElementById('statusChart');
       if (statusCtx) {
-        new Chart(statusCtx, {
+        this.charts.status = new Chart(statusCtx, {
           type: 'bar',
           data: {
-            labels: {{ project_status_labels|safe }},
+            labels: JSON.parse(document.getElementById('project-status-labels').textContent),
             datasets: [{
               label: 'Projects',
-              data: {{ project_status_counts|safe }},
-              backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f59e0b'],
+              data: JSON.parse(document.getElementById('project-status-counts').textContent),
+              backgroundColor: ['#64748b', '#2563eb', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#94a3b8', '#0f766e'],
               borderRadius: 8,
-              maxBarThickness: 34,
+              maxBarThickness: 38,
             }]
           },
           options: {
@@ -305,7 +323,7 @@ function dashboardApp() {
             plugins: { legend: { display: false } },
             scales: {
               x: { grid: { display: false } },
-              y: { beginAtZero: true, ticks: { precision: 0 } }
+              y: { beginAtZero: true, ticks: { precision: 0 }, border: { display: false } }
             }
           }
         });
@@ -313,24 +331,24 @@ function dashboardApp() {
 
       const budgetCtx = document.getElementById('budgetChart');
       if (budgetCtx) {
-        new Chart(budgetCtx, {
+        this.charts.budget = new Chart(budgetCtx, {
           type: 'bar',
           data: {
-            labels: {{ budget_labels|safe }},
+            labels: JSON.parse(document.getElementById('budget-labels').textContent),
             datasets: [
               {
                 label: 'Allocated',
-                data: {{ budget_allocated|safe }},
-                backgroundColor: '#ef4444',
+                data: JSON.parse(document.getElementById('budget-allocated').textContent),
+                backgroundColor: '#4f46e5',
                 borderRadius: 6,
-                maxBarThickness: 18,
+                maxBarThickness: 24,
               },
               {
                 label: 'Spent',
-                data: {{ budget_spent|safe }},
+                data: JSON.parse(document.getElementById('budget-spent').textContent),
                 backgroundColor: '#10b981',
                 borderRadius: 6,
-                maxBarThickness: 18,
+                maxBarThickness: 24,
               }
             ]
           },
@@ -340,7 +358,7 @@ function dashboardApp() {
             plugins: { legend: { position: 'bottom' } },
             scales: {
               x: { grid: { display: false } },
-              y: { beginAtZero: true, ticks: { callback: v => `KES ${v}` } }
+              y: { beginAtZero: true, border: { display: false }, ticks: { callback: v => `KES ${Number(v).toLocaleString()}` } }
             }
           }
         });
@@ -351,9 +369,6 @@ function dashboardApp() {
       window.addEventListener('resize', () => {
         this.isMobile = window.innerWidth < 1024;
         if (!this.isMobile) this.mobileSidebarOpen = false;
-      });
-      this.$watch('darkMode', () => {
-        setTimeout(() => this.initCharts(), 100);
       });
     }
   }

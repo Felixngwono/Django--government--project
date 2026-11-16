@@ -25,12 +25,12 @@
 {% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
 
     <!-- HERO -->
     <div class="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-6 md:p-8 shadow-xl">
-      <img src="https://images.unsplash.com/photo-1503387762-592deb58f4d5?q=80&w=1400&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="">
+      <img src="{% static 'images/background-public-works.jpg' %}" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="">
       <div class="relative z-10 space-y-3">
         <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 border border-white/15 transition">
           <iconify-icon icon="solar:arrow-left-linear"></iconify-icon> Back to my dashboard
