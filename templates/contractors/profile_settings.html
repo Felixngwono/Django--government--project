@@ -13,7 +13,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
@@ -49,9 +49,9 @@
               {% endif %}
 
               <div>
-                <p class="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Business profile</p>
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Personal &amp; company profile</p>
                 <h1 class="mt-1 text-2xl font-extrabold text-slate-900 md:text-3xl">
-                  {{ form.instance.company|default:"Your company name" }}
+                  {{ form.instance.company|default:"Your profile" }}
                 </h1>
                 <p class="mt-1 text-sm text-slate-500">
                   Keep your contractor registry records accurate for tender opportunities and project approvals.
@@ -89,6 +89,17 @@
 
             <div class="grid gap-5 md:grid-cols-2">
               {% for field in form %}
+                {% if field.name == 'personal_name' %}
+                  <div class="md:col-span-2 border-b border-slate-200 pb-2">
+                    <h2 class="text-base font-extrabold text-slate-900">Your personal details</h2>
+                    <p class="mt-1 text-xs text-slate-500">These details belong to your signed-in contractor account.</p>
+                  </div>
+                {% elif field.name == 'company' %}
+                  <div class="md:col-span-2 border-b border-slate-200 pb-2 pt-2">
+                    <h2 class="text-base font-extrabold text-slate-900">Company details</h2>
+                    <p class="mt-1 text-xs text-slate-500">Update the business and representative information shown in the contractor registry.</p>
+                  </div>
+                {% endif %}
                 <div class="space-y-2 {% if field.name == 'company' or field.name == 'location' or field.name == 'profile' %}md:col-span-2{% endif %}">
                   <label for="{{ field.id_for_label }}" class="block text-sm font-bold text-slate-700">
                     {{ field.label }}
@@ -112,7 +123,7 @@
                 Preview profile
               </button>
               <button type="submit" class="rounded-2xl bg-gradient-to-r from-blue-700 to-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:from-blue-800 hover:to-blue-700">
-                Save contractor profile
+                Save personal &amp; company details
               </button>
             </div>
           </form>

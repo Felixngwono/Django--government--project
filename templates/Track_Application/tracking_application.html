@@ -11,7 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 <link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
 <body x-data="overviewApp()" :class="{ 'dark': darkMode }">
@@ -31,7 +31,7 @@
 
     <!-- HERO HEADER BANNER -->
     <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
-      <img src="{% static 'images/background-public-works.jpg' %}" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay" alt="Tender Application Tracking">
+      
       <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <span class="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full uppercase tracking-wider mb-2 border border-indigo-500/30">Contractor & Bid Tracking</span>

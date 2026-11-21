@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased">
   <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -89,9 +89,10 @@
                 {% endif %}
               </div>
 
-              <div>
-                <label for="report-stage" class="mb-1.5 block text-sm font-semibold text-slate-700">Stage or work area <span class="text-rose-600">*</span></label>
-                <input id="report-stage" name="stage_description" required placeholder="e.g. Foundation works — completed" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+              <div class="sm:col-span-2">
+                <label for="report-stage" class="mb-1.5 block text-sm font-semibold text-slate-700">Project phase / work package <span class="text-rose-600">*</span></label>
+                <input id="report-stage" name="stage_description" required maxlength="255" placeholder="Describe the phase or work package, e.g. Block B roof truss installation" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                <p class="mt-1.5 text-xs text-slate-500">Enter the actual phase in your own words. It does not need to match a preset stage name.</p>
               </div>
 
               <div>
@@ -110,6 +111,15 @@
                   <input id="report-progress" type="number" name="progress_percentage" min="0" max="100" required placeholder="0–100" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                   <span class="absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-400">%</span>
                 </div>
+              </div>
+
+              <div>
+                <label for="report-project-status" class="mb-1.5 block text-sm font-semibold text-slate-700">Project status after this report</label>
+                <select id="report-project-status" name="project_status" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                  <option value="">Keep current status</option>
+                  {% for value, label in project_status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+                <p class="mt-1.5 text-xs text-slate-500">Set the project's status as part of this stage update.</p>
               </div>
 
               <div class="sm:col-span-2">

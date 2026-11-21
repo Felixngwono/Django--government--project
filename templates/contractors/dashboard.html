@@ -1,4 +1,4 @@
-﻿
+
 {% extends "heading.html" %}
 {% block content %}
 {% load static %}
@@ -13,7 +13,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
@@ -101,6 +101,23 @@
         </div>
       </div>
 
+      <section class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm md:p-6">
+        <div class="mb-3 flex items-center gap-3">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-xl text-emerald-700"><iconify-icon icon="solar:medal-ribbon-star-bold-duotone"></iconify-icon></span>
+          <div><h2 class="font-extrabold text-emerald-950">Successful tender applications</h2><p class="mt-1 text-xs text-emerald-800">Tender awards linked to your signed-in account.</p></div>
+        </div>
+        {% for application in awarded_tender_applications %}
+          <article class="border-t border-emerald-200 py-3 first:border-0">
+            <p class="text-sm font-extrabold text-emerald-950">Congratulations, {{ application.tender.reference_number }} was awarded to you.</p>
+            <p class="mt-1 text-sm text-emerald-900">{{ application.tender.title|default:application.tender.project.project_title|default:"Government tender" }}{% if application.tender.award_date %} · Awarded {{ application.tender.award_date|date:"d M Y" }}{% endif %}</p>
+            <p class="mt-1 text-xs text-emerald-800">Award amount: KES {{ application.tender.award_amount|default:application.bid_amount|floatformat:2 }}</p>
+            <a href="{% url 'tender_detail' application.tender.pk %}" class="mt-2 inline-flex text-xs font-bold text-emerald-800 underline">View award details</a>
+          </article>
+        {% empty %}
+          <p class="border-t border-emerald-200 pt-3 text-sm text-emerald-800">No successful tender awards are linked to this account yet.</p>
+        {% endfor %}
+      </section>
+
       <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="mb-3 flex items-center gap-2">
           <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700"><iconify-icon icon="solar:bolt-bold-duotone"></iconify-icon></span>
@@ -108,8 +125,8 @@
         </div>
         <div class="flex flex-wrap gap-2">
         {% if is_business_contractor %}
-        <a href="{% url 'contractor_profile_settings' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50"><iconify-icon icon="solar:buildings-2-bold-duotone" class="text-base text-indigo-600"></iconify-icon> Company &amp; contact</a>
-        <a href="{% url 'contractor_document_upload' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50"><iconify-icon icon="solar:folder-add-bold-duotone" class="text-base text-indigo-600"></iconify-icon> Compliance documents</a>
+        <a href="{% url 'contractor_profile_settings' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50"><iconify-icon icon="solar:buildings-2-bold-duotone" class="text-base text-indigo-600"></iconify-icon> Personal &amp; company details</a>
+        <a href="{% url 'contractor_document_upload' %}" class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-xs font-bold text-blue-800 transition hover:border-blue-300 hover:bg-blue-100"><iconify-icon icon="solar:folder-add-bold-duotone" class="text-base text-blue-700"></iconify-icon> Upload compliance document</a>
         {% endif %}
         <a href="{% url 'account_settings' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50"><iconify-icon icon="solar:user-circle-bold-duotone" class="text-base text-indigo-600"></iconify-icon> Account settings</a>
         <a href="{% url 'password_reset' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50"><iconify-icon icon="solar:lock-keyhole-bold-duotone" class="text-base text-indigo-600"></iconify-icon> Change password</a>
@@ -117,6 +134,21 @@
         {% if can_review_contractor_submissions %}<a href="{% url 'contractor_review_queue' %}" class="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-bold text-amber-800 transition hover:bg-amber-100"><iconify-icon icon="solar:clipboard-check-bold-duotone" class="text-base"></iconify-icon> Review submissions</a>{% endif %}
         </div>
       </div>
+
+      <section class="overflow-hidden rounded-2xl border border-indigo-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-5 md:p-6">
+          <div><h2 class="font-extrabold text-slate-900">Open tenders</h2><p class="mt-1 text-xs text-slate-500">Apply while signed in to this contractor account. Successful awards will be linked to this account.</p></div>
+          <a href="{% url 'tender_list' %}" class="text-xs font-bold text-indigo-700 hover:underline">Browse tenders</a>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for tender in open_tenders %}
+          <article class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><h3 class="text-sm font-bold text-slate-900">{{ tender.title|default:tender.reference_number }}</h3><p class="mt-1 text-xs text-slate-500">{{ tender.reference_number }}{% if tender.project %} · {{ tender.project.project_title }}{% endif %}{% if tender.closing_date %} · Closes {{ tender.closing_date|date:"d M Y" }}{% endif %}</p></div>
+            <a href="{% url 'apply_tender' tender.pk %}" class="inline-flex items-center justify-center rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-800">Apply as this account</a>
+          </article>
+          {% empty %}<p class="p-5 text-sm text-slate-500">No open tenders available to apply for right now.</p>{% endfor %}
+        </div>
+      </section>
 
       <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-5 md:p-6">
@@ -150,9 +182,14 @@
                 <div class="mt-3 flex flex-wrap gap-2">{% for stage in project.stages.all %}<span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600"><span class="h-1.5 w-1.5 rounded-full {% if stage.status == 'completed' %}bg-emerald-500{% elif stage.status == 'delayed' %}bg-rose-500{% else %}bg-blue-500{% endif %}"></span>{{ stage.stage_name }} · {{ stage.progress_percentage }}%</span>{% endfor %}</div>
                 {% endif %}
               </div>
-              <a href="{% url 'contractor_project_works' project.id %}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-800">
-                Open project workspace <iconify-icon icon="solar:arrow-right-linear" class="text-lg"></iconify-icon>
-              </a>
+              <div class="flex shrink-0 flex-col gap-2">
+                <a href="{% url 'contractor_project_works' project.id %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-800">
+                  Open project workspace <iconify-icon icon="solar:arrow-right-linear" class="text-lg"></iconify-icon>
+                </a>
+                <a href="{% url 'milestone_create' %}?project={{ project.id }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2.5 text-sm font-bold text-indigo-700 transition hover:bg-indigo-50">
+                  Add milestone <iconify-icon icon="solar:add-circle-bold" class="text-lg"></iconify-icon>
+                </a>
+              </div>
             </div>
           </article>
           {% empty %}
@@ -226,6 +263,18 @@
             <p class="mt-1 text-xs text-slate-500">{{ payment.project.project_title }} · {{ payment.amount|floatformat:2 }} · {{ payment.created_at|date:"M d, Y" }}</p>
             {% if payment.invoice_file %}<a class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:underline" href="{{ payment.invoice_file.url }}" target="_blank" rel="noopener"><iconify-icon icon="solar:link-bold"></iconify-icon> View invoice</a>{% endif %}
             {% if payment.reviewer_comments %}<p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800"><strong>Reviewer:</strong> {{ payment.reviewer_comments }}</p>{% endif %}
+            <div class="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+              <span class="shrink-0 rounded-full {% if payment.status == 'paid' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif payment.status == 'rejected' %}bg-rose-50 text-rose-700 border border-rose-100{% elif payment.status == 'approved' %}bg-amber-50 text-amber-700 border border-amber-100{% else %}bg-slate-50 text-slate-600 border border-slate-200{% endif %} px-2.5 py-1 font-bold">{% if payment.status == 'paid' %}Paid{% elif payment.status == 'rejected' %}Rejected{% elif payment.status == 'approved' %}Approved{% else %}Pending{% endif %}</span>
+              {% if payment.disbursement_status != 'not_started' %}
+                <span class="shrink-0 rounded-full {% if payment.disbursement_status == 'successful' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif payment.disbursement_status == 'failed' %}bg-rose-50 text-rose-700 border border-rose-100{% else %}bg-slate-50 text-slate-600 border border-slate-200{% endif %} px-2.5 py-1 font-bold">M-Pesa {{ payment.get_disbursement_status_display }}</span>
+              {% endif %}
+              {% if payment.sms_sent %}
+                <span class="shrink-0 rounded-full bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1 font-bold"><iconify-icon icon="solar:message-circle-bold-duotone" aria-hidden="true"></iconify-icon> SMS sent</span>
+              {% endif %}
+              {% if payment.mpesa_result_description and payment.disbursement_status != 'not_started' %}
+                <span class="shrink-0 text-[9px] text-slate-500 font-medium">{{ payment.mpesa_result_description|truncatechars:40 }}</span>
+              {% endif %}
+            </div>
           </div>
           {% empty %}<p class="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No invoices or payment requests have been submitted.</p>{% endfor %}
         </div>
@@ -255,7 +304,7 @@
           <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
             <div class="flex items-center justify-between gap-3">
               <p class="flex items-center gap-2 font-bold text-slate-800"><iconify-icon icon="solar:buildings-2-bold-duotone" class="text-lg text-indigo-600"></iconify-icon> Company account</p>
-              <a href="{% url 'contractor_profile_settings' %}" class="shrink-0 font-bold text-indigo-700 hover:underline">Update details</a>
+              <a href="{% url 'contractor_profile_settings' %}" class="shrink-0 font-bold text-indigo-700 hover:underline">Update personal &amp; company details</a>
             </div>
             <p class="mt-2">{{ contractor_record.company|default:user.organization|default:"Company name not set" }} · {{ contractor_record.phone|default:user.phone_number|default:"Phone not set" }}</p>
             <p class="mt-1">{{ contractor_record.email|default:user.email }} · Representative: {{ contractor_record.name|default:user.full_name }}</p>
@@ -271,6 +320,9 @@
         <iconify-icon icon="solar:building-bold-duotone" class="text-blue-600"></iconify-icon>
         Contractor Registry & Awarded Projects
       </h2>
+      {% if can_delete_contractors %}
+      <p class="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Records sharing an email are marked as possible duplicates. Review the company and project links before removing a record.</p>
+      {% endif %}
 
       <div x-data="{ selected: null }">
 
@@ -304,6 +356,7 @@
                       <p class="font-bold text-slate-900 leading-tight">{{ c.company|default:c.name }}</p>
                       <p class="text-xs text-slate-500">{{ c.name|default:"—" }} · {{ c.registration_no|default:"Registration number missing" }}</p>
                       <p class="text-xs text-slate-500">{{ c.phone|default:"Phone missing" }} · {{ c.email|default:"Email missing" }}</p>
+                      {% if c.possible_duplicate %}<span class="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">Possible duplicate email</span>{% endif %}
                     </div>
                   </div>
                 </td>
@@ -327,9 +380,19 @@
                   {% endif %}
                 </td>
                 <td class="px-5 py-3 text-right">
-                  <a href="{% url 'contractor_detail' c.id %}" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
-                    <i class="fa-solid fa-eye"></i> View Details
-                  </a>
+                  <div class="inline-flex items-center gap-2">
+                    <a href="{% url 'contractor_detail' c.id %}" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition">
+                      <i class="fa-solid fa-eye"></i> {% if can_review_contractor_submissions %}View / rate performance{% else %}View details{% endif %}
+                    </a>
+                    {% if can_delete_contractors %}
+                    <form method="post" action="{% url 'delete_contractor' c.id %}" onsubmit="return confirm('Delete {{ c.company|default:c.name|escapejs }}? Linked contractor documents and ratings will also be deleted, and project records may lose this contractor link.');">
+                      {% csrf_token %}
+                      <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-100">
+                        <i class="fa-solid fa-trash"></i> Delete
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
                 </td>
               </tr>
               {% empty %}

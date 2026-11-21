@@ -11,7 +11,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
   <style>
     .contractor-review-page { overflow-x: clip; }
     .review-page { width: 100%; padding: 26px clamp(16px, 3vw, 36px) 48px; color: #172033; }
@@ -183,7 +183,7 @@
             <div>
               <span class="review-eyebrow"><iconify-icon icon="solar:shield-check-bold-duotone" aria-hidden="true"></iconify-icon> Contractor oversight</span>
               <h1>Submission review queue</h1>
-              <p>Review contractor progress reports, verify completed milestones, assess invoices, and record government disbursements with a complete audit trail.</p>
+              <p>Government officials and admins can approve or reject contractor work reports, verify milestones, review invoices, and record disbursements here.</p>
             </div>
             <a href="{% url 'contractor_performance' %}" class="review-back"><iconify-icon icon="solar:arrow-left-linear" aria-hidden="true"></iconify-icon> Contractor dashboard</a>
           </div>
@@ -341,25 +341,61 @@
           <div class="review-section-header">
             <div class="review-section-title">
               <span class="review-section-icon review-section-icon-disbursements"><iconify-icon icon="solar:wallet-money-bold-duotone" aria-hidden="true"></iconify-icon></span>
-              <div><h2 id="disbursements-heading">Approved payments to process</h2><p>Record the official transfer reference to complete disbursement tracking.</p></div>
+              <div><h2 id="disbursements-heading">Approved payments to process</h2><p>Send approved payments to the contractor’s M-Pesa number or record an external transfer.</p></div>
             </div>
             <span class="review-section-count">{{ approved_payments|length }} to process</span>
           </div>
           <div class="review-list">
             {% for payment in approved_payments %}
-              <form method="post" class="review-disbursement-form">
-                {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
+              <div class="border-t border-slate-100 py-4 first:border-t-0">
                 <div>
                   <p class="m-0 text-sm font-extrabold text-slate-900">{{ payment.title }}{% if payment.invoice_number %} · {{ payment.invoice_number }}{% endif %}</p>
                   <p class="mt-1 text-xs leading-5 text-slate-500">{{ payment.project.project_title }} · {{ payment.contractor|default:payment.submitted_by.full_name|default:"Contractor not recorded" }}</p>
                   <p class="mt-2 font-mono text-sm font-extrabold text-emerald-700">KES {{ payment.amount|floatformat:2 }}</p>
+                  <p class="mt-1 text-xs text-slate-500">M-Pesa number: {{ payment.contractor.phone|default:"Not set on contractor profile" }}</p>
+                  {% if payment.disbursement_status != 'not_started' %}
+                    <p class="mt-1 text-xs font-semibold text-slate-600">M-Pesa: {{ payment.get_disbursement_status_display }}{% if payment.mpesa_result_description %} — {{ payment.mpesa_result_description }}{% endif %}</p>
+                  {% endif %}
                 </div>
-                <div>
-                  <label class="sr-only" for="disbursement-reference-{{ payment.id }}">Government payment or transfer reference</label>
-                  <input id="disbursement-reference-{{ payment.id }}" name="disbursement_reference" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100" placeholder="Payment / transfer reference">
+                <div class="mt-3 flex flex-wrap items-center gap-3">
+                  <form method="post">
+                    {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
+                    <button name="action" value="mpesa" class="review-button review-paid" type="submit" {% if payment.disbursement_status == 'pending' or payment.disbursement_status == 'successful' %}disabled{% endif %}>
+                      <iconify-icon icon="solar:phone-bold-duotone" aria-hidden="true"></iconify-icon>
+                      {% if payment.disbursement_status == 'pending' %}Awaiting M-Pesa confirmation{% else %}Send via M-Pesa{% endif %}
+                    </button>
+                  </form>
+                  <form method="post" class="review-disbursement-form">
+                    {% csrf_token %}<input type="hidden" name="submission_type" value="payment"><input type="hidden" name="submission_id" value="{{ payment.id }}">
+                    <div>
+                      <label class="sr-only" for="disbursement-reference-{{ payment.id }}">Government payment or transfer reference</label>
+                      <input id="disbursement-reference-{{ payment.id }}" name="disbursement_reference" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100" placeholder="External transfer reference">
+                    </div>
+                    <button name="action" value="paid" class="review-button review-paid" type="submit"><iconify-icon icon="solar:card-transfer-bold-duotone" aria-hidden="true"></iconify-icon> Record external transfer</button>
+                  </form>
+
+                  <!-- SMS & disbursement status chip -->
+                  <div class="flex flex-wrap items-center gap-2 text-[10px]">
+                    {% if payment.sms_sent %}
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-extrabold">
+                        <iconify-icon icon="solar:message-circle-bold-duotone" aria-hidden="true"></iconify-icon>
+                        SMS sent {{ payment.sms_sent_at|date:"M d" }}
+                      </span>
+                    {% elif payment.disbursement_status == 'successful' or payment.status == 'paid' %}
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 font-extrabold">
+                        <iconify-icon icon="solar:message-circle-bold-duotone" aria-hidden="true"></iconify-icon>
+                        SMS pending
+                      </span>
+                    {% endif %}
+                    {% if payment.mpesa_result_code is not None and payment.disbursement_status != 'not_started' %}
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded {% if payment.disbursement_status == 'successful' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif payment.disbursement_status == 'failed' %}bg-rose-50 text-rose-700 border border-rose-100{% else %}bg-slate-50 text-slate-600 border border-slate-200{% endif %} font-extrabold">
+                        <iconify-icon icon="solar:wallet-money-bold-duotone" aria-hidden="true"></iconify-icon>
+                        M-Pesa {{ payment.get_disbursement_status_display }}
+                      </span>
+                    {% endif %}
+                  </div>
                 </div>
-                <button name="action" value="paid" class="review-button review-paid" type="submit"><iconify-icon icon="solar:card-transfer-bold-duotone" aria-hidden="true"></iconify-icon> Record disbursement</button>
-              </form>
+              </div>
             {% empty %}
               <div class="review-empty"><span class="review-empty-icon"><iconify-icon icon="solar:check-circle-bold-duotone" aria-hidden="true"></iconify-icon></span><h3>No approved payments to process</h3><p>Payments approved for disbursement will appear here.</p></div>
             {% endfor %}

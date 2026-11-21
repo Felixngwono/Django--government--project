@@ -13,7 +13,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 <style>
   .public-tracking-page { overflow-x: clip; }
   .public-tracking-page .header > nav { display: none; }
@@ -143,6 +143,56 @@
       </div>
       {% endif %}
     </article>
+  </section>
+
+  <!-- CONTRACT DATES AND APPROVED SCHEDULE UPDATES -->
+  <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
+      <p class="text-xs font-extrabold uppercase tracking-[.14em] text-indigo-700">Contract transparency</p>
+      <h2 class="mt-1 text-xl font-extrabold text-slate-900">Contract dates and schedule updates</h2>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">See the procurement dates, current delivery schedule, and approved changes that explain updates to the planned completion date.</p>
+    </div>
+    <div class="grid gap-4 border-b border-slate-100 p-5 sm:grid-cols-2 lg:grid-cols-4 sm:p-6">
+      <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Planned project start</p><p class="mt-2 font-extrabold text-slate-900">{{ project.start_date|date:'d M Y'|default:'Not recorded' }}</p></div>
+      <div class="rounded-xl bg-indigo-50 p-4"><p class="text-xs font-bold uppercase tracking-wide text-indigo-700">Current target completion</p><p class="mt-2 font-extrabold text-indigo-950">{{ project.end_date|date:'d M Y'|default:'Not recorded' }}</p></div>
+      <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Actual completion</p><p class="mt-2 font-extrabold text-slate-900">{{ project.actual_end_date|date:'d M Y'|default:'Not completed' }}</p></div>
+      <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Original approved schedule</p><p class="mt-2 text-sm font-bold text-slate-900">{% if baseline %}{{ baseline.approved_start_date|date:'d M Y'|default:'—' }} to {{ baseline.approved_end_date|date:'d M Y'|default:'—' }}{% else %}Not recorded{% endif %}</p></div>
+    </div>
+
+    {% if awarded_tenders %}
+    <div class="border-b border-slate-100 px-5 py-5 sm:px-6">
+      <h3 class="font-extrabold text-slate-900">Tender and award dates</h3>
+      <div class="mt-3 divide-y divide-slate-100">
+        {% for tender in awarded_tenders %}
+        <div class="grid gap-2 py-3 text-sm sm:grid-cols-5">
+          <p class="font-bold text-slate-800 sm:col-span-2">{{ tender.title|default:'Awarded contract' }} <span class="font-mono text-xs text-slate-500">{{ tender.reference_number }}</span></p>
+          <p class="text-slate-600">Tender opened: <strong class="text-slate-800">{{ tender.opening_date|date:'d M Y'|default:'Not recorded' }}</strong></p>
+          <p class="text-slate-600">Tender closed: <strong class="text-slate-800">{{ tender.closing_date|date:'d M Y'|default:'Not recorded' }}</strong></p>
+          <p class="text-slate-600">Awarded: <strong class="text-slate-800">{{ tender.award_date|date:'d M Y'|default:'Not recorded' }}</strong></p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="p-5 sm:p-6">
+      <h3 class="font-extrabold text-slate-900">Approved schedule changes</h3>
+      <div class="mt-3 divide-y divide-slate-100">
+        {% for change in approved_schedule_changes %}
+        <article class="py-4 first:pt-1">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm font-bold text-slate-800">Approved {{ change.reviewed_at|date:'d M Y'|default:'date not recorded' }}</p>
+            {% if change.tender %}<span class="font-mono text-xs text-slate-500">{{ change.tender.reference_number }}</span>{% endif %}
+          </div>
+          <p class="mt-2 text-sm text-slate-700">{% if change.proposed_start_date %}Revised start: <strong>{{ change.proposed_start_date|date:'d M Y' }}</strong>{% endif %}{% if change.proposed_start_date and change.proposed_end_date %} · {% endif %}{% if change.proposed_end_date %}Revised completion: <strong>{{ change.proposed_end_date|date:'d M Y' }}</strong>{% endif %}</p>
+          <p class="mt-1 text-sm leading-6 text-slate-600"><strong>Reason:</strong> {{ change.reason }}</p>
+          {% if change.reviewer_comments %}<p class="mt-1 text-sm leading-6 text-slate-600"><strong>Review note:</strong> {{ change.reviewer_comments }}</p>{% endif %}
+        </article>
+        {% empty %}
+        <p class="py-3 text-sm text-slate-600">No approved schedule changes are recorded. The current target completion date above is the latest date in the project record.</p>
+        {% endfor %}
+      </div>
+    </div>
   </section>
 
   <!-- ABOUT THIS PROJECT -->

@@ -10,7 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
   <style>
     [hidden] { display: none !important; }
     [x-cloak] { display: none !important; }
@@ -127,6 +127,36 @@
         <p class="mt-3 text-xs text-slate-500">Progress is reported by the contractor and should be verified by an authorized officer.</p>
       </section>
 
+      {% if can_update_project_status %}
+      <section class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 shadow-sm md:p-6">
+        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div><h2 class="font-extrabold text-slate-900">Report project status</h2><p class="mt-1 text-sm text-slate-600">Your update is recorded in the shared project history and reflected across GovTracker.</p></div>
+          <span class="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-bold text-emerald-800">Current: {{ project.get_project_status_display|default:project.project_status|title }}</span>
+        </div>
+        <form method="post" action="{% url 'project_tracking' project.id %}" class="grid gap-3 md:grid-cols-[1fr_2fr_auto] md:items-end">
+          {% csrf_token %}
+          <input type="hidden" name="return_to" value="contractor_workspace">
+          <div>
+            <label for="contractor-project-status" class="mb-1 block text-xs font-semibold text-slate-700">Updated status</label>
+            <select id="contractor-project-status" name="new_status" required class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm">
+              <option value="">Select status</option>
+              {% for value, label in contractor_status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              {% if project.project_status != 'draft' %}<option value="draft" disabled>Draft (before publication)</option>{% endif %}
+              {% if project.project_status != 'draft' and project.project_status != 'upcoming' %}<option value="upcoming" disabled>Upcoming (before work starts)</option>{% endif %}
+              {% if not can_report_completion %}<option value="completed" disabled>Completed (finish all deliverables first)</option>{% endif %}
+            </select>
+          </div>
+          <div>
+            <label for="contractor-status-note" class="mb-1 block text-xs font-semibold text-slate-700">Reason or site update</label>
+            <input id="contractor-status-note" name="note" required maxlength="255" placeholder="Explain the change (up to 255 characters)" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm">
+          </div>
+          <button type="submit" class="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800">Post status</button>
+        </form>
+        {% if not can_report_completion %}<p class="mt-3 text-xs text-slate-500">Completed status becomes available after all tracked project deliverables are marked complete.</p>{% endif %}
+        <a href="{% url 'project_tracking' project.id %}" class="mt-3 inline-flex text-xs font-bold text-emerald-800 hover:underline">View the full status history</a>
+      </section>
+      {% endif %}
+
       <nav class="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2" role="tablist" aria-label="Project details">
         <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-overview" role="tab" aria-controls="panel-overview" aria-selected="true" data-project-tab="overview">Overview</button>
         <button class="project-tab shrink-0 rounded-xl border border-transparent px-4 py-2.5 text-sm font-bold text-slate-500" id="tab-milestones" role="tab" aria-controls="panel-milestones" aria-selected="false" data-project-tab="milestones" tabindex="-1">Milestones</button>
@@ -179,7 +209,10 @@
 
       <section id="panel-milestones" role="tabpanel" aria-labelledby="tab-milestones" data-project-panel="milestones" hidden class="space-y-5">
         <article class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-          <div class="border-b border-slate-100 p-5"><h2 class="text-lg font-extrabold text-slate-900">Milestones & deliverables</h2><p class="mt-1 text-sm text-slate-500">Review due dates and open a milestone to view its work and verification details.</p></div>
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5">
+            <div><h2 class="text-lg font-extrabold text-slate-900">Milestones & deliverables</h2><p class="mt-1 text-sm text-slate-500">Define the deliverables for this project and track their progress.</p></div>
+            {% if is_contractor_role %}<a href="{% url 'milestone_create' %}?project={{ project.id }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800"><iconify-icon icon="solar:add-circle-bold"></iconify-icon> Add milestone</a>{% endif %}
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full min-w-[680px] text-left text-sm">
               <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Milestone</th><th class="px-5 py-3">Due date</th><th class="px-5 py-3">Progress</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Verification</th></tr></thead>
@@ -444,6 +477,49 @@
       </section>
 
       <section id="panel-finance" role="tabpanel" aria-labelledby="tab-finance" data-project-panel="finance" hidden class="space-y-5">
+        <article class="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm md:p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div><h2 class="text-lg font-extrabold text-slate-900">Budget progress</h2><p class="mt-1 text-sm text-slate-500">Allocation and expenditure recorded against this project.</p></div>
+            <span class="rounded-full bg-indigo-50 px-3 py-1 text-sm font-extrabold text-indigo-800">{{ budget_utilization }}% spent</span>
+          </div>
+          <div class="mt-5 grid gap-3 sm:grid-cols-3">
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase tracking-wide text-slate-400">Allocated budget</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ b_total|floatformat:2 }}</p></div>
+            <div class="rounded-xl bg-rose-50 p-4"><p class="text-xs font-bold uppercase tracking-wide text-rose-600">Recorded expenditure</p><p class="mt-2 text-lg font-black text-rose-800">KES {{ s_total|floatformat:2 }}</p></div>
+            <div class="rounded-xl bg-emerald-50 p-4"><p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Budget remaining</p><p class="mt-2 text-lg font-black text-emerald-900">KES {{ remaining|floatformat:2 }}</p></div>
+          </div>
+          <div class="mt-5 h-3 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label="Budget spent" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ budget_bar_width }}"><div class="h-full rounded-full {% if budget_utilization > 100 %}bg-rose-600{% else %}bg-indigo-600{% endif %}" style="width: {{ budget_bar_width }}%"></div></div>
+          {% if budget_utilization > 100 %}<p class="mt-2 text-xs font-semibold text-rose-700">Recorded expenditure is {{ budget_utilization }}% of the allocation and exceeds the current budget.</p>{% else %}<p class="mt-2 text-xs text-slate-500">{{ budget_utilization }}% of the allocated budget is recorded as spent.</p>{% endif %}
+        </article>
+
+        <article class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5">
+            <div><h3 class="font-extrabold text-slate-900">Expenditure updates</h3><p class="mt-1 text-xs text-slate-500">Each entry shows its amount, date, reporter, and receipt when supplied.</p></div>
+            {% if can_update_project_status %}<button type="button" onclick="document.getElementById('budget-expense-form').classList.toggle('hidden')" class="rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-800">Record expenditure</button>{% endif %}
+          </div>
+          {% if can_update_project_status %}
+          <form id="budget-expense-form" method="post" enctype="multipart/form-data" class="hidden space-y-4 border-b border-slate-100 bg-indigo-50/50 p-5">
+            {% csrf_token %}<input type="hidden" name="action" value="expense_add">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="mb-1 block text-xs font-bold text-slate-600">Expense item</label>{{ expense_form.title }}</div>
+              <div><label class="mb-1 block text-xs font-bold text-slate-600">Category</label>{{ expense_form.category }}</div>
+              <div><label class="mb-1 block text-xs font-bold text-slate-600">Amount (KES)</label>{{ expense_form.amount }}</div>
+              <div><label class="mb-1 block text-xs font-bold text-slate-600">Receipt / supporting file</label>{{ expense_form.receipt }}</div>
+              <div class="sm:col-span-2"><label class="mb-1 block text-xs font-bold text-slate-600">Details</label>{{ expense_form.description }}</div>
+            </div>
+            <p class="text-xs leading-5 text-slate-600">This entry updates the project’s recorded expenditure. Include a receipt or supporting file where available; authorized officers should verify reported costs.</p>
+            <button type="submit" class="rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-800">Save budget update</button>
+          </form>
+          {% endif %}
+          <div class="divide-y divide-slate-100">
+            {% for expense in expenses %}
+            <div class="flex flex-wrap items-start justify-between gap-3 p-5">
+              <div class="min-w-0"><p class="font-bold text-slate-800">{{ expense.title|default:'Project expenditure' }}</p><p class="mt-1 text-xs text-slate-500">{{ expense.get_category_display|default:'Other' }} · {{ expense.date|date:'d M Y'|default:'Date not recorded' }}{% if expense.recorded_by %} · Reported by {{ expense.recorded_by.full_name|default:expense.recorded_by.username }}{% endif %}</p>{% if expense.description %}<p class="mt-2 whitespace-pre-line text-sm text-slate-600">{{ expense.description }}</p>{% endif %}{% if expense.receipt %}<a href="{{ expense.receipt.url }}" target="_blank" rel="noopener" class="mt-2 inline-flex text-xs font-bold text-blue-700 hover:underline">View supporting receipt</a>{% endif %}</div>
+              <p class="shrink-0 font-mono text-sm font-extrabold text-rose-700">KES {{ expense.amount|floatformat:2 }}</p>
+            </div>
+            {% empty %}<p class="p-6 text-center text-sm text-slate-500">No expenditure entries have been recorded for this project yet.</p>{% endfor %}
+          </div>
+        </article>
+
         <article class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
           <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-lg font-extrabold text-slate-900">Contract & financial summary</h2><p class="mt-1 text-sm text-slate-500">Invoice and payment values reflect this project and the visible submissions.</p></div>{% if is_contractor_role %}<a href="{% url 'contractor_payment_request' %}" class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800">Submit invoice</a>{% endif %}</div>
           <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -452,7 +528,7 @@
             <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Invoices submitted</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ invoices_submitted|floatformat:2 }}</p></div>
             <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Payments approved</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ payments_approved|floatformat:2 }}</p></div>
             <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Payments received</p><p class="mt-2 text-lg font-black text-emerald-700">KES {{ payments_received|floatformat:2 }}</p></div>
-            {% if is_officer %}<div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Recorded project expenditure</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ s_total|floatformat:2 }}</p></div>{% endif %}
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Recorded project expenditure</p><p class="mt-2 text-lg font-black text-slate-900">KES {{ s_total|floatformat:2 }}</p></div>
           </div>
         </article>
         <article class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">

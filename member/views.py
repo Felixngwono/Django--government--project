@@ -1,8 +1,11 @@
 from datetime import date, datetime, timedelta, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+import json
+import logging
 from smtplib import SMTPException
 from urllib.parse import quote
 from xml.sax.saxutils import escape as xml_escape
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from django.utils import timezone
@@ -14,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator
-from django.utils.crypto import get_random_string
+from django.utils.crypto import constant_time_compare, get_random_string
 from django.contrib.auth.password_validation import validate_password
 from django.db import models, transaction
 from django.db.models.deletion import ProtectedError
@@ -25,6 +28,7 @@ from django.utils.timesince import timesince
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponseForbidden
 from django.template.loader import get_template
@@ -41,10 +45,16 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from ai.project_analysis import generate_project_analyses
-from .forms import (AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentAgencyForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MyUserCreationForm, NotificationForm, ProfessionalAccountRegistrationForm, ProgressReportForm, ProjectChangeRequestForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectInspectionForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, UserManagementForm, participationForm,)
-from .models import (PDF, Announcement, AuditLog, Budget, BudgetRevision, CitizenEvidence, CitizenSubmission, Comment, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, DiscussionReply, DiscussionTopic, Feedback, GovernmentAgency, GovernmentRequest, IssueResponse, IssueResponsePolicy, Media, Milestone, Notification, Participation, ProgramImpact, ProgressReport, ProgressUpdate, Project, ProjectBaseline, ProjectCategory, ProjectChangeRequest, ProjectDocument, Project_Division, Project_type, ProjectExpense, ProjectInspection, ProjectRisk, ProjectStage, ProjectStatusHistory, ReportIssue, MilestoneStageEvidence, StageReport, StageReportAttachment, StageReportImage, Stakeholder, Team, Tender, TenderApplication, Testimonial, User,)
+from .forms import (AuditLogForm, BudgetForm, CitizenEvidenceForm, CommentForm, ContactUsForm, ContractorDocumentForm, ContractorPaymentRequestForm, ContractorProfileForm, ContractorRatingForm, ExpenseInlineForm, FeedbackForm, GovernmentAgencyForm, GovernmentRequestForm, IssueInlineForm, MediaForm, MilestoneForm, MilestoneInlineForm, MpesaCheckoutForm, MyUserCreationForm, NotificationForm, ProfessionalAccountRegistrationForm, ProgressReportForm, ProjectChangeRequestForm, ProjectCreationForm, ProjectDivisionForm, ProjectExpenseForm, ProjectInspectionForm, ProjectStageForm, ProjectStageInlineForm, ProjectTypeForm, ReportIssueForm, TeamsForm, TenderApplicationForm, TenderForm, TestimonialForm, UserManagementForm, participationForm,)
+from .models import (PDF, Announcement, AuditLog, Budget, BudgetRevision, CitizenEvidence, CitizenSubmission, Comment, Contractor, ContractorDocument, ContractorPaymentRequest, ContractorRating, DiscussionReply, DiscussionTopic, Feedback, GovernmentAgency, GovernmentRequest, IssueResponse, IssueResponsePolicy, Media, Milestone, MpesaCallback, MpesaPayment, Notification, Participation, ProgramImpact, ProgressReport, ProgressUpdate, Project, ProjectBaseline, ProjectCategory, ProjectChangeRequest, ProjectDocument, Project_Division, Project_type, ProjectExpense, ProjectInspection, ProjectRisk, ProjectStage, ProjectStatusHistory, ReportIssue, MilestoneStageEvidence, StageReport, StageReportAttachment, StageReportImage, Stakeholder, Team, Tender, TenderApplication, Testimonial, User,)
 from .workflow import DELETE_ROLES, OFFICER_ROLES, PROJECT_ROLES, PROJECT_WORKER_ROLES, TENDER_AWARD_ROLES, USER_MANAGEMENT_ROLES, _contractors_for_user, assigned_projects, apply_status_change, audit, blacklisted_contractor_for_application, contractor_assigned_to_project, contractor_is_blacklisted, has_role, is_forward_transition, notify, project_worker_assigned_to_project, record_request_status_change, refresh_project_status, role_required, user_assigned_to_project, user_has_permission
 from .models import ProjectStatusHistory
+from .mpesa import DarajaError, DarajaRejected, get_access_token, normalize_kenyan_phone, submit_b2c_payment, submit_stk_push
+from .payments import PaymentSmsError, send_payment_sms
+from .africastalking import AfricaTalkingError, send_sms as send_africastalking_sms
+
+CONTRACTOR_DELETE_ROLES = {'admin', 'official'}
+logger = logging.getLogger(__name__)
 
 
 def _status_progress_context(project):
@@ -679,6 +689,18 @@ def loginpage(request):
                 },
             })
 
+        if account and account.role == 'contractor' and not _contractors_for_user(account).exists():
+            account.is_active = False
+            account.save(update_fields=['is_active'])
+            return render(request, 'login.html', {
+                'next': next_url,
+                'login_notice': {
+                    'type': 'error',
+                    'title': 'Contractor access unavailable',
+                    'message': 'This login no longer matches one active contractor profile. Contact a government official to resolve the contractor registry before signing in.',
+                },
+            })
+
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
@@ -1037,6 +1059,8 @@ def CreateProject(request):
             try:
                 project = form.save(commit=False)
                 project.created_by = request.user
+                # Registration/publication starts a project's public lifecycle.
+                project.project_status = 'upcoming' if project.is_public else 'draft'
                 project.full_clean()
                 project.save()
                 form.save_m2m()
@@ -2248,15 +2272,19 @@ def milestone_create(request):
 
     if request.method == 'POST':
         form = MilestoneForm(request.POST)
-        form.fields['project'].queryset = assigned_projects(request.user)
+        assigned_project_queryset = assigned_projects(request.user)
+        form.fields['project'].queryset = assigned_project_queryset
         if form.is_valid():
             milestone_obj = form.save(commit=False)
             if not project_worker_assigned_to_project(request.user, milestone_obj.project):
                 return HttpResponseForbidden("You can only add milestones to projects assigned to you.")
-            if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
-                milestone_obj.status = 'completed'
-                if not milestone_obj.completion_date:
-                    milestone_obj.completion_date = date.today()
+            milestone_obj.stage = ProjectStage.objects.filter(
+                project=milestone_obj.project,
+                stage_name__iexact=milestone_obj.stage_description.strip(),
+            ).first() if milestone_obj.stage_description.strip() else None
+            milestone_obj.status = 'pending'
+            milestone_obj.progress_percentage = 0
+            milestone_obj.completion_date = None
             milestone_obj.save()
 
             audit(request, 'created', milestone_obj, project=milestone_obj.project, changes={'title': milestone_obj.title})
@@ -2264,14 +2292,22 @@ def milestone_create(request):
             return redirect('milestone_list')
     else:
         form = MilestoneForm(initial=initial)
-        form.fields['project'].queryset = assigned_projects(request.user)
+        assigned_project_queryset = assigned_projects(request.user)
+        form.fields['project'].queryset = assigned_project_queryset
 
     if request.user.is_superuser:
         participants = Participation.objects.all().order_by('-joined_at')[:4]
     else:
         participants = Participation.objects.filter(user=request.user)
 
-    return render(request, 'milestone_form.html', {'form': form, 'title': 'Create New Milestone', 'participants': participants})
+    selected_project_id = request.POST.get('project') if request.method == 'POST' else initial.get('project')
+    preselected_project = assigned_projects(request.user).filter(pk=selected_project_id).first() if selected_project_id else None
+    return render(request, 'milestone_form.html', {
+        'form': form,
+        'title': 'Create New Milestone',
+        'participants': participants,
+        'preselected_project': preselected_project,
+    })
 
 
 @login_required(login_url='login')
@@ -2288,6 +2324,10 @@ def milestone_update(request, pk):
             milestone_obj = form.save(commit=False)
             if not project_worker_assigned_to_project(request.user, milestone_obj.project):
                 return HttpResponseForbidden("You can only edit milestones for projects assigned to you.")
+            milestone_obj.stage = ProjectStage.objects.filter(
+                project=milestone_obj.project,
+                stage_name__iexact=milestone_obj.stage_description.strip(),
+            ).first() if milestone_obj.stage_description.strip() else None
             if milestone_obj.progress_percentage == 100 and milestone_obj.status != 'completed':
                 milestone_obj.status = 'completed'
                 if not milestone_obj.completion_date:
@@ -2956,6 +2996,10 @@ def project_detail(request, pk):
         'form': form,
         'is_officer': is_officer,
         'can_manage_project_stages': can_manage_project_stages,
+        'is_assigned_contractor': (
+            getattr(request.user, 'role', None) == 'contractor'
+            and contractor_assigned_to_project(request.user, project)
+        ),
         'milestone_form': MilestoneInlineForm(project=project),
         'stage_form': ProjectStageInlineForm(),
         'project_statuses': Project.STATUS_CHOICES,
@@ -2979,6 +3023,38 @@ def contractor_project_works(request, pk):
     if not (is_associated or is_gov):
         messages.error(request, 'You are not associated with this project.')
         return redirect('contractor_performance')
+
+    if request.method == 'POST' and request.POST.get('action') == 'expense_add':
+        if not project_worker_assigned_to_project(request.user, project):
+            return HttpResponseForbidden("Only the assigned project contractor can report project expenditure.")
+        expense_form = ExpenseInlineForm(request.POST, request.FILES)
+        if expense_form.is_valid():
+            expense = expense_form.save(commit=False)
+            expense.project = project
+            expense.recorded_by = request.user
+            with transaction.atomic():
+                expense.save()
+                project.amount_spent = (project.amount_spent or Decimal('0.00')) + (expense.amount or Decimal('0.00'))
+                project.save(update_fields=['amount_spent'])
+                budget = Budget.objects.filter(project=project).first()
+                if budget:
+                    budget.spent_amount = (budget.spent_amount or Decimal('0.00')) + (expense.amount or Decimal('0.00'))
+                    budget.save(update_fields=['spent_amount', 'last_updated'])
+                else:
+                    Budget.objects.create(
+                        project=project,
+                        allocated_amount=project.project_Budgeting or Decimal('0.00'),
+                        spent_amount=expense.amount or Decimal('0.00'),
+                    )
+            audit(request, 'created', expense, project=project, changes={
+                'title': expense.title,
+                'amount': str(expense.amount),
+                'reported_by': request.user.get_full_name() or request.user.username,
+            })
+            messages.success(request, f"Expense '{expense.title}' recorded in the project budget history.")
+            return redirect(f"{reverse('contractor_project_works', args=[project.pk])}?tab=finance")
+        messages.error(request, "Could not record the expense. Check the required fields and try again.")
+        return redirect(f"{reverse('contractor_project_works', args=[project.pk])}?tab=finance")
 
     if request.method == 'POST' and request.POST.get('action') in {
         'report_update', 'report_delete',
@@ -3179,7 +3255,7 @@ def contractor_project_works(request, pk):
     image_media = media.filter(media_type='image')
     documents = project.documents.all()
     progress_reports = project.progress_reports.all()
-    expenses = project.expenses.all()
+    expenses = project.expenses.select_related('recorded_by').order_by('-date', '-id')
 
     user_contractors = _contractors_for_user(request.user)
     awarded_tenders = project.tenders.filter(
@@ -3226,6 +3302,7 @@ def contractor_project_works(request, pk):
 
     b_total = float(project.project_Budgeting or 0)
     s_total = float(project.amount_spent or 0)
+    budget_utilization = round((s_total / b_total) * 100, 1) if b_total > 0 else 0
 
     latest_my_report = my_reports.first()
     my_progress = (
@@ -3261,10 +3338,22 @@ def contractor_project_works(request, pk):
         'b_total': b_total,
         's_total': s_total,
         'remaining': max(0.0, b_total - s_total),
+        'budget_utilization': budget_utilization,
+        'budget_bar_width': min(100, max(0, budget_utilization)),
+        'expense_form': ExpenseInlineForm(),
         'my_progress': my_progress,
         'latest_my_report': latest_my_report,
         'contractor_display_name': request.user.full_name,
         'is_contractor_role': request.user.role in PROJECT_WORKER_ROLES,
+        'can_update_project_status': (
+            request.user.role == 'contractor'
+            and contractor_assigned_to_project(request.user, project)
+            and project.project_status not in ('completed', 'cancelled')
+        ),
+        'contractor_status_choices': _contractor_status_choices(project),
+        'can_report_completion': any(
+            value == 'completed' for value, _label in _contractor_status_choices(project)
+        ),
         'is_officer': is_officer,
         'can_view_contract_documents': can_view_contract_documents,
         'contractor_record': user_contractors.first(),
@@ -3596,10 +3685,17 @@ def tender_list(request):
 def tender_detail(request, tender_id):
     tender = get_object_or_404(Tender.objects.select_related('project', 'created_by', 'awarded_to'), id=tender_id)
     applications = tender.applications.select_related('applicant').order_by('-total_score', '-submitted_at')
+    awarded_application = tender.applications.filter(status='awarded').select_related('applicant').first()
+    award_recipient_phone = (
+        (tender.awarded_to.phone if tender.awarded_to else '')
+        or (awarded_application.applicant.phone_number if awarded_application and awarded_application.applicant else '')
+        or (awarded_application.company_phone if awarded_application else '')
+    )
 
     context = {
         'tender': tender,
         'applications': applications,
+        'award_recipient_phone': award_recipient_phone,
         'applications_count': applications.count(),
         'is_officer': request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in OFFICER_ROLES),
         'can_award': request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role in TENDER_AWARD_ROLES),
@@ -3609,6 +3705,9 @@ def tender_detail(request, tender_id):
 
 @login_required(login_url='login')
 def apply_tender(request, pk):
+    if request.user.role != 'contractor':
+        messages.error(request, 'Sign in to a contractor account and apply from the Contractor Dashboard.')
+        return redirect('contractor_performance')
     tender = get_object_or_404(Tender, id=pk)
     if tender.status not in {'published', 'open'} or (tender.closing_date and tender.closing_date < django_timezone.localdate()):
         messages.error(request, 'This tender is closed for applications.')
@@ -3618,24 +3717,55 @@ def apply_tender(request, pk):
         messages.error(request, 'You have already submitted an application for this tender.')
         return redirect('track_application')
 
-    form = TenderApplicationForm(request.POST or None, request.FILES or None)
+    contractor_profile = Contractor.objects.filter(email__iexact=request.user.email)
+    if request.user.organization:
+        contractor_profile = contractor_profile.filter(company__iexact=request.user.organization)
+    contractor_profile = contractor_profile.first()
+    profile_phone = (contractor_profile.phone if contractor_profile else '') or request.user.phone_number or ''
+    form = TenderApplicationForm(
+        request.POST or None,
+        request.FILES or None,
+        initial={
+            'company_name': (contractor_profile.company if contractor_profile else '') or request.user.organization or request.user.get_full_name() or request.user.username,
+            'company_email': request.user.email,
+            'company_phone': profile_phone,
+        },
+    )
+    form.fields['company_name'].widget.attrs['readonly'] = 'readonly'
+    form.fields['company_email'].widget.attrs['readonly'] = 'readonly'
+    if profile_phone:
+        form.fields['company_phone'].widget.attrs['readonly'] = 'readonly'
 
     if form.is_valid():
         application = form.save(commit=False)
         application.tender = tender
         application.applicant = request.user
+        # The signed-in contractor account owns the application. Use its account
+        # identity for the award link and the registered contractor phone for SMS.
+        application.company_name = (
+            (contractor_profile.company if contractor_profile else '')
+            or request.user.organization
+            or application.company_name
+            or request.user.get_full_name()
+        )
+        application.company_email = request.user.email
+        application.company_phone = profile_phone or application.company_phone
         application.save()
 
-        # Ensure Contractor profile exists or is created for company
-        contractor, created = Contractor.objects.get_or_create(
-            company=application.company_name or request.user.username,
-            defaults={
-                'name': request.user.get_full_name() or application.company_name or request.user.username,
-                'email': application.company_email or request.user.email,
-                'phone': application.company_phone or '',
-                'location': tender.project.project_location if (tender.project and tender.project.project_location) else 'National',
-            }
-        )
+        # Keep a contractor profile tied to this login, not merely to a company
+        # name that another applicant may also use.
+        if contractor_profile is None:
+            contractor_profile = Contractor.objects.create(
+                company=application.company_name or request.user.username,
+                name=request.user.get_full_name() or application.company_name or request.user.username,
+                email=request.user.email,
+                phone=application.company_phone or '',
+                location=tender.project.project_location if (tender.project and tender.project.project_location) else 'National',
+                profile=request.user.profile if request.user.profile else None,
+            )
+        elif not contractor_profile.phone and application.company_phone:
+            contractor_profile.phone = application.company_phone
+            contractor_profile.save(update_fields=['phone'])
 
         audit(request, 'tender_application_submitted', application, project=tender.project)
         notify(tender.created_by, 'tender', 'New tender application', f'{application.company_name} applied for {tender.reference_number}.', f'/tenders/{tender.id}/')
@@ -3669,6 +3799,51 @@ def calculate_financial_scores(tender):
 
         app.total_score = (float(app.technical_score or 0) * 0.7) + (float(app.financial_score or 0) * 0.3)
         app.save()
+
+
+AWARD_TRACKING_STAGES = [
+    'Contract Award & Mobilization',
+    'Site Clearance & Land Preparation',
+    'Foundation & Substructure',
+    'Superstructure / Main Works',
+    'Finishing & Fittings',
+    'Inspection & Quality Assurance',
+    'Handover & Completion',
+]
+
+
+def ensure_award_tracking_plan(project):
+    """Create blank work stages for an awarded project; contractors define milestones."""
+    created_stage_count = 0
+    stages = list(project.stages.order_by('order', 'id'))
+    if not stages:
+        today = django_timezone.localdate()
+        for order, stage_name in enumerate(AWARD_TRACKING_STAGES, start=1):
+            stage = ProjectStage.objects.create(
+                project=project,
+                stage_name=stage_name,
+                description='Record work, evidence, progress, and blockers for this delivery phase.',
+                start_date=today if order == 1 else None,
+                progress_percentage=0,
+                status='in_progress' if order == 1 else 'not_started',
+                is_current=(order == 1),
+                order=order,
+            )
+            stages.append(stage)
+            created_stage_count += 1
+
+    current_stage = next((stage for stage in stages if stage.status == 'in_progress'), None)
+    if current_stage is None:
+        current_stage = next((stage for stage in stages if stage.status == 'not_started'), None)
+        if current_stage:
+            current_stage.status = 'in_progress'
+            current_stage.start_date = current_stage.start_date or django_timezone.localdate()
+            current_stage.save(update_fields=['status', 'start_date'])
+    if current_stage and not current_stage.is_current:
+        ProjectStage.objects.filter(project=project, is_current=True).exclude(pk=current_stage.pk).update(is_current=False)
+        current_stage.is_current = True
+        current_stage.save(update_fields=['is_current'])
+    return created_stage_count, 0
 
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
@@ -3710,6 +3885,16 @@ def award_tender(request, tender_id):
     tender = get_object_or_404(Tender, id=tender_id)
     if request.method != 'POST':
         return HttpResponseBadRequest('Tender awards must be submitted with POST.')
+    if tender.status == 'awarded':
+        messages.info(request, 'This tender is already awarded. Use the award SMS action to resend a message.')
+        return redirect('tender_detail', tender_id=tender.id)
+    sms_text = (request.POST.get('award_message') or '').strip()
+    if not sms_text:
+        messages.error(request, 'Write the message that will be sent to the successful contractor.')
+        return redirect('tender_detail', tender_id=tender.id)
+    if len(sms_text) > 500:
+        messages.error(request, 'Award message must be 500 characters or fewer.')
+        return redirect('tender_detail', tender_id=tender.id)
 
     with transaction.atomic():
         app_id = request.POST.get('application_id')
@@ -3747,15 +3932,22 @@ def award_tender(request, tender_id):
 
         # Auto Link or Create Contractor profile
         company_name = winner.company_name or (winner.applicant.get_full_name() if winner.applicant else 'Contractor Company')
-        contractor = Contractor.objects.filter(company=company_name).first()
+        contractor = None
+        if winner.applicant:
+            applicant_profiles = Contractor.objects.filter(email__iexact=winner.applicant.email)
+            if winner.applicant.organization:
+                applicant_profiles = applicant_profiles.filter(company__iexact=winner.applicant.organization)
+            contractor = applicant_profiles.first()
+        if not contractor:
+            contractor = Contractor.objects.filter(company__iexact=company_name).first()
         if not contractor and winner.applicant:
-            contractor = Contractor.objects.filter(email=winner.company_email or winner.applicant.email).first()
+            contractor = Contractor.objects.filter(email__iexact=winner.applicant.email).first()
         if not contractor:
             contractor = Contractor.objects.create(
                 company=company_name,
                 name=(winner.applicant.get_full_name() if winner.applicant and winner.applicant.get_full_name() else company_name),
-                email=winner.company_email or (winner.applicant.email if winner.applicant else ''),
-                phone=winner.company_phone or '',
+                email=(winner.applicant.email if winner.applicant else winner.company_email or ''),
+                phone=((winner.applicant.phone_number if winner.applicant else '') or winner.company_phone or ''),
                 location=(tender.project.project_location if (tender.project and tender.project.project_location) else 'National'),
                 profile=(winner.applicant.profile if winner.applicant and winner.applicant.profile else None),
             )
@@ -3771,10 +3963,91 @@ def award_tender(request, tender_id):
         tender.award_amount = winner.bid_amount
         tender.save(update_fields=['status', 'awarded_to', 'award_date', 'award_amount'])
 
-    audit(request, 'tender_awarded', tender, project=tender.project, changes={'application_id': winner.id, 'contractor_id': contractor.id})
-    notify(winner.applicant, 'tender', 'Tender awarded', f'Congratulations! Your bid for {tender.reference_number} has been awarded.', '/track_application/')
+        created_stage_count = 0
+        created_milestone_count = 0
+        if tender.project:
+            created_stage_count, created_milestone_count = ensure_award_tracking_plan(tender.project)
+            if tender.project.project_status not in {'completed', 'cancelled'}:
+                if tender.project.project_status == 'delayed':
+                    apply_status_change(tender.project, 'ongoing', actor=request.user, source='award')
+                else:
+                    refresh_project_status(tender.project, actor=request.user, source='award')
+
+    audit(request, 'tender_awarded', tender, project=tender.project, changes={
+        'application_id': winner.id,
+        'contractor_id': contractor.id,
+        'tracking_stages_created': created_stage_count,
+        'tracking_milestones_created': created_milestone_count,
+        'project_status': tender.project.project_status if tender.project else None,
+    })
+    notify(winner.applicant, 'tender', 'Tender awarded', sms_text, '/track_application/')
+    recipient_phone = (
+        (request.POST.get('recipient_phone') or '').strip()
+        or contractor.phone
+        or (winner.applicant.phone_number if winner.applicant else '')
+        or winner.company_phone
+    )
+    try:
+        delivery = send_africastalking_sms(recipient_phone, sms_text)
+    except AfricaTalkingError as exc:
+        logger.warning('Award SMS for tender %s was not sent: %s', tender.reference_number, exc)
+        messages.warning(request, f'The tender was awarded, but the SMS was not sent: {exc}')
+        audit(
+            request, 'tender_award_sms_failed', tender, project=tender.project,
+            changes={'application_id': winner.pk, 'phone_last_four': (recipient_phone or '')[-4:], 'reason': str(exc), 'message': sms_text},
+        )
+    else:
+        audit(
+            request, 'tender_award_sms_sent', tender, project=tender.project,
+            changes={'application_id': winner.pk, 'phone_last_four': delivery['recipient'][-4:], 'provider_status': delivery['status'], 'message': sms_text},
+        )
     messages.success(request, f'Tender {tender.reference_number} successfully awarded to {contractor.company or contractor.name}!')
     return redirect('tender_detail', tender_id=tender.id)
+
+
+@login_required(login_url='login')
+@role_required(*TENDER_AWARD_ROLES)
+@require_POST
+def resend_tender_award_sms(request, tender_id):
+    tender = get_object_or_404(Tender.objects.select_related('awarded_to', 'project'), pk=tender_id)
+    if tender.status != 'awarded':
+        messages.error(request, 'This tender has not been awarded yet.')
+        return redirect('tender_detail', tender_id=tender.pk)
+    winner = tender.applications.filter(status='awarded').select_related('applicant').first()
+    if not winner:
+        messages.error(request, 'No successful application was found for this award.')
+        return redirect('tender_detail', tender_id=tender.pk)
+
+    contractor = tender.awarded_to
+    sms_text = (request.POST.get('award_message') or '').strip()
+    if not sms_text:
+        messages.error(request, 'Write the message to send to the successful contractor.')
+        return redirect('tender_detail', tender_id=tender.pk)
+    if len(sms_text) > 500:
+        messages.error(request, 'Award message must be 500 characters or fewer.')
+        return redirect('tender_detail', tender_id=tender.pk)
+    recipient_phone = (
+        (request.POST.get('recipient_phone') or '').strip()
+        or (contractor.phone if contractor else '')
+        or (winner.applicant.phone_number if winner.applicant else '')
+        or winner.company_phone
+    )
+    try:
+        delivery = send_africastalking_sms(recipient_phone, sms_text)
+    except AfricaTalkingError as exc:
+        logger.warning('Award SMS retry for tender %s was not sent: %s', tender.reference_number, exc)
+        audit(
+            request, 'tender_award_sms_failed', tender, project=tender.project,
+            changes={'application_id': winner.pk, 'phone_last_four': (recipient_phone or '')[-4:], 'reason': str(exc)},
+        )
+        messages.error(request, f'The SMS could not be sent: {exc}')
+    else:
+        audit(
+            request, 'tender_award_sms_sent', tender, project=tender.project,
+            changes={'application_id': winner.pk, 'phone_last_four': delivery['recipient'][-4:], 'provider_status': delivery['status']},
+        )
+        messages.success(request, 'The award SMS was accepted by Africa\'s Talking.')
+    return redirect('tender_detail', tender_id=tender.pk)
 
 # Add a new tender
 @login_required(login_url='login')
@@ -4257,24 +4530,95 @@ def ProjectStageDelete(request, pk):
         warning='This stage, its progress, and any associated records may be permanently removed.',
     )
 
+@login_required(login_url='login')
+@role_required(*OFFICER_ROLES)
 def sms_dashboard(request):
-    return render(request, 'sms/intergration.html')
+    contractors = Contractor.objects.exclude(phone__isnull=True).exclude(phone='').order_by('company', 'name')
+    users = User.objects.filter(role__in=('citizen', 'contractor')).exclude(
+        phone_number__isnull=True,
+    ).exclude(phone_number='').order_by('name', 'username')
+    return render(request, 'sms/intergration.html', {
+        'sms_contractors': contractors,
+        'sms_users': users,
+        'sms_projects': Project.objects.order_by('-id')[:300],
+        'sms_tenders': Tender.objects.select_related('project', 'awarded_to').order_by('-created_at')[:300],
+        'sms_configured': bool(settings.AFRICASTALKING_USERNAME and settings.AFRICASTALKING_API_KEY),
+    })
 
 
 @login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def send_sms_report(request):
-    if request.method == "POST":
-        phone = request.POST.get('phone')
-        message = request.POST.get('message')
-        if not phone or not message:
-            messages.error(request, 'Phone number and message are required.')
-            return redirect('sms_dashboard')
-        # An external delivery provider is intentionally not faked. Keep a traceable
-        # in-platform notification until a configured SMS gateway is connected.
-        audit(request, 'sms_queued', request.user, changes={'phone': phone, 'message': message})
-        messages.info(request, 'Message recorded. Configure an SMS gateway before claiming delivery.')
+    if request.method != 'POST':
         return redirect('sms_dashboard')
+
+    message_text = (request.POST.get('message') or '').strip()
+    recipient_value = (request.POST.get('recipient') or '').strip()
+    if not message_text or len(message_text) > 500:
+        messages.error(request, 'Enter a message of 1 to 500 characters.')
+        return redirect('sms_dashboard')
+
+    recipient_obj = request.user
+    recipient_name = ''
+    phone = ''
+    try:
+        kind, raw_id = recipient_value.split(':', 1)
+        if kind == 'contractor':
+            recipient_obj = get_object_or_404(Contractor, pk=int(raw_id))
+            phone = recipient_obj.phone or ''
+            recipient_name = recipient_obj.company or recipient_obj.name or 'Contractor'
+        elif kind == 'user':
+            recipient_obj = get_object_or_404(User, pk=int(raw_id))
+            phone = recipient_obj.phone_number or ''
+            recipient_name = recipient_obj.get_full_name() or recipient_obj.username
+        elif kind == 'manual':
+            phone = (request.POST.get('phone') or '').strip()
+            recipient_name = 'External contact'
+        else:
+            raise ValueError
+    except (ValueError, TypeError):
+        messages.error(request, 'Choose a client or enter a phone number.')
+        return redirect('sms_dashboard')
+
+    if not phone:
+        messages.error(request, 'This client has no phone number. Add one to their profile first.')
+        return redirect('sms_dashboard')
+
+    association_obj = None
+    project = None
+    association_value = (request.POST.get('association') or '').strip()
+    try:
+        association_kind, raw_id = association_value.split(':', 1)
+        if association_kind == 'project':
+            project = get_object_or_404(Project, pk=int(raw_id))
+            association_obj = project
+        elif association_kind == 'tender':
+            association_obj = get_object_or_404(Tender.objects.select_related('project'), pk=int(raw_id))
+            project = association_obj.project
+        elif association_value:
+            raise ValueError
+    except (ValueError, TypeError):
+        messages.error(request, 'Choose a valid project or tender association.')
+        return redirect('sms_dashboard')
+
+    try:
+        delivery = send_africastalking_sms(phone, message_text)
+    except AfricaTalkingError as exc:
+        logger.warning('SMS send failed for %s: %s', recipient_name, exc)
+        messages.error(request, f'The SMS was not sent: {exc}')
+        return redirect('sms_dashboard')
+
+    audit(
+        request, 'client_sms_sent', association_obj or recipient_obj, project=project,
+        changes={
+            'recipient': recipient_name,
+            'phone_last_four': delivery['recipient'][-4:],
+            'provider_status': delivery['status'],
+            'message': message_text,
+            'association': (f'{association_obj.__class__.__name__}:{association_obj.pk}' if association_obj else ''),
+        },
+    )
+    messages.success(request, f'SMS accepted by Africa\'s Talking for {recipient_name}.')
     return redirect('sms_dashboard')
 
 
@@ -4719,9 +5063,19 @@ def contractor_detail(request, pk):
 def contractor_dashboard(request):
     is_contractor_role = getattr(request.user, 'role', '') in PROJECT_WORKER_ROLES
     con, detected_from_contractor = _detect_projects_for_user(request.user)
-    contractors = Contractor.objects.none() if is_contractor_role else Contractor.objects.all().prefetch_related(
-        'projects', 'awarded_tenders'
-    ).order_by('-created_at')
+    contractors = Contractor.objects.none() if is_contractor_role else list(
+        Contractor.objects.all().prefetch_related('projects', 'awarded_tenders').order_by('-created_at')
+    )
+    contractor_email_counts = {}
+    for contractor_item in contractors:
+        normalized_email = (contractor_item.email or '').strip().casefold()
+        if normalized_email:
+            contractor_email_counts[normalized_email] = contractor_email_counts.get(normalized_email, 0) + 1
+    for contractor_item in contractors:
+        normalized_email = (contractor_item.email or '').strip().casefold()
+        contractor_item.possible_duplicate = bool(
+            normalized_email and contractor_email_counts.get(normalized_email, 0) > 1
+        )
     reports = StageReport.objects.select_related(
         'project', 'stage', 'contractor', 'reported_by', 'reviewed_by'
     ).all().order_by('-created_at')
@@ -4739,6 +5093,7 @@ def contractor_dashboard(request):
         'is_business_contractor': request.user.role == 'contractor',
         'detected_from_contractor': detected_from_contractor,
         'can_review_contractor_submissions': request.user.is_superuser or request.user.role in OFFICER_ROLES,
+        'can_delete_contractors': request.user.is_superuser or request.user.role in CONTRACTOR_DELETE_ROLES,
     }
 
     if is_contractor_role:
@@ -4763,6 +5118,20 @@ def contractor_dashboard(request):
         ).order_by('due_date')
 
         contractor_records = _contractors_for_user(request.user)
+        awarded_tender_applications = TenderApplication.objects.filter(
+            applicant=request.user,
+            status='awarded',
+            tender__status='awarded',
+        ).select_related('tender', 'tender__project', 'tender__awarded_to').order_by(
+            '-tender__award_date', '-submitted_at'
+        )
+        open_tenders = Tender.objects.filter(
+            status__in=['published', 'open'],
+        ).filter(
+            Q(closing_date__isnull=True) | Q(closing_date__gte=django_timezone.localdate())
+        ).exclude(
+            applications__applicant=request.user,
+        ).select_related('project').order_by('closing_date', '-created_at')[:8]
 
         context.update({
             'con': projects,
@@ -4780,6 +5149,8 @@ def contractor_dashboard(request):
                 (Q(end_date__lt=timezone.localdate()) & ~Q(project_status__in=['completed', 'cancelled']))
             ).distinct().count(),
             'contractor_record': contractor_records.first(),
+            'awarded_tender_applications': awarded_tender_applications,
+            'open_tenders': open_tenders,
             'contractor_documents': ContractorDocument.objects.filter(
                 contractor__in=contractor_records
             ).order_by('-uploaded_at'),
@@ -4811,6 +5182,34 @@ def contractor_dashboard(request):
 
 
 @login_required(login_url='login')
+@require_POST
+def delete_contractor(request, pk):
+    if not has_role(request.user, CONTRACTOR_DELETE_ROLES):
+        return HttpResponseForbidden("Only an admin or government official can delete contractor records.")
+    contractor = get_object_or_404(Contractor, pk=pk)
+    contractor_label = contractor.company or contractor.name or f'Contractor #{contractor.pk}'
+    with transaction.atomic():
+        linked_accounts = User.objects.filter(role='contractor', email__iexact=contractor.email) if contractor.email else User.objects.none()
+        if contractor.company:
+            linked_accounts = linked_accounts.filter(organization__iexact=contractor.company)
+        for linked_account in linked_accounts:
+            audit(request, 'contractor_login_revoked', linked_account, changes={
+                'contractor': contractor_label,
+                'reason': 'contractor_profile_deleted',
+            })
+            linked_account.is_active = False
+            linked_account.save(update_fields=['is_active'])
+        audit(request, 'contractor_deleted', contractor, changes={
+            'company': contractor.company,
+            'name': contractor.name,
+            'email': contractor.email,
+        })
+        contractor.delete()
+    messages.success(request, f'Contractor record for {contractor_label} was deleted.')
+    return redirect('contractor_performance')
+
+
+@login_required(login_url='login')
 @role_required(*OFFICER_ROLES)
 def register_contractor(request):
     form = ProfessionalAccountRegistrationForm(request.POST or None, request.FILES or None)
@@ -4836,6 +5235,20 @@ def register_contractor(request):
                 )
                 return redirect('contractor_performance')
 
+            existing_profiles = Contractor.objects.filter(email__iexact=email)
+            if existing_profiles.exists():
+                matching_company_profiles = existing_profiles.filter(company__iexact=company)
+                if matching_company_profiles.count() != 1:
+                    form.add_error(
+                        'company',
+                        'This email is already listed under a different or duplicate contractor profile. '
+                        'Resolve the existing registry entry before creating this account.',
+                    )
+                    return render(request, 'contractors/register.html', {'form': form})
+                existing_contractor = matching_company_profiles.first()
+            else:
+                existing_contractor = None
+
         username_base = ''.join(
             character for character in email.split('@', 1)[0].lower()
             if character.isalnum()
@@ -4858,17 +5271,21 @@ def register_contractor(request):
         with transaction.atomic():
             user.save()
             if role == 'contractor':
-                contractor = Contractor.objects.create(
-                    name=data['name'],
-                    company=company,
-                    phone=data.get('phone', ''),
-                    email=email,
-                    location=data['location'],
-                    registration_no=data['registration_no'],
-                    category=data['category'],
-                    profile=data['profile'],
-                )
-                audit(request, 'created', contractor, changes={'company': company})
+                if existing_contractor:
+                    contractor = existing_contractor
+                    audit(request, 'contractor_account_linked', contractor, changes={'account_email': email})
+                else:
+                    contractor = Contractor.objects.create(
+                        name=data['name'],
+                        company=company,
+                        phone=data.get('phone', ''),
+                        email=email,
+                        location=data['location'],
+                        registration_no=data['registration_no'],
+                        category=data['category'],
+                        profile=data['profile'],
+                    )
+                    audit(request, 'created', contractor, changes={'company': company})
             audit(request, 'professional_account_created', user, changes={'role': role})
 
         role_label = user.get_role_display()
@@ -4920,6 +5337,13 @@ def submit_stage_report(request):
             messages.error(request, "You can only submit a stage report for a project assigned to you.")
             return redirect('contractor_performance')
 
+        status_project = projects.get(pk=project_id)
+        reported_status = (request.POST.get('project_status') or '').strip()
+        allowed_statuses = {'ongoing', 'delayed', 'stalled', 'suspended'}
+        if reported_status and reported_status not in allowed_statuses:
+            messages.error(request, "Choose a valid project status.")
+            return redirect(f"{reverse('contractor_project_works', args=[project_id])}?tab=reports")
+
         try:
             uploads = list(request.FILES.getlist('photos')) + list(request.FILES.getlist('attachments'))
             if request.FILES.get('photo'):
@@ -4942,16 +5366,19 @@ def submit_stage_report(request):
                 image_field.clean(image_file, None)
 
             progress_val = request.POST.get('progress') or request.POST.get('progress_percentage') or 0
-            # Free-text stage description (contractor types the stage, not a dropdown choice)
+            # Contractors describe the actual phase/work package in free text.
             stage_description = (request.POST.get('stage_description') or request.POST.get('stage') or '').strip()
-            # Try to match the typed stage to one of the project's stages so progress can sync
             matched_stage = None
             project_id = request.POST.get('project')
             if stage_description and project_id:
+                # Keep the relational link only when their free-text entry
+                # exactly matches a tracked stage; otherwise save it as entered.
                 matched_stage = ProjectStage.objects.filter(
                     project_id=project_id,
-                    stage_name__iexact=stage_description
+                    stage_name__iexact=stage_description,
                 ).first()
+            if matched_stage and not stage_description:
+                stage_description = matched_stage.stage_name
             report = StageReport(
                 project_id=project_id,
                 stage=matched_stage,
@@ -4966,14 +5393,21 @@ def submit_stage_report(request):
             )
             report.full_clean()
             report.save()
+            if reported_status and reported_status != status_project.project_status:
+                old_status = status_project.project_status
+                apply_status_change(
+                    status_project, reported_status, actor=request.user, source='assignee'
+                )
+                status_project.status_history.filter(
+                    changed_by=request.user,
+                    from_status=old_status,
+                    to_status=reported_status,
+                ).order_by('-changed_at').update(note=report.description[:255])
             # Extra verification photos (multiple images allowed)
             for image_file in request.FILES.getlist('photos'):
                 StageReportImage.objects.create(report=report, image=image_file)
             for attachment in request.FILES.getlist('attachments'):
                 StageReportAttachment.objects.create(report=report, file=attachment)
-            if report.stage:
-                report.stage.progress_percentage = report.progress_percentage
-                report.stage.save(update_fields=['progress_percentage'])
             audit(request, 'stage_report_submitted', report, project=report.project)
             messages.success(request, "Stage report submitted successfully.")
         except (ValueError, ValidationError) as error:
@@ -5010,6 +5444,12 @@ def submit_stage_report(request):
         ),
         'contractor_display_name': request.user.full_name,
         'is_contractor_role': request.user.role in PROJECT_WORKER_ROLES,
+        'project_status_choices': [
+            ('ongoing', 'Ongoing'),
+            ('delayed', 'Delayed'),
+            ('stalled', 'Stalled'),
+            ('suspended', 'Suspended'),
+        ],
         'detected_from_contractor': detected_from_contractor,
     })
 
@@ -5027,15 +5467,18 @@ def contractor_profile_settings(request):
         request.FILES or None,
         instance=contractor,
         contact_email=request.user.email,
+        user=request.user,
     )
     if request.method == 'POST' and form.is_valid():
         contractor = form.save(commit=False)
         contractor.email = request.user.email
         contractor.save()
         request.user.organization = contractor.company
-        request.user.phone_number = contractor.phone
-        request.user.save(update_fields=['organization', 'phone_number', 'updated'])
-        messages.success(request, 'Contractor company and contact details updated.')
+        request.user.name = form.cleaned_data['personal_name'].strip()
+        request.user.phone_number = form.cleaned_data['personal_phone'].strip()
+        request.user.location = contractor.location
+        request.user.save(update_fields=['name', 'organization', 'phone_number', 'location', 'updated'])
+        messages.success(request, 'Your personal and company details were updated.')
         return redirect('contractor_performance')
 
     return render(request, 'contractors/profile_settings.html', {'form': form})
@@ -5219,17 +5662,141 @@ def contractor_review_queue(request):
                     link=reverse('contractor_performance'),
                 )
             messages.success(request, f'Progress report {action}.')
-        elif submission_type == 'payment' and action in {'approved', 'rejected', 'paid'}:
+        elif submission_type == 'payment' and action in {'approved', 'rejected', 'paid', 'mpesa'}:
             submission = get_object_or_404(
-                ContractorPaymentRequest.objects.select_related('project', 'submitted_by'),
+                ContractorPaymentRequest.objects.select_related('project', 'submitted_by', 'contractor'),
                 pk=int(submission_id),
             )
             if action == 'paid' and submission.status != 'approved':
                 messages.error(request, 'Only approved payment requests can be marked paid.')
                 return redirect('contractor_review_queue')
+            if action == 'paid' and submission.disbursement_status in {'pending', 'successful'}:
+                messages.error(request, 'This payment is already being processed through M-Pesa.')
+                return redirect('contractor_review_queue')
             if action in {'approved', 'rejected'} and submission.status != 'pending':
                 messages.error(request, 'This payment request has already been reviewed.')
                 return redirect('contractor_review_queue')
+            if action == 'mpesa':
+                if submission.status != 'approved':
+                    messages.error(request, 'Only approved payment requests can be sent through M-Pesa.')
+                    return redirect('contractor_review_queue')
+                if submission.disbursement_status in {'pending', 'successful'}:
+                    messages.error(request, 'This payment is already being processed through M-Pesa.')
+                    return redirect('contractor_review_queue')
+                if not submission.contractor or not submission.contractor.phone:
+                    messages.error(request, 'Add a valid M-Pesa phone number to the contractor profile first.')
+                    return redirect('contractor_review_queue')
+                try:
+                    phone_number = normalize_kenyan_phone(submission.contractor.phone)
+                except ValueError as exc:
+                    messages.error(request, str(exc))
+                    return redirect('contractor_review_queue')
+                if submission.amount != submission.amount.to_integral_value():
+                    messages.error(request, 'M-Pesa B2C payments must be a whole number of Kenyan shillings.')
+                    return redirect('contractor_review_queue')
+                try:
+                    access_token = get_access_token()
+                except DarajaError as exc:
+                    messages.error(request, str(exc))
+                    return redirect('contractor_review_queue')
+
+                with transaction.atomic():
+                    submission = ContractorPaymentRequest.objects.select_for_update().get(pk=submission.pk)
+                    if submission.status != 'approved':
+                        messages.error(request, 'Only approved payment requests can be sent through M-Pesa.')
+                        return redirect('contractor_review_queue')
+                    if submission.disbursement_status in {'pending', 'successful'}:
+                        messages.error(request, 'This payment is already being processed through M-Pesa.')
+                        return redirect('contractor_review_queue')
+                    submission.disbursement_status = 'pending'
+                    submission.mpesa_phone_number = phone_number
+                    submission.mpesa_conversation_id = ''
+                    submission.mpesa_originator_conversation_id = ''
+                    submission.mpesa_result_code = None
+                    submission.mpesa_result_description = 'Payout request submitted; awaiting Safaricom confirmation.'
+                    submission.save(update_fields=[
+                        'disbursement_status', 'mpesa_phone_number',
+                        'mpesa_conversation_id', 'mpesa_originator_conversation_id',
+                        'mpesa_result_code', 'mpesa_result_description', 'updated_at',
+                    ])
+                audit(
+                    request,
+                    'mpesa_payment_initiated',
+                    submission,
+                    project=submission.project,
+                    changes={'amount': str(submission.amount), 'phone_last_four': phone_number[-4:]},
+                )
+                try:
+                    result = submit_b2c_payment(submission, phone_number, access_token)
+                except DarajaRejected as exc:
+                    ContractorPaymentRequest.objects.filter(
+                        pk=submission.pk,
+                        disbursement_status='pending',
+                    ).update(
+                        disbursement_status='failed',
+                        mpesa_result_description=str(exc),
+                    )
+                    audit(
+                        request,
+                        'mpesa_payment_rejected',
+                        submission,
+                        project=submission.project,
+                        changes={'result': str(exc)},
+                    )
+                    messages.error(request, f'M-Pesa rejected the payout: {exc}')
+                    return redirect('contractor_review_queue')
+                except DarajaError as exc:
+                    ContractorPaymentRequest.objects.filter(
+                        pk=submission.pk,
+                        disbursement_status='pending',
+                    ).update(mpesa_result_description=str(exc))
+                    logger.error('M-Pesa payout %s has an unknown outcome: %s', submission.pk, exc)
+                    messages.warning(
+                        request,
+                        'Safaricom has not confirmed the payout request. It remains pending; '
+                        'check its Daraja status before attempting another payment.',
+                    )
+                    return redirect('contractor_review_queue')
+
+                ContractorPaymentRequest.objects.filter(
+                    pk=submission.pk,
+                    disbursement_status='pending',
+                ).update(
+                    mpesa_conversation_id=result['ConversationID'],
+                    mpesa_originator_conversation_id=result['OriginatorConversationID'],
+                    mpesa_result_description=result.get('ResponseDescription', ''),
+                )
+                submission.refresh_from_db()
+                _apply_mpesa_callbacks(submission)
+
+                # Notify the contractor by SMS that the payout has been sent to
+                # Safaricom, and record the message in the audit trail.
+                try:
+                    send_payment_sms(
+                        submission,
+                        (
+                            f"GovTracker payment: KES {submission.amount:,.2f} "
+                            f"for '{submission.title}' on project "
+                            f"{submission.project.project_title} has been sent "
+                            f"to your M-Pesa. Reference: {submission.mpesa_conversation_id or submission.pk}."
+                        ),
+                        purpose="payout-initiated",
+                        actor=request.user,
+                        request=request,
+                    )
+                    messages.success(
+                        request,
+                        'Payout request sent to Safaricom and the contractor was '
+                        'notified by SMS. Awaiting M-Pesa confirmation.'
+                    )
+                except PaymentSmsError as exc:
+                    messages.warning(
+                        request,
+                        'Payout request sent to Safaricom, but the contractor SMS '
+                        f'could not be sent: {exc}'
+                    )
+                return redirect('contractor_review_queue')
+
             if action == 'rejected' and not comments:
                 messages.error(request, 'Add a reviewer comment when rejecting a payment request.')
                 return redirect('contractor_review_queue')
@@ -5251,6 +5818,53 @@ def contractor_review_queue(request):
                 update_fields.extend(['reviewer_comments', 'reviewed_by', 'reviewed_at'])
             submission.save(update_fields=update_fields)
             audit(request, f'contractor_payment_{action}', submission, project=submission.project)
+
+            # When an external transfer is recorded, notify the contractor by SMS
+            # and keep the message in the audit trail.
+            if action == 'paid':
+                try:
+                    send_payment_sms(
+                        submission,
+                        (
+                            f"GovTracker payment: KES {submission.amount:,.2f} for "
+                            f"'{submission.title}' on project "
+                            f"{submission.project.project_title} has been paid via "
+                            f"government transfer. Reference: {submission.disbursement_reference}."
+                        ),
+                        purpose="external-transfer-paid",
+                        actor=request.user,
+                        request=request,
+                    )
+                except PaymentSmsError as exc:
+                    messages.warning(
+                        request,
+                        f'Payment recorded, but the contractor SMS could not be '
+                        f'sent: {exc}'
+                    )
+
+            # Notify the contractor when a payment request is rejected so they
+            # can correct the invoice and resubmit.
+            if action == 'rejected':
+                try:
+                    send_payment_sms(
+                        submission,
+                        (
+                            f"GovTracker payment update: your invoice "
+                            f"'{submission.title}' (KES {submission.amount:,.2f}) "
+                            f"on project {submission.project.project_title} was "
+                            f"not approved. Reason: {comments or 'No reason recorded'}."
+                        ),
+                        purpose="payment-rejected",
+                        actor=request.user,
+                        request=request,
+                    )
+                except PaymentSmsError as exc:
+                    messages.warning(
+                        request,
+                        f'Payment rejected, but the contractor SMS could not be '
+                        f'sent: {exc}'
+                    )
+
             if submission.submitted_by:
                 notify(
                     submission.submitted_by,
@@ -5296,6 +5910,245 @@ def contractor_review_queue(request):
             verification_status='pending'
         ).select_related('project', 'stage').order_by('due_date'),
     })
+
+
+def _apply_mpesa_callbacks(payment):
+    if not payment.mpesa_conversation_id or not payment.mpesa_originator_conversation_id:
+        return
+    callback_events = MpesaCallback.objects.filter(
+        conversation_id=payment.mpesa_conversation_id,
+        originator_conversation_id=payment.mpesa_originator_conversation_id,
+        processed_at__isnull=True,
+    ).order_by('received_at', 'pk')
+    for callback in callback_events:
+        with transaction.atomic():
+            current_payment = ContractorPaymentRequest.objects.select_for_update().get(pk=payment.pk)
+            current_callback = MpesaCallback.objects.select_for_update().get(pk=callback.pk)
+            if current_callback.processed_at:
+                continue
+            now = timezone.now()
+            if current_payment.disbursement_status != 'pending' or current_payment.status != 'approved':
+                current_callback.processed_at = now
+                current_callback.save(update_fields=['processed_at'])
+                continue
+            if current_callback.callback_type == 'timeout':
+                current_payment.mpesa_result_description = (
+                    current_callback.result_description or 'Safaricom reported a queue timeout; final result pending.'
+                )
+                current_payment.save(update_fields=['mpesa_result_description', 'updated_at'])
+            elif current_callback.result_code == 0:
+                if not current_callback.transaction_receipt:
+                    current_payment.mpesa_result_description = (
+                        'Safaricom reported success without a transaction receipt; manual reconciliation required.'
+                    )
+                    current_payment.save(update_fields=['mpesa_result_description', 'updated_at'])
+                    logger.error('Successful M-Pesa callback for payment %s had no receipt.', payment.pk)
+                else:
+                    current_payment.status = 'paid'
+                    current_payment.disbursement_status = 'successful'
+                    current_payment.disbursement_reference = current_callback.transaction_receipt
+                    current_payment.mpesa_result_code = current_callback.result_code
+                    current_payment.mpesa_result_description = current_callback.result_description
+                    current_payment.paid_at = now
+                    current_payment.paid_by = None
+                    current_payment.save(update_fields=[
+                        'status', 'disbursement_status', 'disbursement_reference',
+                        'mpesa_result_code', 'mpesa_result_description', 'paid_at',
+                        'paid_by', 'updated_at',
+                    ])
+
+                    # Notify the contractor by SMS once Safaricom confirms the
+                    # disbursement, and record the message in the audit trail.
+                    try:
+                        send_payment_sms(
+                            current_payment,
+                            (
+                                f"GovTracker payment confirmed: KES {current_payment.amount:,.2f} "
+                                f"for '{current_payment.title}' on project "
+                                f"{current_payment.project.project_title} has been paid "
+                                f"to your M-Pesa. Transaction: "
+                                f"{current_callback.transaction_receipt}."
+                            ),
+                            purpose="payout-confirmed",
+                        )
+                    except PaymentSmsError as exc:
+                        logger.warning(
+                            'M-Pesa payout %s succeeded but contractor SMS failed: %s',
+                            current_payment.pk, exc,
+                        )
+
+                    AuditLog.objects.create(
+                        action='mpesa_payment_succeeded',
+                        model_name='ContractorPaymentRequest',
+                        object_id=current_payment.pk,
+                        project=current_payment.project,
+                        changes={
+                            'disbursement_status': 'successful',
+                            'disbursement_reference': current_callback.transaction_receipt,
+                        },
+                    )
+            else:
+                current_payment.disbursement_status = 'failed'
+                current_payment.mpesa_result_code = current_callback.result_code
+                current_payment.mpesa_result_description = current_callback.result_description
+                current_payment.save(update_fields=[
+                    'disbursement_status', 'mpesa_result_code',
+                    'mpesa_result_description', 'updated_at',
+                ])
+                AuditLog.objects.create(
+                    action='mpesa_payment_failed',
+                    model_name='ContractorPaymentRequest',
+                    object_id=current_payment.pk,
+                    project=current_payment.project,
+                    changes={
+                        'disbursement_status': 'failed',
+                        'result_code': current_callback.result_code,
+                        'result_description': current_callback.result_description,
+                    },
+                )
+            current_callback.processed_at = now
+            current_callback.save(update_fields=['processed_at'])
+
+
+def _receive_mpesa_callback(request, token, callback_type):
+    configured_token = getattr(settings, 'MPESA_CALLBACK_TOKEN', '')
+    if not configured_token or not constant_time_compare(token, configured_token):
+        return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Not found.'}, status=404)
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+        result = payload['Result']
+        conversation_id = str(result['ConversationID'])
+        originator_conversation_id = str(result['OriginatorConversationID'])
+        result_code = int(result['ResultCode']) if 'ResultCode' in result else None
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Invalid callback payload.'}, status=400)
+    if callback_type == 'result' and result_code is None:
+        return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Missing result code.'}, status=400)
+
+    callback, _created = MpesaCallback.objects.get_or_create(
+        callback_type=callback_type,
+        conversation_id=conversation_id,
+        originator_conversation_id=originator_conversation_id,
+        defaults={
+            'result_code': result_code,
+            'result_description': str(result.get('ResultDesc', '')),
+            'transaction_receipt': str(result.get('TransactionReceipt', '')),
+        },
+    )
+    payment = ContractorPaymentRequest.objects.filter(
+        mpesa_conversation_id=conversation_id,
+        mpesa_originator_conversation_id=originator_conversation_id,
+    ).first()
+    if payment:
+        _apply_mpesa_callbacks(payment)
+    else:
+        logger.info('Received M-Pesa %s callback before payout identifiers were stored.', callback_type)
+    return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})
+
+
+@login_required(login_url='login')
+def mpesa_checkout(request):
+    form = MpesaCheckoutForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        try:
+            phone = normalize_kenyan_phone(form.cleaned_data['phone_number'])
+        except ValueError as exc:
+            form.add_error('phone_number', str(exc))
+        else:
+            payment = MpesaPayment.objects.create(
+                user=request.user,
+                amount=form.cleaned_data['amount'],
+                phone_number=phone,
+                description=form.cleaned_data['description'],
+                result_description='STK request is being submitted.',
+            )
+            try:
+                result = submit_stk_push(payment, phone, get_access_token())
+            except DarajaRejected as exc:
+                payment.status = 'failed'
+                payment.result_description = str(exc)
+                payment.save(update_fields=['status', 'result_description', 'updated_at'])
+                messages.error(request, f'M-Pesa rejected the payment: {exc}')
+                return redirect('mpesa_checkout')
+            except DarajaError as exc:
+                # Keep uncertain requests pending: a prompt may have reached the handset.
+                payment.result_description = str(exc)
+                payment.save(update_fields=['result_description', 'updated_at'])
+                messages.warning(request, 'The payment outcome is not confirmed. Check payment history before retrying.')
+                return redirect('mpesa_payment_history')
+            payment.checkout_request_id = result['CheckoutRequestID']
+            payment.merchant_request_id = result.get('MerchantRequestID', '')
+            payment.result_description = result.get('ResponseDescription', 'STK prompt sent to your phone.')
+            payment.save(update_fields=[
+                'checkout_request_id', 'merchant_request_id', 'result_description', 'updated_at',
+            ])
+            messages.success(request, 'Check your phone and enter your M-Pesa PIN to complete the payment.')
+            return redirect('mpesa_payment_history')
+    return render(request, 'payments/mpesa_checkout.html', {'form': form})
+
+
+@login_required(login_url='login')
+def mpesa_payment_history(request):
+    return render(request, 'payments/mpesa_history.html', {
+        'payments': MpesaPayment.objects.filter(user=request.user).order_by('-created_at')[:50],
+    })
+
+
+def mpesa_stk_callback(request, token):
+    configured_token = getattr(settings, 'MPESA_CALLBACK_TOKEN', '')
+    if not configured_token or not constant_time_compare(token, configured_token):
+        return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Not found.'}, status=404)
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+        callback = payload['Body']['stkCallback']
+        checkout_id = str(callback['CheckoutRequestID'])
+        result_code = int(callback['ResultCode'])
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Invalid callback payload.'}, status=400)
+    payment = MpesaPayment.objects.filter(checkout_request_id=checkout_id).first()
+    if payment and payment.status == 'pending':
+        payment.result_code = result_code
+        payment.result_description = str(callback.get('ResultDesc', ''))
+        if result_code == 0:
+            callback_metadata = callback.get('CallbackMetadata') or {}
+            metadata = (callback_metadata.get('Item') or []) if isinstance(callback_metadata, dict) else []
+            values = {item.get('Name'): item.get('Value') for item in metadata if isinstance(item, dict)}
+            receipt = str(values.get('MpesaReceiptNumber', ''))
+            callback_amount = values.get('Amount')
+            # Do not mark a collection successful without a receipt and matching amount.
+            try:
+                amount_matches = callback_amount is not None and Decimal(str(callback_amount)) == payment.amount
+            except InvalidOperation:
+                amount_matches = False
+            if receipt and amount_matches:
+                payment.status = 'successful'
+                payment.receipt_number = receipt
+            else:
+                payment.result_description = 'Success callback omitted the receipt or amount did not match; reconciliation required.'
+        else:
+            payment.status = 'failed'
+        payment.save(update_fields=[
+            'status', 'result_code', 'result_description', 'receipt_number', 'updated_at',
+        ])
+    return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})
+
+
+@csrf_exempt
+@require_POST
+def mpesa_result_callback(request, token):
+    return _receive_mpesa_callback(request, token, 'result')
+
+
+@csrf_exempt
+@require_POST
+def mpesa_timeout_callback(request, token):
+    return _receive_mpesa_callback(request, token, 'timeout')
+
+
+@csrf_exempt
+@require_POST
+def mpesa_stk_callback_endpoint(request, token):
+    return mpesa_stk_callback(request, token)
 
 
 @login_required
@@ -7058,6 +7911,24 @@ def export_excel(request):
     wb.save(response)
     return response
 
+def _contractor_status_choices(project):
+    """Statuses a contractor can report; completion requires closed deliverables."""
+    allowed = {'ongoing', 'delayed', 'stalled', 'suspended'}
+    if project.project_status == 'draft':
+        allowed.add('draft')
+    if project.project_status in {'draft', 'upcoming'}:
+        allowed.add('upcoming')
+    milestones = project.milestones.all()
+    if milestones.exists():
+        completion_ready = not milestones.exclude(status='completed').exists()
+    else:
+        stages = project.stages.all()
+        completion_ready = stages.exists() and not stages.exclude(status='completed').exists()
+    if completion_ready:
+        allowed.add('completed')
+    return [choice for choice in Project.STATUS_CHOICES if choice[0] in allowed]
+
+
 @login_required(login_url='login')
 def project_tracking(request, pk):
     """Full end-to-end tracking for one project: every status change, progress
@@ -7085,6 +7956,12 @@ def project_tracking(request, pk):
         and contractor_assigned_to_project(request.user, project)
         and project.project_status not in ('completed', 'cancelled')
     )
+    contractor_status_choices = _contractor_status_choices(project)
+
+    def response_redirect():
+        if request.POST.get('return_to') == 'contractor_workspace' and can_respond:
+            return redirect('contractor_project_works', pk=project.id)
+        return redirect('project_tracking', pk=project.id)
 
     # ── Assigned contractor status response (POST) ───────────────────────
     if request.method == 'POST':
@@ -7095,19 +7972,22 @@ def project_tracking(request, pk):
         new_status = (request.POST.get('new_status') or '').strip()
         note = (request.POST.get('note') or '').strip()
         raw_progress = request.POST.get('progress_percentage', '').strip()
-        allowed = {'ongoing', 'delayed', 'stalled', 'suspended', 'completed', 'cancelled'}
+        allowed = {value for value, _label in contractor_status_choices}
         if new_status and new_status not in allowed:
             messages.error(request, 'Choose a valid project status.')
-            return redirect('project_tracking', pk=project.id)
+            return response_redirect()
         if len(note) > 255:
             messages.error(request, 'Tracking notes must be 255 characters or fewer.')
-            return redirect('project_tracking', pk=project.id)
+            return response_redirect()
+        if new_status and new_status != project.project_status and not note:
+            messages.error(request, 'Add a short note explaining the status update.')
+            return response_redirect()
         if not new_status and not raw_progress and not note:
             messages.error(request, 'Provide a status, progress percentage, or tracking note.')
-            return redirect('project_tracking', pk=project.id)
+            return response_redirect()
         if new_status == project.project_status and not raw_progress and not note:
             messages.error(request, 'The selected status is already current.')
-            return redirect('project_tracking', pk=project.id)
+            return response_redirect()
 
         progress_value = None
         if raw_progress:
@@ -7115,16 +7995,16 @@ def project_tracking(request, pk):
                 progress_value = int(raw_progress)
             except ValueError:
                 messages.error(request, 'Progress must be a whole number from 0 to 100.')
-                return redirect('project_tracking', pk=project.id)
+                return response_redirect()
             if not 0 <= progress_value <= 100:
                 messages.error(request, 'Progress must be between 0 and 100.')
-                return redirect('project_tracking', pk=project.id)
+                return response_redirect()
 
         status_changed = False
         if new_status and new_status != project.project_status:
             if not is_forward_transition(project.project_status, new_status):
                 messages.error(request, 'Project tracking status can only move forward.')
-                return redirect('project_tracking', pk=project.id)
+                return response_redirect()
             old_status = project.project_status
             status_changed = apply_status_change(
                 project, new_status, actor=request.user, source='assignee'
@@ -7159,7 +8039,7 @@ def project_tracking(request, pk):
             )
         project.refresh_from_db()
         messages.success(request, f'Tracking updated — project is now "{project.get_project_status_display()}".')
-        return redirect('project_tracking', pk=project.id)
+        return response_redirect()
 
     stages = project.stages.order_by('order')
     stage_progress = project.stages.aggregate(v=Avg('progress_percentage'))['v']
@@ -7263,6 +8143,8 @@ def project_tracking(request, pk):
         'events': events,
         'stages': stages,
         'can_respond': can_respond,
+        'contractor_status_choices': contractor_status_choices,
+        'can_report_completion': any(value == 'completed' for value, _label in contractor_status_choices),
         'status_progress': _status_progress_context(project),
         'overall_progress': overall_progress,
         'inspections': project.inspections.select_related('stage', 'inspected_by').all(),
@@ -7276,6 +8158,13 @@ def project_tracking(request, pk):
             for inspection in project.inspections.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
         ],
         'baseline': ProjectBaseline.objects.filter(project=project).first(),
+        'awarded_tenders': project.tenders.filter(status='awarded').order_by('award_date', 'created_at'),
+        'approved_schedule_changes': project.change_requests.filter(
+            status='approved',
+        ).exclude(
+            proposed_start_date__isnull=True,
+            proposed_end_date__isnull=True,
+        ).select_related('reviewed_by').order_by('-reviewed_at', '-requested_at'),
     }
     return render(request, 'project_tracking.html', context)
 
@@ -7442,5 +8331,12 @@ def project_tracking_public(request, pk):
             for inspection in project.inspections.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
         ],
         'baseline': ProjectBaseline.objects.filter(project=project).first(),
+        'awarded_tenders': project.tenders.filter(status='awarded').order_by('award_date', 'created_at'),
+        'approved_schedule_changes': project.change_requests.filter(
+            status='approved',
+        ).exclude(
+            proposed_start_date__isnull=True,
+            proposed_end_date__isnull=True,
+        ).select_related('reviewed_by').order_by('-reviewed_at', '-requested_at'),
     }
     return render(request, 'project_tracking_public.html', context)

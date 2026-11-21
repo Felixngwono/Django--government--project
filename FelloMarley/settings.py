@@ -43,7 +43,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-developm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 # AI configuration. Keep API keys in the hosting environment, never in Git.
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -61,6 +61,26 @@ TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER', '')
 
+# Safaricom Daraja B2C contractor payouts. Keep credentials in the environment.
+MPESA_ENVIRONMENT = os.environ.get('MPESA_ENVIRONMENT', 'sandbox').lower()
+MPESA_CONSUMER_KEY = os.environ.get('MPESA_CONSUMER_KEY', '')
+MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET', '')
+MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE', '')
+MPESA_INITIATOR_NAME = os.environ.get('MPESA_INITIATOR_NAME', '')
+MPESA_SECURITY_CREDENTIAL = os.environ.get('MPESA_SECURITY_CREDENTIAL', '')
+MPESA_COMMAND_ID = os.environ.get('MPESA_COMMAND_ID', 'BusinessPayment')
+MPESA_CALLBACK_BASE_URL = os.environ.get('MPESA_CALLBACK_BASE_URL', '')
+MPESA_CALLBACK_TOKEN = os.environ.get('MPESA_CALLBACK_TOKEN', '')
+MPESA_STK_SHORTCODE = os.environ.get('MPESA_STK_SHORTCODE', MPESA_SHORTCODE)
+MPESA_STK_PASSKEY = os.environ.get('MPESA_STK_PASSKEY', '')
+MPESA_STK_TRANSACTION_TYPE = os.environ.get('MPESA_STK_TRANSACTION_TYPE', 'CustomerPayBillOnline')
+
+# Africa's Talking SMS for tender award notifications.
+AFRICASTALKING_USERNAME = os.environ.get('AFRICASTALKING_USERNAME', '')
+AFRICASTALKING_API_KEY = os.environ.get('AFRICASTALKING_API_KEY', '')
+AFRICASTALKING_ENVIRONMENT = os.environ.get('AFRICASTALKING_ENVIRONMENT', 'sandbox').lower()
+AFRICASTALKING_SENDER_ID = os.environ.get('AFRICASTALKING_SENDER_ID', '')
+
 
 # Application definition
 
@@ -72,6 +92,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'whitenoise.runserver_nostatic',
     'member',
     'rest_framework',
     'widget_tweaks',
@@ -80,11 +101,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'member.middleware.ContractorProfileAccessMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Moves project statuses with the passage of time (upcoming -> ongoing ->
     # delayed/completed) once per day. See member.middleware.
@@ -184,6 +207,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Production hardening (enabled automatically when DEBUG is off)
 if not DEBUG:

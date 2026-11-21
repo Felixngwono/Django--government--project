@@ -3,166 +3,120 @@
 {% load static %}
 
 <script src="https://cdn.tailwindcss.com"></script>
+<div class="min-h-screen bg-slate-50">
+  {% include "aside.html" %}
+  <main class="main px-4 py-8 md:px-8">
+    <div class="mx-auto max-w-5xl space-y-6">
+      <header>
+        <p class="text-sm font-semibold uppercase tracking-wide text-indigo-600">Client communication</p>
+        <h1 class="mt-1 text-3xl font-bold text-slate-900">SMS message center</h1>
+        <p class="mt-2 text-slate-600">Draft a message, choose a client, and link it to a project or tender when relevant.</p>
+      </header>
 
-<!DOCTYPE html>
-<html lang="id" x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GovTracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+      {% if not sms_configured %}
+      <div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        Africa’s Talking is not configured yet. Add your username, API key, and environment to the project’s <code>.env</code> file, then restart the server.
+      </div>
+      {% endif %}
 
-</head>
-<body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
-
-<!-- MOBILE OVERLAY -->
-<div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
-
-<!-- ===== SIDEBAR ===== -->
-{% include "aside.html" %}
-
-
-<!-- ===== MAIN ===== -->
-<main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
-  
-<div class="max-w-6xl mx-auto space-y-8">
-
-    <!-- PAGE HEADER -->
-    <div>
-        <h1 class="text-2xl font-bold text-gray-800">SMS & USSD Integration</h1>
-        <p class="text-gray-500 text-sm">Report issues and track projects without internet</p>
-    </div>
-
-    <!-- GRID -->
-    <div class="grid md:grid-cols-2 gap-6">
-
-        <!-- SMS REPORT FORM -->
-        <div class="bg-white p-6 rounded-xl shadow">
-            <h2 class="text-lg font-semibold mb-4">📩 Send SMS Report</h2>
-
-            <form method="POST" action="{% url 'send_sms_report' %}" class="space-y-4">
-                {% csrf_token %}
-
-                <input type="text" name="phone" placeholder="Phone Number"
-                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-
-                <textarea name="message" rows="4"
-                          placeholder="Example: Road project in Kisumu stalled for 3 months"
-                          class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
-
-                <button type="submit"
-                        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-                    Send SMS
-                </button>
-            </form>
-        </div>
-
-        <!-- USSD SIMULATOR -->
-        <div class="bg-white p-6 rounded-xl shadow">
-            <h2 class="text-lg font-semibold mb-4">📱 USSD Simulator</h2>
-
-            <div class="bg-black text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto"
-                 id="ussd-screen">
-                Dial *123# to start...
+      <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form method="post" action="{% url 'send_sms_report' %}" class="space-y-6" id="sms-form">
+          {% csrf_token %}
+          <div class="grid gap-5 md:grid-cols-2">
+            <div>
+              <label for="recipient" class="mb-2 block text-sm font-semibold text-slate-800">Client</label>
+              <select id="recipient" name="recipient" required class="w-full rounded-lg border border-slate-300 bg-white p-3">
+                <option value="">Choose a client</option>
+                <optgroup label="Contractors">
+                  {% for client in sms_contractors %}
+                  <option value="contractor:{{ client.pk }}">{{ client.company|default:client.name }} · {{ client.phone }}</option>
+                  {% endfor %}
+                </optgroup>
+                <optgroup label="Registered users">
+                  {% for client in sms_users %}
+                  <option value="user:{{ client.pk }}">{{ client.get_full_name|default:client.username }} · {{ client.phone_number }}</option>
+                  {% endfor %}
+                </optgroup>
+                <option value="manual">Enter a phone number</option>
+              </select>
+              <div id="manual-phone-wrap" class="mt-3 hidden">
+                <label for="phone" class="mb-2 block text-sm font-semibold text-slate-800">Phone number</label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="e.g. 0712 345 678 or +254712345678" class="w-full rounded-lg border border-slate-300 p-3">
+              </div>
             </div>
 
-            <div class="flex mt-4">
-                <input type="text" id="ussd-input"
-                       class="flex-1 border p-2 rounded-l-lg"
-                       placeholder="Enter option...">
-
-                <button onclick="sendUSSD()"
-                        class="bg-green-600 text-white px-4 rounded-r-lg">
-                    Send
-                </button>
+            <div>
+              <label for="association" class="mb-2 block text-sm font-semibold text-slate-800">Associate with (optional)</label>
+              <select id="association" name="association" class="w-full rounded-lg border border-slate-300 bg-white p-3">
+                <option value="">No project or tender</option>
+                <optgroup label="Projects">
+                  {% for project in sms_projects %}
+                  <option value="project:{{ project.pk }}">{{ project.project_title|default:"Untitled project" }}</option>
+                  {% endfor %}
+                </optgroup>
+                <optgroup label="Tenders">
+                  {% for tender in sms_tenders %}
+                  <option value="tender:{{ tender.pk }}">{{ tender.reference_number }} · {{ tender.title|default:tender.project.project_title|default:"Tender" }} ({{ tender.get_status_display }})</option>
+                  {% endfor %}
+                </optgroup>
+              </select>
+              <p class="mt-2 text-xs text-slate-500">The association is saved in the audit history with the delivery result.</p>
             </div>
-        </div>
+          </div>
 
-    </div>
+          <div>
+            <label for="message-template" class="mb-2 block text-sm font-semibold text-slate-800">Start from a message</label>
+            <select id="message-template" class="w-full rounded-lg border border-slate-300 bg-white p-3">
+              <option value="">Write a new message</option>
+              <option value="award">Tender award congratulations</option>
+              <option value="update">Project progress update</option>
+              <option value="meeting">Meeting or site visit</option>
+              <option value="general">General client message</option>
+            </select>
+          </div>
 
-    <!-- QUICK ACTIONS -->
-    <div class="bg-white p-6 rounded-xl shadow">
-        <h2 class="text-lg font-semibold mb-4">⚡ Quick Actions</h2>
+          <div>
+            <div class="mb-2 flex items-center justify-between gap-3">
+              <label for="message" class="text-sm font-semibold text-slate-800">Message</label>
+              <span id="sms-count" class="text-xs text-slate-500">0 / 500</span>
+            </div>
+            <textarea id="message" name="message" required maxlength="500" rows="5" placeholder="Write your SMS here…" class="w-full rounded-lg border border-slate-300 p-3 leading-relaxed" ></textarea>
+            <p class="mt-2 text-xs text-slate-500">For an awarded tender, you can also send or resend the congratulatory SMS from that tender’s detail page.</p>
+          </div>
 
-        <div class="grid md:grid-cols-3 gap-4">
-
-            <a href="#" class="p-4 bg-blue-50 rounded-lg hover:bg-blue-100">
-                📍 Check Project Status
-            </a>
-
-            <a href="#" class="p-4 bg-red-50 rounded-lg hover:bg-red-100">
-                🚨 Report Corruption
-            </a>
-
-            <a href="#" class="p-4 bg-green-50 rounded-lg hover:bg-green-100">
-                💰 Check Budget Usage
-            </a>
-
-        </div>
-    </div>
-
-    <!-- STATUS CHECK -->
-    <div class="bg-white p-6 rounded-xl shadow">
-        <h2 class="text-lg font-semibold mb-4">🔍 Check Project via SMS Code</h2>
-
-        <form method="GET" action="{% url 'check_project_status' %}" class="flex gap-4">
-            <input type="text" name="code"
-                   placeholder="Enter Project Code (e.g. PRJ123)"
-                   class="flex-1 p-3 border rounded-lg">
-
-            <button class="bg-blue-600 text-white px-6 rounded-lg">
-                Check
-            </button>
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
+            <p class="text-xs text-slate-500">Messages are sent immediately through Africa’s Talking.</p>
+            <button type="submit" {% if not sms_configured %}disabled{% endif %} class="rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400">Send SMS</button>
+          </div>
         </form>
+      </section>
     </div>
-
+  </main>
 </div>
 
-<!-- USSD SCRIPT -->
 <script>
-let step = 0;
-
-function sendUSSD() {
-    const input = document.getElementById('ussd-input').value;
-    const screen = document.getElementById('ussd-screen');
-
-    if (step === 0) {
-        screen.innerHTML = `
-Welcome to GovTracker
-1. Report Issue
-2. Check Project
-3. Budget Info
-        `;
-        step = 1;
-    }
-    else if (step === 1) {
-        if (input == "1") {
-            screen.innerHTML = "Enter issue description:";
-            step = 2;
-        } else if (input == "2") {
-            screen.innerHTML = "Enter project code:";
-            step = 3;
-        } else {
-            screen.innerHTML = "Invalid option. Try again.";
-        }
-    }
-    else if (step === 2) {
-        screen.innerHTML = "✅ Issue reported successfully!";
-        step = 0;
-    }
-    else if (step === 3) {
-        screen.innerHTML = "📊 Project is 65% complete.";
-        step = 0;
-    }
-
-    document.getElementById('ussd-input').value = "";
-}
+  const recipientSelect = document.getElementById('recipient');
+  const phoneWrap = document.getElementById('manual-phone-wrap');
+  const phoneInput = document.getElementById('phone');
+  const messageInput = document.getElementById('message');
+  const templateSelect = document.getElementById('message-template');
+  const count = document.getElementById('sms-count');
+  const templates = {
+    award: 'Congratulations on being awarded [Tender reference]. We look forward to working with you. Please contact us to confirm the next steps.',
+    update: 'Project update: [Project name] is currently [status/progress]. We will share the next update by [date]. For questions, please contact [contact].',
+    meeting: 'You are invited to a [meeting/site visit] for [project/tender] on [date] at [time]. Please reply to confirm your availability.',
+    general: 'Hello [client name], [write your message]. For assistance, contact [office/contact].'
+  };
+  recipientSelect.addEventListener('change', () => {
+    const isManual = recipientSelect.value === 'manual';
+    phoneWrap.classList.toggle('hidden', !isManual);
+    phoneInput.required = isManual;
+  });
+  templateSelect.addEventListener('change', () => {
+    if (templates[templateSelect.value]) messageInput.value = templates[templateSelect.value];
+    updateCount();
+  });
+  function updateCount() { count.textContent = `${messageInput.value.length} / 500`; }
+  messageInput.addEventListener('input', updateCount);
 </script>
-</main>
-{% include "footer.html" %}
 {% endblock content %}

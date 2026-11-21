@@ -2,8 +2,9 @@
 
 Projects whose end_date has passed (beyond the grace period) move to
 'delayed'; projects already delayed whose end date was corrected to the
-future move back to 'ongoing'; projects whose start date has arrived move
-from 'upcoming' to 'ongoing'. Completed/cancelled projects are never touched.
+future move back when work is underway; projects move from 'upcoming' to
+'ongoing' only after a contractor is engaged and work is recorded. Completed
+and cancelled projects are never touched.
 
 Usage:
     python manage.py update_project_statuses            # apply changes

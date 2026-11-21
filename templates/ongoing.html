@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased">
   <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -23,7 +23,7 @@
   <main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
     <div class="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
       <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white shadow-xl">
-        <img src="{% static 'images/background-public-works.jpg' %}" class="absolute inset-0 h-full w-full object-cover opacity-20" alt="">
+        
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/80 to-blue-950/60"></div>
         <div class="relative flex flex-col gap-6 p-6 md:flex-row md:items-end md:justify-between md:p-9">
           <div class="max-w-3xl">

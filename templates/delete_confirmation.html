@@ -11,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 
-  <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body>
   <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -22,7 +22,7 @@
 
   <main class="main" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
     <div class="relative flex min-h-[calc(100vh-var(--header-h))] items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8">
-      <img src="{% static 'images/background-public-works.jpg' %}" alt="" aria-hidden="true" class="pointer-events-none absolute inset-0 h-full w-full object-cover">
+      
       <div class="pointer-events-none absolute inset-0 bg-slate-950/55"></div>
       <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/20 via-transparent to-indigo-950/45"></div>
 

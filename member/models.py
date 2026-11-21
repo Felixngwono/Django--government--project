@@ -547,6 +547,7 @@ class Milestone(models.Model):
 
     project             = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='milestones')
     stage               = models.ForeignKey(ProjectStage, on_delete=models.SET_NULL, null=True, blank=True, related_name='milestones')
+    stage_description   = models.CharField(max_length=255, blank=True)
     title               = models.CharField(max_length=255)
     description         = models.TextField()
     due_date            = models.DateField(null=True, blank=True)
@@ -940,6 +941,12 @@ class ContractorPaymentRequest(models.Model):
         ('rejected', 'Rejected'),
         ('paid', 'Paid'),
     ]
+    DISBURSEMENT_STATUS_CHOICES = [
+        ('not_started', 'Not started'),
+        ('pending', 'Awaiting M-Pesa confirmation'),
+        ('successful', 'Successful'),
+        ('failed', 'Failed'),
+    ]
 
     project             = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='contractor_payment_requests')
     contractor          = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True, blank=True, related_name='payment_requests')
@@ -957,6 +964,17 @@ class ContractorPaymentRequest(models.Model):
     paid_at             = models.DateTimeField(null=True, blank=True)
     paid_by             = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_contractor_payments')
     disbursement_reference = models.CharField(max_length=100, blank=True)
+    disbursement_status = models.CharField(max_length=20, choices=DISBURSEMENT_STATUS_CHOICES, default='not_started', db_index=True)
+    mpesa_phone_number  = models.CharField(max_length=20, blank=True)
+    mpesa_conversation_id = models.CharField(max_length=100, blank=True)
+    mpesa_originator_conversation_id = models.CharField(max_length=100, blank=True)
+    mpesa_result_code   = models.IntegerField(null=True, blank=True)
+    mpesa_result_description = models.TextField(blank=True)
+    # Africa's Talking SMS notification trail for contractor disbursements.
+    sms_sent            = models.BooleanField(default=False)
+    sms_sent_at         = models.DateTimeField(null=True, blank=True)
+    sms_reference       = models.CharField(max_length=100, blank=True)
+    sms_result          = models.TextField(blank=True)
     created_at          = models.DateTimeField(auto_now_add=True)
     updated_at          = models.DateTimeField(auto_now=True)
 
@@ -965,6 +983,57 @@ class ContractorPaymentRequest(models.Model):
 
     def __str__(self):
         return f"{self.invoice_number or self.title} — {self.project.project_title}"
+
+
+class MpesaCallback(models.Model):
+    CALLBACK_TYPE_CHOICES = [
+        ('result', 'Payment result'),
+        ('timeout', 'Queue timeout'),
+    ]
+
+    callback_type = models.CharField(max_length=10, choices=CALLBACK_TYPE_CHOICES)
+    conversation_id = models.CharField(max_length=100)
+    originator_conversation_id = models.CharField(max_length=100)
+    result_code = models.IntegerField(null=True, blank=True)
+    result_description = models.TextField(blank=True)
+    transaction_receipt = models.CharField(max_length=100, blank=True)
+    received_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=('callback_type', 'conversation_id', 'originator_conversation_id'),
+                name='unique_mpesa_callback_event',
+            ),
+        ]
+
+
+class MpesaPayment(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Awaiting M-Pesa confirmation'),
+        ('successful', 'Successful'),
+        ('failed', 'Failed'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mpesa_payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    phone_number = models.CharField(max_length=20)
+    description = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    checkout_request_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    merchant_request_id = models.CharField(max_length=100, blank=True)
+    receipt_number = models.CharField(max_length=100, blank=True)
+    result_code = models.IntegerField(null=True, blank=True)
+    result_description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'M-Pesa payment {self.pk} ({self.status})'
 
 
 # ─────────────────────────────────────────────

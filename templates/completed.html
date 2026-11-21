@@ -14,7 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans">
@@ -29,19 +29,19 @@
 {% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main completed-page" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
 
     <!-- HERO / STATS BANNER -->
-    <div class="rounded-3xl bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 p-8 text-slate-900 shadow-sm border border-emerald-100 relative overflow-hidden mb-8">
-      <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-emerald-100 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="relative mb-8 overflow-hidden rounded-3xl border border-emerald-800 bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-800 p-8 text-white shadow-lg">
+      <div class="pointer-events-none absolute -right-12 -bottom-12 h-72 w-72 rounded-full bg-emerald-400/15 blur-3xl"></div>
       <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 mb-3">
-            <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
+          <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-50">
+            <span class="mr-2 h-2 w-2 rounded-full bg-emerald-300"></span>
             Completed Projects
           </div>
           <h1 class="text-3xl font-extrabold tracking-tight">Completed Projects</h1>
-          <p class="mt-2 max-w-xl text-sm text-slate-600 leading-relaxed">
+          <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50/80">
             Monitor and review successfully completed government projects. Track final budgets, delivery timelines, and outcomes.
           </p>
         </div>

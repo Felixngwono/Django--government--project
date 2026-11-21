@@ -15,10 +15,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
+<link rel="stylesheet" href="{% static 'css/upcoming.css' %}?v=20261118-4">
 
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased font-sans">
+<body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
 <!-- MOBILE OVERLAY -->
 <div class="mobile-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen=false"></div>
@@ -30,25 +31,24 @@
 {% include "heading.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg page-bg-works upcoming-page" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
 
     <!-- HERO / STATS BANNER -->
-    <div class="rounded-3xl bg-gradient-to-r from-indigo-50 via-indigo-100 to-indigo-50 p-8 text-slate-900 shadow-sm border border-indigo-100 relative overflow-hidden mb-8">
-      <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-indigo-100 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="upcoming-hero relative overflow-hidden rounded-3xl p-7 md:p-10 text-white shadow-xl mb-8">
+      <div class="upcoming-hero-shade" aria-hidden="true"></div>
+      <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200 mb-3">
-            <span class="w-2 h-2 mr-2 bg-emerald-400 rounded-full animate-ping"></span>
-            Upcoming Projects
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-emerald-100 border border-white/20 mb-3 backdrop-blur-sm">
+            <span class="w-2 h-2 rounded-full bg-emerald-300"></span> CAPITAL PROJECT PIPELINE
           </div>
-          <h1 class="text-3xl font-extrabold tracking-tight">Upcoming Projects</h1>
-          <p class="mt-2 max-w-xl text-sm text-slate-600 leading-relaxed">
-            Projects scheduled to begin soon. Track budgets, timelines, and delivery status before groundbreaking.
+          <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Upcoming Projects</h1>
+          <p class="mt-3 max-w-2xl text-sm md:text-base text-slate-100 leading-relaxed">
+            A transparent view of planned public investments. Explore proposed works, review allocated funding, and follow each project before delivery begins.
           </p>
         </div>
         {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' %}
         <a href="{% url 'createproject' %}"
-           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5">
+           class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 px-5 py-3 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5">
           <i class="fas fa-plus"></i> Add New Project
         </a>
         {% endif %}
@@ -57,7 +57,7 @@
 
     <!-- STATS OVERVIEW -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="upcoming-stat bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Upcoming</span>
           <iconify-icon icon="solar:folder-open-bold-duotone" class="text-2xl text-indigo-600"></iconify-icon>
@@ -66,25 +66,25 @@
         <span class="text-[11px] text-slate-400 mt-1 block">Scheduled projects</span>
       </div>
 
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="upcoming-stat bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Budget</span>
           <iconify-icon icon="solar:wallet-bold-duotone" class="text-2xl text-blue-600"></iconify-icon>
         </div>
-        <div class="text-2xl font-bold text-blue-600 mt-2">${{ total_budget|floatformat:0 }}</div>
+        <div class="text-2xl font-bold text-blue-600 mt-2">KSh {{ total_budget|floatformat:0 }}</div>
         <span class="text-[11px] text-slate-400 mt-1 block">Allocated funding</span>
       </div>
 
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="upcoming-stat bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Amount Spent</span>
           <iconify-icon icon="solar:coins-bold-duotone" class="text-2xl text-purple-600"></iconify-icon>
         </div>
-        <div class="text-2xl font-bold text-purple-600 mt-2">${{ total_spent|floatformat:0 }}</div>
+        <div class="text-2xl font-bold text-purple-600 mt-2">KSh {{ total_spent|floatformat:0 }}</div>
         <span class="text-[11px] text-slate-400 mt-1 block">Pre-committed funds</span>
       </div>
 
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="upcoming-stat bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Budget Utilized</span>
           <iconify-icon icon="solar:percent-bold-duotone" class="text-2xl text-emerald-600"></iconify-icon>
@@ -93,7 +93,7 @@
         <span class="text-[11px] text-slate-400 mt-1 block">Of allocated budget</span>
       </div>
 
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+      <div class="upcoming-stat bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
         <div class="flex items-center justify-between">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Featured</span>
           <iconify-icon icon="solar:star-bold-duotone" class="text-2xl text-amber-600"></iconify-icon>
@@ -104,12 +104,13 @@
     </div>
 
     <!-- SEARCH & FILTER BAR -->
-    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 mb-8">
+    <div class="upcoming-filter bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 mb-8">
       <div class="flex flex-col md:flex-row md:items-center gap-3">
         <form method="GET" class="relative flex-1 min-w-[240px]">
           <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-          <input name="q" type="text" placeholder="Search upcoming projects..." value="{{ q }}"
+          <input name="q" type="search" aria-label="Search upcoming projects" placeholder="Search upcoming projects..." value="{{ q }}"
                  class="w-full pl-9 pr-4 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          {% if selected_location %}<input type="hidden" name="location" value="{{ selected_location }}">{% endif %}
         </form>
 
         <form method="GET" class="flex-1 min-w-[200px]">
@@ -131,12 +132,12 @@
     </div>
 
     <!-- PROJECT TABLE -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="upcoming-table bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-slate-700">
           <thead class="bg-slate-50 text-slate-600 text-xs font-semibold uppercase border-b border-slate-200">
             <tr>
-              <th scope="col" class="px-6 py-4 w-28">Image</th>
+              <th scope="col" class="px-6 py-4 w-28">Project</th>
               <th scope="col" class="px-6 py-4">Title</th>
               <th scope="col" class="px-6 py-4">Description</th>
               <th scope="col" class="px-6 py-4 text-center">Status</th>

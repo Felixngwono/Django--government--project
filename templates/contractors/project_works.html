@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
@@ -30,7 +30,7 @@
 
     <!-- HERO -->
     <div class="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-6 md:p-8 shadow-xl">
-      <img src="{% static 'images/background-public-works.jpg' %}" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="">
+      
       <div class="relative z-10 space-y-3">
         <a href="{% url 'contractor_performance' %}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 border border-white/15 transition">
           <iconify-icon icon="solar:arrow-left-linear"></iconify-icon> Back to my dashboard

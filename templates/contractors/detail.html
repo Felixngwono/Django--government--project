@@ -13,7 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }">
 
@@ -37,7 +37,7 @@
 
     <!-- HERO PROFILE CARD -->
     <div class="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 md:p-8 shadow-md">
-        <img src="{% static 'images/background-public-works.jpg' %}" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" alt="">
+        
         <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-5">
             {% if contractor.profile %}
             <img src="{{ contractor.profile.url }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-white/20 shadow-lg" alt="{{ contractor.company|default:contractor.name }}">
@@ -301,8 +301,8 @@
                 <span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold text-xs">{{ ratings|length }}</span>
             </h2>
             {% if can_rate_contractor and projects %}
-            <details class="mt-4 rounded-xl border border-amber-100 bg-amber-50/60 p-4" {% if rating_form.errors %}open{% endif %}>
-                <summary class="cursor-pointer text-sm font-bold text-amber-800">Add or update a project performance rating</summary>
+            <details class="mt-4 rounded-xl border border-amber-100 bg-amber-50/60 p-4" {% if rating_form.errors or not ratings %}open{% endif %}>
+                <summary class="cursor-pointer text-sm font-bold text-amber-800">Official assessment: add or update project performance</summary>
                 <form method="post" class="mt-4 grid gap-3 sm:grid-cols-2">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="save_rating">
@@ -321,6 +321,8 @@
                     <button type="submit" class="rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-700 sm:col-span-2">Save performance rating</button>
                 </form>
             </details>
+            {% elif can_rate_contractor %}
+            <p class="mt-4 rounded-xl border border-amber-100 bg-amber-50/60 p-4 text-sm text-amber-900">Assign this contractor to a project before recording a project performance assessment.</p>
             {% endif %}
         </div>
         <div class="overflow-x-auto">

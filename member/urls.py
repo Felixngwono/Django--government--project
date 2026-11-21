@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_expense, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, evaluate_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_evidence_detail, citizen_portal, verify_evidence, close_request, comment, contractor_dashboard, contractor_detail, contractor_document_upload, contractor_export, contractor_payment_request, contractor_profile_settings, contractor_review_queue, register_contractor, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_team, delete_testimonial, edit_division, edit_user, toggle_user_access, export_excel, export_pdf, export_progress_excel, export_progress_pdf, feedback_details, government_agencies, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, project_change_requests, project_inspections, regional_analysis, reportedissuesdetails, request_detail, respond_request, delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, delete_audit, comment_list, discussion_thread, discussion_close, community_discussion, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_detail, milestone_create, milestone_update, milestone_quick_update, submit_milestone_verification, milestone_delete, project_detail, add_report_issue, review_project_change, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile, stalled, cancelled, suspended, draft,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial, project_tracking, project_tracking_public, api_unread_notifications, api_mark_notification_read, api_mark_all_read, contractor_project_works, password_reset_request, password_reset_done, password_reset_confirm
+from .views import mpesa_result_callback, mpesa_timeout_callback, mpesa_stk_callback_endpoint, mpesa_checkout, mpesa_payment_history
+from .views import Division_view, Participation_details, ProjectStageCreate, ProjectStageDelete, ProjectStageUpdate, ProjectTypes, Testimonials, account_settings, add_budget, add_expense, add_team, add_testimonial, adminview, all_requests, announcements, apply_tender, award_tender, resend_tender_award_sms, evaluate_tender, budget_dashboard, check_project_status, citizen_evidence, citizen_evidence_detail, citizen_portal, verify_evidence, close_request, comment, contractor_dashboard, contractor_detail, delete_contractor, contractor_document_upload, contractor_export, contractor_payment_request, contractor_profile_settings, contractor_review_queue, register_contractor, create_request, dashboard, delayedstatus, delete_division, delete_media, delete_team, delete_testimonial, edit_division, edit_user, toggle_user_access, export_excel, export_pdf, export_progress_excel, export_progress_pdf, feedback_details, government_agencies, my_bids, my_documents, my_requests, notifications, people, progress_report, projectstage, projectstage_details, project_change_requests, project_inspections, regional_analysis, reportedissuesdetails, request_detail, respond_request, delayed, AuditLogs, add_audit, add_comment, add_tender, audit_details, delete_audit, comment_list, discussion_thread, discussion_close, community_discussion, delete_tender, export_report_pdf, generate_report, issue_detail, issue_list, notification_create,media_list, media_upload, notification_list, milestone_list, milestone_detail, milestone_create, milestone_update, milestone_quick_update, submit_milestone_verification, milestone_delete, project_detail, add_report_issue, review_project_change, send_sms_report,sidebar,project_overview,charts,deleteprofile,ptypes,divisionform, sms_dashboard, submit_evidence, submit_issue, submit_stage_report, system_reports, teams_details, tender_detail, tender_list, testimonial_details, track_application, update_team, update_tender, update_testimonial, updateprofile, stalled, cancelled, suspended, draft,Division_details,UpcomingStatuses,CompletedStatuses,OngoingStatuses,project,AboutUs,deleteProject,updateProject,teams,ongoing,upcoming,completed,BudgetAnalysis,PerfomanceMetrix,CreateProject,feedback, Home,header, ContactusPage, upload_progress_report,welcomingpage,loginpage,logoutuser,registrationpage,index, moderate_testimonial, project_tracking, project_tracking_public, api_unread_notifications, api_mark_notification_read, api_mark_all_read, contractor_project_works, password_reset_request, password_reset_done, password_reset_confirm
 urlpatterns = [
     path('reports/', generate_report, name='generate_report'),
     path('reports/export-pdf/', export_report_pdf, name='export_report_pdf'),
@@ -126,6 +127,7 @@ urlpatterns = [
     path('tenders/', tender_list, name='tender_list'),
     path('apply_tender/<str:pk>/', apply_tender,name='apply_tender'),
     path('tenders/<int:tender_id>/', tender_detail, name='tender_detail'),
+    path('tenders/<int:tender_id>/award-message/', resend_tender_award_sms, name='resend_tender_award_sms'),
     path('tenders/add/', add_tender, name='add_tender'),
     path('tenders/update/<int:tender_id>/', update_tender, name='update_tender'),
     path('tenders/delete/<int:tender_id>/', delete_tender, name='delete_tender'),
@@ -167,6 +169,7 @@ urlpatterns = [
     path('submit/', submit_issue, name='submit_issue'),
 
     path('contractor_performance/', contractor_dashboard, name='contractor_performance'),
+    path('contractor/<int:pk>/delete/', delete_contractor, name='delete_contractor'),
     path('contractor/register/', register_contractor, name='register_contractor'),
     path('contractor/<int:pk>/', contractor_detail, name='contractor_detail'),
     path('contractor/works/<str:pk>/', contractor_project_works, name='contractor_project_works'),
@@ -175,6 +178,11 @@ urlpatterns = [
     path('contractor/payment-request/', contractor_payment_request, name='contractor_payment_request'),
     path('contractor/export/', contractor_export, name='contractor_export'),
     path('contractor/review-queue/', contractor_review_queue, name='contractor_review_queue'),
+    path('contractor/mpesa/result/<str:token>/', mpesa_result_callback, name='mpesa_result_callback'),
+    path('contractor/mpesa/timeout/<str:token>/', mpesa_timeout_callback, name='mpesa_timeout_callback'),
+    path('payments/mpesa/', mpesa_checkout, name='mpesa_checkout'),
+    path('payments/mpesa/history/', mpesa_payment_history, name='mpesa_payment_history'),
+    path('payments/mpesa/callback/<str:token>/', mpesa_stk_callback_endpoint, name='mpesa_stk_callback'),
     path('submit-stage-report/', submit_stage_report, name='submit_stage_report'),
 
     path('citizen_evidence/', citizen_evidence, name='citizen_evidence'),

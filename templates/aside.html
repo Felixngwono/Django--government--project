@@ -2,7 +2,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
     <aside class="sidebar" :class="{ 'mobile-open': mobileSidebarOpen, 'collapsed': !isMobile && sidebarCollapsed }">
       <!-- Logo -->
       <div class="sidebar-logo">
@@ -188,6 +188,12 @@
       <iconify-icon icon="solar:wallet-bold-duotone"></iconify-icon>
       <span class="nav-text">Payments</span>
       </a>
+      {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' or request.user.role == 'manager' or request.user.role == 'auditor' or request.user.role == 'staff' %}
+      <a href="{% url 'contractor_review_queue' %}" class="nav-item">
+      <iconify-icon icon="solar:card-transfer-bold-duotone"></iconify-icon>
+      <span class="nav-text">Approve &amp; Pay Contractors</span>
+      </a>
+      {% endif %}
       <a href="{% url 'notifications' %}" class="nav-item">
       <iconify-icon icon="solar:bell-bold-duotone"></iconify-icon>
       <span class="nav-text">Notifications</span>
@@ -227,6 +233,12 @@
       <iconify-icon icon="solar:building-bold-duotone"></iconify-icon>
       <i class="fa-solid fa-helmet-safety nav-text" style="font-size:20px;"></i>
       <span class="nav-text">Contractor Performance</span>
+      </a>
+      {% endif %}
+      {% if request.user.is_superuser or request.user.role == 'official' or request.user.role == 'admin' or request.user.role == 'manager' or request.user.role == 'auditor' or request.user.role == 'staff' %}
+      <a href="{% url 'contractor_review_queue' %}" class="nav-item">
+      <iconify-icon icon="solar:clipboard-check-bold-duotone"></iconify-icon>
+      <span class="nav-text">Review Contractor Submissions</span>
       </a>
       {% endif %}
       <a href="{% url 'citizen_portal' %}" class="nav-item">

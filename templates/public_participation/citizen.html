@@ -5,7 +5,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 {% include "aside.html" %}
 
 <style>
@@ -119,6 +119,8 @@
     <div class="citizen-hero">
       <h1>🏛️ Citizen Participation & Civic Engagement</h1>
       <p>Voice your opinion, report concerns, submit suggestions, and engage with public officials on government projects.</p>
+      <p><a href="{% url 'mpesa_checkout' %}" style="display:inline-block;margin-top:12px;padding:10px 16px;border-radius:10px;background:#fff;color:#047857;font-weight:700;">Pay by M-Pesa</a>
+      <a href="{% url 'mpesa_payment_history' %}" style="display:inline-block;margin:12px 0 0 8px;padding:10px 16px;border-radius:10px;background:rgba(255,255,255,.18);color:#fff;font-weight:700;">Payment history</a></p>
     </div>
 
     <!-- ===== STAT CARDS ===== -->

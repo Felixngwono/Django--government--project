@@ -1,0 +1,49 @@
+.upcoming-page {
+  --upcoming-ink: #122b34;
+  --upcoming-green: #087e68;
+  padding-bottom: 2rem;
+}
+.upcoming-page::before {
+  background-image: linear-gradient(135deg, #f5f8f7, #edf3f2);
+}
+.upcoming-hero {
+  min-height: 275px;
+  display: flex;
+  align-items: center;
+  isolation: isolate;
+  background: linear-gradient(112deg, #102b32 0%, #164a4d 58%, #287263 100%);
+  box-shadow: 0 20px 55px rgba(16, 43, 50, .2);
+}
+.upcoming-hero-shade {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(105deg, rgba(8,34,39,.94) 0%, rgba(8,49,51,.82) 48%, rgba(8,49,51,.28) 100%);
+}
+.upcoming-stat { transition: transform .18s ease, box-shadow .18s ease; }
+.upcoming-stat:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(15, 42, 49, .09); }
+.upcoming-filter input:focus, .upcoming-filter select:focus {
+  border-color: #07836d;
+  box-shadow: 0 0 0 3px rgba(8, 126, 104, .13);
+}
+.upcoming-table thead { background: #f2f7f5; color: #3c555a; }
+.upcoming-table tbody tr { transition: background .15s ease; }
+.upcoming-table tbody tr:hover { background: #f3f9f7; }
+.upcoming-page .bg-indigo-600 { background-color: #087e68; }
+.upcoming-page .hover\:bg-indigo-500:hover { background-color: #066b59; }
+.upcoming-page .text-indigo-600, .upcoming-page .text-indigo-700 { color: #087e68; }
+.upcoming-page .bg-indigo-50 { background-color: #eaf5f1; }
+.upcoming-page .hover\:bg-indigo-100:hover { background-color: #dcefe8; }
+.upcoming-page .focus\:ring-indigo-500:focus { --tw-ring-color: rgba(8,126,104,.45); }
+.dark .upcoming-page .upcoming-stat,
+.dark .upcoming-page .upcoming-filter,
+.dark .upcoming-page .upcoming-table { background-color: #18252c; border-color: #2d4148; }
+.dark .upcoming-page .upcoming-table thead { background-color: #1d3035; color: #c8d8d7; }
+.dark .upcoming-page .upcoming-table tbody tr:hover { background-color: #203638; }
+@media (max-width: 640px) {
+  .upcoming-hero { min-height: 300px; background-position: 58% center; }
+  .upcoming-hero-shade { background: linear-gradient(90deg, rgba(8,34,39,.9), rgba(8,49,51,.66)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .upcoming-stat, .upcoming-table tbody tr { transition: none; }
+}

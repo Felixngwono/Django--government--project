@@ -11,7 +11,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 <link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
 <body x-data="overviewApp()" :class="{ 'dark': darkMode }">
@@ -43,7 +43,7 @@
               Delivery planning
             </span>
             <h1 class="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl">{{ title|default:"Milestone Entry" }}</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Define a project deliverable, connect it to a stage, and set clear progress and schedule details.</p>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Describe the deliverable and work phase in your own words, then set a target date if needed.</p>
           </div>
           <div class="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-4xl text-indigo-200 sm:flex">
             <iconify-icon icon="solar:clipboard-check-bold-duotone"></iconify-icon>
@@ -60,7 +60,7 @@
         </span>
         <div>
           <h2 class="font-bold text-slate-900">Milestone information</h2>
-          <p class="mt-1 text-sm text-slate-500">Complete the details below. Fields marked with an asterisk are required.</p>
+          <p class="mt-1 text-sm text-slate-500">Enter the work you plan to complete. New milestones start as pending at 0% progress.</p>
         </div>
       </div>
       <div class="p-5 md:p-8">
@@ -90,16 +90,22 @@
           <!-- Associated Project -->
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Project <span class="text-rose-500">*</span></label>
-            {% render_field form.project class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+            {% if preselected_project %}
+              <input type="hidden" name="project" value="{{ preselected_project.pk }}">
+              <input value="{{ preselected_project.project_title }}" readonly class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+            {% else %}
+              {% render_field form.project class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+            {% endif %}
           </div>
 
-          <!-- Project Stage -->
+          <!-- Free-text project phase -->
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Development Stage <span class="text-slate-400 font-normal">(Optional)</span></label>
-            {% render_field form.stage class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Work phase / package <span class="text-slate-400 font-normal">(Optional)</span></label>
+            {% render_field form.stage_description class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" placeholder="Describe the phase or work package in your own words" maxlength="255" %}
           </div>
         </div>
 
+        {% if milestone %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Status -->
           <div>
@@ -113,6 +119,7 @@
             {% render_field form.progress_percentage class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" placeholder="e.g. 50" %}
           </div>
         </div>
+        {% endif %}
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Target Due Date -->
@@ -122,10 +129,10 @@
           </div>
 
           <!-- Actual Completion Date -->
-          <div>
+          {% if milestone %}<div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Completion Date <span class="text-slate-400 font-normal">(If finished)</span></label>
             {% render_field form.completion_date class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" %}
-          </div>
+          </div>{% endif %}
         </div>
 
         <!-- Description -->

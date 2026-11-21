@@ -11,7 +11,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 <link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans">
@@ -107,6 +107,16 @@
           <p class="text-xs text-slate-500 font-semibold uppercase">Awarded Contract Value</p>
           <p class="text-2xl font-black text-emerald-700">KES {{ tender.award_amount|floatformat:2 }}</p>
           <p class="text-xs text-slate-500 mt-0.5">Award Date: {{ tender.award_date|date:"d M Y"|default:"Recently" }}</p>
+          {% if can_award %}
+          <form method="post" action="{% url 'resend_tender_award_sms' tender.pk %}" class="mt-3">
+            {% csrf_token %}
+            <label class="mb-1 block text-left text-[11px] font-semibold text-slate-600" for="resend-award-phone">Successful applicant phone number</label>
+            <input id="resend-award-phone" name="recipient_phone" type="tel" required value="{{ award_recipient_phone }}" placeholder="e.g. 0712 345 678" class="mb-2 w-64 max-w-full rounded-lg border border-slate-300 p-2 text-xs">
+            <label class="mb-1 block text-left text-[11px] font-semibold text-slate-600" for="resend-award-message">SMS message</label>
+            <textarea id="resend-award-message" name="award_message" required maxlength="500" rows="3" class="mb-2 w-64 max-w-full rounded-lg border border-slate-300 p-2 text-xs" placeholder="Write the message to send to the successful contractor."></textarea>
+            <button type="submit" class="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800">Send award SMS</button>
+          </form>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -240,6 +250,10 @@
                   <form method="post" action="{% url 'award_tender' tender.id %}" onsubmit="return confirm('Award tender to {{ app.company_name }}?');">
                     {% csrf_token %}
                     <input type="hidden" name="application_id" value="{{ app.id }}">
+                    <label class="mb-1 block text-left text-[11px] font-semibold text-slate-600" for="award-phone-{{ app.id }}">Successful applicant phone number</label>
+                    <input id="award-phone-{{ app.id }}" name="recipient_phone" type="tel" required value="{{ app.company_phone|default:app.applicant.phone_number }}" placeholder="e.g. 0712 345 678" class="mb-2 w-64 max-w-full rounded-lg border border-slate-300 p-2 text-xs">
+                    <label class="mb-1 block text-left text-[11px] font-semibold text-slate-600" for="award-message-{{ app.id }}">Message to successful contractor</label>
+                    <textarea id="award-message-{{ app.id }}" name="award_message" required maxlength="500" rows="3" class="mb-2 w-64 max-w-full rounded-lg border border-slate-300 p-2 text-xs" placeholder="Write congratulations and award instructions to send by SMS."></textarea>
                     <button type="submit" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
                       Award Contract
                     </button>

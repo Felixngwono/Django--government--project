@@ -9,6 +9,12 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import Media
 from .workflow import OFFICER_ROLES, _contractors_for_user
 
+
+class MpesaCheckoutForm(forms.Form):
+    amount = forms.DecimalField(min_value=1, max_digits=10, decimal_places=0, label='Amount (KES)')
+    phone_number = forms.CharField(max_length=20, label='M-Pesa phone number')
+    description = forms.CharField(max_length=100, label='Payment purpose')
+
 class MyUserCreationForm(UserCreationForm):
 
     class Meta:
@@ -42,10 +48,28 @@ class MyUserCreationForm(UserCreationForm):
         }
 
     def clean_email(self):
-        email = self.cleaned_data.get("email")
-        if email and User.objects.filter(email=email).exclude(username=self.instance.username).exists():
-            raise forms.ValidationError("This email is already taken.")
+        email = (self.cleaned_data.get("email") or "").strip()
+        if email and User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError(
+                "This email already has an account. Sign in to that account or enter a different email address."
+            )
         return email
+
+    def clean_username(self):
+        username = (self.cleaned_data.get("username") or "").strip()
+        if username and User.objects.filter(username__iexact=username).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError(
+                "This username is already in use. Choose a different username or sign in to the existing account."
+            )
+        return username
+
+    def clean_name(self):
+        name = " ".join((self.cleaned_data.get("name") or "").split())
+        if name and User.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError(
+                "An account already uses this full name. Sign in to that account, or correct the name if it is a typo."
+            )
+        return name
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -268,7 +292,7 @@ class MilestoneForm(forms.ModelForm):
         model = Milestone
         fields = [
             'project',
-            'stage',
+            'stage_description',
             'title',
             'description',
             'due_date',
@@ -281,8 +305,9 @@ class MilestoneForm(forms.ModelForm):
             'project': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm'
             }),
-            'stage': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm'
+            'stage_description': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm',
+                'placeholder': 'Describe the work phase or package (optional)',
             }),
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm',
@@ -311,6 +336,14 @@ class MilestoneForm(forms.ModelForm):
                 'class': 'w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and not self.initial.get('stage_description'):
+            self.initial['stage_description'] = (
+                self.instance.stage_description
+                or (self.instance.stage.stage_name if self.instance.stage_id else '')
+            )
 
 class MediaForm(forms.ModelForm):
     class Meta:
@@ -415,6 +448,24 @@ class ContractorPaymentRequestForm(forms.ModelForm):
         return self._validate_upload(self.cleaned_data.get('supporting_document'))
 
 class ContractorProfileForm(forms.ModelForm):
+    personal_name = forms.CharField(
+        label='Your full name',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+            'placeholder': 'Your full name',
+        }),
+    )
+    personal_phone = forms.CharField(
+        label='Your personal phone number',
+        required=False,
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100',
+            'placeholder': '+254 700 000 000',
+        }),
+    )
+
     class Meta:
         model = Contractor
         fields = [
@@ -456,8 +507,13 @@ class ContractorProfileForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, contact_email='', **kwargs):
+    def __init__(self, *args, contact_email='', user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields['personal_name'].initial = user.full_name
+            self.fields['personal_phone'].initial = user.phone_number
+        self.fields['name'].label = 'Company representative'
+        self.fields['phone'].label = 'Company phone number'
         self.fields['email'].disabled = True
         self.fields['email'].initial = contact_email
 
@@ -866,8 +922,18 @@ class ProfessionalAccountRegistrationForm(forms.Form):
     def clean_email(self):
         email = self.cleaned_data['email'].strip()
         if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError('An account already exists for this email address.')
+            raise forms.ValidationError(
+                'This email already has an account. Sign in to that account or enter a different email address.'
+            )
         return email
+
+    def clean_name(self):
+        name = ' '.join(self.cleaned_data['name'].split())
+        if User.objects.filter(name__iexact=name).exists():
+            raise forms.ValidationError(
+                'An account already uses this full name. Sign in to that account, or correct the name if it is a typo.'
+            )
+        return name
 
     def clean(self):
         cleaned_data = super().clean()

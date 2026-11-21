@@ -13,7 +13,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 </head>
 <body x-data="dashboardApp()" :class="{ 'dark': darkMode }" class="bg-slate-50 text-slate-800 antialiased font-sans">
 
@@ -24,7 +24,7 @@
 {% include "aside.html" %}
 
 <!-- ===== MAIN ===== -->
-<main class="main page-photo-bg page-bg-works" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
+<main class="main page-photo-bg project-detail-page" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-hidden': isMobile }">
   <div class="content p-4 md:p-8 space-y-6">
 
     <!-- HERO HEADER CARD -->
@@ -34,7 +34,7 @@
       {% elif project.images %}
         <img src="{{ project.images.url }}" alt="{{ project.project_title }}" class="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay">
       {% else %}
-        <img src="{% static 'images/background-public-works.jpg' %}" alt="Government Infrastructure" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay">
+        
       {% endif %}
 
       <div class="relative z-10 space-y-4">
@@ -118,6 +118,28 @@
               <span>Upload Progress Report</span>
             </a>
 
+          {% endif %}
+          {% if is_assigned_contractor %}
+            <a href="{% url 'submit_stage_report' %}?project={{ project.id }}" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+              <iconify-icon icon="solar:clipboard-add-bold" class="text-base"></iconify-icon>
+              <span>Submit Stage Report</span>
+            </a>
+            <a href="{% url 'contractor_project_works' project.id %}" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+              <iconify-icon icon="solar:case-round-bold" class="text-base"></iconify-icon>
+              <span>Contractor Workspace</span>
+            </a>
+            <a href="{% url 'project_tracking' project.id %}" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+              <iconify-icon icon="solar:flag-2-bold" class="text-base"></iconify-icon>
+              <span>Update Project Status</span>
+            </a>
+            <a href="{% url 'milestone_create' %}?project={{ project.id }}" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+              <iconify-icon icon="solar:add-circle-bold" class="text-base"></iconify-icon>
+              <span>Add Milestone</span>
+            </a>
+            <a href="{% url 'contractor_payment_request' %}" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/15 transition flex items-center gap-2">
+              <iconify-icon icon="solar:bill-list-bold" class="text-base"></iconify-icon>
+              <span>Submit Invoice</span>
+            </a>
           {% endif %}
           {% endif %}
           <a href="{% url 'add_report_issue' %}" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/15 transition flex items-center gap-2">

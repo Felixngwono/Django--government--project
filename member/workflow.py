@@ -32,6 +32,11 @@ def assigned_projects(user):
         return Project.objects.none()
     if user.is_superuser or getattr(user, 'role', '') in OFFICER_ROLES:
         return Project.objects.all()
+    # Contractor accounts must follow the explicit contractor profile and its
+    # project assignments. A shared name, organization string, or project
+    # manager field is not sufficient to grant access to project workspaces.
+    if getattr(user, 'role', '') == 'contractor':
+        return Project.objects.filter(contractors__in=_contractors_for_user(user)).distinct()
     q = Q(participation__user=user, participation__is_active=True)
     if user.full_name:
         q |= Q(project_manager__iexact=user.full_name.strip())
@@ -44,6 +49,26 @@ def _contractors_for_user(user):
     """Find contractor records linked to the user's email, name, or organization."""
     from django.db.models import Q
     from .models import Contractor
+
+    if getattr(user, 'role', '') == 'contractor':
+        email = (user.email or '').strip()
+        matches = Contractor.objects.none()
+        if email:
+            matches = Contractor.objects.filter(email__iexact=email)
+            organization = (user.organization or '').strip()
+            if organization:
+                matches = matches.filter(company__iexact=organization)
+            # A contractor login may resolve to one profile only. Ambiguous
+            # duplicates are held for an official to resolve in the registry.
+            if matches.count() != 1:
+                matches = Contractor.objects.none()
+        # The application is the authoritative identity link when an award
+        # exists; registered company contact details may differ from login email.
+        awarded = Contractor.objects.filter(
+            awarded_tenders__applications__applicant=user,
+            awarded_tenders__applications__status='awarded',
+        )
+        return (matches | awarded).distinct()
 
     query = Q()
     has_identity = False
@@ -233,7 +258,6 @@ def audit(request, action, obj, project=None, changes=None):
 
 from datetime import date
 
-from django.db.models import Max
 from django.utils import timezone
 
 from .models import Project, ProjectStage
@@ -258,28 +282,9 @@ STATUS_RANK = {
 
 def is_forward_transition(old_status, new_status):
     """Allow forward lifecycle changes plus recovery from a resolved delay."""
-    if old_status == "delayed" and new_status in {"ongoing", "upcoming"}:
+    if old_status in {"delayed", "stalled", "suspended"} and new_status in {"ongoing", "upcoming"}:
         return True
     return STATUS_RANK.get(new_status, 0) >= STATUS_RANK.get(old_status or "draft", 0)
-
-# Statuses that mean "work is paused" — the engine won't move them forward
-# on progress alone, but a completion signal still wins.
-PAUSED_STATUSES = {"suspended", "stalled"}
-
-# Ordered workflow: a project whose latest stage is X is treated as at least Y.
-STAGE_TO_STATUS = {
-    "planning": "upcoming",
-    "procurement": "upcoming",
-    "site_clearance": "ongoing",
-    "foundation": "ongoing",
-    "superstructure": "ongoing",
-    "finishing": "ongoing",
-    "inspection": "ongoing",
-    "construction": "ongoing",
-    "completion": "ongoing",
-    "monitoring": "ongoing",
-    "handover": "ongoing",
-}
 
 # Grace period after end_date before an active project counts as delayed.
 DELAY_GRACE_DAYS = 14
@@ -288,66 +293,98 @@ DELAY_GRACE_DAYS = 14
 def compute_status(project):
     """Return the status the project should currently be in, based on its data.
 
-    Priority (highest first):
-      1. Configured stage/milestone completion → 'completed'
-      2. Manual paused states           → kept (suspended/stalled)
-      3. Stage + progress activity      → 'ongoing'
-      4. Overdue end_date               → 'delayed'
-      5. No activity yet                → 'upcoming' (or 'draft' if it never had one)
+    Public projects move from upcoming to ongoing only when contracted work
+    has both been awarded/assigned and begun. Milestones are the source of
+    truth for completion; stage completion is the fallback when no milestones
+    were configured.
     """
     today = timezone.now().date()
 
-    # 1 — completion requires every configured deliverable to be complete.
-    milestones = list(project.milestones.values_list("progress_percentage", flat=True))
+    if project.project_status == "draft" and not project.is_public:
+        return "draft"
+
+    # 1 — every recorded milestone must be complete. Stages are a fallback
+    # only for projects that have no milestone records.
+    milestones = project.milestones.all()
+    has_milestones = milestones.exists()
     stages = ProjectStage.objects.filter(project=project)
     has_stages = stages.exists()
-    has_milestones = bool(milestones)
-    stages_complete = not has_stages or not stages.exclude(status="completed").exists()
-    milestones_complete = not has_milestones or all(p >= 100 for p in milestones)
-    if (has_stages or has_milestones) and stages_complete and milestones_complete:
+    has_contractor = bool(project.project_contractor) or project.contractors.exists()
+    has_award = project.tenders.filter(status="awarded").exists()
+    work_started = (
+        stages.filter(status__in=("in_progress", "completed")).exists()
+        or stages.filter(progress_percentage__gt=0).exists()
+        or project.progress_updates.filter(progress_percentage__gt=0).exists()
+    )
+    active_awarded_work = (has_award or has_contractor) and work_started
+    milestones_complete = has_milestones and not milestones.exclude(status="completed").exists()
+    stages_complete = has_stages and not stages.exclude(status="completed").exists()
+    if milestones_complete or (not has_milestones and stages_complete):
         return "completed"
 
-    # 2 — respect deliberate pauses.
-    if project.project_status in PAUSED_STATUSES:
-        return project.project_status
-    if project.project_status == "delayed":
-        latest_delay = (
-            project.status_history.filter(to_status="delayed")
-            .order_by("-changed_at")
-            .first()
-        )
-        if latest_delay and latest_delay.source != "auto":
-            return "delayed"
-        if not project.end_date or project.end_date < today:
-            return "delayed"
+    # The assigned contractor's latest explicit status is authoritative until
+    # they submit another status. This prevents the daily deadline sweep from
+    # undoing a recovery/update that was just recorded from the work site.
+    assignee_status = project.status_history.filter(
+        source="assignee", to_status__in=("ongoing", "delayed", "stalled", "suspended")
+    ).order_by("-changed_at").first()
+    if assignee_status:
+        return assignee_status.to_status
 
-    # 3 — real work signals: the furthest stage tells us where the project is.
-    latest_stage = (
-        ProjectStage.objects.filter(project=project)
-        .exclude(status="not_started")
-        .exclude(stage_name="others")
-        .order_by("-order", "-id")
-        .values_list("stage_name", flat=True)
-        .first()
+    latest_delay = project.status_history.filter(to_status="delayed").order_by("-changed_at").first()
+    award_reactivation = project.status_history.filter(
+        to_status="ongoing", source="award"
+    ).order_by("-changed_at").first()
+    award_recovery = bool(
+        award_reactivation
+        and (latest_delay is None or award_reactivation.changed_at > latest_delay.changed_at)
+        and project.tenders.filter(status="awarded").exists()
+        and stages.filter(status="in_progress").exists()
     )
-    stage_implied = STAGE_TO_STATUS.get(latest_stage)
-    if stage_implied:
-        return stage_implied
 
-    reported = project.progress_updates.aggregate(value=Max("progress_percentage"))["value"]
-    if reported and reported > 0:
-        return "ongoing"
+    # Suspensions and manually recorded stalls remain visible until changed.
+    # A hold only stalls the project when it is on the current stage; future
+    # stages may be marked on hold during planning without stopping active work.
+    current_stage_on_hold = stages.filter(status="on_hold", is_current=True).exists()
+    if project.project_status == "suspended":
+        return "suspended"
+    if project.project_status == "stalled":
+        last_stall = project.status_history.filter(to_status="stalled").order_by("-changed_at").first()
+        if not last_stall or last_stall.source != "auto" or current_stage_on_hold:
+            return "stalled"
+    if project.project_status == "delayed":
+        if latest_delay and latest_delay.source != "auto" and not award_recovery and not active_awarded_work:
+            return "delayed"
+        if (not project.end_date or project.end_date < today) and not award_recovery and not active_awarded_work:
+            return "delayed"
 
-    # 4 — timeline: overdue but not yet flagged.
-    if project.is_overdue and (today - project.end_date).days > DELAY_GRACE_DAYS:
+    # Explicit delivery information takes precedence over general activity.
+    if current_stage_on_hold:
+        return "stalled"
+    if (
+        stages.filter(status="delayed").exists()
+        or project.milestones.filter(status="missed").exists()
+        or project.milestones.filter(due_date__lt=today).exclude(status="completed").exists()
+    ):
+        return "delayed"
+    if any(stage.is_stage_overdue for stage in stages):
         return "delayed"
 
-    # 5 — nothing happening yet.
-    if project.project_status == "draft":
-        return "draft"
-    if project.start_date and project.start_date <= today:
-        # start date reached with no progress reports → treat as ongoing
+    if (
+        project.end_date
+        and (today - project.end_date).days > DELAY_GRACE_DAYS
+        and not award_recovery
+        and not active_awarded_work
+    ):
+        return "delayed"
+
+    # 2 — a project is ongoing only after a contractor is engaged and work
+    # has actually started. An awarded tender alone remains upcoming.
+    if (has_award or has_contractor) and work_started:
         return "ongoing"
+
+    # Registered public projects stay upcoming until the contract is active
+    # and actual work is recorded; planned dates alone do not start work.
     return "upcoming"
 
 

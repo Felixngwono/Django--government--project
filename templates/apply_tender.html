@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<link rel="stylesheet" href="{% static 'css/dash.css' %}">
+<link rel="stylesheet" href="{% static 'css/dash.css' %}?v=20261118-4">
 <link rel="icon" href="{% static 'images/GOK.png' %}">
 </head>
 <body x-data="overviewApp()" :class="{ 'dark': darkMode }">
@@ -35,6 +35,7 @@
         <div class="mb-8 text-center">
             <h1 class="text-4xl font-bold text-gray-800">Apply for Tender</h1>
             <p class="text-gray-500 mt-2 text-lg">Submit your proposal for the tender below.</p>
+            <p class="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-left text-sm text-indigo-900">This application will be submitted from your signed-in contractor account. If awarded, the tender and award notification will be linked to this account, and the SMS will go to the contractor phone number on your profile.</p>
         </div>
 
         <!-- Tender Info Card -->
