@@ -1,0 +1,7 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "buildAptPackages": ["pkg-config", "libmariadb-dev", "build-essential"],
+  "deploy": {
+    "aptPackages": ["libmariadb3"]
+  }
+}
