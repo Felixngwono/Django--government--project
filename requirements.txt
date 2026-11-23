@@ -1,4 +1,4 @@
-asgiref==3.11.1
+﻿asgiref==3.11.1
 charset-normalizer==3.4.7
 django-widget-tweaks==1.5.1
 djangorestframework==3.17.1
@@ -11,8 +11,8 @@ pdfkit==1.0.0
 pillow==12.2.0
 python-dotenv==1.2.3
 reportlab==4.5.1
-sentence-transformers==6.1.0
 sqlparse==0.5.5
 tzdata==2026.2
 whitenoise==6.8.0
 Django==4.2.30
+certifi

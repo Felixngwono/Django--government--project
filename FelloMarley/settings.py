@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import certifi
 import os
 from pathlib import Path
 
@@ -142,7 +142,6 @@ WSGI_APPLICATION = 'FelloMarley.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -152,8 +151,11 @@ DATABASES = {
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'; SET NAMES utf8mb4",
             'charset': 'utf8mb4',
+            'ssl': {
+                'ca': certifi.where(),
+            },
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }
