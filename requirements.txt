@@ -1,4 +1,4 @@
-﻿asgiref==3.11.1
+asgiref==3.11.1
 charset-normalizer==3.4.7
 django-widget-tweaks==1.5.1
 djangorestframework==3.17.1
