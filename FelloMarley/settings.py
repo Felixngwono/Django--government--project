@@ -205,6 +205,8 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript, Images)
+
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
@@ -218,9 +220,10 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
 # Production hardening (enabled automatically when DEBUG is off)
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
