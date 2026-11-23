@@ -71,7 +71,7 @@
 
 .u-section-1 .u-image-1 {
   min-height: 629px;
-  background-image: url("images/ssss.jpg");
+  background-image: url("../images/bg.jpg");
   background-position: 0% 50%;
   --animation-custom_in-translate_x: 300px;
   --animation-custom_in-translate_y: 0px;
@@ -587,7 +587,7 @@
     margin-right: auto;
   }
 } .u-section-2 {
-  background-image: url("images/cv.png");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
 }
 
@@ -780,7 +780,7 @@
 }
 
 .u-section-3 .u-image-1 {
-  background-image: url("images/mnm-min.png");
+  background-image: url("../images/bg.jpg");
   min-height: 508px;
   background-position: 100% 50%;
   --animation-custom_in-translate_x: -300px;
@@ -1058,7 +1058,7 @@
     font-size: 4.5rem;
   }
 } .u-section-4 {
-  background-image: url("images/cb382335-e445-04d7-a9db-af5280e04681.png");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
 }
 
@@ -1168,7 +1168,7 @@
     padding-right: 10px;
   }
 } .u-section-5 {
-  background-image: url("images/gfgg.png");
+  background-image: url("../images/bg.jpg");
   min-height: 1196px;
   background-position: 50% 50%;
 }
@@ -1188,7 +1188,7 @@
 
 .u-section-5 .u-image-1 {
   min-height: 508px;
-  background-image: url("images/bbbb-min.png");
+  background-image: url("../images/bg.jpg");
   background-position: 0% 50%;
   --animation-custom_in-translate_x: 300px;
   --animation-custom_in-translate_y: 0px;
@@ -1501,7 +1501,7 @@
 .u-section-6 .u-image-1 {
   width: 122px;
   height: 122px;
-  background-image: url("images/w.jpg");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
   --animation-custom_in-translate_x: 50px;
   --animation-custom_in-translate_y: 0px;
@@ -1545,7 +1545,7 @@
 .u-section-6 .u-image-2 {
   width: 122px;
   height: 122px;
-  background-image: url("images/ds.jpg");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
   --animation-custom_in-translate_x: 50px;
   --animation-custom_in-translate_y: 0px;
@@ -1589,7 +1589,7 @@
 .u-section-6 .u-image-3 {
   width: 122px;
   height: 122px;
-  background-image: url("images/hgghgh.jpg");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
   --animation-custom_in-translate_x: 50px;
   --animation-custom_in-translate_y: 0px;
@@ -1633,7 +1633,7 @@
 .u-section-6 .u-image-4 {
   width: 122px;
   height: 122px;
-  background-image: url("images/vb.jpg");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
   --animation-custom_in-translate_x: 50px;
   --animation-custom_in-translate_y: 0px;
@@ -1677,7 +1677,7 @@
 .u-section-6 .u-image-5 {
   width: 122px;
   height: 122px;
-  background-image: url("images/bvbb.jpg");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
   --animation-custom_in-translate_x: 50px;
   --animation-custom_in-translate_y: 0px;
@@ -1721,7 +1721,7 @@
 .u-section-6 .u-image-6 {
   width: 122px;
   height: 122px;
-  background-image: url("images/ghght4.jpg");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
   --animation-custom_in-translate_x: 50px;
   --animation-custom_in-translate_y: 0px;
@@ -1888,7 +1888,7 @@
 }
 
 .u-section-7 .u-image-1 {
-  background-image: url("images/ddd-min.png");
+  background-image: url("../images/bg.jpg");
   min-height: 508px;
   background-position: 100% 50%;
   --animation-custom_in-translate_x: -300px;
@@ -2158,7 +2158,7 @@
     font-size: 4.5rem;
   }
 } .u-section-8 {
-  background-image: url("images/cb382335-e445-04d7-a9db-af5280e04681.png");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 50%;
   min-height: 643px;
 }
@@ -2387,7 +2387,7 @@
     grid-auto-columns: 100%;
   }
 } .u-section-9 {
-  background-image: url("images/bg8.png");
+  background-image: url("../images/bg.jpg");
   background-position: 50% 38.97%;
 }
 
